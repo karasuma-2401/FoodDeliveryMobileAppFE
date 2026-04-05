@@ -8,26 +8,36 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 
 @Composable
-fun RootNavigationGraph(navController: NavHostController) {
+fun RootNavigationGraph(
+    navController: NavHostController,
+    startDestination: Any
+) {
     NavHost(
         navController = navController,
         startDestination = AuthGraph
     ) {
-        authNavGraph(navController = navController)
+        authNavGraph(navController = navController, startDestination = startDestination)
         userNavGraph(navController = navController)
         vendorNavGraph(navController = navController)
     }
 }
 
 // auth graph
-fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
-    navigation<AuthGraph>(startDestination = OnboardingRoute) {
+fun NavGraphBuilder.authNavGraph(
+    navController: NavHostController,
+    startDestination: Any
+) {
+    navigation<AuthGraph>(startDestination = startDestination) {
 
         composable<OnboardingRoute> {
-            Text("Onboarding Screen")
-            //navController.navigate(LoginRoute)
+            OnboardingScreen(onFinishOnboarding = {
+                navController.navigate(LoginRoute) {
+                    popUpTo<OnboardingRoute> { inclusive = true }
+                }
+            })
         }
 
         composable<LoginRoute> {
