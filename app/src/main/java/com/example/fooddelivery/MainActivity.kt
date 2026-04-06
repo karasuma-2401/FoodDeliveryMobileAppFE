@@ -4,15 +4,31 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.compose.rememberNavController
+import com.example.fooddelivery.ui.navigation.RootNavigationGraph
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val mainViewModel: MainViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen();
         super.onCreate(savedInstanceState)
+
+        splashScreen.setKeepOnScreenCondition {
+            mainViewModel.isLoading.value
+        }
         enableEdgeToEdge()
         setContent {
-            DFoodTheme {
-
+            DFoodTheme (darkTheme = false) {
+                val navController = rememberNavController();
+                RootNavigationGraph(
+                    navController = navController,
+                    startDestination = mainViewModel.startDestination.value
+                )
             }
         }
     }
