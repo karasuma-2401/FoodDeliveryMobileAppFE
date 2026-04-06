@@ -33,17 +33,17 @@ val onboardingPages = listOf(
     OnboardingPage(
         imageRes = R.drawable.ic_onboarding_1,
         title = "All your favorites",
-        description = "Get all your loved foods in once place,\n you just place the order we do the rest"
+        description = "All your favorite foods in one place."
     ),
     OnboardingPage(
         imageRes = R.drawable.ic_onboarding_2,
-        title = "Order from choosen chef",
-        description = "Get all your loved foods in once place,\n you just place the order we do the rest"
+        title = "Order from your chosen chef",
+        description = "Pick your favorite chef and enjoy delicious meals."
     ),
     OnboardingPage(
         imageRes = R.drawable.ic_onboarding_3,
         title = "Free delivery offers",
-        description = "Get all your loved foods in once place,\n you just place the order we do the rest"
+        description = "Hot meals delivered to your door — free delivery."
     )
 )
 
@@ -104,6 +104,7 @@ fun OnboardingScreen(
                         onFinishOnboarding()
                     }
                 )
+                Spacer(modifier = Modifier.height(56.dp))
             } else {
                 DFoodButton(
                     text = "NEXT",
@@ -113,14 +114,14 @@ fun OnboardingScreen(
                         }
                     }
                 )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            TextButton(onClick = onFinishOnboarding) {
-                Text(
-                    text = "Skip",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(onClick = onFinishOnboarding) {
+                    Text(
+                        text = "Skip",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
