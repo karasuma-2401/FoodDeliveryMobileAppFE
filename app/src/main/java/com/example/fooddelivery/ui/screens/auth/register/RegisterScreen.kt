@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -108,7 +107,7 @@ fun RegisterScreen(
                 value = state.fullName,
                 onValueChange = viewModel::onFullNameChange,
                 label = "",
-                leadingIcon = { Icon(Icons.Outlined.Person, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)},
+                leadingIcon = { Icon(Icons.Outlined.Person, null)},
                 isError = state.fullNameError?.isNotEmpty() == true,
                 errorMessage = state.fullNameError
             )
@@ -119,7 +118,7 @@ fun RegisterScreen(
                 value = state.email,
                 onValueChange = viewModel::onEmailChange,
                 label = "",
-                leadingIcon = { Icon(Icons.Outlined.Email, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)},
+                leadingIcon = { Icon(Icons.Outlined.Email, null)},
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 isError = state.email?.isNotEmpty() == true,
                 errorMessage = state.emailError
@@ -131,7 +130,7 @@ fun RegisterScreen(
                 value = state.phone,
                 onValueChange = viewModel::onPhoneChange,
                 label = "",
-                leadingIcon = { Icon(Icons.Outlined.Phone, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)},
+                leadingIcon = { Icon(Icons.Outlined.Phone, null)},
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 isError = state.phoneError?.isNotEmpty() == true,
                 errorMessage = state.phoneError
@@ -144,7 +143,7 @@ fun RegisterScreen(
                 onValueChange = viewModel::onPasswordChange,
                 label = "",
                 isPassword = true,
-                leadingIcon = { Icon(Icons.Outlined.Lock, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)},
+                leadingIcon = { Icon(Icons.Outlined.Lock, null)},
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
 
                 isError = state.passwordError?.isNotEmpty() == true,
@@ -157,7 +156,7 @@ fun RegisterScreen(
                 value = state.confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
                 label = "",
-                leadingIcon = { Icon(painterResource(id = R.drawable.ic_lock_reset), null, tint = MaterialTheme.colorScheme.onSurfaceVariant)},
+                leadingIcon = { Icon(painterResource(id = R.drawable.ic_lock_reset), null)},
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 isPassword = true,
                 isError = state.confirmPasswordError?.isNotEmpty() == true,
