@@ -72,7 +72,9 @@ fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
-        composable<ForgotPasswordRoute> { Text("Forgot password") }
+        composable<ForgotPasswordRoute> {
+            Text("Forgot Password")
+        }
         composable<VerificationRoute> { Text("Verification OTP") }
     }
 }
