@@ -24,11 +24,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DFoodTheme (darkTheme = false) {
-                val navController = rememberNavController();
-                RootNavigationGraph(
-                    navController = navController,
-                    startDestination = mainViewModel.startDestination.value
-                )
+                val isLoading = mainViewModel.isLoading.value
+                if (!isLoading) {
+                    val navController = rememberNavController();
+                    RootNavigationGraph(
+                        navController = navController,
+                        startDestination = mainViewModel.startDestination.value
+                    )
+                }
             }
         }
     }

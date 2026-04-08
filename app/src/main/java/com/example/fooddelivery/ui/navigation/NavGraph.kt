@@ -8,6 +8,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
+import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 
 @Composable
@@ -41,18 +43,24 @@ fun NavGraphBuilder.authNavGraph(
         }
 
         composable<LoginRoute> {
-            // trans to user graph and delete auth graph
-            Text("Login Screen")
-            /* Button(onClick = {
-                navController.navigate(UserGraph) {
-                    popUpTo<AuthGraph> { inclusive = true }
-                }
-            }) { Text("Login") }
-            */
+            LoginScreen(
+                onNavigateBack = { navController.popBackStack()},
+                onNavigateToSignUp = { navController.navigate(RegisterRoute) },
+                onNavigateToForgotPassword = { navController.navigate(ForgotPasswordRoute) },
+                onNavigateHome = { navController.navigate(HomeRoute) {
+                    popUpTo<LoginRoute> { inclusive = true}
+                } }
+            )
         }
 
-        composable<RegisterRoute> { Text("Register screen") }
-        composable<ForgotPasswordRoute> { Text("Forgot passowrd") }
+        composable<RegisterRoute> {
+            RegisterScreen(
+                onNavigateBack = { navController.popBackStack()},
+                onNavigateToLogin = { navController.navigate(LoginRoute)
+                }
+            )
+        }
+        composable<ForgotPasswordRoute> { Text("Forgot password") }
         composable<VerificationRoute> { Text("Verification OTP") }
     }
 }
