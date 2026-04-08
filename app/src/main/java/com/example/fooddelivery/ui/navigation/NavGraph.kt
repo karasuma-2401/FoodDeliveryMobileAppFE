@@ -1,7 +1,11 @@
 package com.example.fooddelivery.ui.navigation
 
+import android.app.Activity
+import android.app.Application
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -43,8 +47,14 @@ fun NavGraphBuilder.authNavGraph(
         }
 
         composable<LoginRoute> {
+            val context = LocalContext.current as? Activity
+            BackHandler{
+                context?.finish()
+            }
             LoginScreen(
-                onNavigateBack = { navController.popBackStack()},
+                onNavigateBack = {
+                    context?.finish()
+                },
                 onNavigateToSignUp = { navController.navigate(RegisterRoute) },
                 onNavigateToForgotPassword = { navController.navigate(ForgotPasswordRoute) },
                 onNavigateHome = { navController.navigate(HomeRoute) {
@@ -56,7 +66,9 @@ fun NavGraphBuilder.authNavGraph(
         composable<RegisterRoute> {
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack()},
-                onNavigateToLogin = { navController.navigate(LoginRoute)
+                onNavigateToLogin = { navController.navigate(LoginRoute) {
+                    popUpTo<LoginRoute> { inclusive = true }
+                }
                 }
             )
         }
