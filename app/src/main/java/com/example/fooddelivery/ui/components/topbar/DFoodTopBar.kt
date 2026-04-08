@@ -38,14 +38,14 @@ fun DFoodTopBar (
             IconButton(
                 onClick = onBackClick,
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(8.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "back",
-                    tint = MaterialTheme.colorScheme.onBackground
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         },

@@ -37,7 +37,8 @@ private val LightColorScheme = lightColorScheme(
 
     surfaceVariant = md_theme_light_surfaceVariant,
     onSurfaceVariant = md_theme_light_onSurfaceVariant,
-    outline = md_theme_light_outline
+    outline = md_theme_light_outline,
+    outlineVariant = md_theme_light_outlineVariant
 )
 
 @Composable

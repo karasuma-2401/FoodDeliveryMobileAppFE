@@ -14,7 +14,7 @@ val md_theme_light_secondaryContainer = Color(0xFFFFDBC9)
 val md_theme_light_onSecondaryContainer = Color(0xFF2B160A)
 
 // color for textFields, textFields error
-val md_theme_light_error = Color(0xFFBA1A1A)
+val md_theme_light_error = Color(0xFFE53935)
 val md_theme_light_errorContainer = Color(0xFFFFDAD6)
 val md_theme_light_onError = Color(0xFFFFFFFF)
 val md_theme_light_onErrorContainer = Color(0xFF410002)
@@ -29,3 +29,5 @@ val md_theme_light_onSurface = Color(0xFF32324D) // text in cards
 val md_theme_light_surfaceVariant = Color(0xFFF4DED4) // background for textField
 val md_theme_light_onSurfaceVariant = Color(0xFFA0A5BA) // text holder
 val md_theme_light_outline = Color(0xFF85736B) // Border
+
+val md_theme_light_outlineVariant = Color(0xFFE0E0E0)

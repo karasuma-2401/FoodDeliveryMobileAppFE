@@ -1,13 +1,19 @@
 package com.example.fooddelivery.ui.navigation
 
+import android.app.Activity
+import android.app.Application
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
+import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 
 @Composable
@@ -41,18 +47,32 @@ fun NavGraphBuilder.authNavGraph(
         }
 
         composable<LoginRoute> {
-            // trans to user graph and delete auth graph
-            Text("Login Screen")
-            /* Button(onClick = {
-                navController.navigate(UserGraph) {
-                    popUpTo<AuthGraph> { inclusive = true }
-                }
-            }) { Text("Login") }
-            */
+            val context = LocalContext.current as? Activity
+            BackHandler{
+                context?.finish()
+            }
+            LoginScreen(
+                onNavigateBack = {
+                    context?.finish()
+                },
+                onNavigateToSignUp = { navController.navigate(RegisterRoute) },
+                onNavigateToForgotPassword = { navController.navigate(ForgotPasswordRoute) },
+                onNavigateHome = { navController.navigate(HomeRoute) {
+                    popUpTo<LoginRoute> { inclusive = true}
+                } }
+            )
         }
 
-        composable<RegisterRoute> { Text("Register screen") }
-        composable<ForgotPasswordRoute> { Text("Forgot passowrd") }
+        composable<RegisterRoute> {
+            RegisterScreen(
+                onNavigateBack = { navController.popBackStack()},
+                onNavigateToLogin = { navController.navigate(LoginRoute) {
+                    popUpTo<LoginRoute> { inclusive = true }
+                }
+                }
+            )
+        }
+        composable<ForgotPasswordRoute> { Text("Forgot password") }
         composable<VerificationRoute> { Text("Verification OTP") }
     }
 }

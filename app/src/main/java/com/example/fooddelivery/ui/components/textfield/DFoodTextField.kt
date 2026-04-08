@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import com.example.fooddelivery.R
 
 @Composable
 fun DFoodFTextField (
@@ -26,6 +27,7 @@ fun DFoodFTextField (
     onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
+    leadingIcon: @Composable (() -> Unit)? = null,
     isPassword: Boolean = false,
     isError: Boolean = false,
     errorMessage: String? = null,
@@ -38,11 +40,12 @@ fun DFoodFTextField (
         onValueChange = onValueChange,
         label = { Text(text = label , style = MaterialTheme.typography.bodyMedium)},
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.small,
+        shape = MaterialTheme.shapes.medium,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         singleLine = true,
         isError = isError,
+        leadingIcon = leadingIcon,
         supportingText = {
             if (isError && errorMessage != null) {
                 Text(
@@ -60,9 +63,9 @@ fun DFoodFTextField (
         trailingIcon = {
             if (isPassword) {
                 val image = if (passwordVisible) {
-                    android.R.drawable.ic_menu_view
+                        R.drawable.ic_eye_open
                     } else {
-                    android.R.drawable.ic_secure
+                        R.drawable.ic_eye_close
                 }
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(painter = painterResource(id = image), contentDescription = "Toggle Password")
@@ -70,12 +73,17 @@ fun DFoodFTextField (
             }
         },
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedTextColor = MaterialTheme.colorScheme.surfaceVariant,
-            errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            errorContainerColor = MaterialTheme.colorScheme.surface,
+
             focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = Color.Transparent,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
             errorBorderColor = MaterialTheme.colorScheme.error,
+
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            cursorColor = MaterialTheme.colorScheme.primary
         )
     )
 }
