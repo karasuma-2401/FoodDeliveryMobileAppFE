@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 @Serializable object OnboardingRoute
 @Serializable object LoginRoute
 @Serializable object RegisterRoute
+@Serializable object RegistrationSuccessRoute
 @Serializable object ForgotPasswordRoute
 @Serializable
 data class VerificationRoute(
