@@ -15,6 +15,7 @@ import androidx.navigation.toRoute
 import com.example.fooddelivery.ui.screens.auth.forgot_password.ForgotPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
+import com.example.fooddelivery.ui.screens.auth.register.RegistrationSuccessScreen
 import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
@@ -69,9 +70,30 @@ fun NavGraphBuilder.authNavGraph(
         composable<RegisterRoute> {
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack()},
-                onNavigateToLogin = { navController.navigate(LoginRoute) {
-                    popUpTo<LoginRoute> { inclusive = true }
+                onNavigateToLogin = { navController.popBackStack() },
+                onNavigateToRegistrationSuccess = {
+                    navController.navigate(RegistrationSuccessRoute) {
+                        popUpTo<RegisterRoute> { inclusive = true }
+                    }
                 }
+            )
+        }
+        composable<RegistrationSuccessRoute> {
+            RegistrationSuccessScreen(
+                onStartOrdering = {
+                    navController.navigate(HomeRoute) {
+                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
+                    }
+                },
+                onViewProfile = {
+                    navController.navigate(ProfileRoute) {
+                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
+                    }
+                },
+                onClose = {
+                    navController.navigate(HomeRoute) {
+                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
+                    }
                 }
             )
         }
@@ -92,11 +114,12 @@ fun NavGraphBuilder.authNavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onNavigateToHome = {
+                onNavigateToResetPassword = {
                     navController.navigate(ResetPasswordRoute(email = userEmail))
                 }
             )
         }
+
         composable<ResetPasswordRoute> { backStackEntry ->
             val userEmail = backStackEntry.toRoute<ResetPasswordRoute>().email
 

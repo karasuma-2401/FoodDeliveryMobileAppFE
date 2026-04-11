@@ -54,12 +54,13 @@ import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin:() -> Unit,
+    onNavigateToRegistrationSuccess: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess)
-            onNavigateToLogin()
+            onNavigateToRegistrationSuccess()
     }
 
     Scaffold(

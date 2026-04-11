@@ -34,7 +34,7 @@ import kotlinx.coroutines.delay
 fun VerificationScreen(
     email: String,
     onNavigateBack: () -> Unit,
-    onNavigateToHome: () -> Unit,
+    onNavigateToResetPassword: () -> Unit,
     viewModel: VerificationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
@@ -43,7 +43,7 @@ fun VerificationScreen(
     }
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            onNavigateToHome()
+            onNavigateToResetPassword()
         }
     }
     Scaffold(
@@ -183,7 +183,7 @@ fun VerificationScreenPreview() {
         VerificationScreen(
             email = "leminhthang24012006@gmail.com",
             onNavigateBack = {},
-            onNavigateToHome = {}
+            onNavigateToResetPassword = {}
         )
     }
 }
