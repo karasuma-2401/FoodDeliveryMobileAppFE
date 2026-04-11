@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ResetPasswordState(
+    val email: String = "",
     val newPassword: String = "",
     val confirmPassword: String = "",
 
@@ -25,6 +26,9 @@ class ResetPasswordViewModel @Inject constructor() : ViewModel() {
     private val _state = mutableStateOf(ResetPasswordState())
     val state: State<ResetPasswordState> = _state
 
+    fun setEmail (email: String) {
+        _state.value = _state.value.copy(email = email)
+    }
     fun onNewPasswordChange(newPassword: String) {
         _state.value = _state.value.copy(newPassword = newPassword, passwordError = null)
     }

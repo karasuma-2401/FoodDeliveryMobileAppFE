@@ -24,12 +24,16 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResetPasswordScreen(
+    email: String,
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
     viewModel: ResetPasswordViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
 
+    LaunchedEffect(Unit) {
+        viewModel.setEmail(email)
+    }
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onNavigateToLogin()
@@ -138,6 +142,7 @@ fun ResetPasswordScreen(
 fun resetPasswordScreenPreview() {
     DFoodTheme{
         ResetPasswordScreen(
+            email = "leminhthang24012006@gmail.com",
             onNavigateBack = {},
             onNavigateToLogin = {}
         )

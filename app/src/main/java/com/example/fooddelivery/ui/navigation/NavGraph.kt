@@ -15,6 +15,7 @@ import androidx.navigation.toRoute
 import com.example.fooddelivery.ui.screens.auth.forgot_password.ForgotPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
+import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 
@@ -74,6 +75,7 @@ fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
+
         composable<ForgotPasswordRoute> {
             ForgotPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -82,6 +84,7 @@ fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
+
         composable<VerificationRoute> { backStackEntry ->
             val userEmail = backStackEntry.toRoute<VerificationRoute>().email
             VerificationScreen(
@@ -90,8 +93,19 @@ fun NavGraphBuilder.authNavGraph(
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
-                    navController.navigate(HomeRoute) {
-                        popUpTo<LoginRoute> { inclusive = true }
+                    navController.navigate(ResetPasswordRoute(email = userEmail))
+                }
+            )
+        }
+        composable<ResetPasswordRoute> { backStackEntry ->
+            val userEmail = backStackEntry.toRoute<ResetPasswordRoute>().email
+
+            ResetPasswordScreen(
+                email = userEmail,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToLogin = {
+                    navController.navigate(LoginRoute) {
+                        popUpTo<LoginRoute> { inclusive = false }
                     }
                 }
             )
