@@ -12,12 +12,14 @@ import kotlinx.serialization.Serializable
 @Serializable object LoginRoute
 @Serializable object RegisterRoute
 @Serializable object ForgotPasswordRoute
-
 @Serializable
 data class VerificationRoute(
     val email: String
 )
-
+@Serializable
+data class ResetPasswordRoute (
+    val email: String
+)
 // customer
 @Serializable object HomeRoute
 @Serializable object SearchRoute
