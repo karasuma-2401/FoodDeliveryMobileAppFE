@@ -124,7 +124,6 @@ fun LoginScreen(
                     Icon (
                         imageVector = Icons.Outlined.Phone,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.surfaceVariant
                     )
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -149,7 +148,6 @@ fun LoginScreen(
                     Icon(
                         imageVector = Icons.Outlined.Lock,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

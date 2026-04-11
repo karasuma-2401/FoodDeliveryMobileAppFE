@@ -12,8 +12,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import com.example.fooddelivery.ui.screens.auth.forgot_password.ForgotPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
+import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 
 @Composable
@@ -72,8 +74,28 @@ fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
-        composable<ForgotPasswordRoute> { Text("Forgot password") }
-        composable<VerificationRoute> { Text("Verification OTP") }
+        composable<ForgotPasswordRoute> {
+            ForgotPasswordScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToVerify = { emailInput ->
+                    navController.navigate(VerificationRoute(email = emailInput))
+                }
+            )
+        }
+        composable<VerificationRoute> { backStackEntry ->
+            val userEmail = backStackEntry.toRoute<VerificationRoute>().email
+            VerificationScreen(
+                email = userEmail,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(HomeRoute) {
+                        popUpTo<LoginRoute> { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
 
