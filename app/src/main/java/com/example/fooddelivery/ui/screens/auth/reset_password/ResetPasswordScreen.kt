@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
@@ -24,10 +25,16 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun ResetPasswordScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    viewModel: ResetPasswordViewModel = hiltViewModel()
 ) {
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    val state by viewModel.state
+
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            onNavigateToLogin()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -36,7 +43,6 @@ fun ResetPasswordScreen(
                 onBackClick = onNavigateBack
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -72,10 +78,12 @@ fun ResetPasswordScreen(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             DFoodFTextField(
-                value = newPassword,
-                onValueChange = { newPassword = it },
+                value = state.newPassword,
+                onValueChange = viewModel::onNewPasswordChange,
                 label = "",
                 isPassword = true,
+                isError = state.passwordError != null,
+                errorMessage = state.passwordError,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             )
 
@@ -88,21 +96,19 @@ fun ResetPasswordScreen(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             DFoodFTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                value = state.confirmPassword,
+                onValueChange = viewModel::onConfirmPasswordChange,
                 label = "",
                 isPassword = true,
+                isError = state.passwordError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
             Spacer(modifier = Modifier.height(48.dp))
 
             Button(
-                onClick = {
-                    if (newPassword.isNotBlank() && newPassword == confirmPassword) {
-                        onNavigateToLogin()
-                    }
-                },
+                onClick = viewModel::resetPassword,
+                enabled = !state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -110,7 +116,7 @@ fun ResetPasswordScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text(
-                    text = "RESET PASSWORD",
+                    text = if (state.isLoading) "RESETTING..." else "RESET PASSWORD",
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
