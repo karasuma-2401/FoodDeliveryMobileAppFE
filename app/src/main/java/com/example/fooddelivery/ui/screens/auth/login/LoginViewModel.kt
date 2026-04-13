@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -22,7 +23,8 @@ data class LoginState (
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository : AuthRepository
+    private val authRepository : AuthRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
     private val _state = mutableStateOf(LoginState())
     val state: State<LoginState> = _state
@@ -87,9 +89,11 @@ class LoginViewModel @Inject constructor(
 
             val result = authRepository.login(currentState.phone, currentState.password)
             result.onSuccess { token ->
-                if (currentState.rememberMe) {
-//                    saveTokenLocally(token)
-                }
+                tokenManager.saveAuthData(
+                    token = token,
+                    phone = currentState.phone,
+                    rememberMe = currentState.rememberMe
+                )
 
                 _state.value = _state.value.copy(isLoading = false, isSuccess = true)
             }.onFailure { exception ->
