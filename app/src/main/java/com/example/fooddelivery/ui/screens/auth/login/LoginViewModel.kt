@@ -43,13 +43,14 @@ class LoginViewModel @Inject constructor(
         _state.value = _state.value.copy(rememberMe = checked)
     }
 
+
     private fun validateInput() : Boolean {
         val currentState = _state.value
         var isValid = true
         var phoneError: String? = null
         var passwordError: String? = null
 
-        val phoneRegex = Regex("^(0)(3|5|7|8|9)([0-9]{8})\$")
+        val phoneRegex = Regex("^(0)[35789]([0-9]{8})$")
         if (currentState.phone.isBlank()) {
             phoneError = "Phone number cannot be empty"
             isValid = false
@@ -75,6 +76,29 @@ class LoginViewModel @Inject constructor(
             )
         }
         return  isValid
+    }
+    fun setErrorMessage (message: String) {
+        _state.value = _state.value.copy(errorMessage = message)
+    }
+
+    fun loginWithFacebook(facebookToken: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+            val result = authRepository.loginFacebook(facebookToken)
+            result.onSuccess { token ->
+                tokenManager.saveAuthData(
+                    token = token,
+                    phone = "",
+                    rememberMe = true
+                )
+                _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+            }.onFailure { exception ->
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorMessage = exception.message ?: "Error before connect to Server"
+                )
+            }
+        }
     }
 
     fun login() {

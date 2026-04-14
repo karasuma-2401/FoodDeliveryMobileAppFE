@@ -1,3 +1,5 @@
+import java.io.FileInputStream
+import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,15 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+val fbAppId = localProperties.getProperty("FACEBOOK_APP_ID")
+val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN")
+val fbProtocolScheme = "fb$fbAppId"
+
 
 android {
     namespace = "com.example.fooddelivery"
@@ -19,6 +30,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue("string", "facebook_app_id", fbAppId)
+        resValue("string", "facebook_client_token", fbClientToken)
+        resValue("string", "fb_login_protocol_scheme", fbProtocolScheme)
     }
 
     buildTypes {
@@ -83,4 +98,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    implementation("com.facebook.android:facebook-login:latest.release")
 }

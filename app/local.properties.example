@@ -1,0 +1,8 @@
+# ĐỌC KXY HƯỚNG DẪN SỬ DỤNG TRƯỚC KHI DÙNG
+# Hãy copy các dòng dưới đây vào file local.properties trong máy của BẢN THÂN và điền Key thật vào.
+
+sdk.dir=.... // KHÔNG QUAN TÂM
+
+FACEBOOK_APP_ID=ĐIỀN_APP_ID_VÀO_ĐÂY
+FACEBOOK_CLIENT_TOKEN=ĐIỀN_CLIENT_TOKEN_VÀO_ĐÂY
+
