@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.screens.auth.login
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,8 +29,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +44,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 
 @OptIn (ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +59,31 @@ fun LoginScreen(
     onNavigateHome: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
+    val callbackManager = remember { CallbackManager.Factory.create() }
+    val facebookLauncher = rememberLauncherForActivityResult(
+        contract = LoginManager.getInstance().createLogInActivityResultContract(callbackManager, null)
+    ) { result ->
+    }
+    DisposableEffect(Unit) {
+        val callback = object: FacebookCallback<LoginResult> {
+            override fun onSuccess(result: LoginResult) {
+                val fbToken = result.accessToken.token
+                viewModel.loginWithFacebook(fbToken)
+            }
+            override fun onCancel() {
+                viewModel.setErrorMessage("Login with facebook canceled")
+            }
+            override fun onError(error: FacebookException) {
+                viewModel.setErrorMessage("Error Facebook: ${error.message}")
+            }
+        }
+        LoginManager.getInstance().registerCallback(callbackManager, callback)
+
+        onDispose {
+            LoginManager.getInstance().unregisterCallback(callbackManager)
+        }
+    }
+
     val state by viewModel.state
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess)
@@ -214,7 +247,12 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                LoginSocialButton(iconRes = R.drawable.ic_facebook)
+                LoginSocialButton(
+                    iconRes = R.drawable.ic_facebook,
+                    onClick = {
+                        facebookLauncher.launch(listOf("email", "public_profile"))
+                    }
+                )
                 Spacer(modifier = Modifier.width(16.dp))
                 LoginSocialButton(iconRes = R.drawable.ic_x_twitter)
             }
@@ -244,13 +282,16 @@ fun LoginScreen(
 }
 
 @Composable
-fun LoginSocialButton (iconRes: Int) {
+fun LoginSocialButton (
+    iconRes: Int,
+    onClick: () -> Unit = {}
+) {
     Box(
         modifier = Modifier
             .size(56.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable { },
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
