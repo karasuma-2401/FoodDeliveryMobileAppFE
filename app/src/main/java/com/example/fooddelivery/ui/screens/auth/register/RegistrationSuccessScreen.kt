@@ -190,14 +190,14 @@ fun RegistrationSuccessScreen(
         }
     }
 }
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun RegistrationSuccessScreenPreview() {
-    DFoodTheme{
-        RegistrationSuccessScreen(
-            onStartOrdering = {},
-            onViewProfile = {},
-            onClose = {}
-        )
-    }
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun RegistrationSuccessScreenPreview() {
+//    DFoodTheme{
+//        RegistrationSuccessScreen(
+//            onStartOrdering = {},
+//            onViewProfile = {},
+//            onClose = {}
+//        )
+//    }
+//}
