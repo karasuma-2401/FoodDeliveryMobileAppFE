@@ -122,7 +122,8 @@ class RegisterViewModel @Inject constructor(
                 fullName = currentState.fullName,
                 email = currentState.email,
                 phone = currentState.phone,
-                password = currentState.password
+                password = currentState.password,
+                agreeToTerms = currentState.agreeToTerms
             )
             
             result.onSuccess {
@@ -130,7 +131,7 @@ class RegisterViewModel @Inject constructor(
             }.onFailure { exception ->
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    errorMessage = exception.message
+                    errorMessage = exception.message ?: "Registration failed. Please try again."
                 )
             }
         }
