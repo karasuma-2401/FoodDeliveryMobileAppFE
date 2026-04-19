@@ -36,6 +36,7 @@ fun ForgotPasswordScreen(
 ) {
     val state by viewModel.state
 
+
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess)
             onNavigateToVerify(state.email)
@@ -142,16 +143,5 @@ fun ForgotPasswordScreen(
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ForgotPasswordScreenPreview() {
-    DFoodTheme {
-        ForgotPasswordScreen(
-            onNavigateBack = {},
-            onNavigateToVerify = {}
-        )
     }
 }

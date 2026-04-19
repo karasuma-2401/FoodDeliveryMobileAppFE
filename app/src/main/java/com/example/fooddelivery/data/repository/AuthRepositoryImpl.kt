@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AuthApi
 import com.example.fooddelivery.data.remote.dto.FacebookLoginRequest
+import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
 import com.example.fooddelivery.data.remote.dto.LoginRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.domain.repository.AuthRepository
@@ -70,6 +71,20 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Cannot connect to server! Please check out again: ${e.message ?: e.toString()}"))
+        }
+    }
+
+    override suspend fun sendResetPasswordCode(email: String): Result<Unit> {
+        return try {
+            val response = api.forgotPassword(ForgotPasswordRequest(email))
+            if (response.isSuccessful && response.body()?.isSuccess == true) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Failed to send reset code"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
         }
     }
 }
