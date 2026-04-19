@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.domain.repository.AuthRepository
+import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,7 +25,8 @@ data class LoginState (
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository : AuthRepository,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val validateInputUseCase: ValidateAuthInputUseCase
 ) : ViewModel() {
     private val _state = mutableStateOf(LoginState())
     val state: State<LoginState> = _state
@@ -46,36 +48,17 @@ class LoginViewModel @Inject constructor(
 
     private fun validateInput() : Boolean {
         val currentState = _state.value
-        var isValid = true
-        var phoneError: String? = null
-        var passwordError: String? = null
+        val phoneError = validateInputUseCase.validatePhone(currentState.phone)
+        val passwordError = validateInputUseCase.validatePassword(currentState.password)
 
-        val phoneRegex = Regex("^(0)[35789]([0-9]{8})$")
-        if (currentState.phone.isBlank()) {
-            phoneError = "Phone number cannot be empty"
-            isValid = false
-        }
-        else if (!currentState.phone.matches(phoneRegex)) {
-            phoneError = "Invalid phone number format"
-            isValid = false
-        }
-
-        if (currentState.password.isBlank()) {
-            passwordError = "Password cannot be empty"
-            isValid = false
-        }
-        else if (currentState.password.length < 6) {
-            passwordError = "Password must be at least 6 characters"
-            isValid = false
-        }
-
-        if (!isValid) {
+        val hasError = listOf(phoneError, passwordError).any { it != null}
+        if (hasError) {
             _state.value = currentState.copy(
                 phoneError = phoneError,
                 passwordError = passwordError
             )
         }
-        return  isValid
+        return !hasError
     }
     fun setErrorMessage (message: String) {
         _state.value = _state.value.copy(errorMessage = message)

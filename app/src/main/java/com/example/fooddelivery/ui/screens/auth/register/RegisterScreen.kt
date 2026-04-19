@@ -1,20 +1,16 @@
 package com.example.fooddelivery.ui.screens.auth.register
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -35,7 +31,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -46,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.button.SocialButton
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 
@@ -211,9 +207,9 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                RegisterSocialButton(iconRes = R.drawable.ic_facebook)
+                SocialButton(iconRes = R.drawable.ic_facebook)
                 Spacer(modifier = Modifier.width(16.dp))
-                RegisterSocialButton(iconRes = R.drawable.ic_x_twitter)
+                SocialButton(iconRes = R.drawable.ic_x_twitter)
             }
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -241,34 +237,3 @@ fun RegisterScreen(
         }
     }
 }
-
-@Composable
-fun RegisterSocialButton(iconRes: Int) {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .border(color = MaterialTheme.colorScheme.outlineVariant, width = 1.dp, shape = RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable { },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onBackground
-        )
-    }
-}
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun RegisterScreenPreview(modifier: Modifier = Modifier) {
-//    DFoodTheme(darkTheme = false) {
-//        RegisterScreen(
-//            onNavigateBack = {},
-//            onNavigateToLogin = {}
-//        )
-//    }
-//}
