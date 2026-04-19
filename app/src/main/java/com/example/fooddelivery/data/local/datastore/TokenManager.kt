@@ -29,9 +29,11 @@ class TokenManager @Inject constructor (
         context.userPrefDataStore.edit { preferences ->
             preferences[TOKEN_KEY] = token
             if (rememberMe) {
+                preferences[TOKEN_KEY] = token
                 preferences[PHONE_KEY] = phone
                 preferences[REMEMBER_ME_KEY] = true
             } else {
+                preferences.remove(TOKEN_KEY)
                 preferences.remove(PHONE_KEY)
                 preferences[REMEMBER_ME_KEY] = false
             }
