@@ -12,11 +12,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun SocialButton (
     iconRes: Int,
+    contentDescription: String? = null,
+    enabled: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     Box(
@@ -24,14 +27,19 @@ fun SocialButton (
             .size(56.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable { onClick() },
+            .clickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(id = iconRes),
-            contentDescription = null,
+            contentDescription = contentDescription,
             modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onBackground
+            tint = if(enabled) MaterialTheme.colorScheme.onBackground
+                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         )
     }
 }

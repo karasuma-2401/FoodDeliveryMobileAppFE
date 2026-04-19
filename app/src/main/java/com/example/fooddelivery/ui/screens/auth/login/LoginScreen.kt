@@ -229,10 +229,15 @@ fun LoginScreen(
             ) {
                 SocialButton(
                     iconRes = R.drawable.ic_facebook,
+                    contentDescription = "Log in with facebook",
                     onClick = triggerFacebookLogin
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                SocialButton(iconRes = R.drawable.ic_x_twitter)
+                SocialButton(
+                    iconRes = R.drawable.ic_x_twitter,
+                    contentDescription = "Log in with twitter",
+                    enabled = false
+                )
             }
 
             Spacer(modifier = Modifier.height(48.dp))

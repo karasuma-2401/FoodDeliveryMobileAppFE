@@ -15,7 +15,7 @@ class LoginWithFacebookUseCase @Inject constructor(
             tokenManager.saveAuthData(
                 token = token,
                 phone = "",
-                rememberMe = true
+                rememberMe = false
             )
         }
     }
