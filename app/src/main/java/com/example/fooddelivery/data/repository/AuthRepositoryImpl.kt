@@ -28,7 +28,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            Result.failure(Exception("Cannot connect to server ! Please check out again" + e.message))
+            Result.failure(Exception("Cannot connect to server! Please check out again: ${e.message ?: e.toString()}"))
         }
     }
 
@@ -47,7 +47,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            Result.failure(e)
+            Result.failure(Exception("Failed to login with facebook: ${e.message ?: e.toString()}"))
         }
     }
 
@@ -69,7 +69,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            Result.failure(Exception("Cannot connect to server ! Please check out again" + e.message))
+            Result.failure(Exception("Cannot connect to server! Please check out again: ${e.message ?: e.toString()}"))
         }
     }
 }

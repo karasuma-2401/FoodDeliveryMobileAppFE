@@ -28,6 +28,7 @@ data class RegisterState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSuccess: Boolean = false,
+    val isFacebookAuthSuccess: Boolean = false
 )
 
 @HiltViewModel
@@ -92,7 +93,7 @@ class RegisterViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
             val result = loginWithFacebookUseCase(facebookToken)
             result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+                _state.value = _state.value.copy(isLoading = false, isFacebookAuthSuccess = true)
             }.onFailure { exception ->
                 _state.value = _state.value.copy(
                     isLoading = false,
@@ -105,6 +106,11 @@ class RegisterViewModel @Inject constructor(
     fun register() {
         if (!validateInput()) return
         val currentState = _state.value
+
+        if (!currentState.agreeToTerms) {
+            _state.value = currentState.copy(errorMessage = "You must accept the Terms of Service and Privacy Policy.")
+            return
+        }
 
         viewModelScope.launch {
             _state.value = currentState.copy(

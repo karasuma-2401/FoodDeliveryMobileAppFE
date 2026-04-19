@@ -3,6 +3,7 @@ package com.example.fooddelivery.ui.utils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -17,6 +18,10 @@ fun rememberFacebookLoginLauncher(
     onCancel: () -> Unit,
     onError: (String) -> Unit,
 ): () -> Unit {
+    val currentOnSuccess by androidx.compose.runtime.rememberUpdatedState(onSuccess)
+    val currentOnCancel by androidx.compose.runtime.rememberUpdatedState(onCancel)
+    val currentOnError by androidx.compose.runtime.rememberUpdatedState(onError)
+
     val callbackManager = remember { CallbackManager.Factory.create() }
     val facebookLauncher = rememberLauncherForActivityResult(
         contract = LoginManager.getInstance().createLogInActivityResultContract(callbackManager, null)
@@ -24,15 +29,9 @@ fun rememberFacebookLoginLauncher(
     }
     DisposableEffect(Unit) {
         val callback = object: FacebookCallback<LoginResult> {
-            override fun onSuccess(result: LoginResult) {
-                onSuccess(result.accessToken.token)
-            }
-            override fun onCancel() {
-                onCancel()
-            }
-            override fun onError(error: FacebookException) {
-                onError(error.message ?: "Error from Facebook")
-            }
+            override fun onSuccess(result: LoginResult) { currentOnSuccess(result.accessToken.token) }
+            override fun onCancel() { currentOnCancel() }
+            override fun onError(error: FacebookException) { currentOnError(error.message ?: "Error from facebook") }
         }
         LoginManager.getInstance().registerCallback(callbackManager, callback)
 
