@@ -47,6 +47,7 @@ import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import com.example.fooddelivery.ui.components.button.SocialButton
+import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 
 @OptIn (ExperimentalMaterial3Api::class)
 @Composable
@@ -57,30 +58,11 @@ fun LoginScreen(
     onNavigateHome: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val callbackManager = remember { CallbackManager.Factory.create() }
-    val facebookLauncher = rememberLauncherForActivityResult(
-        contract = LoginManager.getInstance().createLogInActivityResultContract(callbackManager, null)
-    ) { result ->
-    }
-    DisposableEffect(Unit) {
-        val callback = object: FacebookCallback<LoginResult> {
-            override fun onSuccess(result: LoginResult) {
-                val fbToken = result.accessToken.token
-                viewModel.loginWithFacebook(fbToken)
-            }
-            override fun onCancel() {
-                viewModel.setErrorMessage("Login with facebook canceled")
-            }
-            override fun onError(error: FacebookException) {
-                viewModel.setErrorMessage("Error Facebook: ${error.message}")
-            }
-        }
-        LoginManager.getInstance().registerCallback(callbackManager, callback)
-
-        onDispose {
-            LoginManager.getInstance().unregisterCallback(callbackManager)
-        }
-    }
+    val triggerFacebookLogin = rememberFacebookLoginLauncher(
+        onSuccess = { token -> viewModel.loginWithFacebook(token) },
+        onCancel = { viewModel.setErrorMessage("Cancelled login with facebook") },
+        onError = { errorMsg -> viewModel.setErrorMessage("Facebook error: $errorMsg") }
+    )
 
     val state by viewModel.state
     LaunchedEffect(state.isSuccess) {
@@ -247,9 +229,7 @@ fun LoginScreen(
             ) {
                 SocialButton(
                     iconRes = R.drawable.ic_facebook,
-                    onClick = {
-                        facebookLauncher.launch(listOf("email", "public_profile"))
-                    }
+                    onClick = triggerFacebookLogin
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 SocialButton(iconRes = R.drawable.ic_x_twitter)
@@ -278,18 +258,3 @@ fun LoginScreen(
         }
     }
 }
-
-
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun LoginScreenPreview() {
-//    DFoodTheme{
-//        LoginScreen(
-//            onNavigateBack = {},
-//            onNavigateToSignUp = {},
-//            onNavigateToForgotPassword = {},
-//            onNavigateHome = {}
-//        )
-//    }
-//}

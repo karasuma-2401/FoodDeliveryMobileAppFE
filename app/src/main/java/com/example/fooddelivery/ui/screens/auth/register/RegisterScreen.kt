@@ -44,6 +44,7 @@ import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.button.SocialButton
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +55,12 @@ fun RegisterScreen(
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
+
+    val triggerFacebookLogin = rememberFacebookLoginLauncher(
+        onSuccess = { token -> viewModel.loginWithFacebook(token) },
+        onCancel = { viewModel.setErrorMessage("Cancelled login with facebook") },
+        onError = { errorMsg -> viewModel.setErrorMessage("Facebook error: $errorMsg") }
+    )
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess)
             onNavigateToRegistrationSuccess()
@@ -207,7 +214,10 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                SocialButton(iconRes = R.drawable.ic_facebook)
+                SocialButton(
+                    iconRes = R.drawable.ic_facebook,
+                    onClick = triggerFacebookLogin
+                )
                 Spacer(modifier = Modifier.width(16.dp))
                 SocialButton(iconRes = R.drawable.ic_x_twitter)
             }
