@@ -4,7 +4,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -35,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.R
 import androidx.compose.ui.res.painterResource
@@ -49,6 +46,8 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
+import com.example.fooddelivery.ui.components.button.SocialButton
+import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 
 @OptIn (ExperimentalMaterial3Api::class)
 @Composable
@@ -59,30 +58,11 @@ fun LoginScreen(
     onNavigateHome: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val callbackManager = remember { CallbackManager.Factory.create() }
-    val facebookLauncher = rememberLauncherForActivityResult(
-        contract = LoginManager.getInstance().createLogInActivityResultContract(callbackManager, null)
-    ) { result ->
-    }
-    DisposableEffect(Unit) {
-        val callback = object: FacebookCallback<LoginResult> {
-            override fun onSuccess(result: LoginResult) {
-                val fbToken = result.accessToken.token
-                viewModel.loginWithFacebook(fbToken)
-            }
-            override fun onCancel() {
-                viewModel.setErrorMessage("Login with facebook canceled")
-            }
-            override fun onError(error: FacebookException) {
-                viewModel.setErrorMessage("Error Facebook: ${error.message}")
-            }
-        }
-        LoginManager.getInstance().registerCallback(callbackManager, callback)
-
-        onDispose {
-            LoginManager.getInstance().unregisterCallback(callbackManager)
-        }
-    }
+    val triggerFacebookLogin = rememberFacebookLoginLauncher(
+        onSuccess = { token -> viewModel.loginWithFacebook(token) },
+        onCancel = { viewModel.setErrorMessage("Cancelled login with facebook") },
+        onError = { errorMsg -> viewModel.setErrorMessage("Facebook error: $errorMsg") }
+    )
 
     val state by viewModel.state
     LaunchedEffect(state.isSuccess) {
@@ -247,14 +227,17 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                LoginSocialButton(
+                SocialButton(
                     iconRes = R.drawable.ic_facebook,
-                    onClick = {
-                        facebookLauncher.launch(listOf("email", "public_profile"))
-                    }
+                    contentDescription = "Log in with facebook",
+                    onClick = triggerFacebookLogin
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                LoginSocialButton(iconRes = R.drawable.ic_x_twitter)
+                SocialButton(
+                    iconRes = R.drawable.ic_x_twitter,
+                    contentDescription = "Log in with twitter",
+                    enabled = false
+                )
             }
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -280,38 +263,3 @@ fun LoginScreen(
         }
     }
 }
-
-@Composable
-fun LoginSocialButton (
-    iconRes: Int,
-    onClick: () -> Unit = {}
-) {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onBackground
-        )
-    }
-}
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun LoginScreenPreview() {
-//    DFoodTheme{
-//        LoginScreen(
-//            onNavigateBack = {},
-//            onNavigateToSignUp = {},
-//            onNavigateToForgotPassword = {},
-//            onNavigateHome = {}
-//        )
-//    }
-//}

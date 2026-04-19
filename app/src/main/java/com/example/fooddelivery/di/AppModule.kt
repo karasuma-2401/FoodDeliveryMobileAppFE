@@ -2,7 +2,7 @@ package com.example.fooddelivery.di
 
 import com.example.fooddelivery.data.remote.api.AuthApi
 import com.example.fooddelivery.domain.repository.AuthRepository
-import com.example.fooddelivery.domain.repository.AuthRepositoryImpl
+import com.example.fooddelivery.data.repository.AuthRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

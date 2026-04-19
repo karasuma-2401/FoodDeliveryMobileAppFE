@@ -4,17 +4,18 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fooddelivery.data.local.datastore.TokenManager
-import com.example.fooddelivery.domain.repository.AuthRepository
+import com.example.fooddelivery.domain.usecase.LoginUseCase
+import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
+import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class LoginState (
     val phone: String = "",
-    val phoneError: String? = "",
+    val phoneError: String? = null,
     val password: String = "",
-    val passwordError: String? ="",
+    val passwordError: String? = null,
     val rememberMe: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
@@ -23,8 +24,9 @@ data class LoginState (
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository : AuthRepository,
-    private val tokenManager: TokenManager
+    private val loginUseCase: LoginUseCase,
+    private val validateInputUseCase: ValidateAuthInputUseCase,
+    private val loginWithFacebookUseCase: LoginWithFacebookUseCase
 ) : ViewModel() {
     private val _state = mutableStateOf(LoginState())
     val state: State<LoginState> = _state
@@ -43,40 +45,21 @@ class LoginViewModel @Inject constructor(
         _state.value = _state.value.copy(rememberMe = checked)
     }
 
-
     private fun validateInput() : Boolean {
         val currentState = _state.value
-        var isValid = true
-        var phoneError: String? = null
-        var passwordError: String? = null
+        val phoneError = validateInputUseCase.validatePhone(currentState.phone)
+        val passwordError = validateInputUseCase.validatePassword(currentState.password)
 
-        val phoneRegex = Regex("^(0)[35789]([0-9]{8})$")
-        if (currentState.phone.isBlank()) {
-            phoneError = "Phone number cannot be empty"
-            isValid = false
-        }
-        else if (!currentState.phone.matches(phoneRegex)) {
-            phoneError = "Invalid phone number format"
-            isValid = false
-        }
-
-        if (currentState.password.isBlank()) {
-            passwordError = "Password cannot be empty"
-            isValid = false
-        }
-        else if (currentState.password.length < 6) {
-            passwordError = "Password must be at least 6 characters"
-            isValid = false
-        }
-
-        if (!isValid) {
+        val hasError = listOf(phoneError, passwordError).any { it != null}
+        if (hasError) {
             _state.value = currentState.copy(
                 phoneError = phoneError,
                 passwordError = passwordError
             )
         }
-        return  isValid
+        return !hasError
     }
+
     fun setErrorMessage (message: String) {
         _state.value = _state.value.copy(errorMessage = message)
     }
@@ -84,18 +67,13 @@ class LoginViewModel @Inject constructor(
     fun loginWithFacebook(facebookToken: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
-            val result = authRepository.loginFacebook(facebookToken)
-            result.onSuccess { token ->
-                tokenManager.saveAuthData(
-                    token = token,
-                    phone = "",
-                    rememberMe = true
-                )
+            val result = loginWithFacebookUseCase(facebookToken)
+            result.onSuccess {
                 _state.value = _state.value.copy(isLoading = false, isSuccess = true)
             }.onFailure { exception ->
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    errorMessage = exception.message ?: "Error before connect to Server"
+                    errorMessage = exception.message ?: "Login with Facebook failed"
                 )
             }
         }
@@ -111,14 +89,13 @@ class LoginViewModel @Inject constructor(
                 errorMessage = null,
             )
 
-            val result = authRepository.login(currentState.phone, currentState.password)
-            result.onSuccess { token ->
-                tokenManager.saveAuthData(
-                    token = token,
-                    phone = currentState.phone,
-                    rememberMe = currentState.rememberMe
-                )
-
+            val result = loginUseCase(
+                phone = currentState.phone,
+                password = currentState.password,
+                rememberMe = currentState.rememberMe
+            )
+            
+            result.onSuccess {
                 _state.value = _state.value.copy(isLoading = false, isSuccess = true)
             }.onFailure { exception ->
                 _state.value = _state.value.copy(
