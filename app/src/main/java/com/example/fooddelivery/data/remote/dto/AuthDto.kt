@@ -7,16 +7,12 @@ data class LoginRequest (
     val phone: String,
     val password: String,
 )
+
 @Serializable
 data class FacebookLoginRequest (
     val accessToken: String
 )
-@Serializable
-data class LoginResponse (
-    val token: String? = null,
-    val message: String? = null,
-    val isSuccess: Boolean,
-)
+
 @Serializable
 data class RegisterRequest (
     val fullName: String,
@@ -24,9 +20,27 @@ data class RegisterRequest (
     val phone: String,
     val password: String
 )
+
 @Serializable
-data class RegisterResponse (
+data class ForgotPasswordRequest(
+    val email: String
+)
+
+@Serializable
+data class ResetPasswordRequest(
+    val email: String,
+    val resetCode: String,
+    val newPass: String
+)
+
+@Serializable
+data class AuthResponse (
     val token: String? = null,
     val message: String? = null,
     val isSuccess: Boolean,
 )
+
+typealias LoginResponse = AuthResponse
+typealias RegisterResponse = AuthResponse
+typealias ForgotPasswordResponse = AuthResponse
+typealias ResetPasswordResponse = AuthResponse
