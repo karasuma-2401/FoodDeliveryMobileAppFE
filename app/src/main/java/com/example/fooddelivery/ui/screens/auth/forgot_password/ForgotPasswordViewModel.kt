@@ -49,22 +49,18 @@ class ForgotPasswordViewModel @Inject constructor(
         _state.value = _state.value.copy(isLoading = true, errorMessage = null)
 
         viewModelScope.launch {
-            try {
-                val result = sendResetPasswordCodeUseCase(submittedEmail)
-                
-                result.onSuccess {
-                    _state.value = _state.value.copy(
-                        isLoading = false, 
-                        successEmail = submittedEmail
-                    )
-                }.onFailure { exception ->
-                    _state.value = _state.value.copy(
-                        isLoading = false, 
-                        errorMessage = exception.message ?: "Failed to send reset code"
-                    )
-                }
-            } finally {
-                _state.value = _state.value.copy(isLoading = false)
+            val result = sendResetPasswordCodeUseCase(submittedEmail)
+            
+            result.onSuccess {
+                _state.value = _state.value.copy(
+                    isLoading = false, 
+                    successEmail = submittedEmail
+                )
+            }.onFailure { exception ->
+                _state.value = _state.value.copy(
+                    isLoading = false, 
+                    errorMessage = exception.message ?: "Failed to send reset code"
+                )
             }
         }
     }

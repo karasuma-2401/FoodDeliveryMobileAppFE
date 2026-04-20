@@ -15,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -143,6 +142,9 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            val primaryColor = MaterialTheme.colorScheme.primary
+            val contentColor = contentColorFor(primaryColor)
+
             Button(
                 onClick = {
                     focusManager.clearFocus()
@@ -154,17 +156,17 @@ fun ForgotPasswordScreen(
                     .height(56.dp),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                    contentColor = Color.White,
-                    disabledContentColor = Color.White.copy(alpha = 0.6f)
+                    containerColor = primaryColor,
+                    disabledContainerColor = primaryColor.copy(alpha = 0.6f),
+                    contentColor = contentColor,
+                    disabledContentColor = contentColor.copy(alpha = 0.6f)
                 ),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = Color.White,
+                        color = LocalContentColor.current,
                         strokeWidth = 3.dp
                     )
                 } else {
