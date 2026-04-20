@@ -40,10 +40,14 @@ fun ForgotPasswordScreen(
     val snackBarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess)
-            onNavigateToVerify(state.email)
+    // Xử lý điều hướng một lần (One-shot navigation)
+    LaunchedEffect(state.successEmail) {
+        state.successEmail?.let { email ->
+            onNavigateToVerify(email)
+            viewModel.clearSuccessEmail()
+        }
     }
+
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             snackBarHostState.showSnackbar(it)
@@ -151,7 +155,6 @@ fun ForgotPasswordScreen(
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    // Fix lỗi chớp màu trắng khi bị disabled:
                     disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                     contentColor = Color.White,
                     disabledContentColor = Color.White.copy(alpha = 0.6f)

@@ -25,11 +25,11 @@ class AuthRepositoryImpl @Inject constructor(
                     Result.failure(Exception(body?.message ?: "Login failed from server"))
                 }
             } else {
-                Result.failure(Exception("Error server: ${response.code()}"))
+                Result.failure(Exception("Server error: ${response.code()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            Result.failure(Exception("Cannot connect to server! Please check out again: ${e.message ?: e.toString()}"))
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
         }
     }
 
@@ -48,7 +48,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            Result.failure(Exception("Failed to login with facebook: ${e.message ?: e.toString()}"))
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
         }
     }
 
@@ -66,11 +66,11 @@ class AuthRepositoryImpl @Inject constructor(
                 }
             }
             else {
-                Result.failure(Exception("Error server: ${response.code()}"))
+                Result.failure(Exception("Server error: ${response.code()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            Result.failure(Exception("Cannot connect to server! Please check out again: ${e.message ?: e.toString()}"))
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
         }
     }
 
@@ -84,7 +84,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            Result.failure(e)
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
         }
     }
 }

@@ -14,7 +14,7 @@ data class ForgotPasswordState(
     val email: String = "",
     val emailError: String? = null,
     val isLoading: Boolean = false,
-    val isSuccess: Boolean = false,
+    val successEmail: String? = null,
     val errorMessage: String? = null
 )
 
@@ -37,23 +37,34 @@ class ForgotPasswordViewModel @Inject constructor(
         return emailError == null
     }
 
+    fun clearSuccessEmail() {
+        _state.value = _state.value.copy(successEmail = null)
+    }
+
     fun sendResetCode() {
+        if (_state.value.isLoading) return
         if (!validateInput()) return
 
-        val email = _state.value.email
+        val submittedEmail = _state.value.email
+        _state.value = _state.value.copy(isLoading = true, errorMessage = null)
 
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, errorMessage = null)
-            
-            val result = sendResetPasswordCodeUseCase(email)
-            
-            result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isSuccess = true)
-            }.onFailure { exception ->
-                _state.value = _state.value.copy(
-                    isLoading = false, 
-                    errorMessage = exception.message ?: "Failed to send reset code"
-                )
+            try {
+                val result = sendResetPasswordCodeUseCase(submittedEmail)
+                
+                result.onSuccess {
+                    _state.value = _state.value.copy(
+                        isLoading = false, 
+                        successEmail = submittedEmail
+                    )
+                }.onFailure { exception ->
+                    _state.value = _state.value.copy(
+                        isLoading = false, 
+                        errorMessage = exception.message ?: "Failed to send reset code"
+                    )
+                }
+            } finally {
+                _state.value = _state.value.copy(isLoading = false)
             }
         }
     }
