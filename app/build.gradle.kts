@@ -1,5 +1,3 @@
-import java.io.FileInputStream
-import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,15 +6,6 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
-}
-val fbAppId = localProperties.getProperty("FACEBOOK_APP_ID")
-val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN")
-val fbProtocolScheme = "fb$fbAppId"
-
 
 android {
     namespace = "com.example.fooddelivery"
@@ -30,10 +19,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        resValue("string", "facebook_app_id", fbAppId)
-        resValue("string", "facebook_client_token", fbClientToken)
-        resValue("string", "fb_login_protocol_scheme", fbProtocolScheme)
     }
 
     buildTypes {
@@ -68,7 +53,10 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -98,6 +86,4 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
-
-    implementation("com.facebook.android:facebook-login:latest.release")
 }
