@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DFood</string>
+    <string name="dashboard_location">Location</string>
 </resources>
