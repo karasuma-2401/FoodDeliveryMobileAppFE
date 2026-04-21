@@ -56,10 +56,19 @@ fun DashboardContent(
             Spacer(modifier = Modifier.height(20.dp))
 
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatCard("RUNNING ORDERS", state.runningOrders)
-                StatCard("ORDER REQUEST", state.orderRequest)
+                StatCard(
+                    title = "RUNNING ORDERS",
+                    value = state.runningOrders,
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = "ORDER REQUEST",
+                    value = state.orderRequest,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))

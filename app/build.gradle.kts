@@ -13,8 +13,8 @@ val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
-val fbAppId = localProperties.getProperty("FACEBOOK_APP_ID")
-val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN")
+val fbAppId = localProperties.getProperty("FACEBOOK_APP_ID") ?: ""
+val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN") ?: ""
 val fbProtocolScheme = "fb$fbAppId"
 
 

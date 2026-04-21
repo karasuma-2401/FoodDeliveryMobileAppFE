@@ -1,17 +1,24 @@
 package com.example.fooddelivery.ui.components.card
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-@Composable
 
-fun StatCard(title: String, value: Int) {
+@Composable
+fun StatCard(
+    title: String,
+    value: Int,
+    modifier: Modifier = Modifier
+) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .height(100.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -19,14 +26,18 @@ fun StatCard(title: String, value: Int) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = value.toString(),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
-            Text(title, style = MaterialTheme.typography.labelSmall)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }
