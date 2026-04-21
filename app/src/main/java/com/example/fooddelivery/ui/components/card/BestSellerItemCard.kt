@@ -32,7 +32,7 @@ fun BestSellerItemCard(item: BestSellerItem) {
 
         Image(
             painter = painterResource(id = item.imageRes),
-            contentDescription = null,
+            contentDescription = "${item.name} image",
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp)

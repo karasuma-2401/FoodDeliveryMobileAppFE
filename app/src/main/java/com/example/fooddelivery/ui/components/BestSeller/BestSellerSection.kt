@@ -34,7 +34,7 @@ fun BestSellerSection(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Popular Items This Weeks",
+                    "Popular Items This Week",
                     fontWeight = FontWeight.Bold
                 )
 

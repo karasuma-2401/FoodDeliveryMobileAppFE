@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 @Composable
-fun ReviewSection(rating: Double, total: Int) {
+fun ReviewSection(rating: Double, total: Int, onSeeAllClicked: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -28,7 +28,9 @@ fun ReviewSection(rating: Double, total: Int) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
                 Text("Reviews")
-                Text("See All Reviews", color = MaterialTheme.colorScheme.primary)
+                TextButton(onClick = onSeeAllClicked) {
+                    Text("See All Reviews", color = MaterialTheme.colorScheme.primary)
+                }
             }
         Row(
             modifier = Modifier

@@ -1,11 +1,13 @@
 package com.example.fooddelivery.ui.screens.vendor.dashboard
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,8 +23,8 @@ data class DashboardState(
 @HiltViewModel
 class DashboardViewModel @Inject constructor() : ViewModel() {
 
-    private val _state = mutableStateOf(DashboardState())
-    val state: State<DashboardState> = _state
+    private val _state = MutableStateFlow(DashboardState())
+    val state: StateFlow<DashboardState> = _state.asStateFlow()
 
     init {
         loadDashboard()
@@ -30,7 +32,7 @@ class DashboardViewModel @Inject constructor() : ViewModel() {
 
     private fun loadDashboard() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.update { it.copy(isLoading = true) }
 
             // Fake API (sau này thay bằng repository)
             delay(1000)

@@ -11,8 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.R
 @Composable
 fun HeaderSection(
     location: String,
@@ -28,7 +29,7 @@ fun HeaderSection(
         Column(
             modifier = Modifier.clickable { onLocationClick() }
         ) {
-            Text("LOCATION", style = MaterialTheme.typography.labelSmall,color = MaterialTheme.colorScheme.primary)
+            Text(stringResource(R.string.dashboard_location).uppercase(), style = MaterialTheme.typography.labelSmall,color = MaterialTheme.colorScheme.primary)
             Text(location, fontWeight = FontWeight.Bold)
         }
 

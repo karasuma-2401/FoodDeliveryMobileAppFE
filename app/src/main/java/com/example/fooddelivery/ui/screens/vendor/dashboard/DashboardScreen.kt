@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.BestSellerItem
 import com.example.fooddelivery.ui.components.BestSeller.BestSellerSection
 import com.example.fooddelivery.ui.components.card.StatCard
@@ -19,10 +20,25 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel = hiltViewModel()
+    viewModel: DashboardViewModel = hiltViewModel(),
+    onSeeAllClick: () -> Unit = {},
+    onSeeAllReviewsClick: () -> Unit = {}
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
+    DashboardContent(
+        state = state,
+        onSeeAllClick = onSeeAllClick,
+        onSeeAllReviewsClick = onSeeAllReviewsClick
+    )
+}
+
+@Composable
+fun DashboardContent(
+    state: DashboardState,
+    onSeeAllClick: () -> Unit = {},
+    onSeeAllReviewsClick: () -> Unit = {}
+) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -52,7 +68,7 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            ReviewSection(state.rating, state.totalReviews)
+            ReviewSection(state.rating, state.totalReviews, onSeeAllClicked = onSeeAllReviewsClick)
             Spacer(modifier = Modifier.height(20.dp))
             BestSellerSection(
                 items = listOf(
@@ -60,8 +76,7 @@ fun DashboardScreen(
                     BestSellerItem("Pizza", "$8.99", 4.8f, 200, R.drawable.ic_launcher_background),
                     BestSellerItem("Chicken", "$6.49", 4.6f, 150, R.drawable.ic_launcher_background)
                 ),
-                onSeeAllClick = {
-                }
+                onSeeAllClick = onSeeAllClick
             )
         }
     }
@@ -70,6 +85,14 @@ fun DashboardScreen(
 @Composable
 fun DashboardPreview() {
     DFoodTheme {
-        DashboardScreen()
+        DashboardContent(
+            state = DashboardState(
+                runningOrders = 20,
+                orderRequest = 5,
+                revenue = 2241.0,
+                rating = 4.9,
+                totalReviews = 20
+            )
+        )
     }
 }

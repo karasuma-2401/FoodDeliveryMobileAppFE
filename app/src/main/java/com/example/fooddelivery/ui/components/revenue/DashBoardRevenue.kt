@@ -18,6 +18,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import java.text.NumberFormat
+import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RevenueSection(revenue: Double) {
@@ -100,8 +102,9 @@ fun RevenueSection(revenue: Double) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            val formattedRevenue = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(revenue)
             Text(
-                text = "$$revenue",
+                text = formattedRevenue,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
