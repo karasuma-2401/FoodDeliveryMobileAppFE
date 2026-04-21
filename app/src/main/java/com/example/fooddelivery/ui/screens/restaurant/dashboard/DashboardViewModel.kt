@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.vendor.dashboard
+package com.example.fooddelivery.ui.screens.restaurant.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

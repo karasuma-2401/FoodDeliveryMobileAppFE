@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.components.card
+package com.example.fooddelivery.ui.screens.restaurant.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

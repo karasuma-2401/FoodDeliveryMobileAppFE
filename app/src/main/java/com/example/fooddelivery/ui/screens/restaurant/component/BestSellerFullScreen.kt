@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.components.BestSeller
+package com.example.fooddelivery.ui.screens.restaurant.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,7 +9,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 import com.example.fooddelivery.domain.model.BestSellerItem
-import com.example.fooddelivery.ui.components.card.BestSellerItemCard
 import androidx.compose.foundation.lazy.items
 
 @Composable

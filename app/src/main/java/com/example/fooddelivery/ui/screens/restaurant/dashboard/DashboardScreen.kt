@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.vendor.dashboard
+package com.example.fooddelivery.ui.screens.restaurant.dashboard
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
@@ -10,11 +10,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.BestSellerItem
-import com.example.fooddelivery.ui.components.BestSeller.BestSellerSection
-import com.example.fooddelivery.ui.components.card.StatCard
-import com.example.fooddelivery.ui.components.header.HeaderSection
-import com.example.fooddelivery.ui.components.revenue.RevenueSection
-import com.example.fooddelivery.ui.components.review.ReviewSection
+import com.example.fooddelivery.ui.screens.restaurant.component.BestSellerSection
+import com.example.fooddelivery.ui.screens.restaurant.component.StatCard
+import com.example.fooddelivery.ui.screens.restaurant.component.HeaderSection
+import com.example.fooddelivery.ui.screens.restaurant.component.RevenueSection
+import com.example.fooddelivery.ui.screens.restaurant.component.ReviewSection
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
