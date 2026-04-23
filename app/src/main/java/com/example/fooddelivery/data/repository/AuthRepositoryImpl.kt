@@ -5,6 +5,7 @@ import com.example.fooddelivery.data.remote.dto.FacebookLoginRequest
 import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
 import com.example.fooddelivery.data.remote.dto.LoginRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
+import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
 import com.example.fooddelivery.domain.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
@@ -73,7 +74,6 @@ class AuthRepositoryImpl @Inject constructor(
             Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
         }
     }
-
     override suspend fun sendResetPasswordCode(email: String): Result<Unit> {
         return try {
             val response = api.forgotPassword(ForgotPasswordRequest(email))
@@ -84,6 +84,25 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun resetPassword(
+        email: String,
+        resetCode: String,
+        newPassword: String
+    ): Result<Unit> {
+        return try {
+            val request = ResetPasswordRequest(email, resetCode, newPassword)
+            val response = api.resetPassword(request)
+            if (response.isSuccessful && response.body()?.isSuccess == true) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Failed to reset password"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw  e
             Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
         }
     }
