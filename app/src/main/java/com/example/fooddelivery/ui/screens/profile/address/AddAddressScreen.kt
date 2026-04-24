@@ -13,27 +13,38 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fooddelivery.ui.screens.profile.address.components.AddressTypeItem
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.header.LocationPickerHeader
 import com.example.fooddelivery.ui.screens.profile.address.components.CustomAddressTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.theme.DFoodTheme
+import com.example.fooddelivery.ui.screens.profile.address.components.AddressTypeItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAddressScreen(
     onNavigateBack: () -> Unit,
-    onSaveLocation: () -> Unit
+    onAddressSaved: () -> Unit,
+    viewModel: AddAddressViewModel = hiltViewModel()
 ) {
-    var selectedType by remember { mutableStateOf("Home") }
-    var city by remember { mutableStateOf("") }
-    var streetName by remember { mutableStateOf("2425 Market Street") }
+    val state by viewModel.state
+    val snackBarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            onAddressSaved()
+        }
+    }
+
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            snackBarHostState.showSnackbar(it)
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
             DFoodTopBar(
                 title = "Location Settings",
@@ -48,14 +59,15 @@ fun AddAddressScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            LocationPickerHeader(onSearchClick = { /* function xử lý when search location */ } )
-            
+            LocationPickerHeader(onSearchClick = { // logic search location
+                } )
+
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .offset(y = (-24).dp),
                 shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                color = MaterialTheme.colorScheme.surface,
+                color = MaterialTheme.colorScheme.background,
                 tonalElevation = 2.dp
             ) {
                 Column(
@@ -92,25 +104,25 @@ fun AddAddressScreen(
                         AddressTypeItem(
                             label = "Home",
                             icon = Icons.Outlined.Home,
-                            isSelected = selectedType == "Home",
+                            isSelected = state.type == "Home",
                             selectedColor = Color(0xFF4285F4),
-                            onClick = { selectedType = "Home" },
+                            onClick = { viewModel.onTypeChange("Home") },
                             modifier = Modifier.weight(1f)
                         )
                         AddressTypeItem(
                             label = "Work",
                             icon = Icons.Outlined.WorkOutline,
-                            isSelected = selectedType == "Work",
+                            isSelected = state.type == "Work",
                             selectedColor = Color(0xFF9C27B0),
-                            onClick = { selectedType = "Work" },
+                            onClick = { viewModel.onTypeChange("Work") },
                             modifier = Modifier.weight(1f)
                         )
                         AddressTypeItem(
                             label = "Other",
                             icon = Icons.Outlined.MoreHoriz,
-                            isSelected = selectedType == "Other",
+                            isSelected = state.type == "Other",
                             selectedColor = MaterialTheme.colorScheme.primary,
-                            onClick = { selectedType = "Other" },
+                            onClick = { viewModel.onTypeChange("Other") },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -124,8 +136,8 @@ fun AddAddressScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     CustomAddressTextField(
-                        value = city,
-                        onValueChange = { city = it },
+                        value = state.city,
+                        onValueChange = viewModel::onCityChange,
                         placeholder = "Optional"
                     )
 
@@ -138,35 +150,36 @@ fun AddAddressScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     CustomAddressTextField(
-                        value = streetName,
-                        onValueChange = { streetName = it },
+                        value = state.streetName,
+                        onValueChange = viewModel::onStreetNameChange,
                         leadingIcon = Icons.Default.Apartment
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
 
                     DFoodButton(
-                        text = "SAVE LOCATION",
-                        onClick = onSaveLocation,
+                        text = if (state.isLoading) "SAVING..." else "SAVE LOCATION",
+                        onClick = viewModel::saveAddress,
+                        enabled = !state.isLoading,
                         leadingIcon = {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            if (!state.isLoading) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            } else {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                            }
                         }
                     )
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewAddAddressScreen() {
-    DFoodTheme {
-        AddAddressScreen(onNavigateBack = {}, onSaveLocation = {})
     }
 }
