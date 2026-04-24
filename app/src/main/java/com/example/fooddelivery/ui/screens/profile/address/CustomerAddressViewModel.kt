@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.Address
+import com.example.fooddelivery.domain.usecase.DeleteAddressUseCase
 import com.example.fooddelivery.domain.usecase.GetAddressesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,8 @@ data class CustomerAddressState(
 
 @HiltViewModel
 class CustomerAddressViewModel @Inject constructor(
-    private val getAddressesUseCase: GetAddressesUseCase
+    private val getAddressesUseCase: GetAddressesUseCase,
+    private val deleteAddressUseCase: DeleteAddressUseCase
 ) : ViewModel() {
 
     private val _state = mutableStateOf(CustomerAddressState())
@@ -60,7 +62,24 @@ class CustomerAddressViewModel @Inject constructor(
     }
 
     fun deleteAddress(addressId: String) {
-        // Logic xoá địa chỉ sẽ được thêm sau khi có DeleteAddressUseCase
+        if (_state.value.isLoading) return
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+            
+            val result = withContext(Dispatchers.IO) {
+                deleteAddressUseCase(addressId)
+            }
+            
+            result.onSuccess {
+                loadAddresses() 
+            }.onFailure { exception ->
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorMessage = exception.message ?: "Failed to delete address"
+                )
+            }
+        }
     }
 
     private fun Address.toUiItem(): AddressItem {
