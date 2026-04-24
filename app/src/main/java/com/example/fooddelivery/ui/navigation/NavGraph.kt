@@ -19,6 +19,7 @@ import com.example.fooddelivery.ui.screens.auth.register.RegistrationSuccessScre
 import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
+import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -27,7 +28,7 @@ fun RootNavigationGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = AuthGraph
+        startDestination = CustomerGraph
     ) {
         authNavGraph(navController = navController, startDestination = startDestination)
         userNavGraph(navController = navController)
@@ -138,7 +139,7 @@ fun NavGraphBuilder.authNavGraph(
 
 // customer graph
 fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
-    navigation<CustomerGraph>(startDestination = HomeRoute) {
+    navigation<CustomerGraph>(startDestination = EditProfileRoute) {
 
         composable<HomeRoute> {
             Text("customer home")
@@ -154,7 +155,11 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<CartRoute> { Text("Cart") }
         composable<PaymentRoute> { Text("Payment") }
         composable<ProfileRoute> { Text("Customer profile") }
-        composable<EditProfileRoute> { Text("Edit profile")}
+        composable<EditProfileRoute> {
+            EditProfileScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
 
         composable<TrackOrderRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<TrackOrderRoute>()

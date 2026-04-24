@@ -33,7 +33,6 @@ class AuthRepositoryImpl @Inject constructor(
             Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
         }
     }
-
     override suspend fun loginFacebook(facebookToken: String): Result<String> {
         return try {
             val response = api.loginFacebook(FacebookLoginRequest(facebookToken))
@@ -52,7 +51,6 @@ class AuthRepositoryImpl @Inject constructor(
             Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
         }
     }
-
     override suspend fun register (fullName: String, email: String, phone: String, password: String) : Result<String> {
         return try {
             val request = RegisterRequest(fullName, email, phone, password)
