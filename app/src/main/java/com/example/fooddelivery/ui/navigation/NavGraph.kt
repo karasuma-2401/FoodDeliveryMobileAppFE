@@ -20,6 +20,7 @@ import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScre
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
+import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -139,7 +140,7 @@ fun NavGraphBuilder.authNavGraph(
 
 // customer graph
 fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
-    navigation<CustomerGraph>(startDestination = EditProfileRoute) {
+    navigation<CustomerGraph>(startDestination = ProfileRoute) {
 
         composable<HomeRoute> {
             Text("customer home")
@@ -154,7 +155,17 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
         composable<CartRoute> { Text("Cart") }
         composable<PaymentRoute> { Text("Payment") }
-        composable<ProfileRoute> { Text("Customer profile") }
+        composable<ProfileRoute> {
+            ProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onEditProfile = { navController.navigate(EditProfileRoute) },
+                onLogout = {
+                    navController.navigate(LoginRoute) {
+                        popUpTo<ProfileRoute> { inclusive = true }
+                    }
+                }
+            )
+        }
         composable<EditProfileRoute> {
             EditProfileScreen(
                 onNavigateBack = { navController.popBackStack() }
