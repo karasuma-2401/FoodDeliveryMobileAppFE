@@ -1,5 +1,6 @@
 package com.example.fooddelivery.di
 
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.remote.api.AuthApi
 import com.example.fooddelivery.data.remote.api.UserApi
 import com.example.fooddelivery.data.repository.AuthRepositoryImpl
@@ -18,13 +19,18 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(api: AuthApi): AuthRepository {
+    fun provideAuthRepository(
+        api: AuthApi,
+    ): AuthRepository {
         return AuthRepositoryImpl(api)
     }
 
     @Provides
     @Singleton
-    fun provideUserRepository(api: UserApi): UserRepository {
-        return UserRepositoryImpl(api)
+    fun provideUserRepository(
+        api: UserApi,
+        tokenManager: TokenManager
+    ): UserRepository {
+        return UserRepositoryImpl(api, tokenManager)
     }
 }

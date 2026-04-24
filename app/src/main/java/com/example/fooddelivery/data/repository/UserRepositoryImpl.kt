@@ -5,9 +5,11 @@ import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.repository.UserRepository
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
+import com.example.fooddelivery.data.local.datastore.TokenManager
 
 class UserRepositoryImpl @Inject constructor(
-    private val api: UserApi
+    private val api: UserApi,
+    private val tokenManager: TokenManager
 ) : UserRepository {
     override suspend fun getUserProfile(): Result<User> {
         return try {
@@ -35,6 +37,16 @@ class UserRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error: ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun logout(): Result<Unit> {
+        return try {
+            tokenManager.clearAuthData()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
         }
     }
 }

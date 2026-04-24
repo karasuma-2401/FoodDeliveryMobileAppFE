@@ -37,6 +37,11 @@ class TokenManager @Inject constructor (
             }
         }
     }
+    suspend fun clearAuthData() {
+        context.userPrefDataStore.edit { preferences ->
+            preferences.remove(TOKEN_KEY)
+        }
+    }
     val getToken: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
         preferences[TOKEN_KEY]
     }
