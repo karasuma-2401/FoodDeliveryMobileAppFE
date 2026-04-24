@@ -1,2 +1,256 @@
 package com.example.fooddelivery.ui.screens.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
+import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProfileScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: EditProfileViewModel = hiltViewModel()
+) {
+    val state by viewModel.state
+    val snackBarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.onProfileImageChange(it.toString())
+        }
+    }
+
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            onNavigateBack()
+            viewModel.clearSuccessState()
+        }
+    }
+
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            snackBarHostState.showSnackbar(it)
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackBarHostState) },
+        topBar = {
+            DFoodTopBar(
+                title = "Edit Profile",
+                onBackClick = onNavigateBack,
+                scrollBehavior = null,
+            )
+        },
+        bottomBar = {
+            DFoodButton(
+                text = "SAVE",
+                onClick = {
+                    focusManager.clearFocus()
+                    viewModel.saveProfile()
+                },
+                isLoading = state.isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Box(contentAlignment = Alignment.BottomEnd) {
+                Box(
+                    modifier = Modifier
+                        .size(130.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(4.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                ) {
+                    if (state.user.profileImage != null) {
+                        AsyncImage(
+                            model = state.user.profileImage,
+                            contentDescription = "Profile Picture",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                            placeholder = painterResource(id = R.drawable.food_bowl),
+                            error = painterResource(R.drawable.food_bowl)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.food_bowl),
+                            contentDescription = "Default Profile Picture",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .offset(x = (-4).dp, y = (-4).dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    shadowElevation = 4.dp
+                ) {
+                    IconButton(onClick = { imagePickerLauncher.launch("image/*") }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Image",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = state.user.fullName.ifEmpty { "User Name" },
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Ho Chi Minh, VietNam",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp)
+                ) {
+                    ProfileInputField(
+                        label = "Full Name",
+                        value = state.user.fullName,
+                        onValueChange = viewModel::onFullNameChange,
+                        icon = Icons.Default.AccountCircle,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    ProfileInputField(
+                        label = "Email",
+                        value = state.user.email,
+                        onValueChange = viewModel::onEmailChange,
+                        icon = Icons.Default.Email,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    ProfileInputField(
+                        label = "Phone Number",
+                        value = state.user.phone,
+                        onValueChange = viewModel::onPhoneChange,
+                        icon = Icons.Default.Phone,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Phone,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    ProfileInputField(
+                        label = "Bio",
+                        value = state.user.bio,
+                        onValueChange = viewModel::onBioChange,
+                        icon = Icons.Default.Info,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(100.dp))
+        }
+    }
+}
+
+@Composable
+fun ProfileInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    icon: ImageVector,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+) {
+    Column {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        DFoodFTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = "",
+            leadingIcon = {
+                Icon(
+                    imageVector = icon, 
+                    contentDescription = null, 
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            keyboardOptions = keyboardOptions,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}

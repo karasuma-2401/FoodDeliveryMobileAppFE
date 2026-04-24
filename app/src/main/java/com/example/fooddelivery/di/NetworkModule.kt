@@ -1,6 +1,7 @@
 package com.example.fooddelivery.di
 
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.api.UserApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -15,7 +16,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://24.01.20.06:5000/"
+    private const val BASE_URL = "http://localhost:4000/"
 
     @Provides
     @Singleton
@@ -32,5 +33,11 @@ object NetworkModule {
     @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi {
         return retrofit.create(AuthApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi {
+        return retrofit.create(UserApi::class.java)
     }
 }
