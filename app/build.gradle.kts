@@ -101,4 +101,6 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     implementation("com.facebook.android:facebook-login:latest.release")
+
+    implementation("androidx.compose.material:material-icons-extended")
 }
