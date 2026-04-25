@@ -1,7 +1,6 @@
 package com.example.fooddelivery.ui.navigation
 
 import android.app.Activity
-import android.app.Application
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +20,8 @@ import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
+import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
+import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -140,17 +141,14 @@ fun NavGraphBuilder.authNavGraph(
 
 // customer graph
 fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
-    navigation<CustomerGraph>(startDestination = ProfileRoute) {
+    navigation<CustomerGraph>(startDestination = HomeRoute) {
 
         composable<HomeRoute> {
             Text("customer home")
-            // navController.navigate(FoodDetailRoute(foodId = 1))
         }
         composable<FoodDetailRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<FoodDetailRoute>()
-
             Text("Details food with id: ${args.foodId}")
-            //FoodDetailScreen(foodId = args.foodId)
         }
 
         composable<CartRoute> { Text("Cart") }
@@ -181,24 +179,38 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<AddCardRoute> { Text("Add card") }
         composable<CheckoutSuccessRoute> { Text("Checkout success") }
         composable<MyOrdersRoute> { Text("My order") }
-        composable<MyAddressRoute> { Text("My address") }
-        composable<AddAddressRoute> { Text("Add address") }
+        
+        composable<MyAddressRoute> {
+            CustomerAddressScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAddNewAddress = { navController.navigate(AddAddressRoute) },
+                onEditAddress = { addressId ->
+                    // Bạn có thể thêm route EditAddressRoute sau
+                }
+            )
+        }
+        
+        composable<AddAddressRoute> {
+            AddAddressScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAddressSaved = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
         composable<ChatRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<ChatRoute>()
-
             Text ("Chat with ID: ${args.receiverId}")
-            //ChatScreen(receiverId = args.receiverId)
         }
     }
 }
 
 // vendor graph
 fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
-    navigation< RestaurantGraph>(startDestination = RestaurantDashboardRoute) {
-
+    navigation<RestaurantGraph>(startDestination = RestaurantDashboardRoute) {
         composable<RestaurantDashboardRoute> { Text("Dashboard management") }
         composable<RestaurantFoodListRoute> { Text("Food List") }
-
         composable<RestaurantAddFoodRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<RestaurantAddFoodRoute>()
             if (args.foodId == -1) {
