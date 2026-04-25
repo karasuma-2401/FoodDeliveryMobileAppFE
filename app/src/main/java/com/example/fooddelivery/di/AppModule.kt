@@ -1,10 +1,14 @@
 package com.example.fooddelivery.di
 
 import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.UserApi
+import com.example.fooddelivery.data.repository.AddressRepositoryImpl
 import com.example.fooddelivery.data.repository.AuthRepositoryImpl
 import com.example.fooddelivery.data.repository.UserRepositoryImpl
+import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.AuthRepository
 import com.example.fooddelivery.domain.repository.UserRepository
 import dagger.Module
@@ -32,5 +36,14 @@ object AppModule {
         tokenManager: TokenManager
     ): UserRepository {
         return UserRepositoryImpl(api, tokenManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddressRepository(
+        addressApi: AddressApi,
+        photonService: PhotonService
+    ): AddressRepository {
+        return AddressRepositoryImpl(addressApi, photonService)
     }
 }

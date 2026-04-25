@@ -6,8 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.usecase.AddAddressUseCase
+import com.example.fooddelivery.domain.usecase.SearchPlacesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -17,6 +20,10 @@ data class AddAddressState(
     val city: String = "",
     val streetName: String = "",
     val type: String = "Home",
+    val isDefault: Boolean = false,
+    val searchQuery: String = "",
+    val searchResults: List<Address> = emptyList(),
+    val isSearching: Boolean = false,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null
@@ -24,7 +31,8 @@ data class AddAddressState(
 
 @HiltViewModel
 class AddAddressViewModel @Inject constructor(
-    private val addAddressUseCase: AddAddressUseCase
+    private val addAddressUseCase: AddAddressUseCase,
+    private val searchPlacesUseCase: SearchPlacesUseCase
 ) : ViewModel() {
 
     private val _state = mutableStateOf(AddAddressState())
@@ -46,6 +54,43 @@ class AddAddressViewModel @Inject constructor(
         _state.value = _state.value.copy(type = newType)
     }
 
+    fun onDefaultChange(isDefault: Boolean) {
+        _state.value = _state.value.copy(isDefault = isDefault)
+    }
+
+    private var searchJob: Job? = null
+    fun onSearchQueryChange(query: String) {
+        _state.value = _state.value.copy(searchQuery = query)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch { 
+            delay(500)
+            if(query.isNotBlank()) {
+                performSearch(query) 
+            } else {
+                _state.value = _state.value.copy(searchResults = emptyList())
+            }
+        }
+    }
+
+    private suspend fun performSearch(query: String) {
+        _state.value = _state.value.copy(isSearching = true)
+        val result = searchPlacesUseCase(query)
+        result.onSuccess { list ->
+            _state.value = _state.value.copy(searchResults = list, isSearching = false)
+        }.onFailure {
+            _state.value = _state.value.copy(isSearching = false)
+        }
+    }
+
+    fun onSearchResultSelected(address: Address) {
+        _state.value = _state.value.copy(
+            streetName = address.streetName,
+            city = address.city,
+            searchResults = emptyList(),
+            searchQuery = ""
+        )
+    }
+
     fun saveAddress() {
         val currentState = _state.value
         if (currentState.streetName.isBlank()) {
@@ -61,7 +106,8 @@ class AddAddressViewModel @Inject constructor(
                     Address(
                         title = currentState.title.ifBlank { currentState.type },
                         detail = "${currentState.streetName}${if (currentState.city.isNotBlank()) ", ${currentState.city}" else ""}",
-                        type = currentState.type.uppercase()
+                        type = currentState.type.uppercase(),
+                        isDefault = currentState.isDefault
                     )
                 )
             }

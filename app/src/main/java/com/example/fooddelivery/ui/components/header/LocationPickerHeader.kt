@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.components.header
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -9,14 +8,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.fooddelivery.R
+import androidx.compose.ui.viewinterop.AndroidView
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
 
 @Composable
 fun LocationPickerHeader(
@@ -30,14 +30,19 @@ fun LocationPickerHeader(
             .height(350.dp)
             .background(Color(0xFFC4C9AD))
     ) {
-        // Mock Map Image
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            alpha = 0.3f
+        AndroidView(
+            factory = { context ->
+                MapView(context).apply {
+                    setTileSource(TileSourceFactory.MAPNIK)
+                    setMultiTouchControls(true)
+                    controller.setZoom(15.0)
+                    // Default to a location (e.g., Vietnam center or a major city)
+                    controller.setCenter(GeoPoint(10.762622, 106.660172)) // Ho Chi Minh City
+                }
+            },
+            modifier = Modifier.fillMaxSize()
         )
+
         Card(
             modifier = Modifier
                 .padding(20.dp)

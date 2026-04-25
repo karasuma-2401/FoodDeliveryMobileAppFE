@@ -103,4 +103,6 @@ dependencies {
     implementation("com.facebook.android:facebook-login:latest.release")
 
     implementation("androidx.compose.material:material-icons-extended")
+
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
 }

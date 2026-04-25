@@ -1,5 +1,7 @@
 package com.example.fooddelivery.ui.screens.profile.address
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,8 +13,10 @@ import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,6 +25,7 @@ import com.example.fooddelivery.ui.components.header.LocationPickerHeader
 import com.example.fooddelivery.ui.screens.profile.address.components.CustomAddressTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.profile.address.components.AddressTypeItem
+import com.example.fooddelivery.ui.screens.profile.address.components.AddressSearchDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +36,9 @@ fun AddAddressScreen(
 ) {
     val state by viewModel.state
     val snackBarHostState = remember { SnackbarHostState() }
+    var showSearchDialog by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onAddressSaved()
@@ -42,6 +50,19 @@ fun AddAddressScreen(
             snackBarHostState.showSnackbar(it)
         }
     }
+
+    AddressSearchDialog(
+        showDialog = showSearchDialog,
+        onDismissRequest = { showSearchDialog = false },
+        searchQuery = state.searchQuery,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
+        isSearching = state.isSearching,
+        searchResults = state.searchResults,
+        onSearchResultSelected = { address ->
+            focusManager.clearFocus()
+            viewModel.onSearchResultSelected(address)
+        }
+    )
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
@@ -59,8 +80,7 @@ fun AddAddressScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            LocationPickerHeader(onSearchClick = { // logic search location
-                } )
+            LocationPickerHeader(onSearchClick = { showSearchDialog = true })
 
             Surface(
                 modifier = Modifier
@@ -127,6 +147,23 @@ fun AddAddressScreen(
                         )
                     }
 
+                    AnimatedVisibility(visible = state.type == "Other") {
+                        Column {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "ADDRESS TITLE",
+                                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            CustomAddressTextField(
+                                value = state.title,
+                                onValueChange = viewModel::onTitleChange,
+                                placeholder = "e.g. Gym, My Friend's House"
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
@@ -155,11 +192,33 @@ fun AddAddressScreen(
                         leadingIcon = Icons.Default.Apartment
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.onDefaultChange(!state.isDefault) }
+                    ) {
+                        Checkbox(
+                            checked = state.isDefault,
+                            onCheckedChange = { viewModel.onDefaultChange(it) }
+                        )
+                        Text(
+                            text = "Set as default address",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     DFoodButton(
                         text = if (state.isLoading) "SAVING..." else "SAVE LOCATION",
-                        onClick = viewModel::saveAddress,
+                        onClick = {
+                            focusManager.clearFocus()
+                            viewModel.saveAddress()
+                        },
                         enabled = !state.isLoading,
                         leadingIcon = {
                             if (!state.isLoading) {
