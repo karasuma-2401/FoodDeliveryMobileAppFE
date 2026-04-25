@@ -82,12 +82,15 @@ class AddAddressViewModel @Inject constructor(
         val result = searchPlacesUseCase(query)
         result.onSuccess { list ->
             _state.value = _state.value.copy(
-                searchResults = list, 
+                searchResults = list,
                 isSearching = false,
                 noResultsFound = list.isEmpty()
             )
         }.onFailure {
-            _state.value = _state.value.copy(isSearching = false, noResultsFound = true)
+            _state.value = _state.value.copy(
+                isSearching = false,
+                errorMessage = it.message ?: "Search failed"
+            )
         }
     }
 
@@ -104,18 +107,25 @@ class AddAddressViewModel @Inject constructor(
     fun saveAddress() {
         val currentState = _state.value
 
+        if (currentState.isLoading) {
+            return
+        }
+
         if (currentState.streetName.isBlank()) {
+            _state.value = currentState.copy(errorMessage = "")
             _state.value = currentState.copy(errorMessage = "Street name is required")
             return
         }
-        
+
         if (currentState.type == "Other" && currentState.title.isBlank()) {
+            _state.value = currentState.copy(errorMessage = "")
             _state.value = currentState.copy(errorMessage = "Please provide a title for this address")
             return
         }
 
+        _state.value = currentState.copy(isLoading = true, errorMessage = null)
+
         viewModelScope.launch {
-            _state.value = currentState.copy(isLoading = true, errorMessage = null)
             
             val result = withContext(Dispatchers.IO) {
                 addAddressUseCase(

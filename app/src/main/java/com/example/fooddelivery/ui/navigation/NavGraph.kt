@@ -141,7 +141,7 @@ fun NavGraphBuilder.authNavGraph(
 
 // customer graph
 fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
-    navigation<CustomerGraph>(startDestination = MyAddressRoute) {
+    navigation<CustomerGraph>(startDestination = HomeRoute) {
 
         composable<HomeRoute> {
             Text("customer home")
@@ -194,9 +194,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             AddAddressScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onAddressSaved = {
-                    navController.navigate(MyAddressRoute) {
-                        popUpTo<AddAddressRoute> { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }

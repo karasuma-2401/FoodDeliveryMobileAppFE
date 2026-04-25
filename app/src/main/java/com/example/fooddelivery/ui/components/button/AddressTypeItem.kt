@@ -23,10 +23,11 @@ fun AddressTypeItem(
     icon: ImageVector,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectedColor: Color = MaterialTheme.colorScheme.primary
 ) {
-    val borderColor = if (isSelected) Color(0xFFE8F0FE) else Color(0xFFE8E9F1)
-    val contentColor = if (isSelected) Color(0xFFE8F0FE) else MaterialTheme.colorScheme.onSurfaceVariant
+    val borderColor = if (isSelected) selectedColor else Color(0xFFE8E9F1)
+    val contentColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = modifier

@@ -12,8 +12,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -22,8 +25,11 @@ import org.osmdroid.views.MapView
 fun LocationPickerHeader(
     modifier: Modifier = Modifier,
     searchPlaceholder: String = "Search for area or street...",
+    initialLocation: GeoPoint = GeoPoint(10.762622, 106.660172),
     onSearchClick: () -> Unit = {}
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -36,11 +42,26 @@ fun LocationPickerHeader(
                     setTileSource(TileSourceFactory.MAPNIK)
                     setMultiTouchControls(true)
                     controller.setZoom(15.0)
-                    // Default to a location (e.g., Vietnam center or a major city)
-                    controller.setCenter(GeoPoint(10.762622, 106.660172)) // Ho Chi Minh City
+                    controller.setCenter(initialLocation)
                 }
             },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            update = { mapView ->
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                            Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                            else -> {}
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                        mapView.onDetach()
+                    }
+                }
+            }
         )
 
         Card(
