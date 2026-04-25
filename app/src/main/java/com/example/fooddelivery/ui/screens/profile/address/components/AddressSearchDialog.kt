@@ -9,8 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.fooddelivery.domain.model.Address
@@ -23,6 +25,7 @@ fun AddressSearchDialog(
     onSearchQueryChange: (String) -> Unit,
     isSearching: Boolean,
     searchResults: List<Address>,
+    noResultsFound: Boolean,
     onSearchResultSelected: (Address) -> Unit
 ) {
     if (showDialog) {
@@ -35,47 +38,86 @@ fun AddressSearchDialog(
                 color = MaterialTheme.colorScheme.surface
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Search Address",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = onSearchQueryChange,
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Search for address...") },
+                        placeholder = { Text("Enter street, city...") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                         trailingIcon = {
                             if (isSearching) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                             }
                         },
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
-                    LazyColumn(modifier = Modifier.weight(1f)) {
-                        items(searchResults) { address ->
+
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (noResultsFound && !isSearching) {
                             Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onSearchResultSelected(address)
-                                        onDismissRequest()
-                                    }
-                                    .padding(vertical = 12.dp)
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = address.title.ifBlank { "Location" },
+                                    text = "No addresses found",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    text = address.detail,
+                                    text = "Try a different search term",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(top = 12.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant
+                                    color = MaterialTheme.colorScheme.outline,
+                                    textAlign = TextAlign.Center
                                 )
                             }
+                        } else {
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                items(searchResults) { address ->
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onSearchResultSelected(address)
+                                                onDismissRequest()
+                                            }
+                                            .padding(vertical = 12.dp)
+                                    ) {
+                                        Text(
+                                            text = address.title.ifBlank { "Location" },
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = address.detail,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(top = 12.dp),
+                                            color = MaterialTheme.colorScheme.outlineVariant
+                                        )
+                                    }
+                                }
+                            }
                         }
+                    }
+                    
+                    TextButton(
+                        onClick = onDismissRequest,
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Close")
                     }
                 }
             }

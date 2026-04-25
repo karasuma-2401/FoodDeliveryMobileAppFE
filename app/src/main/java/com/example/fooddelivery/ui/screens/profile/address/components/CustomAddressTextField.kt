@@ -3,6 +3,8 @@ package com.example.fooddelivery.ui.screens.profile.address.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,6 +19,8 @@ fun CustomAddressTextField(
     onValueChange: (String) -> Unit,
     placeholder: String = "",
     leadingIcon: ImageVector? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     modifier: Modifier = Modifier
 ) {
     TextField(
@@ -37,6 +41,8 @@ fun CustomAddressTextField(
                 Icon(imageVector = it, contentDescription = null, tint = Color.Gray)
             }
         },
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color(0xFFF0F1F5),

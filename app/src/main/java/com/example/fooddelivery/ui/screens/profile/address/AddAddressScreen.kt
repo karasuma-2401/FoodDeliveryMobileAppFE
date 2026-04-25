@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,8 +17,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,6 +46,7 @@ fun AddAddressScreen(
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onAddressSaved()
+            viewModel.resetState()
         }
     }
 
@@ -58,6 +63,7 @@ fun AddAddressScreen(
         onSearchQueryChange = viewModel::onSearchQueryChange,
         isSearching = state.isSearching,
         searchResults = state.searchResults,
+        noResultsFound = state.noResultsFound,
         onSearchResultSelected = { address ->
             focusManager.clearFocus()
             viewModel.onSearchResultSelected(address)
@@ -159,7 +165,9 @@ fun AddAddressScreen(
                             CustomAddressTextField(
                                 value = state.title,
                                 onValueChange = viewModel::onTitleChange,
-                                placeholder = "e.g. Gym, My Friend's House"
+                                placeholder = "e.g. Gym, My Friend's House",
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
                             )
                         }
                     }
@@ -175,7 +183,10 @@ fun AddAddressScreen(
                     CustomAddressTextField(
                         value = state.city,
                         onValueChange = viewModel::onCityChange,
-                        placeholder = "Optional"
+                        leadingIcon = Icons.Default.LocationOn,
+                        placeholder = "City, State, Country",
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -189,7 +200,12 @@ fun AddAddressScreen(
                     CustomAddressTextField(
                         value = state.streetName,
                         onValueChange = viewModel::onStreetNameChange,
-                        leadingIcon = Icons.Default.Apartment
+                        leadingIcon = Icons.Default.Apartment,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { 
+                            focusManager.clearFocus()
+                            viewModel.saveAddress()
+                        })
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
