@@ -6,6 +6,7 @@ import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
 import com.example.fooddelivery.data.remote.dto.LoginRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
+import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import com.example.fooddelivery.domain.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
@@ -79,6 +80,20 @@ class AuthRepositoryImpl @Inject constructor(
                 Result.success(Unit)
             } else {
                 Result.failure(Exception(response.body()?.message ?: "Failed to send reset code"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+    override suspend fun verifyCode(email: String, code: String): Result<Unit> {
+        return try {
+            val request = VerifyCodeRequest(email, code)
+            val response = api.verifyCode(request)
+            if (response.isSuccessful && response.body()?.isSuccess == true) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Failed to verify code"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

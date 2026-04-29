@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.fooddelivery.domain.usecase.VerifyCodeUseCase
 
 data class VerificationState(
     val email: String = "",
@@ -29,7 +30,9 @@ sealed interface VerificationEvent {
 }
 
 @HiltViewModel
-class VerificationViewModel @Inject constructor() : ViewModel() {
+class VerificationViewModel @Inject constructor(
+    private val verifyCodeUseCase: VerifyCodeUseCase
+) : ViewModel() {
     private val _state = MutableStateFlow(VerificationState())
     val state: StateFlow<VerificationState> = _state.asStateFlow()
 
@@ -75,15 +78,17 @@ class VerificationViewModel @Inject constructor() : ViewModel() {
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-
-            delay(1500)
-            if (_state.value.otpCode == "1234") {
+            val result = verifyCodeUseCase(
+                email = _state.value.email,
+                code = _state.value.otpCode
+            )
+            result.onSuccess {
                 _state.update { it.copy(isLoading = false, isSuccess = true) }
-            } else {
+            }.onFailure { exception ->
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Invalid code."
+                        errorMessage = exception.message ?: "Invalid otp"
                     )
                 }
             }

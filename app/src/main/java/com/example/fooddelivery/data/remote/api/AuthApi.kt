@@ -20,6 +20,9 @@ interface AuthApi {
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 
+    @POST("auth/reset-email/verify")
+    suspend fun verifyCode (@Body request: VerifyCodeRequest): Response<AuthResponse>
+
     @POST("auth/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<AuthResponse>
 
