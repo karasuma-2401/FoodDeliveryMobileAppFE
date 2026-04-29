@@ -7,7 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.usecase.LoginUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
 import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
+import com.facebook.login.Login
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,6 +25,14 @@ data class LoginState (
     val errorMessage: String? = null,
     val isSuccess: Boolean = false,
 )
+sealed interface LoginEvent {
+    data class PhoneChanged (val phone: String): LoginEvent
+    data class PasswordChanged(val password: String): LoginEvent
+    data class RememberMeChanged(val checked: Boolean): LoginEvent
+    data class FacebookLoginClicked(val token: String): LoginEvent
+    data class ErrorMessageSet(val message: String): LoginEvent
+    object LoginClicked: LoginEvent
+}
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -28,23 +40,27 @@ class LoginViewModel @Inject constructor(
     private val validateInputUseCase: ValidateAuthInputUseCase,
     private val loginWithFacebookUseCase: LoginWithFacebookUseCase
 ) : ViewModel() {
-    private val _state = mutableStateOf(LoginState())
-    val state: State<LoginState> = _state
+    private val _state = MutableStateFlow(LoginState())
+    val state =  _state.asStateFlow()
 
-    fun onPhoneChange(phone: String) {
-        if (phone.all { it.isDigit() }) {
-            _state.value = _state.value.copy(phone = phone, phoneError = null, errorMessage = null)
+    fun onEvent (event: LoginEvent) {
+        when (event) {
+            is LoginEvent.PhoneChanged -> {
+                if (event.phone.all { it.isDigit() }) {
+                    _state.update { it.copy(phone = event.phone, phoneError = null, errorMessage = null) }
+                }
+            }
+            is LoginEvent.PasswordChanged -> {
+                _state.update { it.copy(password = event.password, passwordError = null, errorMessage = null) }
+            }
+            is LoginEvent.RememberMeChanged -> {
+                _state.update { it.copy(rememberMe = event.checked) }
+            }
+            is LoginEvent.FacebookLoginClicked -> loginWithFacebook(event.token)
+            is LoginEvent.ErrorMessageSet -> _state.update { it.copy(errorMessage = event.message) }
+            LoginEvent.LoginClicked -> login()
         }
     }
-
-    fun onPasswordChange(password: String) {
-        _state.value = _state.value.copy(password = password, passwordError = null, errorMessage = null)
-    }
-
-    fun onRememberMeChange(checked: Boolean) {
-        _state.value = _state.value.copy(rememberMe = checked)
-    }
-
     private fun validateInput() : Boolean {
         val currentState = _state.value
         val phoneError = validateInputUseCase.validatePhone(currentState.phone)
@@ -52,42 +68,48 @@ class LoginViewModel @Inject constructor(
 
         val hasError = listOf(phoneError, passwordError).any { it != null}
         if (hasError) {
-            _state.value = currentState.copy(
-                phoneError = phoneError,
-                passwordError = passwordError
-            )
+            _state.update {
+                it.copy(
+                    phoneError = phoneError,
+                    passwordError = passwordError
+                )
+            }
         }
         return !hasError
     }
 
-    fun setErrorMessage (message: String) {
-        _state.value = _state.value.copy(errorMessage = message)
+    private fun setErrorMessage (message: String) {
+        _state.update { it.copy(errorMessage = message) }
     }
 
-    fun loginWithFacebook(facebookToken: String) {
+    private fun loginWithFacebook(facebookToken: String) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = loginWithFacebookUseCase(facebookToken)
             result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+                _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { exception ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = exception.message ?: "Login with Facebook failed"
-                )
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Login with Facebook failed"
+                    )
+                }
             }
         }
     }
 
-    fun login() {
+    private fun login() {
         if (!validateInput()) return
         val currentState = _state.value
 
         viewModelScope.launch {
-            _state.value = currentState.copy(
-                isLoading = true,
-                errorMessage = null,
-            )
+            _state.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null,
+                )
+            }
 
             val result = loginUseCase(
                 phone = currentState.phone,
@@ -96,12 +118,14 @@ class LoginViewModel @Inject constructor(
             )
             
             result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+                _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { exception ->
-                _state.value = _state.value.copy(
-                    isLoading =  false,
-                    errorMessage = exception.message
-                )
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message
+                    )
+                }
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.auth.login
 
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,9 +24,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -38,18 +38,14 @@ import com.example.fooddelivery.R
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
 import com.example.fooddelivery.ui.components.button.SocialButton
 import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 
-@OptIn (ExperimentalMaterial3Api::class)
+
 @Composable
 fun LoginScreen(
     onNavigateBack: () -> Unit,
@@ -58,18 +54,52 @@ fun LoginScreen(
     onNavigateHome: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackBarHostState = remember { SnackbarHostState() }
+
     val triggerFacebookLogin = rememberFacebookLoginLauncher(
-        onSuccess = { token -> viewModel.loginWithFacebook(token) },
-        onCancel = { viewModel.setErrorMessage("Cancelled login with facebook") },
-        onError = { errorMsg -> viewModel.setErrorMessage("Facebook error: $errorMsg") }
+        onSuccess = { token -> viewModel.onEvent(LoginEvent.FacebookLoginClicked(token)) },
+        onCancel = { viewModel.onEvent(LoginEvent.ErrorMessageSet("Facebook Login Cancelled")) },
+        onError = { viewModel.onEvent(LoginEvent.ErrorMessageSet("Facebook error: $it")) }
     )
 
-    val state by viewModel.state
+
+
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            if (it.isNotEmpty()) {
+                snackBarHostState.showSnackbar(it)
+                viewModel.onEvent(LoginEvent.ErrorMessageSet(""))
+            }
+        }
+    }
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess)
             onNavigateHome()
     }
+    LoginScreenContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        onNavigateToSignUp = onNavigateToSignUp,
+        onNavigateToForgotPassword = onNavigateToForgotPassword,
+        triggerFacebookLogin = triggerFacebookLogin,
+        snackBarHostState = snackBarHostState,
+    )
+}
+@OptIn (ExperimentalMaterial3Api::class)
+@Composable
+fun LoginScreenContent(
+    state: LoginState,
+    onEvent: (LoginEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    onNavigateToSignUp: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
+    triggerFacebookLogin: () -> Unit,
+    snackBarHostState: SnackbarHostState
+) {
     Scaffold(
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
             DFoodTopBar(
                 title = "",
@@ -115,14 +145,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            if (state.errorMessage != null) {
-                Text(
-                    text = state.errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier =  Modifier.padding(bottom = 16.dp)
-                )
-            }
             Text(
                 text = "Phone number",
                 style = MaterialTheme.typography.labelMedium,
@@ -131,7 +153,7 @@ fun LoginScreen(
             )
             DFoodFTextField(
                 value = state.phone,
-                onValueChange = viewModel::onPhoneChange,
+                onValueChange = { onEvent(LoginEvent.PhoneChanged(it))},
                 label = "",
                 leadingIcon = {
                     Icon (
@@ -154,7 +176,7 @@ fun LoginScreen(
             )
             DFoodFTextField(
                 value = state.password,
-                onValueChange = viewModel::onPasswordChange,
+                onValueChange = { onEvent(LoginEvent.PasswordChanged(it))},
                 label = "",
                 isPassword = true,
                 leadingIcon = {
@@ -180,7 +202,7 @@ fun LoginScreen(
                 ) {
                     Checkbox(
                         checked = state.rememberMe,
-                        onCheckedChange = viewModel::onRememberMeChange,
+                        onCheckedChange = { onEvent(LoginEvent.RememberMeChanged(it))},
                         colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                     )
                     Text (
@@ -200,8 +222,8 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             DFoodButton(
-                text = if (state.isSuccess) "LOGGING IN..." else "LOG IN",
-                onClick = viewModel::login,
+                text = if (state.isLoading) "LOGGING IN..." else "LOG IN",
+                onClick = { onEvent(LoginEvent.LoginClicked)},
                 enabled = !state.isLoading
             )
 
