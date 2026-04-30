@@ -19,7 +19,8 @@ data class VerificationRoute(
 )
 @Serializable
 data class ResetPasswordRoute (
-    val email: String
+    val email: String,
+    val resetCode: String
 )
 // customer
 @Serializable object HomeRoute

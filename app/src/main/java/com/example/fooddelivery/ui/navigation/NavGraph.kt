@@ -44,7 +44,6 @@ fun NavGraphBuilder.authNavGraph(
     startDestination: Any
 ) {
     navigation<AuthGraph>(startDestination = startDestination) {
-
         composable<OnboardingRoute> {
             OnboardingScreen(onFinishOnboarding = {
                 navController.navigate(LoginRoute) {
@@ -52,7 +51,6 @@ fun NavGraphBuilder.authNavGraph(
                 }
             })
         }
-
         composable<LoginRoute> {
             val context = LocalContext.current as? Activity
             BackHandler{
@@ -69,7 +67,6 @@ fun NavGraphBuilder.authNavGraph(
                 } }
             )
         }
-
         composable<RegisterRoute> {
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack()},
@@ -100,7 +97,6 @@ fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
-
         composable<ForgotPasswordRoute> {
             ForgotPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -109,7 +105,6 @@ fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
-
         composable<VerificationRoute> { backStackEntry ->
             val userEmail = backStackEntry.toRoute<VerificationRoute>().email
             VerificationScreen(
@@ -117,17 +112,17 @@ fun NavGraphBuilder.authNavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onNavigateToResetPassword = {
-                    navController.navigate(ResetPasswordRoute(email = userEmail))
+                onNavigateToResetPassword = { email, resetCode ->
+                    navController.navigate(ResetPasswordRoute(email = email, resetCode = resetCode))
                 }
             )
         }
-
         composable<ResetPasswordRoute> { backStackEntry ->
             val userEmail = backStackEntry.toRoute<ResetPasswordRoute>().email
-
+            val resetCode = backStackEntry.toRoute<ResetPasswordRoute>().resetCode
             ResetPasswordScreen(
                 email = userEmail,
+                resetCode = resetCode,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToLogin = {
                     navController.navigate(LoginRoute) {

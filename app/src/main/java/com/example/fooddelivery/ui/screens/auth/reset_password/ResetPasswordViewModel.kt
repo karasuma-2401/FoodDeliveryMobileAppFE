@@ -7,6 +7,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.usecase.ResetPasswordUseCase
 import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,46 +28,57 @@ data class ResetPasswordState(
     val isSuccess: Boolean = false,
     val errorMessage: String? = null,
 )
+sealed interface ResetPasswordEvent {
+    data class Init(val email: String, val code: String): ResetPasswordEvent
+    data class NewPasswordChanged(val newPassword: String): ResetPasswordEvent
+    data class ConfirmPasswordChanged(val confirmPassword: String): ResetPasswordEvent
+    object ResetPasswordClicked: ResetPasswordEvent
+    object ErrorDismissed: ResetPasswordEvent
+}
 
 @HiltViewModel
 class ResetPasswordViewModel @Inject constructor(
     private val resetPasswordUseCase: ResetPasswordUseCase,
     private val validateInputUseCase: ValidateAuthInputUseCase
 ) : ViewModel() {
-    private val _state = mutableStateOf(ResetPasswordState())
-    val state: State<ResetPasswordState> = _state
+    private val _state = MutableStateFlow(ResetPasswordState())
+    val state: StateFlow<ResetPasswordState> = _state.asStateFlow()
 
-    fun setEmail(email: String) {
-        _state.value = _state.value.copy(email = email)
-    }
-
-    fun onResetCodeChange(code: String) {
-        _state.value = _state.value.copy(resetCode = code, resetCodeError = null)
-    }
-
-    fun onNewPasswordChange(newPassword: String) {
-        _state.value = _state.value.copy(newPassword = newPassword, passwordError = null)
-    }
-
-    fun onConfirmPasswordChange(confirmPassword: String) {
-        _state.value = _state.value.copy(confirmPassword = confirmPassword, confirmPasswordError = null)
+    fun onEvent(event: ResetPasswordEvent) {
+        when (event) {
+            is ResetPasswordEvent.Init -> {
+                _state.update { it.copy(email = event.email, resetCode = event.code) }
+            }
+            is ResetPasswordEvent.NewPasswordChanged -> {
+                _state.update { it.copy(newPassword = event.newPassword, passwordError = null, errorMessage = null) }
+            }
+            is ResetPasswordEvent.ConfirmPasswordChanged -> {
+                _state.update { it.copy(confirmPassword = event.confirmPassword, confirmPasswordError = null, errorMessage = null) }
+            }
+            ResetPasswordEvent.ResetPasswordClicked -> {
+                resetPassword()
+            }
+            ResetPasswordEvent.ErrorDismissed -> {
+                _state.update { it.copy(errorMessage = null) }
+            }
+        }
     }
 
     private fun validateInput(): Boolean {
         val currentState = _state.value
 
-        val codeError = if (currentState.resetCode.isBlank()) "Reset code cannot be empty" else null
         val passwordError = validateInputUseCase.validatePassword(currentState.newPassword)
         val confirmError = validateInputUseCase.validateConfirmPassword(currentState.newPassword, currentState.confirmPassword)
 
-        val hasError = listOf(codeError, passwordError, confirmError).any { it != null }
+        val hasError = listOf(passwordError, confirmError).any { it != null }
 
         if (hasError) {
-            _state.value = currentState.copy(
-                resetCodeError = codeError,
-                passwordError = passwordError,
-                confirmPasswordError = confirmError
-            )
+            _state.update {
+                it.copy(
+                    passwordError = passwordError,
+                    confirmPasswordError = confirmError
+                )
+            }
         }
         return !hasError
     }
@@ -75,7 +90,7 @@ class ResetPasswordViewModel @Inject constructor(
         val currentState = _state.value
 
         viewModelScope.launch {
-            _state.value = currentState.copy(isLoading = true, errorMessage = null)
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
 
             val result = resetPasswordUseCase(
                 email = currentState.email,
@@ -84,12 +99,14 @@ class ResetPasswordViewModel @Inject constructor(
             )
 
             result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+                _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { exception ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = exception.message ?: "Reset password failed"
-                )
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Reset password failed"
+                    )
+                }
             }
         }
     }

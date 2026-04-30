@@ -29,7 +29,7 @@ import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 fun VerificationScreen(
     email: String,
     onNavigateBack: () -> Unit,
-    onNavigateToResetPassword: () -> Unit,
+    onNavigateToResetPassword: (String, String) -> Unit,
     viewModel: VerificationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -39,7 +39,7 @@ fun VerificationScreen(
     }
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            onNavigateToResetPassword()
+            onNavigateToResetPassword(state.email, state.otpCode)
         }
     }
     LaunchedEffect(state.errorMessage) {

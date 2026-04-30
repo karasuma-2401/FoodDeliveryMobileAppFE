@@ -73,14 +73,14 @@ class VerificationViewModel @Inject constructor(
         }
     }
     private fun verifyCode() {
-
+        val currenState = _state.value
         if (_state.value.otpCode.length < 4) return
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = verifyCodeUseCase(
-                email = _state.value.email,
-                code = _state.value.otpCode
+                email = currenState.email,
+                code = currenState.otpCode
             )
             result.onSuccess {
                 _state.update { it.copy(isLoading = false, isSuccess = true) }
