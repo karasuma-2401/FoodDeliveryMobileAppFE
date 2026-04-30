@@ -9,6 +9,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.navigation.RootNavigationGraph
 import com.example.fooddelivery.ui.screens.home.HomeScreen
+import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -32,17 +33,11 @@ class MainActivity : ComponentActivity() {
 //                        navController = navController,
 //                        startDestination = mainViewModel.startDestination.value
 //                    )
-                    HomeScreen(
-                        onNavigateToCart = {},
-                        onNavigateToRestaurant = {},
-                        onNavigateToCategory = {},
-                        onNavigateToAllCategories = {},
-                        onNavigateToAllRestaurants = {},
-                        onOpenMenu = {},
-                        onOpenLocationPicker = {},
-                        onNavigateToProfile = {},
+                    SearchScreen(
+                        onNavigateToHome = {},
                         onNavigateToOrders = {},
-                        onNavigateToSearch = {}
+                        onNavigateToProfile = {},
+                        onNavigateToCart = {}
                     )
                 }
             }
