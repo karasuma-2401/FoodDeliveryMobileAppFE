@@ -135,15 +135,21 @@ class AddAddressViewModel @Inject constructor(
     fun saveAddress() {
         val currentState = _state.value
 
+        if (currentState.isLoading) {
+            return
+        }
+
         if (currentState.streetName.isBlank()) {
             _state.update {  it.copy(errorMessage = "Street name is required") }
             return
         }
-        
+
         if (currentState.type == "Other" && currentState.title.isBlank()) {
             _state.update { it.copy(errorMessage = "Please provide a title for this address") }
             return
         }
+
+        _state.value = currentState.copy(isLoading = true, errorMessage = null)
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }

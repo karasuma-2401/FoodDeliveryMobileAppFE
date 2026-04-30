@@ -74,6 +74,7 @@ class AddressRepositoryImpl @Inject constructor(
             val addresses = response.features.map { feature ->
                 Address(
                     title = feature.properties.name ?: "",
+                    streetName = feature.properties.street ?: feature.properties.name ?: "",
                     city = feature.properties.city ?: "",
                     detail = feature.properties.getDisplayName()
                 )
