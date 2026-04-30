@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.navigation.RootNavigationGraph
+import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -26,10 +27,22 @@ class MainActivity : ComponentActivity() {
             DFoodTheme (darkTheme = false) {
                 val isLoading = mainViewModel.isLoading.value
                 if (!isLoading) {
-                    val navController = rememberNavController();
-                    RootNavigationGraph(
-                        navController = navController,
-                        startDestination = mainViewModel.startDestination.value
+//                    val navController = rememberNavController();
+//                    RootNavigationGraph(
+//                        navController = navController,
+//                        startDestination = mainViewModel.startDestination.value
+//                    )
+                    HomeScreen(
+                        onNavigateToCart = {},
+                        onNavigateToRestaurant = {},
+                        onNavigateToCategory = {},
+                        onNavigateToAllCategories = {},
+                        onNavigateToAllRestaurants = {},
+                        onOpenMenu = {},
+                        onOpenLocationPicker = {},
+                        onNavigateToProfile = {},
+                        onNavigateToOrders = {},
+                        onNavigateToSearch = {}
                     )
                 }
             }
