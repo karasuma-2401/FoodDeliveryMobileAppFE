@@ -24,52 +24,53 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.header.LocationPickerHeader
 import com.example.fooddelivery.ui.screens.profile.address.components.CustomAddressTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.profile.address.components.AddressTypeItem
-import com.example.fooddelivery.ui.screens.profile.address.components.AddressSearchDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAddressScreen(
     onNavigateBack: () -> Unit,
     onAddressSaved: () -> Unit,
     viewModel: AddAddressViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
-    var showSearchDialog by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onAddressSaved()
-            viewModel.resetState()
+            viewModel.onEvent(AddAddressEvent.ResetState)
         }
     }
 
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             snackBarHostState.showSnackbar(it)
+            viewModel.onEvent(AddAddressEvent.ErrorDismissed)
         }
     }
 
-    AddressSearchDialog(
-        showDialog = showSearchDialog,
-        onDismissRequest = { showSearchDialog = false },
-        searchQuery = state.searchQuery,
-        onSearchQueryChange = viewModel::onSearchQueryChange,
-        isSearching = state.isSearching,
-        searchResults = state.searchResults,
-        noResultsFound = state.noResultsFound,
-        onSearchResultSelected = { address ->
-            focusManager.clearFocus()
-            viewModel.onSearchResultSelected(address)
-        }
+    AddAddressContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        snackBarHostState = snackBarHostState
     )
-
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddAddressContent(
+        state: AddAddressState,
+        onEvent: (AddAddressEvent) -> Unit,
+        onNavigateBack: () -> Unit,
+        snackBarHostState: SnackbarHostState
+) {
+    var showSearchDialog by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
@@ -132,7 +133,7 @@ fun AddAddressScreen(
                             icon = Icons.Outlined.Home,
                             isSelected = state.type == "Home",
                             selectedColor = Color(0xFF4285F4),
-                            onClick = { viewModel.onTypeChange("Home") },
+                            onClick = { onEvent(AddAddressEvent.TypeChanged("Home")) },
                             modifier = Modifier.weight(1f)
                         )
                         AddressTypeItem(
@@ -140,7 +141,7 @@ fun AddAddressScreen(
                             icon = Icons.Outlined.WorkOutline,
                             isSelected = state.type == "Work",
                             selectedColor = Color(0xFF9C27B0),
-                            onClick = { viewModel.onTypeChange("Work") },
+                            onClick = { onEvent(AddAddressEvent.TypeChanged("Work")) },
                             modifier = Modifier.weight(1f)
                         )
                         AddressTypeItem(
@@ -148,7 +149,7 @@ fun AddAddressScreen(
                             icon = Icons.Outlined.MoreHoriz,
                             isSelected = state.type == "Other",
                             selectedColor = MaterialTheme.colorScheme.primary,
-                            onClick = { viewModel.onTypeChange("Other") },
+                            onClick = { onEvent(AddAddressEvent.TypeChanged("Other")) },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -164,7 +165,7 @@ fun AddAddressScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             CustomAddressTextField(
                                 value = state.title,
-                                onValueChange = viewModel::onTitleChange,
+                                onValueChange = { onEvent(AddAddressEvent.TitleChanged(it)) },
                                 placeholder = "e.g. Gym, My Friend's House",
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
@@ -182,7 +183,7 @@ fun AddAddressScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     CustomAddressTextField(
                         value = state.city,
-                        onValueChange = viewModel::onCityChange,
+                        onValueChange = { onEvent(AddAddressEvent.CityChanged(it))},
                         leadingIcon = Icons.Default.LocationOn,
                         placeholder = "City, State, Country",
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -199,12 +200,12 @@ fun AddAddressScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     CustomAddressTextField(
                         value = state.streetName,
-                        onValueChange = viewModel::onStreetNameChange,
+                        onValueChange = { onEvent(AddAddressEvent.StreetNameChanged(it))},
                         leadingIcon = Icons.Default.Apartment,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { 
                             focusManager.clearFocus()
-                            viewModel.saveAddress()
+                            onEvent(AddAddressEvent.SaveAddressClicked)
                         })
                     )
 
@@ -214,11 +215,11 @@ fun AddAddressScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { viewModel.onDefaultChange(!state.isDefault) }
+                            .clickable { onEvent(AddAddressEvent.DefaultChanged(!state.isDefault)) }
                     ) {
                         Checkbox(
                             checked = state.isDefault,
-                            onCheckedChange = { viewModel.onDefaultChange(it) }
+                            onCheckedChange = { onEvent(AddAddressEvent.DefaultChanged(it)) }
                         )
                         Text(
                             text = "Set as default address",
@@ -233,7 +234,7 @@ fun AddAddressScreen(
                         text = if (state.isLoading) "SAVING..." else "SAVE LOCATION",
                         onClick = {
                             focusManager.clearFocus()
-                            viewModel.saveAddress()
+                            onEvent(AddAddressEvent.SaveAddressClicked)
                         },
                         enabled = !state.isLoading,
                         leadingIcon = {

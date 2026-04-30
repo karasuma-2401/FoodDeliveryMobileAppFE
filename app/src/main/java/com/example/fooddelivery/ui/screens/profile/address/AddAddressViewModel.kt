@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.profile.address
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.util.fastCbrt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.Address
@@ -11,11 +12,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-data class AddAddressState(
+data class AddAddressState (
     val title: String = "",
     val city: String = "",
     val streetName: String = "",
@@ -29,6 +34,18 @@ data class AddAddressState(
     val errorMessage: String? = null,
     val noResultsFound: Boolean = false
 )
+sealed interface AddAddressEvent {
+    data class TitleChanged(val title: String) : AddAddressEvent
+    data class CityChanged(val city: String) : AddAddressEvent
+    data class StreetNameChanged(val street: String) : AddAddressEvent
+    data class TypeChanged(val type: String) : AddAddressEvent
+    data class DefaultChanged(val isDefault: Boolean) : AddAddressEvent
+    data class SearchQueryChanged(val query: String) : AddAddressEvent
+    data class SearchResultSelected(val address: Address) : AddAddressEvent
+    object SaveAddressClicked : AddAddressEvent
+    object ResetState: AddAddressEvent
+    object ErrorDismissed: AddAddressEvent
+}
 
 @HiltViewModel
 class AddAddressViewModel @Inject constructor(
@@ -36,72 +53,83 @@ class AddAddressViewModel @Inject constructor(
     private val searchPlacesUseCase: SearchPlacesUseCase
 ) : ViewModel() {
 
-    private val _state = mutableStateOf(AddAddressState())
-    val state: State<AddAddressState> = _state
+    private val _state = MutableStateFlow(AddAddressState())
+    val state: StateFlow<AddAddressState> = _state.asStateFlow()
+    private var searchJob: Job?= null
 
-    fun onTitleChange(newTitle: String) {
-        _state.value = _state.value.copy(title = newTitle)
+    fun onEvent(event: AddAddressEvent) {
+        when (event) {
+            is AddAddressEvent.TitleChanged -> {
+                _state.update { it.copy(title = event.title) }
+            }
+            is AddAddressEvent.CityChanged -> {
+                _state.update { it.copy(city = event.city) }
+            }
+            is AddAddressEvent.StreetNameChanged -> {
+                _state.update { it.copy(streetName = event.street) }
+            }
+            is AddAddressEvent.TypeChanged -> {
+                _state.update { it.copy(type = event.type) }
+            }
+            is AddAddressEvent.DefaultChanged -> {
+                _state.update { it.copy(isDefault = event.isDefault) }
+            }
+            is AddAddressEvent.SearchQueryChanged -> {
+                handleSearchQueryChange(event.query)
+            }
+            is AddAddressEvent.SearchResultSelected -> {
+                handleSearchResultSelected(event.address)
+            }
+            AddAddressEvent.SaveAddressClicked -> {
+                saveAddress()
+            }
+            AddAddressEvent.ResetState -> {
+                _state.value = AddAddressState()
+            }
+            is AddAddressEvent.ErrorDismissed -> {
+                _state.update { it.copy(errorMessage = null) }
+            }
+        }
     }
-
-    fun onCityChange(newCity: String) {
-        _state.value = _state.value.copy(city = newCity)
-    }
-
-    fun onStreetNameChange(newStreet: String) {
-        _state.value = _state.value.copy(streetName = newStreet)
-    }
-
-    fun onTypeChange(newType: String) {
-        _state.value = _state.value.copy(type = newType)
-    }
-
-    fun onDefaultChange(isDefault: Boolean) {
-        _state.value = _state.value.copy(isDefault = isDefault)
-    }
-
-    fun resetState() {
-        _state.value = AddAddressState()
-    }
-
-    private var searchJob: Job? = null
-    fun onSearchQueryChange(query: String) {
-        _state.value = _state.value.copy(searchQuery = query, noResultsFound = false)
+    private fun handleSearchQueryChange(query: String) {
+        _state.update { it.copy(searchQuery = query, noResultsFound = false) }
         searchJob?.cancel()
-        searchJob = viewModelScope.launch { 
+        searchJob = viewModelScope.launch {
             delay(500)
-            if(query.isNotBlank()) {
-                performSearch(query) 
+            if (query.isNotBlank()) {
+                performSearch(query)
             } else {
-                _state.value = _state.value.copy(searchResults = emptyList(), noResultsFound = false)
+                _state.update { it.copy(searchResults = emptyList(), noResultsFound = false) }
             }
         }
     }
 
     private suspend fun performSearch(query: String) {
-        _state.value = _state.value.copy(isSearching = true)
+        _state.update { it.copy(isSearching = true) }
         val result = searchPlacesUseCase(query)
         result.onSuccess { list ->
-            _state.value = _state.value.copy(
-                searchResults = list,
-                isSearching = false,
-                noResultsFound = list.isEmpty()
-            )
+            _state.update {
+                it.copy(
+                    searchResults = list,
+                    isSearching = false,
+                    noResultsFound = list.isEmpty()
+                )
+            }
         }.onFailure {
-            _state.value = _state.value.copy(
-                isSearching = false,
-                errorMessage = it.message ?: "Search failed"
-            )
+            _state.update { it.copy(isSearching = false, noResultsFound = true) }
         }
     }
 
-    fun onSearchResultSelected(address: Address) {
-        _state.value = _state.value.copy(
-            streetName = address.streetName.ifBlank { address.title },
-            city = address.city,
-            searchResults = emptyList(),
-            searchQuery = "",
-            noResultsFound = false
-        )
+    private fun handleSearchResultSelected(address: Address) {
+        _state.update {
+            it.copy(
+                streetName = address.streetName.ifBlank { address.title },
+                city = address.city,
+                searchResults = emptyList(),
+                searchQuery = "",
+                noResultsFound = false
+            )
+        }
     }
 
     fun saveAddress() {
@@ -112,20 +140,19 @@ class AddAddressViewModel @Inject constructor(
         }
 
         if (currentState.streetName.isBlank()) {
-            _state.value = currentState.copy(errorMessage = "")
-            _state.value = currentState.copy(errorMessage = "Street name is required")
+            _state.update {  it.copy(errorMessage = "Street name is required") }
             return
         }
 
         if (currentState.type == "Other" && currentState.title.isBlank()) {
-            _state.value = currentState.copy(errorMessage = "")
-            _state.value = currentState.copy(errorMessage = "Please provide a title for this address")
+            _state.update { it.copy(errorMessage = "Please provide a title for this address") }
             return
         }
 
         _state.value = currentState.copy(isLoading = true, errorMessage = null)
 
         viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             
             val result = withContext(Dispatchers.IO) {
                 addAddressUseCase(
@@ -141,12 +168,14 @@ class AddAddressViewModel @Inject constructor(
             }
 
             result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+                _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { exception ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = exception.message ?: "Failed to save address"
-                )
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Failed to save address"
+                    )
+                }
             }
         }
     }
