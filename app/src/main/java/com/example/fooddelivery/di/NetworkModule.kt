@@ -1,6 +1,5 @@
 package com.example.fooddelivery.di
 
-import com.example.fooddelivery.BuildConfig
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
 import com.example.fooddelivery.data.remote.api.PhotonService
@@ -22,7 +21,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://localhost:4000/"
+    private const val BASE_URL = "http://10.0.2.2:4000/"
 
     @Provides
     @Singleton
@@ -35,7 +34,7 @@ object NetworkModule {
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor {
         return HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
+            level = if (com.example.fooddelivery.BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BODY
             } else {
                 HttpLoggingInterceptor.Level.NONE
@@ -50,7 +49,7 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
         return OkHttpClient.Builder().apply {
-            if (BuildConfig.DEBUG) {
+            if (com.example.fooddelivery.BuildConfig.DEBUG) {
                 addInterceptor(loggingInterceptor)
             }
         }.build()

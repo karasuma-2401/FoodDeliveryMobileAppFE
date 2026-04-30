@@ -29,8 +29,8 @@ fun DFoodButton (
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    leadingIcon: (@Composable () -> Unit)? = null
-
+    leadingIcon: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null
     ) {
     val containerColor = MaterialTheme.colorScheme.primary
     val contentColor = contentColorFor(containerColor)
@@ -69,6 +69,7 @@ fun DFoodButton (
                     leadingIcon()
                     Spacer(modifier = Modifier.width(8.dp))
                 }
+                
                 Text(
                     text = text.uppercase(),
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -76,6 +77,11 @@ fun DFoodButton (
                         letterSpacing = 1.25.sp
                     )
                 )
+
+                if (trailingIcon != null) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    trailingIcon()
+                }
             }
         }
     }

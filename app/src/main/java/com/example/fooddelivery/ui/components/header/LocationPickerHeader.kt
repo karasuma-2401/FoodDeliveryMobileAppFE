@@ -12,11 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -29,6 +30,23 @@ fun LocationPickerHeader(
     onSearchClick: () -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+
+    val mapView = remember { MapView(context) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            mapView.onDetach()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -37,8 +55,8 @@ fun LocationPickerHeader(
             .background(Color(0xFFC4C9AD))
     ) {
         AndroidView(
-            factory = { context ->
-                MapView(context).apply {
+            factory = {
+                mapView.apply {
                     setTileSource(TileSourceFactory.MAPNIK)
                     setMultiTouchControls(true)
                     controller.setZoom(15.0)
@@ -46,21 +64,8 @@ fun LocationPickerHeader(
                 }
             },
             modifier = Modifier.fillMaxSize(),
-            update = { mapView ->
-                DisposableEffect(lifecycleOwner) {
-                    val observer = LifecycleEventObserver { _, event ->
-                        when (event) {
-                            Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                            Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                            else -> {}
-                        }
-                    }
-                    lifecycleOwner.lifecycle.addObserver(observer)
-                    onDispose {
-                        lifecycleOwner.lifecycle.removeObserver(observer)
-                        mapView.onDetach()
-                    }
-                }
+            update = { view ->
+                 view.controller.setCenter(initialLocation)
             }
         )
 
