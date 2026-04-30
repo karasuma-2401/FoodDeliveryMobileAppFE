@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -31,40 +32,57 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     onNavigateBack: () -> Unit,
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
-    val focusManager = LocalFocusManager.current
-
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            viewModel.onProfileImageChange(it.toString())
-        }
-    }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onNavigateBack()
-            viewModel.clearSuccessState()
+            viewModel.onEvent(EditProfileEvent.ResetSuccessState)
         }
     }
 
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             snackBarHostState.showSnackbar(it)
+            viewModel.onEvent(EditProfileEvent.ErrorDismissed)
+        }
+    }
+
+    EditProfileContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        snackBarHostState = snackBarHostState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProfileContent(
+    state: EditProfileState,
+    onEvent: (EditProfileEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    snackBarHostState: SnackbarHostState
+) {
+    val focusManager = LocalFocusManager.current
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            onEvent(EditProfileEvent.ProfileImageChanged(it.toString()))
         }
     }
 
@@ -82,7 +100,7 @@ fun EditProfileScreen(
                 text = "SAVE",
                 onClick = {
                     focusManager.clearFocus()
-                    viewModel.saveProfile()
+                    onEvent(EditProfileEvent.SaveClicked)
                 },
                 isLoading = state.isLoading,
                 modifier = Modifier
@@ -109,7 +127,7 @@ fun EditProfileScreen(
                         .background(MaterialTheme.colorScheme.surface)
                         .border(4.dp, MaterialTheme.colorScheme.surface, CircleShape)
                 ) {
-                    if (state.user.profileImage != null) {
+                    if (!state.user.profileImage.isNullOrEmpty()) {
                         AsyncImage(
                             model = state.user.profileImage,
                             contentDescription = "Profile Picture",
@@ -176,7 +194,7 @@ fun EditProfileScreen(
                     ProfileInputField(
                         label = "Full Name",
                         value = state.user.fullName,
-                        onValueChange = viewModel::onFullNameChange,
+                        onValueChange = { onEvent(EditProfileEvent.FullNameChanged(it)) },
                         icon = Icons.Default.AccountCircle,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                     )
@@ -186,7 +204,7 @@ fun EditProfileScreen(
                     ProfileInputField(
                         label = "Email",
                         value = state.user.email,
-                        onValueChange = viewModel::onEmailChange,
+                        onValueChange = { onEvent(EditProfileEvent.EmailChanged(it)) },
                         icon = Icons.Default.Email,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
@@ -199,7 +217,7 @@ fun EditProfileScreen(
                     ProfileInputField(
                         label = "Phone Number",
                         value = state.user.phone,
-                        onValueChange = viewModel::onPhoneChange,
+                        onValueChange = { onEvent(EditProfileEvent.PhoneChanged(it)) },
                         icon = Icons.Default.Phone,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Phone,
@@ -212,9 +230,13 @@ fun EditProfileScreen(
                     ProfileInputField(
                         label = "Bio",
                         value = state.user.bio,
-                        onValueChange = viewModel::onBioChange,
+                        onValueChange = { onEvent(EditProfileEvent.BioChanged(it)) },
                         icon = Icons.Default.Info,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            focusManager.clearFocus()
+                            onEvent(EditProfileEvent.SaveClicked)
+                        })
                     )
                 }
             }
@@ -229,7 +251,8 @@ fun ProfileInputField(
     value: String,
     onValueChange: (String) -> Unit,
     icon: ImageVector,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
     Column {
         Text(
@@ -244,12 +267,13 @@ fun ProfileInputField(
             label = "",
             leadingIcon = {
                 Icon(
-                    imageVector = icon, 
-                    contentDescription = null, 
+                    imageVector = icon,
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             modifier = Modifier.fillMaxWidth()
         )
     }

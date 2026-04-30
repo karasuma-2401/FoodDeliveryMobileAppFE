@@ -21,24 +21,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.card.ProfileMenuCard
 import com.example.fooddelivery.ui.components.card.ProfileMenuItem
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen (
+fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onEditProfile: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     var showLogoutDialog by remember { mutableStateOf(false) }
-    val refreshState = rememberPullToRefreshState()
 
     LaunchedEffect(state.isLogoutSuccess) {
         if (state.isLogoutSuccess) {
@@ -49,6 +48,7 @@ fun ProfileScreen (
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             snackBarHostState.showSnackbar(it)
+            viewModel.onEvent(ProfileEvent.ErrorDismissed)
         }
     }
 
@@ -56,15 +56,15 @@ fun ProfileScreen (
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             title = { Text(text = "Log Out", fontWeight = FontWeight.Bold) },
-            text = { Text(text = "Are you want to log out?") },
+            text = { Text(text = "Are you sure you want to log out?") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
-                        viewModel.logout()
+                        viewModel.onEvent(ProfileEvent.LogoutClicked)
                     }
                 ) {
-                    Text ("Yes", color = MaterialTheme.colorScheme.error)
+                    Text("Yes", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -74,6 +74,28 @@ fun ProfileScreen (
             }
         )
     }
+
+    ProfileContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        onEditProfile = onEditProfile,
+        onShowLogoutDialog = { showLogoutDialog = true },
+        snackBarHostState = snackBarHostState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProfileContent(
+    state: ProfileState,
+    onEvent: (ProfileEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    onEditProfile: () -> Unit,
+    onShowLogoutDialog: () -> Unit,
+    snackBarHostState: SnackbarHostState
+) {
+    val refreshState = rememberPullToRefreshState()
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
@@ -98,7 +120,7 @@ fun ProfileScreen (
         PullToRefreshBox(
             state = refreshState,
             isRefreshing = state.isLoading,
-            onRefresh = { viewModel.loadUserProfile() },
+            onRefresh = { onEvent(ProfileEvent.LoadUserProfile) },
             modifier = Modifier.padding(innerPadding)
         ) {
             Column(
@@ -130,7 +152,7 @@ fun ProfileScreen (
                         )
                     }
                     Spacer(modifier = Modifier.width(20.dp))
-                    Column{
+                    Column {
                         Text(
                             text = state.user.fullName.ifEmpty { "User Name" },
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
@@ -223,7 +245,7 @@ fun ProfileScreen (
                         iconTint = Color(0xFFF44336),
                         tittle = "Log out",
                         tittleColor = Color(0xFFF44336),
-                        onClick = { showLogoutDialog = true }
+                        onClick = onShowLogoutDialog
                     )
                 }
                 Spacer(modifier = Modifier.height(40.dp))

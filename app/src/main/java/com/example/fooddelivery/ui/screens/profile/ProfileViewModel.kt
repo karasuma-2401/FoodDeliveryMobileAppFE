@@ -1,17 +1,19 @@
 package com.example.fooddelivery.ui.screens.profile
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import com.example.fooddelivery.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import androidx.compose.runtime.State
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 data class ProfileState(
     val user: User = User(),
@@ -20,48 +22,65 @@ data class ProfileState(
     val errorMessage: String? = null
 )
 
+sealed interface ProfileEvent {
+    object LoadUserProfile : ProfileEvent
+    object LogoutClicked : ProfileEvent
+    object ErrorDismissed : ProfileEvent
+}
+
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
-    private val _state = mutableStateOf(ProfileState())
-    val state: State<ProfileState> = _state
+
+    private val _state = MutableStateFlow(ProfileState())
+    val state: StateFlow<ProfileState> = _state.asStateFlow()
 
     init {
-       loadUserProfile()
+        onEvent(ProfileEvent.LoadUserProfile)
     }
-    
-    fun loadUserProfile() {
+
+    fun onEvent(event: ProfileEvent) {
+        when (event) {
+            ProfileEvent.LoadUserProfile -> loadUserProfile()
+            ProfileEvent.LogoutClicked -> logout()
+            ProfileEvent.ErrorDismissed -> _state.update { it.copy(errorMessage = null) }
+        }
+    }
+
+    private fun loadUserProfile() {
         if (_state.value.isLoading) return
         
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.update { it.copy(isLoading = true) }
             val result = withContext(Dispatchers.IO) {
                 getUserProfileUseCase()
             }
             result.onSuccess { user ->
-                _state.value = _state.value.copy(user = user, isLoading = false)
+                _state.update { it.copy(user = user, isLoading = false) }
             }.onFailure { exception ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = exception.message ?: "Failed to load user profile"
-                )
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Failed to load user profile"
+                    )
+                }
             }
         }
     }
     
-    fun logout() {
+    private fun logout() {
         if (_state.value.isLoading) return
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.update { it.copy(isLoading = true) }
             val result = withContext(Dispatchers.IO) {
                 logoutUseCase()
             }
             result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isLogoutSuccess = true)
+                _state.update { it.copy(isLoading = false, isLogoutSuccess = true) }
             }.onFailure {
-                _state.value = _state.value.copy(isLoading = false, errorMessage = "Logout failed")
+                _state.update { it.copy(isLoading = false, errorMessage = "Logout failed") }
             }
         }
     }
