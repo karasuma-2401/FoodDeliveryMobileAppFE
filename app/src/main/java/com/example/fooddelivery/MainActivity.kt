@@ -11,6 +11,7 @@ import com.example.fooddelivery.ui.navigation.RootNavigationGraph
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
+import com.example.fooddelivery.ui.screens.restaurant_detail.RestaurantDetailScreen
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -34,8 +35,8 @@ class MainActivity : ComponentActivity() {
 //                        navController = navController,
 //                        startDestination = mainViewModel.startDestination.value
 //                    )
-                    LocationScreen(
-                        onPermissionGranted = { }
+                    RestaurantDetailScreen(
+                        onNavigateBack = {}
                     )
                 }
             }

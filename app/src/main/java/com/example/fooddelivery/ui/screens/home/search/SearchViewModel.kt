@@ -51,59 +51,26 @@ class SearchViewModel @Inject constructor() : ViewModel() {
             SearchEvent.LoadSearchData -> loadInitialData()
         }
     }
-//    private fun updateSearchQuery(query: String) {
-//        _state.update { it.copy(searchQuery = query) }
-//
-//        searchJob?.cancel()
-//        searchJob = viewModelScope.launch {
-//            delay(250)
-//            performSearch(query)
-//        }
-//    }
-//
-//    private fun performSearch(query: String) {
-//        if (query.isBlank()) {
-//            _state.update { it.copy(
-//                categories = fullCategories,
-//                restaurants = fullRestaurants
-//            ) }
-//            return
-//        }
-//
-//        val filteredCategories = fullCategories.filter {
-//            it.name.contains(query, ignoreCase = true)
-//        }
-//        val filteredRestaurants = fullRestaurants.filter {
-//            it.name.contains(query, ignoreCase = true) ||
-//                    it.tags.any { tag -> tag.contains(query, ignoreCase = true) }
-//        }
-//
-//        _state.update { it.copy(
-//            categories = filteredCategories,
-//            restaurants = filteredRestaurants
-//        ) }
-//    }
     private fun loadInitialData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
-            val mockRestaurants = listOf(
-                Restaurant("1", "Pansi Restaurant", listOf("Asian"), 4.7f, "Free", "20 min", imageRes = R.drawable.food_bowl),
-                Restaurant("2", "American Spicy Burger Shop", listOf("Fast Food"), 4.3f, "$2.0", "15 min", imageRes = R.drawable.food_bowl),
-                Restaurant("3", "Cafenio Coffee Club", listOf("Coffee"), 4.0f, "$1.0", "10 min", imageRes = R.drawable.food_bowl)
+            val mockRestaurant = Restaurant(
+                id = "1",
+                name = "Spicy Restaurant",
+                description = "Maecenas sed diam eget risus varius blandit sit amet non magna. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
+                tags = listOf("Burger", "Chicken", "Rice", "Wings"),
+                rating = 4.7f,
+                deliveryFee = "Free",
+                deliveryTime = "20 min",
+                imageRes = R.drawable.food_bowl
             )
-
-            val mockFood = listOf(
-                FoodItem("European Pizza", "Uttora Coffe House", "$70", 4.5f, 100, R.drawable.food_bowl),
-                FoodItem("Buffalo Pizza", "Cafenio Coffee Club", "$50", 4.2f, 80, R.drawable.food_bowl)
+            val mockFoodItems = listOf(
+                FoodItem("1", "Burger Ferguson", "Spicy Restaurant", "Burger", "40", R.drawable.food_bowl, "PROMOTION"),
+                FoodItem("2", "Rockin' Burgers", "Cafecafachino", "Burger", "40", R.drawable.food_bowl, "GIẢM 20%"),
+                FoodItem("3", "Egg Burger", "Spicy Restaurant", "Burger", "35", R.drawable.food_bowl, "FREESHIP"),
+                FoodItem("4", "BBQ Special", "Flame Grills", "Burger", "45", R.drawable.food_bowl, "HOT"),
             )
-            _state.update {
-                it.copy(
-                    suggestedRestaurants = mockRestaurants,
-                    popularFood = mockFood,
-                    isLoading = false
-                )
-            }
         }
     }
 }

@@ -3,9 +3,11 @@ package com.example.fooddelivery.ui.screens.restaurant_detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.ui.navigation.RestaurantDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,34 +22,38 @@ data class RestaurantDetailState(
     val foodItems: List<FoodItem> = emptyList(),
     val categories: List<String> = listOf("Burger", "Sandwich", "Pizza"),
     val selectedCategory: String = "Burger",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val categorizedFoodItem: Map<String, List<FoodItem>> = emptyMap()
 )
+
 sealed interface RestaurantDetailEvent {
     data class CategorySelected(val category: String) : RestaurantDetailEvent
     data class AddFoodToCart(val foodItem: FoodItem) : RestaurantDetailEvent
 }
+
 @HiltViewModel
 class RestaurantDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val restaurantId: String = checkNotNull(savedStateHandle["restaurantId"])
+    private val restaurantId: String = savedStateHandle.toRoute<RestaurantDetailRoute>().restaurantId
     private val _state = MutableStateFlow(RestaurantDetailState())
     val state: StateFlow<RestaurantDetailState> = _state.asStateFlow()
 
     init {
         loadRestaurantDetails()
     }
+
     fun onEvent(event: RestaurantDetailEvent) {
         when(event) {
             is RestaurantDetailEvent.CategorySelected -> {
                 _state.update { it.copy(selectedCategory = event.category) }
-                filterFoodByCategory(event.category)
             }
             is RestaurantDetailEvent.AddFoodToCart -> {
                 // logic add to cart
             }
         }
     }
+
     private fun loadRestaurantDetails () {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -63,21 +69,33 @@ class RestaurantDetailViewModel @Inject constructor(
                 imageRes = R.drawable.food_bowl
             )
             val mockFoodItems = listOf(
+                // --- BURGERS ---
                 FoodItem("1", "Burger Ferguson", "Spicy Restaurant", "Burger", "40", R.drawable.food_bowl, "PROMOTION"),
                 FoodItem("2", "Rockin' Burgers", "Cafecafachino", "Burger", "40", R.drawable.food_bowl, "GIẢM 20%"),
                 FoodItem("3", "Egg Burger", "Spicy Restaurant", "Burger", "35", R.drawable.food_bowl, "FREESHIP"),
-                FoodItem("4", "BBQ Special", "Flame Grills", "Burger", "45", R.drawable.food_bowl, "HOT")
+                FoodItem("4", "BBQ Special", "Flame Grills", "Burger", "45", R.drawable.food_bowl, "HOT"),
+
+                // --- SANDWICHES ---
+                FoodItem("5", "Club Sandwich", "Green Bakery", "Sandwich", "30", R.drawable.food_bowl, "BÁN CHẠY"),
+                FoodItem("6", "Tuna Melt", "Ocean Delights", "Sandwich", "32", R.drawable.food_bowl, "FREESHIP"),
+                FoodItem("7", "Beef Pastrami", "The Deli Shop", "Sandwich", "50", R.drawable.food_bowl, "NEW"),
+                FoodItem("8", "Veggie Supreme", "Green Bakery", "Sandwich", "28", R.drawable.food_bowl, "HEALTHY"),
+
+                // --- PIZZAS ---
+                FoodItem("9", "Margherita Pizza", "Pizza Heaven", "Pizza", "120", R.drawable.food_bowl, "GIẢM 10%"),
+                FoodItem("10", "Pepperoni Feast", "The Italian Job", "Pizza", "150", R.drawable.food_bowl, "HOT"),
+                FoodItem("11", "Seafood Black Pepper", "Pizza Heaven", "Pizza", "180", R.drawable.food_bowl, "PROMOTION"),
+                FoodItem("12", "Hawaiian Classic", "Tropical Slice", "Pizza", "140", R.drawable.food_bowl, "FREESHIP")
             )
+            
             _state.update {
                 it.copy(
                     restaurant = mockRestaurant,
                     foodItems = mockFoodItems,
+                    categorizedFoodItem = mockFoodItems.groupBy { item -> item.category },
                     isLoading = false
                 )
             }
         }
-    }
-    private fun filterFoodByCategory(category: String) {
-        // logic filter food items based on category
     }
 }

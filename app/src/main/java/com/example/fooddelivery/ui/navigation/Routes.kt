@@ -15,12 +15,12 @@ import kotlinx.serialization.Serializable
 @Serializable object ForgotPasswordRoute
 @Serializable
 data class VerificationRoute(
-    val email: String
+    val email: String = ""
 )
 @Serializable
 data class ResetPasswordRoute (
-    val email: String,
-    val resetCode: String
+    val email: String = "",
+    val resetCode: String = ""
 )
 // customer
 @Serializable object HomeRoute
@@ -28,21 +28,21 @@ data class ResetPasswordRoute (
 @Serializable object LocationRoute
 @Serializable object CartRoute
 
-@Serializable data class FoodDetailRoute(val foodId: Int)
-@Serializable data class CategoryFilterRoute(val categoryId: String)
-@Serializable data class RestaurantDetailRoute(val restaurantId: String)
+@Serializable data class FoodDetailRoute(val foodId: Int = 0)
+@Serializable data class CategoryFilterRoute(val categoryId: String = "")
+@Serializable data class RestaurantDetailRoute(val restaurantId: String = "")
 @Serializable object PaymentRoute
 @Serializable object AddCardRoute
 @Serializable object CheckoutSuccessRoute
 
 @Serializable object MyOrdersRoute
-@Serializable data class TrackOrderRoute(val orderId: String)
+@Serializable data class TrackOrderRoute(val orderId: String = "")
 
 @Serializable object ProfileRoute
 @Serializable object EditProfileRoute
 @Serializable object MyAddressRoute
 @Serializable object AddAddressRoute
-@Serializable data class ChatRoute(val receiverId: String)
+@Serializable data class ChatRoute(val receiverId: String = "")
 
 // Restaurant
 @Serializable object RestaurantDashboardRoute
