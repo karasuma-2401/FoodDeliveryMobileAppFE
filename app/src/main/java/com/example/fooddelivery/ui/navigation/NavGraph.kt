@@ -24,7 +24,7 @@ import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
 import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
-import com.example.fooddelivery.ui.screens.restaurant_detail.RestaurantDetailScreen
+import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -167,7 +167,10 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         }
         composable<RestaurantDetailRoute> { backStackEntry ->
             RestaurantDetailScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToFoodDetail = { foodId ->
+                    navController.navigate(FoodDetailRoute(foodId = foodId.toInt()))
+                }
             )
         }
         composable<FoodDetailRoute> { backStackEntry ->

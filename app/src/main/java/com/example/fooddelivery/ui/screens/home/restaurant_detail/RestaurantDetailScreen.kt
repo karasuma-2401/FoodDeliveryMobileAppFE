@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant_detail
+package com.example.fooddelivery.ui.screens.home.restaurant_detail
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -16,22 +16,38 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.home.search.components.SectionHeader
-import com.example.fooddelivery.ui.screens.restaurant_detail.components.CategoryTabs
-import com.example.fooddelivery.ui.screens.restaurant_detail.components.FoodItemCard
-import com.example.fooddelivery.ui.screens.restaurant_detail.components.RestaurantHeader
+import com.example.fooddelivery.ui.screens.home.restaurant_detail.components.CategoryTabs
+import com.example.fooddelivery.ui.screens.home.restaurant_detail.components.FoodItemCard
+import com.example.fooddelivery.ui.screens.home.restaurant_detail.components.RestaurantHeader
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RestaurantDetailScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToFoodDetail: (String) -> Unit,
     viewModel: RestaurantDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
 
-      val currentScrollIndex by remember {
+    LaunchedEffect(viewModel.uiEffect) {
+        viewModel.uiEffect.collectLatest { effect ->
+            when (effect) {
+                is RestaurantDetailUiEffect.ShowSnackBar -> {
+                    snackBarHostState.showSnackbar(
+                        message = effect.message,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        }
+    }
+
+    val currentScrollIndex by remember {
         derivedStateOf {
             val visibleItems = listState.layoutInfo.visibleItemsInfo
             if (visibleItems.isEmpty()) return@derivedStateOf 0
@@ -71,6 +87,16 @@ fun RestaurantDetailScreen(
                 onBackClick = onNavigateBack,
                 scrollBehavior = null
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackBarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFF323232).copy(alpha = 0.9f),
+                    contentColor = Color.White,
+                    shape = MaterialTheme.shapes.medium
+                )
+            }
         },
         containerColor = Color(0xFFFBFBFB)
     ) { innerPadding ->
@@ -132,7 +158,9 @@ fun RestaurantDetailScreen(
                                 rowItems.forEach { foodItem ->
                                     FoodItemCard(
                                         foodItem = foodItem,
-                                        onAddClick = { viewModel.onEvent(RestaurantDetailEvent.AddFoodToCart(foodItem)) },
+                                        onAddClick = {
+                                            viewModel.onEvent(RestaurantDetailEvent.AddFoodToCart(foodItem)) },
+                                        onItemClick = { onNavigateToFoodDetail(foodItem.id) },
                                         modifier = Modifier.weight(1f)
                                     )
                                 }

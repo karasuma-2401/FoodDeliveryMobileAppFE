@@ -6,12 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.navigation.compose.rememberNavController
-import com.example.fooddelivery.ui.navigation.RootNavigationGraph
-import com.example.fooddelivery.ui.screens.home.HomeScreen
-import com.example.fooddelivery.ui.screens.home.location.LocationScreen
-import com.example.fooddelivery.ui.screens.home.search.SearchScreen
-import com.example.fooddelivery.ui.screens.restaurant_detail.RestaurantDetailScreen
+import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -36,7 +31,8 @@ class MainActivity : ComponentActivity() {
 //                        startDestination = mainViewModel.startDestination.value
 //                    )
                     RestaurantDetailScreen(
-                        onNavigateBack = {}
+                        onNavigateBack = {},
+                        onNavigateToFoodDetail = { id -> println("Navigate to food detail with ID: $id")}
                     )
                 }
             }

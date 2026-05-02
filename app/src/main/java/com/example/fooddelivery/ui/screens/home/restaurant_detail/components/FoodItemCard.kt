@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant_detail.components
+package com.example.fooddelivery.ui.screens.home.restaurant_detail.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,6 +33,7 @@ import com.example.fooddelivery.domain.model.FoodItem
 fun FoodItemCard(
     foodItem: FoodItem,
     onAddClick: () -> Unit,
+    onItemClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -41,6 +42,7 @@ fun FoodItemCard(
             .clip(RoundedCornerShape(24.dp))
             .background(Color.White)
             .padding(12.dp)
+            .clickable { onItemClick() }
     ) {
         Column {
             Box(
@@ -103,7 +105,8 @@ fun FoodItemCard(
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
-                .clickable { onAddClick() },
+                .clickable { onAddClick() }
+                .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(

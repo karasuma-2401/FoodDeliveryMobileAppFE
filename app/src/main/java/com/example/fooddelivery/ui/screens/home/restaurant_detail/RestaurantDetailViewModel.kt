@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant_detail
+package com.example.fooddelivery.ui.screens.home.restaurant_detail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,8 +10,10 @@ import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.ui.navigation.RestaurantDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -30,7 +32,9 @@ sealed interface RestaurantDetailEvent {
     data class CategorySelected(val category: String) : RestaurantDetailEvent
     data class AddFoodToCart(val foodItem: FoodItem) : RestaurantDetailEvent
 }
-
+sealed interface RestaurantDetailUiEffect {
+    data class ShowSnackBar(val message: String) : RestaurantDetailUiEffect
+}
 @HiltViewModel
 class RestaurantDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
@@ -38,6 +42,9 @@ class RestaurantDetailViewModel @Inject constructor(
     private val restaurantId: String = savedStateHandle.toRoute<RestaurantDetailRoute>().restaurantId
     private val _state = MutableStateFlow(RestaurantDetailState())
     val state: StateFlow<RestaurantDetailState> = _state.asStateFlow()
+
+    private val _uiEffect = MutableSharedFlow<RestaurantDetailUiEffect>()
+    val uiEffect = _uiEffect.asSharedFlow()
 
     init {
         loadRestaurantDetails()
@@ -49,8 +56,15 @@ class RestaurantDetailViewModel @Inject constructor(
                 _state.update { it.copy(selectedCategory = event.category) }
             }
             is RestaurantDetailEvent.AddFoodToCart -> {
-                // logic add to cart
+                addToCart(event.foodItem)
             }
+        }
+    }
+
+    private fun addToCart(foodItem: FoodItem) {
+        viewModelScope.launch {
+            // logic add to cart (repository/ usecase)
+            _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar("${foodItem.name} added to cart"))
         }
     }
 
