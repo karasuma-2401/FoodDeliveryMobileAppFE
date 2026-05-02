@@ -17,7 +17,7 @@ private val Context.userPrefDataStore: DataStore<Preferences> by preferencesData
 
 @Singleton
 class TokenManager @Inject constructor (
-    @param:ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     companion object {
         val TOKEN_KEY = stringPreferencesKey("jwt_token")

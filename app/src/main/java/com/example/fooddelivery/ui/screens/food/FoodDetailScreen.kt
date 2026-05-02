@@ -30,8 +30,7 @@ fun FoodDetailScreen(
     LaunchedEffect(viewModel.uiEffect) {
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
-                is FoodDetailUiEffect.NavigateBackWithSuccess -> {
-                    onShowSnackbar(effect.message)
+                FoodDetailUiEffect.NavigateBack -> {
                     onNavigateBack()
                 }
             }

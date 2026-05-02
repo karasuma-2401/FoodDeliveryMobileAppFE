@@ -6,11 +6,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GlobalSnackBarManager @Inject constructor() {
+class GlobalSnackbarManager @Inject constructor() {
     private val _messages = MutableSharedFlow<String>()
     val messages = _messages.asSharedFlow()
 
-    suspend fun showSnackBar(message: String) {
+    suspend fun showSnackbar(message: String) {
         _messages.emit(message)
     }
 }

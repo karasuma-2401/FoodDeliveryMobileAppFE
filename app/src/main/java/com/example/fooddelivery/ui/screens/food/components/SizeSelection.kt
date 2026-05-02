@@ -27,6 +27,7 @@ fun SizeSelection(
     modifier: Modifier = Modifier
 ) {
     val sizes = listOf("Small", "Medium", "Large")
+
     Column(modifier = modifier) {
         Text(
             text = "SIZE:",
@@ -51,7 +52,12 @@ fun SizeSelection(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = size,
+                        text = when(size) {
+                            "Small" -> "S"
+                            "Medium" -> "M"
+                            "Large" -> "L"
+                            else -> size
+                        },
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = if (isSelected) MaterialTheme.colorScheme.onPrimary
                                 else MaterialTheme.colorScheme.onBackground,

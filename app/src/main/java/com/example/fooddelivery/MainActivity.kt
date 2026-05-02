@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -17,17 +18,16 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.navigation.RootNavigationGraph
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import com.example.fooddelivery.ui.util.GlobalSnackbarManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
-import androidx.compose.foundation.layout.Box
-import com.example.fooddelivery.ui.util.GlobalSnackBarManager
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     
     @Inject
-    lateinit var snackBarManager: GlobalSnackBarManager
+    lateinit var snackbarManager: GlobalSnackbarManager
     
     private val mainViewModel: MainViewModel by viewModels()
     
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
                 val snackbarHostState = remember { SnackbarHostState() }
                 
                 LaunchedEffect(Unit) {
-                    snackBarManager.messages.collectLatest { message ->
+                    snackbarManager.messages.collectLatest { message ->
                         snackbarHostState.showSnackbar(message)
                     }
                 }
@@ -68,4 +68,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

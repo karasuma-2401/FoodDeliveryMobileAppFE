@@ -25,7 +25,7 @@ data class FoodDetailState(
     val food: FoodItem? = null,
     val restaurant: Restaurant? = null,
     val quantity: Int = 1,
-    val selectedSize: String = "14\"",
+    val selectedSize: String = "Medium",
     val totalPrice: Double = 0.0,
     val isFavorite: Boolean = false,
     val isLoading: Boolean = false
@@ -111,8 +111,8 @@ class FoodDetailViewModel @Inject constructor(
 
     private fun calculateUnitPrice(basePrice: Double, size: String): Double {
         val sizeMultiplier = when (size) {
-            "10\"" -> 0.8
-            "16\"" -> 1.2
+            "Small" -> 0.8
+            "Large" -> 1.2
             else -> 1.0
         }
         return basePrice * sizeMultiplier
