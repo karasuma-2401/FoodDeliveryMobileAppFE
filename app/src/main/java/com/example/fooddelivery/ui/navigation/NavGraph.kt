@@ -163,13 +163,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         }
         composable<CategoryFilterRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<CategoryFilterRoute>()
+            // TODO: Replace with actual CategoryFilterScreen when implemented
             Text(text = "Category with ID: ${args.categoryId}")
         }
         composable<RestaurantDetailRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<RestaurantDetailRoute>()
             RestaurantDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToFoodDetail = { foodId ->
-                    navController.navigate(FoodDetailRoute(foodId = foodId.toInt()))
+                    navController.navigate(FoodDetailRoute(foodId = foodId))
                 }
             )
         }
@@ -206,7 +208,10 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToHome = { navController.popBackStack() },
                 onNavigateToOrders = { navController.navigate(MyOrdersRoute) },
                 onNavigateToProfile = { navController.navigate(ProfileRoute) },
-                onNavigateToCart = { navController.navigate(CartRoute) }
+                onNavigateToCart = { navController.navigate(CartRoute) },
+                onNavigateToRestaurant = { restaurant ->
+                    navController.navigate(RestaurantDetailRoute(restaurantId = restaurant.id))
+                }
             )
         }
         composable<LocationRoute> { Text("Location") }

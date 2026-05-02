@@ -10,4 +10,8 @@ data class FoodItem(
 //    val reviewCount: Int,
     val imageRes: Int,
     val promoTag: String? = null
-)
+) {
+    init {
+        require(id.isNotEmpty()) { "FoodItem id must not be empty" }
+    }
+}

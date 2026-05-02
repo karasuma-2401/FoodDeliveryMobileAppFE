@@ -28,7 +28,7 @@ data class ResetPasswordRoute (
 @Serializable object LocationRoute
 @Serializable object CartRoute
 
-@Serializable data class FoodDetailRoute(val foodId: Int = 0)
+@Serializable data class FoodDetailRoute(val foodId: String = "")
 @Serializable data class CategoryFilterRoute(val categoryId: String = "")
 @Serializable data class RestaurantDetailRoute(val restaurantId: String = "")
 @Serializable object PaymentRoute

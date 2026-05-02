@@ -11,6 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.ui.components.bottombar.BottomNavItem
 import com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.home.components.HomeTopBar
@@ -23,6 +24,7 @@ fun SearchScreen(
     onNavigateToOrders: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToCart: () -> Unit,
+    onNavigateToRestaurant: (Restaurant) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -55,6 +57,7 @@ fun SearchScreen(
         SearchContent(
             state = state,
             onEvent = viewModel::onEvent,
+            onNavigateToRestaurant = onNavigateToRestaurant,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -64,6 +67,7 @@ fun SearchScreen(
 fun SearchContent(
     state: SearchState,
     onEvent: (SearchEvent) -> Unit,
+    onNavigateToRestaurant: (Restaurant) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -88,7 +92,10 @@ fun SearchContent(
         }
 
         items(state.suggestedRestaurants) { restaurant ->
-            SearchRestaurantItem(restaurant = restaurant)
+            SearchRestaurantItem(
+                restaurant = restaurant,
+                onClick = { onNavigateToRestaurant(restaurant) }
+            )
         }
         item {
             SectionHeader(title = "Popular Fast Food", modifier = Modifier.padding(top = 24.dp))
@@ -107,7 +114,8 @@ fun SearchScreenPreview() {
     DFoodTheme(darkTheme = false) {
         SearchContent(
             state = SearchState(),
-            onEvent = {}
+            onEvent = {},
+            onNavigateToRestaurant = {}
         )
     }
 }

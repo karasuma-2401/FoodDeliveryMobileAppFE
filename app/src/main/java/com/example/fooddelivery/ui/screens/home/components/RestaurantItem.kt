@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
 
 @Composable
@@ -41,16 +42,14 @@ fun RestaurantItem(
                 .fillMaxWidth()
                 .height(180.dp)
         ) {
-            restaurant.imageRes?.let {
-                Image(
-                    painter = painterResource(id = it),
-                    contentDescription = restaurant.name,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(24.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            }
+            Image(
+                painter = painterResource(id = restaurant.imageRes ?: R.drawable.food_bowl),
+                contentDescription = restaurant.name,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(24.dp)),
+                contentScale = ContentScale.Crop
+            )
 
             // Promo Badges
             Row(

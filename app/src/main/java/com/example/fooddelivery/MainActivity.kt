@@ -5,8 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.rememberNavController
+import com.example.fooddelivery.ui.navigation.RootNavigationGraph
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,16 +26,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DFoodTheme (darkTheme = false) {
-                val isLoading = mainViewModel.isLoading.value
+                val isLoading by mainViewModel.isLoading.collectAsStateWithLifecycle()
+                val startDestination by mainViewModel.startDestination.collectAsStateWithLifecycle()
                 if (!isLoading) {
-//                    val navController = rememberNavController();
-//                    RootNavigationGraph(
-//                        navController = navController,
-//                        startDestination = mainViewModel.startDestination.value
-//                    )
-                    RestaurantDetailScreen(
-                        onNavigateBack = {},
-                        onNavigateToFoodDetail = { id -> println("Navigate to food detail with ID: $id")}
+                    val navController = rememberNavController()
+                    RootNavigationGraph(
+                        navController = navController,
+                        startDestination = startDestination
                     )
                 }
             }

@@ -6,6 +6,7 @@ import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
 import com.example.fooddelivery.data.remote.dto.LoginRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
+import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import com.example.fooddelivery.domain.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
@@ -89,8 +90,9 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun verifyCode(email: String, code: String): Result<Unit> {
         return try {
-            val response = api.verifyCode(email, code)
-            
+            val request = VerifyCodeRequest(email, code)
+            val response = api.verifyCode(request)
+
             if (response.isSuccessful && response.body()?.isSuccess == true) {
                 Result.success(Unit)
             } else {
