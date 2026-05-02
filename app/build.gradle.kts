@@ -37,12 +37,16 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "API_BASE_URL", "\"https://api.yourapp.com/\"")
         }
     }
     compileOptions {
@@ -54,6 +58,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -92,6 +97,7 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil-gif:2.7.0")
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
@@ -105,4 +111,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+    
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
 }

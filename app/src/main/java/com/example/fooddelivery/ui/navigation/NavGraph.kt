@@ -17,11 +17,14 @@ import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegistrationSuccessScreen
 import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
+import com.example.fooddelivery.ui.screens.home.HomeScreen
+import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
 import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
+import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -139,7 +142,38 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
     navigation<CustomerGraph>(startDestination = HomeRoute) {
 
         composable<HomeRoute> {
-            Text("customer home")
+            HomeScreen(
+                onNavigateToCategory = { id ->
+                    navController.navigate(CategoryFilterRoute(categoryId = id))
+                },
+                onNavigateToCart = { navController.navigate(CartRoute) },
+                onNavigateToSearch = { navController.navigate(SearchRoute) },
+                onNavigateToProfile = { navController.navigate(ProfileRoute) },
+                onNavigateToOrders = { navController.navigate(MyOrdersRoute) },
+                onNavigateToRestaurant = { id ->
+                    navController.navigate(RestaurantDetailRoute(restaurantId = id))
+                },
+//                onNavigateToCategory = { id ->
+//                    navController.navigate(CategoryFilterRoute(categoryId = id)) },
+                onNavigateToAllRestaurants = { /* later */ },
+                onNavigateToAllCategories = { },
+                onOpenMenu = {},
+                onOpenLocationPicker = {},
+            )
+        }
+        composable<CategoryFilterRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<CategoryFilterRoute>()
+            // TODO: Replace with actual CategoryFilterScreen when implemented
+            Text(text = "Category with ID: ${args.categoryId}")
+        }
+        composable<RestaurantDetailRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<RestaurantDetailRoute>()
+            RestaurantDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToFoodDetail = { foodId ->
+                    navController.navigate(FoodDetailRoute(foodId = foodId))
+                }
+            )
         }
         composable<FoodDetailRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<FoodDetailRoute>()
@@ -169,7 +203,17 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             val args = backStackEntry.toRoute<TrackOrderRoute>()
             Text("Following order with ID: ${args.orderId}")
         }
-        composable<SearchRoute> { Text("Search") }
+        composable<SearchRoute> {
+            SearchScreen(
+                onNavigateToHome = { navController.popBackStack() },
+                onNavigateToOrders = { navController.navigate(MyOrdersRoute) },
+                onNavigateToProfile = { navController.navigate(ProfileRoute) },
+                onNavigateToCart = { navController.navigate(CartRoute) },
+                onNavigateToRestaurant = { restaurant ->
+                    navController.navigate(RestaurantDetailRoute(restaurantId = restaurant.id))
+                }
+            )
+        }
         composable<LocationRoute> { Text("Location") }
         composable<AddCardRoute> { Text("Add card") }
         composable<CheckoutSuccessRoute> { Text("Checkout success") }
