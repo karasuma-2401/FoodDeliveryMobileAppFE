@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,17 +16,32 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.food.components.*
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun FoodDetailScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToRestaurant: (String) -> Unit,
+    onShowSnackbar: (String) -> Unit,
     viewModel: FoodDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    LaunchedEffect(viewModel.uiEffect) {
+        viewModel.uiEffect.collectLatest { effect ->
+            when (effect) {
+                is FoodDetailUiEffect.NavigateBackWithSuccess -> {
+                    onShowSnackbar(effect.message)
+                    onNavigateBack()
+                }
+            }
+        }
+    }
+
     FoodDetailContent(
         state = state,
         onNavigateBack = onNavigateBack,
+        onNavigateToRestaurant = onNavigateToRestaurant,
         onEvent = viewModel::onEvent
     )
 }
@@ -35,6 +51,7 @@ fun FoodDetailScreen(
 fun FoodDetailContent(
     state: FoodDetailState,
     onNavigateBack: () -> Unit,
+    onNavigateToRestaurant: (String) -> Unit,
     onEvent: (FoodDetailEvent) -> Unit
 ) {
     Scaffold(
@@ -47,7 +64,7 @@ fun FoodDetailContent(
         bottomBar = {
             state.food?.let { food ->
                 BottomCartBar(
-                    price = food.price,
+                    price = String.format("%.0f", state.totalPrice),
                     quantity = state.quantity,
                     onUpdateQuantity = { onEvent(FoodDetailEvent.UpdateQuantity(it)) },
                     onAddToCart = { onEvent(FoodDetailEvent.AddToCart) }
@@ -79,8 +96,14 @@ fun FoodDetailContent(
                 }
                 item { Spacer(modifier = Modifier.height(24.dp)) }
                 item {
-                    RestaurantChip(name = state.food?.restaurantName ?: "Uttora Coffee House")
+                    RestaurantChip(
+                        name = state.food?.restaurantName ?: "Uttora Coffee House",
+                        onClick = {
+                            state.restaurant?.id?.let(onNavigateToRestaurant) ?: onNavigateBack()
+                        }
+                    )
                 }
+                
                 item { Spacer(modifier = Modifier.height(16.dp)) }
                 item {
                     Text(

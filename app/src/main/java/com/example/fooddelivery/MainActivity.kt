@@ -5,14 +5,32 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
+import androidx.navigation.compose.rememberNavController
+import com.example.fooddelivery.ui.navigation.RootNavigationGraph
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import javax.inject.Inject
+import androidx.compose.foundation.layout.Box
+import com.example.fooddelivery.ui.util.GlobalSnackBarManager
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var snackBarManager: GlobalSnackBarManager
+    
     private val mainViewModel: MainViewModel by viewModels()
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen();
         super.onCreate(savedInstanceState)
@@ -23,19 +41,31 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DFoodTheme (darkTheme = false) {
+                val snackbarHostState = remember { SnackbarHostState() }
+                
+                LaunchedEffect(Unit) {
+                    snackBarManager.messages.collectLatest { message ->
+                        snackbarHostState.showSnackbar(message)
+                    }
+                }
+
                 val isLoading = mainViewModel.isLoading.value
                 if (!isLoading) {
-//                    val navController = rememberNavController();
-//                    RootNavigationGraph(
-//                        navController = navController,
-//                        startDestination = mainViewModel.startDestination.value
-//                    )
-                    RestaurantDetailScreen(
-                        onNavigateBack = {},
-                        onNavigateToFoodDetail = { id -> println("Navigate to food detail with ID: $id")}
-                    )
+                    val navController = rememberNavController()
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+                    ) { innerPadding ->
+                        Box(modifier = Modifier.padding(innerPadding)) {
+                            RootNavigationGraph(
+                                navController = navController,
+                                startDestination = mainViewModel.startDestination.value
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+

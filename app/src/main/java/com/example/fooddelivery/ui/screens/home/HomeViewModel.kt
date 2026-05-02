@@ -6,6 +6,7 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.User
+import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -13,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,7 +23,7 @@ data class HomeState(
     val user: User = User(fullName = "Halal"),
     val categories: List<Category> = emptyList(),
     val restaurants: List<Restaurant> = emptyList(),
-    val cartItemCount: Int = 2,
+    val cartItemCount: Int = 0,
     val selectedLocation: String = "Halal Lab office",
     val searchQuery: String = "",
     val isLoading: Boolean = false,
@@ -41,7 +43,8 @@ sealed interface HomeEvent {
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getUserProfileUseCase: GetUserProfileUseCase
+    private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val cartRepository: CartRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -54,6 +57,16 @@ class HomeViewModel @Inject constructor(
 
     init {
         onEvent(HomeEvent.LoadHomeData)
+        observeCart()
+    }
+
+    private fun observeCart() {
+        viewModelScope.launch {
+            cartRepository.cartItems.collectLatest { items ->
+                val totalCount = items.sumOf { it.quantity }
+                _state.update { it.copy(cartItemCount = totalCount) }
+            }
+        }
     }
 
     fun onEvent(event: HomeEvent) {
@@ -68,8 +81,6 @@ class HomeViewModel @Inject constructor(
             HomeEvent.SeeAllRestaurantsClicked -> { /* logic */ }
         }
     }
-
-
 
     private fun loadData() {
         viewModelScope.launch {
