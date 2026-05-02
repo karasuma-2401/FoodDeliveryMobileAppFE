@@ -30,7 +30,6 @@ data class HomeState(
 
 sealed interface HomeEvent {
     object LoadHomeData : HomeEvent
-    data class SearchQueryChanged(val query: String) : HomeEvent
     object CartClicked : HomeEvent
     object MenuClicked : HomeEvent
     object LocationClicked : HomeEvent
@@ -48,7 +47,6 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
-    // Giữ danh sách gốc để phục vụ việc lọc (Search)
     private var fullCategories: List<Category> = emptyList()
     private var fullRestaurants: List<Restaurant> = emptyList()
     
@@ -61,9 +59,6 @@ class HomeViewModel @Inject constructor(
     fun onEvent(event: HomeEvent) {
         when (event) {
             HomeEvent.LoadHomeData -> loadData()
-            is HomeEvent.SearchQueryChanged -> {
-                updateSearchQuery(event.query)
-            }
             HomeEvent.CartClicked -> { /* logic */ }
             HomeEvent.MenuClicked -> { /* logic */ }
             HomeEvent.LocationClicked -> { /* logic */ }
@@ -74,38 +69,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun updateSearchQuery(query: String) {
-        _state.update { it.copy(searchQuery = query) }
 
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            delay(250)
-            performSearch(query)
-        }
-    }
-
-    private fun performSearch(query: String) {
-        if (query.isBlank()) {
-            _state.update { it.copy(
-                categories = fullCategories,
-                restaurants = fullRestaurants
-            ) }
-            return
-        }
-
-        val filteredCategories = fullCategories.filter {
-            it.name.contains(query, ignoreCase = true)
-        }
-        val filteredRestaurants = fullRestaurants.filter {
-            it.name.contains(query, ignoreCase = true) ||
-            it.tags.any { tag -> tag.contains(query, ignoreCase = true) }
-        }
-
-        _state.update { it.copy(
-            categories = filteredCategories,
-            restaurants = filteredRestaurants
-        ) }
-    }
 
     private fun loadData() {
         viewModelScope.launch {
@@ -114,8 +78,8 @@ class HomeViewModel @Inject constructor(
             delay(1000)
 
             fullCategories = listOf(
-                Category("1", "Pizza", R.drawable.food_bowl, "$70"),
-                Category("2", "Burger", R.drawable.food_bowl, "$50"),
+                Category("1", "Pizza", R.drawable.food_bowl, "$70", "Giảm 20%"),
+                Category("2", "Burger", R.drawable.food_bowl, "$50", "PROMO"),
                 Category("3", "Pasta", R.drawable.food_bowl, "$60"),
                 Category("4", "Drink", R.drawable.food_bowl, "$20"),
                 Category("5", "Chicken", R.drawable.food_bowl, "$45")
@@ -129,7 +93,8 @@ class HomeViewModel @Inject constructor(
                     rating = 4.7f,
                     deliveryFee = "Free",
                     deliveryTime = "20 min",
-                    imageRes = R.drawable.food_bowl
+                    imageRes = R.drawable.food_bowl,
+                    promoTags = listOf("PROMO", "Freeship")
                 ),
                 Restaurant(
                     id = "2",
@@ -138,7 +103,8 @@ class HomeViewModel @Inject constructor(
                     rating = 4.5f,
                     deliveryFee = "$1.5",
                     deliveryTime = "15 min",
-                    imageRes = R.drawable.food_bowl
+                    imageRes = R.drawable.food_bowl,
+                    promoTags = listOf("Giảm 50%")
                 ),
                 Restaurant(
                     id = "3",

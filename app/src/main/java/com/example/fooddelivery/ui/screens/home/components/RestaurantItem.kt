@@ -1,6 +1,8 @@
 package com.example.fooddelivery.ui.screens.home.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,17 +34,68 @@ fun RestaurantItem(
             .padding(horizontal = 24.dp, vertical = 12.dp)
             .clip(RoundedCornerShape(24.dp))
             .padding(bottom = 8.dp)
+            .clickable { onClick() }
     ) {
-        restaurant.imageRes?.let {
-            Image(
-                painter = painterResource(id = it),
-                contentDescription = restaurant.name,
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+        ) {
+            restaurant.imageRes?.let {
+                Image(
+                    painter = painterResource(id = it),
+                    contentDescription = restaurant.name,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(24.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // Promo Badges
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(24.dp)),
-                contentScale = ContentScale.Crop
-            )
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Left badge (e.g., PROMO, Discount)
+                restaurant.promoTags.firstOrNull { !it.contains("Freeship", ignoreCase = true) }?.let { promo ->
+                    val badgeColor = if (promo.contains("PROMO", ignoreCase = true)) 
+                        Color(0xFFF58D1F) else Color(0xFFF15A5A)
+                    
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(badgeColor)
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = promo,
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                // Right badge (e.g., Freeship)
+                restaurant.promoTags.firstOrNull { it.contains("Freeship", ignoreCase = true) }?.let { freeship ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFF15A5A))
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = freeship,
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
         
         Spacer(modifier = Modifier.height(12.dp))

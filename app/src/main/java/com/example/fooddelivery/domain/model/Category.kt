@@ -4,5 +4,6 @@ data class Category(
     val id: String,
     val name: String,
     val imageRes: Int,
-    val startingPrice: String
+    val startingPrice: String,
+    val promoText: String? = null
 )

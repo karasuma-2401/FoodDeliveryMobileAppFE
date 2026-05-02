@@ -6,6 +6,7 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,6 +51,38 @@ class SearchViewModel @Inject constructor() : ViewModel() {
             SearchEvent.LoadSearchData -> loadInitialData()
         }
     }
+//    private fun updateSearchQuery(query: String) {
+//        _state.update { it.copy(searchQuery = query) }
+//
+//        searchJob?.cancel()
+//        searchJob = viewModelScope.launch {
+//            delay(250)
+//            performSearch(query)
+//        }
+//    }
+//
+//    private fun performSearch(query: String) {
+//        if (query.isBlank()) {
+//            _state.update { it.copy(
+//                categories = fullCategories,
+//                restaurants = fullRestaurants
+//            ) }
+//            return
+//        }
+//
+//        val filteredCategories = fullCategories.filter {
+//            it.name.contains(query, ignoreCase = true)
+//        }
+//        val filteredRestaurants = fullRestaurants.filter {
+//            it.name.contains(query, ignoreCase = true) ||
+//                    it.tags.any { tag -> tag.contains(query, ignoreCase = true) }
+//        }
+//
+//        _state.update { it.copy(
+//            categories = filteredCategories,
+//            restaurants = filteredRestaurants
+//        ) }
+//    }
     private fun loadInitialData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
