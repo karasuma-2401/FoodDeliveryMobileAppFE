@@ -7,9 +7,11 @@ import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.UserApi
 import com.example.fooddelivery.data.repository.AddressRepositoryImpl
 import com.example.fooddelivery.data.repository.AuthRepositoryImpl
+import com.example.fooddelivery.data.repository.CartRepositoryImpl
 import com.example.fooddelivery.data.repository.UserRepositoryImpl
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.AuthRepository
+import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -45,5 +47,11 @@ object AppModule {
         photonService: PhotonService
     ): AddressRepository {
         return AddressRepositoryImpl(addressApi, photonService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCartRepository(): CartRepository {
+        return CartRepositoryImpl()
     }
 }
