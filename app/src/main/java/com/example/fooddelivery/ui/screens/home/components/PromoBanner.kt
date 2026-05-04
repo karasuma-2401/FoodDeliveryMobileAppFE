@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,7 +58,7 @@ fun PromoBanner(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Đại tiệc Burger\nGiảm 50%",
+                    text = stringResource(R.string.promo_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.ExtraBold,
                         lineHeight = 28.sp
@@ -73,7 +74,7 @@ fun PromoBanner(
                     modifier = Modifier.height(36.dp)
                 ) {
                     Text(
-                        text = "ORDER NOW",
+                        text = stringResource(R.string.promo_button),
                         color = Color(0xFFFF8142),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold

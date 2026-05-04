@@ -1,6 +1,7 @@
 package com.example.fooddelivery.ui.screens.home.search.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,11 +23,15 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
 
 @Composable
-fun SearchRestaurantItem(restaurant: Restaurant) {
+fun SearchRestaurantItem(
+    restaurant: Restaurant,
+    onClick: () -> Unit = {}
+) {
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable { onClick() }
                 .padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

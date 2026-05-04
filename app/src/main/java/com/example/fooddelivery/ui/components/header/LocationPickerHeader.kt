@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -42,8 +44,19 @@ fun LocationPickerHeader(
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
+
+        // Check current state and resume if already resumed
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            mapView.onResume()
+        }
+
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    DisposableEffect(mapView) {
+        onDispose {
             mapView.onDetach()
         }
     }
@@ -54,6 +67,7 @@ fun LocationPickerHeader(
             .height(350.dp)
             .background(Color(0xFFC4C9AD))
     ) {
+        var initialized by remember { mutableStateOf(false) }
         AndroidView(
             factory = {
                 mapView.apply {
@@ -61,11 +75,15 @@ fun LocationPickerHeader(
                     setMultiTouchControls(true)
                     controller.setZoom(15.0)
                     controller.setCenter(initialLocation)
+                    initialized = true
                 }
             },
             modifier = Modifier.fillMaxSize(),
             update = { view ->
-                 view.controller.setCenter(initialLocation)
+                if (!initialized) {
+                    view.controller.setCenter(initialLocation)
+                    initialized = true
+                }
             }
         )
 

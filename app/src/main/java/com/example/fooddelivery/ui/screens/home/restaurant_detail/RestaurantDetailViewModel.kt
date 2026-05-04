@@ -72,36 +72,89 @@ class RestaurantDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             delay(1000)
-            val mockRestaurant = Restaurant(
-                id = restaurantId,
-                name = "Spicy Restaurant",
-                description = "Maecenas sed diam eget risus varius blandit sit amet non magna. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
-                tags = listOf("Burger", "Chicken", "Rice", "Wings"),
-                rating = 4.7f,
-                deliveryFee = "Free",
-                deliveryTime = "20 min",
-                imageRes = R.drawable.food_bowl
-            )
-            val mockFoodItems = listOf(
-                // --- BURGERS ---
-                FoodItem("1", "Burger Ferguson", "Spicy Restaurant", "Burger", "40", R.drawable.food_bowl, "PROMOTION"),
-                FoodItem("2", "Rockin' Burgers", "Cafecafachino", "Burger", "40", R.drawable.food_bowl, "GIẢM 20%"),
-                FoodItem("3", "Egg Burger", "Spicy Restaurant", "Burger", "35", R.drawable.food_bowl, "FREESHIP"),
-                FoodItem("4", "BBQ Special", "Flame Grills", "Burger", "45", R.drawable.food_bowl, "HOT"),
 
-                // --- SANDWICHES ---
-                FoodItem("5", "Club Sandwich", "Green Bakery", "Sandwich", "30", R.drawable.food_bowl, "BÁN CHẠY"),
-                FoodItem("6", "Tuna Melt", "Ocean Delights", "Sandwich", "32", R.drawable.food_bowl, "FREESHIP"),
-                FoodItem("7", "Beef Pastrami", "The Deli Shop", "Sandwich", "50", R.drawable.food_bowl, "NEW"),
-                FoodItem("8", "Veggie Supreme", "Green Bakery", "Sandwich", "28", R.drawable.food_bowl, "HEALTHY"),
+            // Vary restaurant data based on restaurantId
+            val (mockRestaurant, mockFoodItems) = when (restaurantId) {
+                "1" -> {
+                    val restaurant = Restaurant(
+                        id = restaurantId,
+                        name = "Rose Garden Restaurant",
+                        description = "Authentic Asian cuisine with fresh ingredients and traditional recipes.",
+                        tags = listOf("Burger", "Chicken", "Rice", "Wings"),
+                        rating = 4.7f,
+                        deliveryFee = "Free",
+                        deliveryTime = "20 min",
+                        imageRes = R.drawable.food_bowl
+                    )
+                    val items = listOf(
+                        FoodItem("1", "Burger Ferguson", "Rose Garden Restaurant", "Burger", "40", R.drawable.food_bowl, "PROMOTION"),
+                        FoodItem("2", "Rockin' Burgers", "Rose Garden Restaurant", "Burger", "40", R.drawable.food_bowl, "GIẢM 20%"),
+                        FoodItem("3", "Egg Burger", "Rose Garden Restaurant", "Burger", "35", R.drawable.food_bowl, "FREESHIP"),
+                        FoodItem("5", "Club Sandwich", "Rose Garden Restaurant", "Sandwich", "30", R.drawable.food_bowl, "BÁN CHẠY"),
+                        FoodItem("6", "Tuna Melt", "Rose Garden Restaurant", "Sandwich", "32", R.drawable.food_bowl, "FREESHIP"),
+                        FoodItem("9", "Margherita Pizza", "Rose Garden Restaurant", "Pizza", "120", R.drawable.food_bowl, "GIẢM 10%"),
+                        FoodItem("10", "Pepperoni Feast", "Rose Garden Restaurant", "Pizza", "150", R.drawable.food_bowl, "HOT")
+                    )
+                    Pair(restaurant, items)
+                }
+                "2" -> {
+                    val restaurant = Restaurant(
+                        id = restaurantId,
+                        name = "KFC - Ho Chi Minh",
+                        description = "World famous fried chicken and fast food favorites.",
+                        tags = listOf("Fast Food", "Fried Chicken"),
+                        rating = 4.5f,
+                        deliveryFee = "$1.5",
+                        deliveryTime = "15 min",
+                        imageRes = R.drawable.food_bowl
+                    )
+                    val items = listOf(
+                        FoodItem("4", "BBQ Special", "KFC - Ho Chi Minh", "Burger", "45", R.drawable.food_bowl, "HOT"),
+                        FoodItem("7", "Beef Pastrami", "KFC - Ho Chi Minh", "Sandwich", "50", R.drawable.food_bowl, "NEW"),
+                        FoodItem("8", "Veggie Supreme", "KFC - Ho Chi Minh", "Sandwich", "28", R.drawable.food_bowl, "HEALTHY")
+                    )
+                    Pair(restaurant, items)
+                }
+                "3" -> {
+                    val restaurant = Restaurant(
+                        id = restaurantId,
+                        name = "Pizza Hut Deli",
+                        description = "Premium pizzas and Italian specialties delivered hot and fresh.",
+                        tags = listOf("Pizza", "Italian", "Pasta"),
+                        rating = 4.8f,
+                        deliveryFee = "Free",
+                        deliveryTime = "30 min",
+                        imageRes = R.drawable.food_bowl
+                    )
+                    val items = listOf(
+                        FoodItem("11", "Seafood Black Pepper", "Pizza Hut Deli", "Pizza", "180", R.drawable.food_bowl, "PROMOTION"),
+                        FoodItem("12", "Hawaiian Classic", "Pizza Hut Deli", "Pizza", "140", R.drawable.food_bowl, "FREESHIP")
+                    )
+                    Pair(restaurant, items)
+                }
+                else -> {
+                    // Default fallback
+                    val restaurant = Restaurant(
+                        id = restaurantId,
+                        name = "Spicy Restaurant",
+                        description = "Maecenas sed diam eget risus varius blandit sit amet non magna. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
+                        tags = listOf("Burger", "Chicken", "Rice", "Wings"),
+                        rating = 4.7f,
+                        deliveryFee = "Free",
+                        deliveryTime = "20 min",
+                        imageRes = R.drawable.food_bowl
+                    )
+                    val items = listOf(
+                        FoodItem("1", "Burger Ferguson", "Spicy Restaurant", "Burger", "40", R.drawable.food_bowl, "PROMOTION"),
+                        FoodItem("2", "Rockin' Burgers", "Spicy Restaurant", "Burger", "40", R.drawable.food_bowl, "GIẢM 20%"),
+                        FoodItem("3", "Egg Burger", "Spicy Restaurant", "Burger", "35", R.drawable.food_bowl, "FREESHIP"),
+                        FoodItem("5", "Club Sandwich", "Spicy Restaurant", "Sandwich", "30", R.drawable.food_bowl, "BÁN CHẠY"),
+                        FoodItem("9", "Margherita Pizza", "Spicy Restaurant", "Pizza", "120", R.drawable.food_bowl, "GIẢM 10%")
+                    )
+                    Pair(restaurant, items)
+                }
+            }
 
-                // --- PIZZAS ---
-                FoodItem("9", "Margherita Pizza", "Pizza Heaven", "Pizza", "120", R.drawable.food_bowl, "GIẢM 10%"),
-                FoodItem("10", "Pepperoni Feast", "The Italian Job", "Pizza", "150", R.drawable.food_bowl, "HOT"),
-                FoodItem("11", "Seafood Black Pepper", "Pizza Heaven", "Pizza", "180", R.drawable.food_bowl, "PROMOTION"),
-                FoodItem("12", "Hawaiian Classic", "Tropical Slice", "Pizza", "140", R.drawable.food_bowl, "FREESHIP")
-            )
-            
             _state.update {
                 it.copy(
                     restaurant = mockRestaurant,
