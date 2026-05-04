@@ -39,7 +39,6 @@ fun VoucherSelectionSheet(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    // Sử dụng biến tạm để lưu lựa chọn trong khi đang mở Sheet
     var tempSelectedId by remember { mutableStateOf(selectedVoucherId) }
 
     Column(
@@ -48,7 +47,6 @@ fun VoucherSelectionSheet(
             .fillMaxHeight(0.9f)
             .background(Color.White)
     ) {
-        // 1. Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -75,7 +73,6 @@ fun VoucherSelectionSheet(
                 .weight(1f)
                 .padding(horizontal = 24.dp)
         ) {
-            // 2. Promo Code Input Section
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -110,8 +107,6 @@ fun VoucherSelectionSheet(
                         Text("Apply", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
                 }
-                
-                // Error Text
                 if (promoError != null) {
                     Row(
                         modifier = Modifier.padding(top = 8.dp, start = 4.dp),
@@ -123,18 +118,14 @@ fun VoucherSelectionSheet(
                     }
                 }
             }
-
-            // 3. Section Title
             item {
                 Spacer(modifier = Modifier.height(28.dp))
                 Text(
-                    text = "Ưu đãi có sẵn",
+                    text = "Available Discounts",
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
-
-            // 4. Voucher List
             items(vouchers) { voucher ->
                 val isSelected = tempSelectedId == voucher.id
                 VoucherItemRow(
@@ -150,8 +141,6 @@ fun VoucherSelectionSheet(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-
-        // 5. Bottom Fixed Button
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shadowElevation = 16.dp,
@@ -171,7 +160,7 @@ fun VoucherSelectionSheet(
                 )
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Sử dụng mã", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Using Discount", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(18.dp))
                 }
@@ -222,8 +211,6 @@ fun VoucherItemRow(
                     )
                 }
             }
-
-            // Info Part
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -262,8 +249,6 @@ fun VoucherItemRow(
                     }
                 }
             }
-
-            // Radio Button
             RadioButton(
                 selected = isSelected,
                 onClick = onSelect,
