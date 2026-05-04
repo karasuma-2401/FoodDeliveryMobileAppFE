@@ -10,6 +10,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.navigation.RootNavigationGraph
+import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -26,13 +27,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DFoodTheme (darkTheme = false) {
-                val isLoading by mainViewModel.isLoading.collectAsStateWithLifecycle()
-                val startDestination by mainViewModel.startDestination.collectAsStateWithLifecycle()
+                val isLoading = mainViewModel.isLoading.value
                 if (!isLoading) {
-                    val navController = rememberNavController()
-                    RootNavigationGraph(
-                        navController = navController,
-                        startDestination = startDestination
+//                    val navController = rememberNavController();
+//                    RootNavigationGraph(
+//                        navController = navController,
+//                        startDestination = mainViewModel.startDestination.value
+//                    )
+                    RestaurantDetailScreen(
+                        onNavigateBack = {},
+                        onNavigateToFoodDetail = { id ->
+                            println("Navigate to food detail with ID: $id")
+                        }
                     )
                 }
             }
