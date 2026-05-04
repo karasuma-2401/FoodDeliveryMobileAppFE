@@ -4,6 +4,7 @@ import com.example.fooddelivery.domain.model.CartItem
 import com.example.fooddelivery.domain.repository.CartRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -13,6 +14,8 @@ import javax.inject.Singleton
 class CartRepositoryImpl @Inject constructor() : CartRepository {
     private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
     override fun getCartItems(): Flow<List<CartItem>> = _cartItems.asStateFlow()
+    override val cartItems: StateFlow<List<CartItem>> = _cartItems.asStateFlow()
+
     override fun addToCart(item: CartItem) {
         _cartItems.update { currentItems ->
             val existingItem = currentItems.indexOfFirst {

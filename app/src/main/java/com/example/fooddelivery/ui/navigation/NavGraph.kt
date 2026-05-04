@@ -17,6 +17,7 @@ import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegistrationSuccessScreen
 import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
+import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
 import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
@@ -154,6 +155,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
                 },
+//                onNavigateToCategory = { id ->
+//                    navController.navigate(CategoryFilterRoute(categoryId = id)) },
                 onNavigateToAllRestaurants = { /* later */ },
                 onNavigateToAllCategories = { },
                 onOpenMenu = {},
@@ -174,8 +177,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
         composable<FoodDetailRoute> { backStackEntry ->
-            val args = backStackEntry.toRoute<FoodDetailRoute>()
-            Text("Details food with id: ${args.foodId}")
+            FoodDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRestaurant = { restaurantId ->
+                    navController.navigate(RestaurantDetailRoute(restaurantId))
+                },
+                onShowSnackbar = { message ->
+                    println(message)
+                }
+            )
         }
 
         composable<CartRoute> {
