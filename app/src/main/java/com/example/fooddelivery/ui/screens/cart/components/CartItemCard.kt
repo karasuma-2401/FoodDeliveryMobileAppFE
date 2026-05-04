@@ -18,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.domain.model.CartItem
-import java.util.regex.Pattern.matches
 
 @Composable
 fun CartItemCard(
@@ -71,7 +70,7 @@ fun CartItemCard(
                         )
                     }
                     Text(
-                        text = "$${item.totalPrice.toInt()}",
+                        text = String.format("$%.2f", item.totalPrice),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -91,7 +90,7 @@ fun CartItemCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Remove,
-                            contentDescription = null,
+                            contentDescription = "Decrease quantity",
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onBackground
                         )
@@ -110,7 +109,7 @@ fun CartItemCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = null,
+                            contentDescription = "Increase quantity",
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.onPrimary
                         )

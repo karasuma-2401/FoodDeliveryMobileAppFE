@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 @Composable
 fun VoucherSection(
+    promoCode: String,
+    onPromoCodeChange: (String) -> Unit,
+    onApplyPromoCode: () -> Unit,
     onSelectVoucherClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -29,24 +32,31 @@ fun VoucherSection(
                 .height(56.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Box(
+            OutlinedTextField(
+                value = promoCode,
+                onValueChange = onPromoCodeChange,
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF0F0F0))
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = "Enter Promo Code",
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
-            }
+                    .fillMaxHeight(),
+                placeholder = {
+                    Text(
+                        text = "Enter Promo Code",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFF0F0F0),
+                    unfocusedContainerColor = Color(0xFFF0F0F0),
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent
+                ),
+                singleLine = true
+            )
 
             Button(
-                onClick = { /* Handle button click */ },
+                onClick = onApplyPromoCode,
                 modifier = Modifier.fillMaxHeight(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(

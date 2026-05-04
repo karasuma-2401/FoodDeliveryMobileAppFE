@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.cart.components.BillBreakdown
@@ -32,6 +33,7 @@ fun CartScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showVoucherSheet by remember { mutableStateOf(false) }
+    var selectedVoucher by remember { mutableStateOf<Voucher?>(null) }
 
     CartContent(
         state = state,
@@ -43,7 +45,10 @@ fun CartScreen(
 
     if (showVoucherSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showVoucherSheet = false },
+            onDismissRequest = {
+                selectedVoucher = null
+                showVoucherSheet = false
+            },
             containerColor = Color.White,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
@@ -54,9 +59,18 @@ fun CartScreen(
                 promoError = state.promoError,
                 onPromoCodeChange = { viewModel.onEvent(CartEvent.PromoCodeChanged(it)) },
                 onApplyPromoCode = { viewModel.onEvent(CartEvent.ApplyPromoCode) },
-                onVoucherSelected = { viewModel.onEvent(CartEvent.ApplyVoucher(it)) },
-                onConfirm = { showVoucherSheet = false },
-                onDismiss = { showVoucherSheet = false }
+                onVoucherSelected = { selectedVoucher = it },
+                onConfirm = { voucher ->
+                    if (voucher != null) {
+                        viewModel.onEvent(CartEvent.ApplyVoucher(voucher))
+                    }
+                    selectedVoucher = null
+                    showVoucherSheet = false
+                },
+                onDismiss = {
+                    selectedVoucher = null
+                    showVoucherSheet = false
+                }
             )
         }
     }
@@ -123,12 +137,15 @@ fun CartContent(
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 item {
-                    RestaurantHeader()
+                    RestaurantHeader(
+                        restaurantName = state.items.firstOrNull()?.restaurantName ?: "",
+                        restaurantAddress = null
+                    )
                 }
 
                 items(
                     items = state.items,
-                    key = { it.food.id + it.size }
+                    key = { "${it.food.id}::${it.size}" }
                 ) { item ->
                     SwipeToDeleteContainer(
                         onDelete = { onEvent(CartEvent.RemoveItem(item.food.id, item.size)) }
@@ -144,6 +161,9 @@ fun CartContent(
 
                 item {
                     VoucherSection(
+                        promoCode = state.promoCode,
+                        onPromoCodeChange = { onEvent(CartEvent.PromoCodeChanged(it)) },
+                        onApplyPromoCode = { onEvent(CartEvent.ApplyPromoCode) },
                         onSelectVoucherClick = onShowVoucherSheet,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
                     )

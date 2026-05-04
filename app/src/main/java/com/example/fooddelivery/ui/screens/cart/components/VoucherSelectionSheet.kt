@@ -36,10 +36,11 @@ fun VoucherSelectionSheet(
     onPromoCodeChange: (String) -> Unit,
     onApplyPromoCode: () -> Unit,
     onVoucherSelected: (Voucher) -> Unit,
-    onConfirm: () -> Unit,
+    onConfirm: (Voucher?) -> Unit,
     onDismiss: () -> Unit
 ) {
     var tempSelectedId by remember { mutableStateOf(selectedVoucherId) }
+    var tempSelectedVoucher by remember { mutableStateOf<Voucher?>(null) }
 
     Column(
         modifier = Modifier
@@ -131,9 +132,10 @@ fun VoucherSelectionSheet(
                 VoucherItemRow(
                     voucher = voucher,
                     isSelected = isSelected,
-                    onSelect = { 
+                    onSelect = {
                         if (voucher.isApplicable) {
                             tempSelectedId = voucher.id
+                            tempSelectedVoucher = voucher
                             onVoucherSelected(voucher)
                         }
                     }
@@ -147,7 +149,7 @@ fun VoucherSelectionSheet(
             color = Color.White
         ) {
             Button(
-                onClick = onConfirm,
+                onClick = { onConfirm(tempSelectedVoucher) },
                 modifier = Modifier
                     .padding(24.dp)
                     .fillMaxWidth()

@@ -191,7 +191,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<CartRoute> {
             CartScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCheckout = { "Checkout screen" }
+                onNavigateToCheckout = { navController.navigate(PaymentRoute) }
             )
         }
         composable<PaymentRoute> { Text("Payment") }
