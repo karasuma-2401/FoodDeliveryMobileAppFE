@@ -17,6 +17,7 @@ import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegistrationSuccessScreen
 import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
+import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
@@ -153,8 +154,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
                 },
-//                onNavigateToCategory = { id ->
-//                    navController.navigate(CategoryFilterRoute(categoryId = id)) },
                 onNavigateToAllRestaurants = { /* later */ },
                 onNavigateToAllCategories = { },
                 onOpenMenu = {},
@@ -163,8 +162,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         }
         composable<CategoryFilterRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<CategoryFilterRoute>()
-            // TODO: Replace with actual CategoryFilterScreen when implemented
-            Text(text = "Category with ID: ${args.categoryId}")
+            Text("Category with id: ${args.categoryId}")
         }
         composable<RestaurantDetailRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<RestaurantDetailRoute>()
@@ -180,7 +178,12 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             Text("Details food with id: ${args.foodId}")
         }
 
-        composable<CartRoute> { Text("Cart") }
+        composable<CartRoute> {
+            CartScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCheckout = { "Checkout screen" }
+            )
+        }
         composable<PaymentRoute> { Text("Payment") }
         composable<ProfileRoute> {
             ProfileScreen(
