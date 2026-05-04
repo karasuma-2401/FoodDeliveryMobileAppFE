@@ -18,6 +18,7 @@ import com.example.fooddelivery.ui.screens.auth.register.RegistrationSuccessScre
 import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
+import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
@@ -164,8 +165,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         }
         composable<CategoryFilterRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<CategoryFilterRoute>()
-            // TODO: Replace with actual CategoryFilterScreen when implemented
-            Text(text = "Category with ID: ${args.categoryId}")
+            Text("Category with id: ${args.categoryId}")
         }
         composable<RestaurantDetailRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<RestaurantDetailRoute>()
@@ -188,7 +188,12 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<CartRoute> { Text("Cart") }
+        composable<CartRoute> {
+            CartScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCheckout = { navController.navigate(PaymentRoute) }
+            )
+        }
         composable<PaymentRoute> { Text("Payment") }
         composable<ProfileRoute> {
             ProfileScreen(

@@ -51,7 +51,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCartRepository(): CartRepository {
+    fun provideCartRepository() : CartRepository {
         return CartRepositoryImpl()
     }
 }

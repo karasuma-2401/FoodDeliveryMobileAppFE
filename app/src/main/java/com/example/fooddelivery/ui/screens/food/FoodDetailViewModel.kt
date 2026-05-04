@@ -48,7 +48,7 @@ class FoodDetailViewModel @Inject constructor(
     private val snackbarManager: GlobalSnackbarManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val foodId: Int = savedStateHandle.toRoute<FoodDetailRoute>().foodId
+    private val foodId: String = savedStateHandle.toRoute<FoodDetailRoute>().foodId
     private val _state = MutableStateFlow(FoodDetailState())
     val state: StateFlow<FoodDetailState> = _state.asStateFlow()
 

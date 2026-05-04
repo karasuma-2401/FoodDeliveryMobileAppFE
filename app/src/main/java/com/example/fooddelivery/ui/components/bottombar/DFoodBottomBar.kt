@@ -1,7 +1,5 @@
 package com.example.fooddelivery.ui.components.bottombar
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
@@ -47,8 +45,6 @@ fun DFoodBottomBar(
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp,
-        modifier = Modifier.height(64.dp),
-        windowInsets = WindowInsets(0,0,0,0)
     ) {
         items.forEach { item ->
             val isSelected = currentRoute == item.route
