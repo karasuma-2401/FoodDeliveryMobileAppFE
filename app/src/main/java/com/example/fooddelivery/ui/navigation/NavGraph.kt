@@ -73,7 +73,6 @@ fun NavGraphBuilder.authNavGraph(
                 } }
             )
         }
-        class RegistrationSuccessRoute
         composable<RegisterRoute> {
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack()},
