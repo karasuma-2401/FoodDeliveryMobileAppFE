@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.util
+package com.example.fooddelivery.ui.utils
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow

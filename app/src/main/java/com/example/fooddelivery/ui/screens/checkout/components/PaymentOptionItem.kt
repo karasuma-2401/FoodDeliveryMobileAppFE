@@ -30,7 +30,6 @@ fun PaymentOptionItem(
             .fillMaxWidth()
             .clickable { onSelect() },
         shape = RoundedCornerShape(20.dp),
-        // Viền màu Cam khi được chọn theo yêu cầu
         border = if (isSelected) BorderStroke(2.dp, Color(0xFFFF7622)) else BorderStroke(1.dp, Color(0xFFF0F0F0)),
         color = if (isSelected) Color(0xFFFFF8F5) else Color(0xFFF6F6F6),
         tonalElevation = 0.dp

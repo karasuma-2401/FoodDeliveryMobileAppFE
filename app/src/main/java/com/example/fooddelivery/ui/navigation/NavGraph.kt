@@ -26,7 +26,7 @@ import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.checkout.CheckoutScreen
 import com.example.fooddelivery.ui.screens.checkout.CheckoutViewModel
 import com.example.fooddelivery.ui.screens.checkout.CheckoutEvent
-import com.example.fooddelivery.ui.screens.checkout.PaymentScreen
+import com.example.fooddelivery.ui.screens.checkout.CheckoutSuccessScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
@@ -209,31 +209,19 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             CheckoutScreen(
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToTrackOrder = { orderId ->
-                    navController.navigate(TrackOrderRoute(orderId = orderId)) {
-                        popUpTo<CartRoute> { inclusive = true }
-                    }
-                },
                 onNavigateToAddAddress = { navController.navigate(AddAddressRoute) },
-                onNavigateToPaymentMethod = { navController.navigate(PaymentRoute) }
+                onNavigateToPaymentSuccessful = { navController.navigate(PaymentSuccessfulRoute) }
             )
         }
 
-        composable<PaymentRoute> { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(CustomerGraph)
-            }
-            val viewModel: CheckoutViewModel = hiltViewModel(parentEntry)
-            val state by viewModel.state.collectAsState()
-            
-            PaymentScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onConfirmPayment = { method ->
-                    viewModel.onEvent(CheckoutEvent.PaymentMethodSelected(method))
-                    navController.popBackStack()
-                },
-                currentMethod = state.paymentMethod,
-                totalAmount = state.total
+
+        composable<CheckoutSuccessRoute> {
+            CheckoutSuccessScreen(
+                onTrackOrder = {
+                    navController.navigate(MyOrdersRoute) {
+                        popUpTo<CheckoutSuccessRoute> { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -270,8 +258,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
         composable<LocationRoute> { Text("Location") }
-        composable<AddCardRoute> { Text("Add card") }
-        composable<CheckoutSuccessRoute> { Text("Checkout success") }
         composable<MyOrdersRoute> { Text("My order") }
         
         composable<MyAddressRoute> {

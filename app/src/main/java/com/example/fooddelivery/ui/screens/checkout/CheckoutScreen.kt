@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.screens.checkout
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,54 +11,66 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.checkout.components.*
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToTrackOrder: (String) -> Unit,
     onNavigateToAddAddress: () -> Unit,
-    onNavigateToPaymentMethod: () -> Unit,
+    onNavigateToPaymentSuccessful: () -> Unit,
     viewModel: CheckoutViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
+    var showPaymentSheet by remember { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (state.paymentMethod is PaymentMethod.MoMo && !state.isPolling && !state.isLoading) {
+                    // logic call state
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
-                is CheckoutUiEffect.NavigateToTrackOrder -> onNavigateToTrackOrder(effect.orderId)
-                CheckoutUiEffect.NavigateToAddAddress -> onNavigateToAddAddress()
-                CheckoutUiEffect.NavigateToPaymentMethod -> onNavigateToPaymentMethod()
+                is CheckoutUiEffect.NavigateToPaymentSuccessful -> onNavigateToPaymentSuccessful()
+                is CheckoutUiEffect.NavigateToAddAddress -> onNavigateToAddAddress()
+                is CheckoutUiEffect.OpenMoMoApp -> {
+                    Toast.makeText(context, "Mở ứng dụng MoMo: $${String.format("%.2f", effect.total)}", Toast.LENGTH_SHORT).show()
+                    scope.launch {
+                        kotlinx.coroutines.delay(3000)
+                        viewModel.onEvent(CheckoutEvent.ReturnFromMoMo)
+                    }
+                }
             }
         }
     }
 
-    CheckoutContent(
-        state = state,
-        onEvent = viewModel::onEvent,
-        onBackClick = onNavigateBack
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CheckoutContent(
-    state: CheckoutState,
-    onEvent: (CheckoutEvent) -> Unit,
-    onBackClick: () -> Unit
-) {
     Scaffold(
         topBar = {
-            DFoodTopBar(
-                title = "Checkout",
-                onBackClick = onBackClick
-            )
+            DFoodTopBar(title = "Checkout", onBackClick = onNavigateBack)
         },
         bottomBar = {
             Surface(
@@ -65,37 +78,23 @@ fun CheckoutContent(
                 color = MaterialTheme.colorScheme.background,
                 shadowElevation = 8.dp
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(24.dp)
-                ) {
-                    // Cập nhật logic đổi text nút bấm theo yêu cầu
+                Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(24.dp)) {
                     val buttonText = if (state.paymentMethod is PaymentMethod.MoMo) {
                         "Pay with MoMo - $${String.format("%.2f", state.total)}"
-                    } else {
-                        "Place Order"
-                    }
+                    } else "Place Order"
 
                     DFoodButton(
                         text = buttonText,
-                        onClick = { onEvent(CheckoutEvent.PlaceOrder) },
-                        isLoading = state.isLoading,
+                        onClick = { viewModel.onEvent(CheckoutEvent.PlaceOrder) },
+                        isLoading = state.isLoading || state.isPolling,
                         containerColor = if (state.paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) else Color(0xFFFF7622),
                         trailingIcon = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(20.dp))
                         }
                     )
                 }
             }
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -109,27 +108,21 @@ fun CheckoutContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 SectionTitle("Delivery Address")
-                AddressCard(
-                    address = state.address,
-                    onChangeClick = { onEvent(CheckoutEvent.ChangeAddress) }
-                )
+                AddressCard(address = state.address, onChangeClick = { viewModel.onEvent(CheckoutEvent.ChangeAddress) })
 
                 SectionTitle("Delivery Options")
                 DeliveryOptionsCard(
                     selectedOption = state.selectedDeliveryOption,
-                    onOptionSelected = { onEvent(CheckoutEvent.DeliveryOptionSelected(it)) }
+                    onOptionSelected = { viewModel.onEvent(CheckoutEvent.DeliveryOptionSelected(it)) }
                 )
 
                 SectionTitle("Order Notes")
-                OrderNotesCard(
-                    note = state.orderNote,
-                    onNoteChange = { onEvent(CheckoutEvent.NoteChanged(it)) }
-                )
+                OrderNotesCard(note = state.orderNote, onNoteChange = { viewModel.onEvent(CheckoutEvent.NoteChanged(it)) })
 
                 SectionTitle("Payment Method")
                 PaymentMethodCard(
                     paymentMethod = state.paymentMethod,
-                    onClick = { onEvent(CheckoutEvent.ChangePaymentMethod) }
+                    onClick = { showPaymentSheet = true }
                 )
 
                 CheckoutBillBreakdown(
@@ -141,16 +134,37 @@ fun CheckoutContent(
 
                 Spacer(modifier = Modifier.height(120.dp))
             }
-            if (state.isLoading) {
+            
+            if (state.isLoading || state.isPolling) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.Black.copy(alpha = 0.3f)
+                    color = Color.Black.copy(alpha = 0.4f)
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                        if (state.isPolling) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Checking payment status...", color = Color.White, fontWeight = FontWeight.Medium)
+                        }
                     }
                 }
             }
         }
+    }
+
+    if (showPaymentSheet) {
+        PaymentMethodBottomSheet(
+            onDismissRequest = { showPaymentSheet = false },
+            onPaymentMethodSelected = { method ->
+                viewModel.onEvent(CheckoutEvent.PaymentMethodSelected(method))
+                scope.launch { sheetState.hide() }.invokeOnCompletion { showPaymentSheet = false }
+            },
+            selectedPaymentMethod = state.paymentMethod,
+            sheetState = sheetState
+        )
     }
 }

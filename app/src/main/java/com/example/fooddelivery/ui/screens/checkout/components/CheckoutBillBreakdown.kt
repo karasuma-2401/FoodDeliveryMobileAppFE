@@ -21,7 +21,7 @@ fun CheckoutBillBreakdown(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFF6F6F6), // Light gray background like in image
+        color = Color(0xFFF6F6F6),
         shadowElevation = 0.dp
     ) {
         Column(
