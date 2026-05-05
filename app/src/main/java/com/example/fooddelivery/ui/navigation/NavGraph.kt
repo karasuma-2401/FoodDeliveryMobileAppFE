@@ -4,7 +4,10 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -20,6 +23,9 @@ import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
 import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.checkout.CheckoutScreen
+import com.example.fooddelivery.ui.screens.checkout.CheckoutViewModel
+import com.example.fooddelivery.ui.screens.checkout.CheckoutEvent
+import com.example.fooddelivery.ui.screens.checkout.PaymentScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
@@ -194,8 +200,13 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<CheckoutRoute> {
+        composable<CheckoutRoute> { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(CustomerGraph)
+            }
+            val viewModel: CheckoutViewModel = hiltViewModel(parentEntry)
             CheckoutScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTrackOrder = { orderId ->
                     navController.navigate(TrackOrderRoute(orderId = orderId)) {
@@ -207,7 +218,24 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<PaymentRoute> { Text("Payment") }
+        composable<PaymentRoute> { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(CustomerGraph)
+            }
+            val viewModel: CheckoutViewModel = hiltViewModel(parentEntry)
+            val state by viewModel.state.collectAsState()
+            
+            PaymentScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onConfirmPayment = { method ->
+                    viewModel.onEvent(CheckoutEvent.PaymentMethodSelected(method))
+                    navController.popBackStack()
+                },
+                currentMethod = state.paymentMethod,
+                totalAmount = state.total
+            )
+        }
+
         composable<ProfileRoute> {
             ProfileScreen(
                 onNavigateBack = { navController.popBackStack() },

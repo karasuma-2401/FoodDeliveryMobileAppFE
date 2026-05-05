@@ -71,10 +71,18 @@ fun CheckoutContent(
                         .navigationBarsPadding()
                         .padding(24.dp)
                 ) {
+                    // Cập nhật logic đổi text nút bấm theo yêu cầu
+                    val buttonText = if (state.paymentMethod is PaymentMethod.MoMo) {
+                        "Pay with MoMo - $${String.format("%.2f", state.total)}"
+                    } else {
+                        "Place Order"
+                    }
+
                     DFoodButton(
-                        text = "Place Order",
+                        text = buttonText,
                         onClick = { onEvent(CheckoutEvent.PlaceOrder) },
                         isLoading = state.isLoading,
+                        containerColor = if (state.paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) else Color(0xFFFF7622),
                         trailingIcon = {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,

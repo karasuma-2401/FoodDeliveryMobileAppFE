@@ -20,7 +20,7 @@ import javax.inject.Inject
 data class CheckoutState(
     val address: Address? = null,
     val selectedDeliveryOption: DeliveryOption = DeliveryOption.STANDARD,
-    val paymentMethod: PaymentMethod = PaymentMethod.Card("Mastercard", "436", "12/26"),
+    val paymentMethod: PaymentMethod = PaymentMethod.MoMo,
     val orderNote: String = "",
     val subtotal: Double = 0.0,
     val discount: Double = 10.0,
@@ -37,7 +37,8 @@ enum class DeliveryOption(val title: String, val time: String, val fee: Double) 
 }
 
 sealed class PaymentMethod(val title: String) {
-    data object Cash : PaymentMethod("Cash on Delivery")
+    data object Cash : PaymentMethod("Thanh toán khi nhận hàng")
+    data object MoMo : PaymentMethod("Ví điện tử MoMo")
     data class Card(val cardName: String, val lastFour: String, val expiry: String) : PaymentMethod("$cardName **** $lastFour")
 }
 
@@ -45,6 +46,7 @@ sealed interface CheckoutEvent {
     data class NoteChanged(val note: String) : CheckoutEvent
     data class DeliveryOptionSelected(val option: DeliveryOption) : CheckoutEvent
     data object ChangeAddress : CheckoutEvent
+    data class PaymentMethodSelected(val method: PaymentMethod) : CheckoutEvent
     data object ChangePaymentMethod : CheckoutEvent
     data object PlaceOrder : CheckoutEvent
 }
@@ -108,6 +110,9 @@ class CheckoutViewModel @Inject constructor(
                 viewModelScope.launch {
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentMethod)
                 }
+            }
+            is CheckoutEvent.PaymentMethodSelected -> {
+                _state.update { it.copy(paymentMethod = event.method) }
             }
             is CheckoutEvent.PlaceOrder -> {
                 placeOrder()
