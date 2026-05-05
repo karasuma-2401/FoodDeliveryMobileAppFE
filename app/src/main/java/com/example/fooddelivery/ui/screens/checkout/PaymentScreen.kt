@@ -13,11 +13,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.screens.checkout.components.PaymentOptionItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,25 +67,11 @@ fun PaymentScreen(
                         .padding(24.dp)
                         .navigationBarsPadding()
                 ) {
-                    Button(
+                    DFoodButton(
+                        text = "Confirm",
                         onClick = { onConfirmPayment(selectedMethod) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFF7622)
-                        )
-                    ) {
-                        Text(
-                            "CONFIRM",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                letterSpacing = 1.sp
-                            )
-                        )
-                    }
+                        containerColor = Color(0xFFFF7622)
+                    )
                 }
             }
         },
@@ -123,13 +109,10 @@ fun PaymentScreen(
                 isSelected = selectedMethod == PaymentMethod.Cash,
                 onSelect = { selectedMethod = PaymentMethod.Cash }
             )
-            
-            // MoMo Option
             PaymentOptionItem(
                 title = "MoMo E-Wallet",
                 subtitle = "Pay with MoMo app",
                 icon = {
-                    // MoMo Pink Brand Color Logo
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
