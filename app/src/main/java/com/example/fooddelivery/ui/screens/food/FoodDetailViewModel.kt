@@ -10,7 +10,7 @@ import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.ui.navigation.FoodDetailRoute
-import com.example.fooddelivery.ui.util.GlobalSnackbarManager
+import com.example.fooddelivery.ui.utils.GlobalSnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

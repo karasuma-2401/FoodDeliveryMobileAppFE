@@ -1,7 +1,9 @@
 package com.example.fooddelivery.ui.screens.checkout
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.CartRepository
@@ -20,12 +22,12 @@ import javax.inject.Inject
 data class CheckoutState(
     val address: Address? = null,
     val selectedDeliveryOption: DeliveryOption = DeliveryOption.STANDARD,
-    val paymentMethod: PaymentMethod = PaymentMethod.Card("Mastercard", "436", "12/26"),
+    val paymentMethod: PaymentMethod = PaymentMethod.MoMo,
     val orderNote: String = "",
     val subtotal: Double = 0.0,
     val discount: Double = 10.0,
     val isLoading: Boolean = false,
-    val isOrderPlaced: Boolean = false
+    val isPolling: Boolean = false
 ) {
     val deliveryFee: Double get() = selectedDeliveryOption.fee
     val total: Double get() = (subtotal + deliveryFee - discount).coerceAtLeast(0.0)
@@ -36,23 +38,25 @@ enum class DeliveryOption(val title: String, val time: String, val fee: Double) 
     EXPRESS("Express", "10-15 min", 10.0)
 }
 
-sealed class PaymentMethod(val title: String) {
-    data object Cash : PaymentMethod("Cash on Delivery")
-    data class Card(val cardName: String, val lastFour: String, val expiry: String) : PaymentMethod("$cardName **** $lastFour")
+sealed class PaymentMethod(@StringRes val titleRes: Int) {
+    data object Cash : PaymentMethod(R.string.cash_title)
+    data object MoMo : PaymentMethod(R.string.momo_title)
 }
 
 sealed interface CheckoutEvent {
     data class NoteChanged(val note: String) : CheckoutEvent
     data class DeliveryOptionSelected(val option: DeliveryOption) : CheckoutEvent
     data object ChangeAddress : CheckoutEvent
+    data class PaymentMethodSelected(val method: PaymentMethod) : CheckoutEvent
     data object ChangePaymentMethod : CheckoutEvent
     data object PlaceOrder : CheckoutEvent
+    data object ReturnFromMoMo : CheckoutEvent
 }
 
 sealed interface CheckoutUiEffect {
-    data class NavigateToTrackOrder(val orderId: String) : CheckoutUiEffect
     data object NavigateToAddAddress : CheckoutUiEffect
-    data object NavigateToPaymentMethod : CheckoutUiEffect
+    data class OpenMoMoApp(val total: Double) : CheckoutUiEffect
+    data object NavigateToPaymentSuccessful : CheckoutUiEffect
 }
 
 @HiltViewModel
@@ -104,26 +108,50 @@ class CheckoutViewModel @Inject constructor(
                     _uiEffect.emit(CheckoutUiEffect.NavigateToAddAddress)
                 }
             }
-            is CheckoutEvent.ChangePaymentMethod -> {
-                viewModelScope.launch {
-                    _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentMethod)
-                }
+            is CheckoutEvent.PaymentMethodSelected -> {
+                _state.update { it.copy(paymentMethod = event.method) }
             }
             is CheckoutEvent.PlaceOrder -> {
-                placeOrder()
+                handlePlaceOrder()
+            }
+            is CheckoutEvent.ReturnFromMoMo -> {
+                startPolling()
+            }
+            else -> {}
+        }
+    }
+
+    private fun handlePlaceOrder() {
+        val currentState = _state.value
+        if (currentState.isLoading || currentState.isPolling) return
+
+        viewModelScope.launch {
+            if (currentState.paymentMethod is PaymentMethod.Cash) {
+                _state.update { it.copy(isLoading = true) }
+                // Simulate API call
+                delay(2000)
+                cartRepository.clearCart()
+                _state.update { it.copy(isLoading = false) }
+                _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
+            } else {
+                // MoMo
+                _state.update { it.copy(isLoading = true) }
+                _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(currentState.total))
             }
         }
     }
 
-    private fun placeOrder() {
-        if (_state.value.isLoading) return
+    private fun startPolling() {
+        if (_state.value.isPolling) return
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            delay(2000)
-            
-            _state.update { it.copy(isLoading = false, isOrderPlaced = true) }
+            _state.update { it.copy(isLoading = false, isPolling = true) }
+            // Simulate Polling Backend
+            repeat(3) {
+                delay(2000)
+            }
             cartRepository.clearCart()
-            _uiEffect.emit(CheckoutUiEffect.NavigateToTrackOrder("ORD-77889"))
+            _state.update { it.copy(isPolling = false) }
+            _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
         }
     }
 }

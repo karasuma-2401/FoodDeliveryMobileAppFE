@@ -4,13 +4,17 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import androidx.compose.runtime.remember
 import com.example.fooddelivery.ui.screens.auth.forgot_password.ForgotPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
@@ -20,6 +24,9 @@ import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
 import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.checkout.CheckoutScreen
+import com.example.fooddelivery.ui.screens.checkout.CheckoutViewModel
+import com.example.fooddelivery.ui.screens.checkout.CheckoutEvent
+import com.example.fooddelivery.ui.screens.checkout.CheckoutSuccessScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
@@ -194,20 +201,30 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<CheckoutRoute> {
+        composable<CheckoutRoute> { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(CustomerGraph)
+            }
+            val viewModel: CheckoutViewModel = hiltViewModel(parentEntry)
             CheckoutScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToTrackOrder = { orderId ->
-                    navController.navigate(TrackOrderRoute(orderId = orderId)) {
-                        popUpTo<CartRoute> { inclusive = true }
-                    }
-                },
                 onNavigateToAddAddress = { navController.navigate(AddAddressRoute) },
-                onNavigateToPaymentMethod = { navController.navigate(PaymentRoute) }
+                onNavigateToPaymentSuccessful = { navController.navigate(CheckoutSuccessRoute) }
             )
         }
 
-        composable<PaymentRoute> { Text("Payment") }
+
+        composable<CheckoutSuccessRoute> {
+            CheckoutSuccessScreen(
+                onTrackOrder = {
+                    navController.navigate(MyOrdersRoute) {
+                        popUpTo<CheckoutSuccessRoute> { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable<ProfileRoute> {
             ProfileScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -241,8 +258,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
         composable<LocationRoute> { Text("Location") }
-        composable<AddCardRoute> { Text("Add card") }
-        composable<CheckoutSuccessRoute> { Text("Checkout success") }
         composable<MyOrdersRoute> { Text("My order") }
         
         composable<MyAddressRoute> {
