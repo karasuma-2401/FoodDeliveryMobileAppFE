@@ -11,9 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.screens.checkout.PaymentMethod
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,13 +39,13 @@ fun PaymentMethodBottomSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Payment method",
+                stringResource(R.string.payment_method),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
             PaymentOptionItem(
-                title = "Cash",
-                subtitle = "Cash on delivery",
+                title = stringResource(R.string.cash),
+                subtitle = stringResource(R.string.cash_on_delivery),
                 icon = {
                     Box(
                         modifier = Modifier
@@ -63,8 +65,8 @@ fun PaymentMethodBottomSheet(
                 onSelect = { onPaymentMethodSelected(PaymentMethod.Cash) }
             )
             PaymentOptionItem(
-                title = "MoMo E-Wallet",
-                subtitle = "Pay with MoMo E-Wallet",
+                title = stringResource(R.string.momo_ewallet),
+                subtitle = stringResource(R.string.pay_with_momo_ewallet),
                 icon = {
                     Box(
                         modifier = Modifier

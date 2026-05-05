@@ -1,7 +1,9 @@
 package com.example.fooddelivery.ui.screens.checkout
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.CartRepository
@@ -36,9 +38,9 @@ enum class DeliveryOption(val title: String, val time: String, val fee: Double) 
     EXPRESS("Express", "10-15 min", 10.0)
 }
 
-sealed class PaymentMethod(val title: String) {
-    data object Cash : PaymentMethod("Tiền mặt")
-    data object MoMo : PaymentMethod("MoMo E-Wallet")
+sealed class PaymentMethod(@StringRes val titleRes: Int) {
+    data object Cash : PaymentMethod(R.string.cash_title)
+    data object MoMo : PaymentMethod(R.string.momo_title)
 }
 
 sealed interface CheckoutEvent {
@@ -133,6 +135,7 @@ class CheckoutViewModel @Inject constructor(
                 _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
             } else {
                 // MoMo
+                _state.update { it.copy(isLoading = true) }
                 _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(currentState.total))
             }
         }
@@ -141,7 +144,7 @@ class CheckoutViewModel @Inject constructor(
     private fun startPolling() {
         if (_state.value.isPolling) return
         viewModelScope.launch {
-            _state.update { it.copy(isPolling = true) }
+            _state.update { it.copy(isLoading = false, isPolling = true) }
             // Simulate Polling Backend
             repeat(3) {
                 delay(2000)

@@ -13,7 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.R
 
 @Composable
 fun SuccessAnimation(
@@ -54,7 +56,7 @@ fun SuccessAnimation(
         ) {
             Icon(
                 imageVector = Icons.Default.Check,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.payment_success),
                 tint = Color.White,
                 modifier = Modifier.size(40.dp)
             )

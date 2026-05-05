@@ -12,9 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.screens.checkout.PaymentMethod
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,14 +65,14 @@ fun PaymentMethodCard(
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = paymentMethod.title,
+                    text = stringResource(paymentMethod.titleRes),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF32343E)
                     )
                 )
                 Text(
-                    text = if (paymentMethod is PaymentMethod.MoMo) "Linked e-wallet" else "Pay with cash",
+                    text = stringResource(if (paymentMethod is PaymentMethod.MoMo) R.string.linked_ewallet else R.string.pay_with_cash),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF646982)
                 )

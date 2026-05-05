@@ -8,10 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.screens.checkout.components.SuccessAnimation
 
@@ -36,7 +38,7 @@ fun CheckoutSuccessScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "Congratulations!",
+                text = stringResource(R.string.congratulations),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -47,7 +49,7 @@ fun CheckoutSuccessScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "You successfully maked a payment,\nenjoy our service!",
+                text = stringResource(R.string.payment_success_message),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     color = Color(0xFF646982),
                     lineHeight = 24.sp

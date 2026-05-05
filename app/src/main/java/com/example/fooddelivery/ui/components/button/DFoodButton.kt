@@ -17,11 +17,17 @@ fun DFoodButton (
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    containerColor: Color = MaterialTheme.colorScheme.primary, // Thêm tham số này
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color? = null,
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null
 ) {
-    val contentColor = contentColorFor(containerColor)
+    val effectiveContentColor = contentColor ?: run {
+        val candidate = contentColorFor(containerColor)
+        if (candidate == LocalContentColor.current) {
+            if (containerColor.luminance() < 0.5f) Color.White else Color.Black
+        } else candidate
+    }
     Button(
         onClick = onClick,
         modifier = modifier
@@ -31,9 +37,9 @@ fun DFoodButton (
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
-            contentColor = contentColor,
+            contentColor = effectiveContentColor,
             disabledContainerColor = containerColor.copy(alpha = 0.6f),
-            disabledContentColor = contentColor.copy(alpha = 0.6f),
+            disabledContentColor = effectiveContentColor.copy(alpha = 0.6f),
         ),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 2.dp,

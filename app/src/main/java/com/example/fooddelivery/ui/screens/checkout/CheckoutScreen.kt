@@ -12,8 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -22,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.checkout.components.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -44,7 +47,7 @@ fun CheckoutScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 if (state.paymentMethod is PaymentMethod.MoMo && !state.isPolling && !state.isLoading) {
-                    // logic call state
+                    viewModel.onEvent(CheckoutEvent.ReturnFromMoMo)
                 }
             }
         }
@@ -58,11 +61,9 @@ fun CheckoutScreen(
                 is CheckoutUiEffect.NavigateToPaymentSuccessful -> onNavigateToPaymentSuccessful()
                 is CheckoutUiEffect.NavigateToAddAddress -> onNavigateToAddAddress()
                 is CheckoutUiEffect.OpenMoMoApp -> {
-                    Toast.makeText(context, "Mở ứng dụng MoMo: $${String.format("%.2f", effect.total)}", Toast.LENGTH_SHORT).show()
-                    scope.launch {
-                        kotlinx.coroutines.delay(3000)
-                        viewModel.onEvent(CheckoutEvent.ReturnFromMoMo)
-                    }
+                    val formattedTotal = String.format("$%.2f", effect.total)
+                    val message = context.getString(R.string.open_momo_app, formattedTotal)
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -80,8 +81,9 @@ fun CheckoutScreen(
             ) {
                 Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(24.dp)) {
                     val buttonText = if (state.paymentMethod is PaymentMethod.MoMo) {
-                        "Pay with MoMo - $${String.format("%.2f", state.total)}"
-                    } else "Place Order"
+                        val formattedTotal = String.format("$%.2f", state.total)
+                        stringResource(R.string.pay_with_momo, formattedTotal)
+                    } else stringResource(R.string.place_order)
 
                     DFoodButton(
                         text = buttonText,

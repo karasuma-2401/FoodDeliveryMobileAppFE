@@ -77,7 +77,7 @@ fun PaymentOptionItem(
             } else {
                 RadioButton(
                     selected = false,
-                    onClick = onSelect,
+                    onClick = null,
                     colors = RadioButtonDefaults.colors(unselectedColor = Color(0xFFBDBDBD))
                 )
             }

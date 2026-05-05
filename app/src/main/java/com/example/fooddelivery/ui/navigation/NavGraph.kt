@@ -210,7 +210,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAddAddress = { navController.navigate(AddAddressRoute) },
-                onNavigateToPaymentSuccessful = { navController.navigate(PaymentSuccessfulRoute) }
+                onNavigateToPaymentSuccessful = { navController.navigate(CheckoutSuccessRoute) }
             )
         }
 
