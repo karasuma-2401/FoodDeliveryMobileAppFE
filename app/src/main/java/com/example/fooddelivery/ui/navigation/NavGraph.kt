@@ -19,6 +19,7 @@ import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScre
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
 import com.example.fooddelivery.ui.screens.cart.CartScreen
+import com.example.fooddelivery.ui.screens.checkout.CheckoutScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
@@ -72,6 +73,7 @@ fun NavGraphBuilder.authNavGraph(
                 } }
             )
         }
+        class RegistrationSuccessRoute
         composable<RegisterRoute> {
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack()},
@@ -155,8 +157,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
                 },
-//                onNavigateToCategory = { id ->
-//                    navController.navigate(CategoryFilterRoute(categoryId = id)) },
                 onNavigateToAllRestaurants = { /* later */ },
                 onNavigateToAllCategories = { },
                 onOpenMenu = {},
@@ -191,9 +191,23 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<CartRoute> {
             CartScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCheckout = { navController.navigate(PaymentRoute) }
+                onNavigateToCheckout = { navController.navigate(CheckoutRoute) }
             )
         }
+
+        composable<CheckoutRoute> {
+            CheckoutScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToTrackOrder = { orderId ->
+                    navController.navigate(TrackOrderRoute(orderId = orderId)) {
+                        popUpTo<CartRoute> { inclusive = true }
+                    }
+                },
+                onNavigateToAddAddress = { navController.navigate(AddAddressRoute) },
+                onNavigateToPaymentMethod = { navController.navigate(PaymentRoute) }
+            )
+        }
+
         composable<PaymentRoute> { Text("Payment") }
         composable<ProfileRoute> {
             ProfileScreen(
