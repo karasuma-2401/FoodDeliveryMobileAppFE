@@ -128,7 +128,7 @@ fun OrderContent(
                     
                     OrderList(
                         orders = orders,
-                        onPrimaryAction = { id -> 
+                        onPrimaryAction = { id ->
                             if (page == 0) onTrackOrder(id) else onReOrder(id)
                         },
                         onSecondaryAction = { id ->
