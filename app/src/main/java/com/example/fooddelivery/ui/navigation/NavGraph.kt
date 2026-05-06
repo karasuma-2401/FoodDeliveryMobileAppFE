@@ -36,6 +36,7 @@ import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
 import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
 import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
 import com.example.fooddelivery.ui.screens.order.OrdersScreen
+import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -219,7 +220,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<CheckoutSuccessRoute> {
             CheckoutSuccessScreen(
                 onTrackOrder = {
-                    navController.navigate(MyOrdersRoute) {
+                    navController.navigate(TrackOrderRoute(orderId = "162432")) {
                         popUpTo<CheckoutSuccessRoute> { inclusive = true }
                     }
                 }
@@ -245,7 +246,13 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
         composable<TrackOrderRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<TrackOrderRoute>()
-            Text("Following order with ID: ${args.orderId}")
+            TrackOrderScreen(
+                orderId = args.orderId,
+                onNavigateBack = { navController.popBackStack() },
+                onChatWithRestaurant = { receiverId ->
+                    navController.navigate(ChatRoute(receiverId = receiverId))
+                }
+            )
         }
         composable<SearchRoute> {
             SearchScreen(

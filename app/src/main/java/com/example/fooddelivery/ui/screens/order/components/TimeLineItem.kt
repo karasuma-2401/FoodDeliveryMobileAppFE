@@ -1,39 +1,37 @@
 package com.example.fooddelivery.ui.screens.order.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun TimeLineItem(
+fun TimelineItem(
     title: String,
-    subTitle: String,
+    subtitle: String,
     icon: ImageVector,
     isCompleted: Boolean,
     isActive: Boolean,
     isLast: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val iconColor = if (isActive || isCompleted) Color.White else Color(0xFFD3D1D8)
-    val circleColor = if (isActive || isCompleted) MaterialTheme.colorScheme.primary else Color.Transparent
-    val borderColor = if (isActive || isCompleted) MaterialTheme.colorScheme.primary else Color(0xFFE8E7E5)
-    val titleColor = if (isActive) MaterialTheme.colorScheme.primary else if (isCompleted) MaterialTheme.colorScheme.onBackground else Color(0xFFD3D1D8)
+    val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+    
+    val iconColor = if (isActive || isCompleted) MaterialTheme.colorScheme.onPrimary else inactiveColor
+    val circleColor = if (isActive || isCompleted) activeColor else MaterialTheme.colorScheme.surfaceVariant
+    val titleColor = if (isActive) activeColor else if (isCompleted) MaterialTheme.colorScheme.onBackground else inactiveColor
 
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -46,12 +44,7 @@ fun TimeLineItem(
             Box(
                 modifier = Modifier
                     .size(50.dp)
-                    .background(circleColor, CircleShape)
-                    .then(
-                        if (circleColor == Color.Transparent)
-                            Modifier.background(Color.White, CircleShape)
-                        else Modifier
-                    ),
+                    .background(circleColor, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -66,9 +59,31 @@ fun TimeLineItem(
                     modifier = Modifier
                         .width(2.dp)
                         .height(40.dp)
-                        .background(if (isCompleted) MaterialTheme.colorScheme.primary else Color(0xFFE8E7E5))
+                        .background(if (isCompleted) activeColor else MaterialTheme.colorScheme.outlineVariant)
                 )
             }
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 4.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = titleColor
+                )
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
         }
     }
 }
