@@ -35,7 +35,7 @@ import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
 import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
 import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
-import com.example.fooddelivery.ui.screens.order.MyOrdersScreen
+import com.example.fooddelivery.ui.screens.order.OrdersScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -261,7 +261,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<LocationRoute> { Text("Location") }
         
         composable<MyOrdersRoute> {
-            MyOrdersScreen(
+            OrdersScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTrackOrder = { orderId ->
                     navController.navigate(TrackOrderRoute(orderId = orderId))

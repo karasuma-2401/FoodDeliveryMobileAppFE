@@ -13,12 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Order
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.order.components.OrderItemCard
+import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -167,5 +169,22 @@ fun OrderList(
                 onSecondaryAction = { onSecondaryAction(order.id) }
             )
         }
+    }
+}
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun OrdersScreenPreview() {
+    DFoodTheme(darkTheme = false) {
+        OrderContent (
+            state = OrderState(),
+            pagerState = rememberPagerState(pageCount = { 2 }),
+            scope = rememberCoroutineScope(),
+            onBackClick = {},
+            onTrackOrder = {},
+            onRate = {},
+            onSelectTab = {},
+            onCancelOrder = {},
+            onReOrder = {}
+        )
     }
 }
