@@ -18,6 +18,7 @@ import coil.compose.AsyncImage
 import com.example.fooddelivery.domain.model.Order
 import com.example.fooddelivery.domain.model.OrderStatus
 import com.example.fooddelivery.domain.model.OrderType
+import java.util.Locale
 
 @Composable
 fun OrderItemCard(
@@ -63,7 +64,7 @@ fun OrderItemCard(
         ) {
             AsyncImage(
                 model = order.restaurantImage,
-                contentDescription = null,
+                contentDescription = order.restaurantName,
                 modifier = Modifier
                     .size(70.dp)
                     .clip(RoundedCornerShape(12.dp))
@@ -98,7 +99,7 @@ fun OrderItemCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "$${String.format("%.2f", order.price)}",
+                        text = "$${String.format(Locale.getDefault(), "%.2f", order.price)}",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
                             color = Color(0xFF32343E)
