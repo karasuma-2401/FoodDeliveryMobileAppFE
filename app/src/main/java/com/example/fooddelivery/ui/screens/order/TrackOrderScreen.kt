@@ -40,7 +40,7 @@ fun TrackOrderScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(orderId) {
-        viewModel.initOrderId(orderId)
+        viewModel.onEvent(TrackOrderEvent.Initialize(orderId))
     }
     TrackOrderContent(
         state = state,
