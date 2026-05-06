@@ -26,6 +26,8 @@ import com.example.fooddelivery.ui.screens.order.components.TimelineItem
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,11 +38,24 @@ fun TrackOrderScreen(
     viewModel: TrackOrderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+
     LaunchedEffect(orderId) {
         viewModel.initOrderId(orderId)
     }
-
+    TrackOrderContent(
+        state = state,
+        onNavigateBack = onNavigateBack,
+        onChatWithRestaurant = onChatWithRestaurant
+    )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TrackOrderContent(
+    state: TrackOrderState,
+    onNavigateBack: () -> Unit,
+    onChatWithRestaurant: (String) -> Unit
+) {
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             DFoodTopBar(
@@ -131,5 +146,26 @@ private fun getTrackingIcon(status: TrackingStatus): ImageVector {
         TrackingStatus.PREPARING -> Icons.Default.RestaurantMenu
         TrackingStatus.ON_THE_WAY -> Icons.Default.DirectionsBike
         TrackingStatus.DELIVERED -> Icons.Default.CheckCircle
+    }
+}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun TrackOrderContentPreview() {
+    DFoodTheme(darkTheme = false) {
+        TrackOrderContent(
+            state = TrackOrderState(
+                orderId = "162432",
+                expectedArrival = "12:45 PM",
+                status = TrackingStatus.PREPARING,
+                restaurantName = "Rose Garden Restaurant",
+                restaurantPhone = "0987654321",
+                items = listOf(
+                    OrderSummaryItem("Burger Bistro", 1, "Extra cheese", ""),
+                    OrderSummaryItem("Garden Pizza", 1, "Medium size", "")
+                )
+            ),
+            onNavigateBack = {},
+            onChatWithRestaurant = {}
+        )
     }
 }

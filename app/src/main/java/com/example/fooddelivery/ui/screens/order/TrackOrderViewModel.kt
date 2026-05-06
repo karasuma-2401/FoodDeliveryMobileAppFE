@@ -17,14 +17,12 @@ enum class TrackingStatus(val step: Int, val title: String, val subtitle: String
     ON_THE_WAY(2, "On the Way", "Your order is out for delivery"),
     DELIVERED(3, "Delivered", "Handover complete"),
 }
-
 data class OrderSummaryItem(
     val name: String,
     val quantity: Int,
     val description: String,
     val image: String
 )
-
 data class TrackOrderState(
     val orderId: String = "",
     val expectedArrival: String = "12:45 PM",
@@ -34,13 +32,22 @@ data class TrackOrderState(
     val restaurantPhone: String = "0987654321",
     val items: List<OrderSummaryItem> = emptyList()
 )
+sealed interface TrackOrderEvent {
+    data class Initialize(val orderId: String) : TrackOrderEvent
+}
 
 @HiltViewModel
 class TrackOrderViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(TrackOrderState())
     val state: StateFlow<TrackOrderState> = _state.asStateFlow()
-
-    fun initOrderId(id: String) {
+    fun onEvent(event: TrackOrderEvent) {
+        when (event) {
+            is TrackOrderEvent.Initialize -> {
+                setupInitialData(event.orderId)
+            }
+        }
+    }
+    private fun setupInitialData(id: String) {
         _state.update { it.copy(
             orderId = id,
             status = TrackingStatus.RECEIVED,
