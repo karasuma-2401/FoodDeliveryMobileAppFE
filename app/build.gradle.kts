@@ -111,4 +111,6 @@ dependencies {
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     
     implementation("com.airbnb.android:lottie-compose:6.7.1")
+
+    implementation("io.socket:socket.io-client:2.1.1")
 }
