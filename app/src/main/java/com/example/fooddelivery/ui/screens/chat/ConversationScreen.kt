@@ -18,7 +18,7 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConversationListScreen(
+fun ConversationScreen(
     onNavigateBack: () -> Unit,
     onNavigateToChat: (String, String) -> Unit,
     viewModel: ConversationViewModel = hiltViewModel()
@@ -72,7 +72,7 @@ fun ConversationListScreen(
 @Composable
 fun ConversationListScreenPreview() {
     DFoodTheme(darkTheme = false) {
-        ConversationListScreen(
+        ConversationScreen(
             onNavigateBack = {},
             onNavigateToChat = { _, _ -> }
         )

@@ -4,8 +4,6 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -25,7 +23,6 @@ import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
 import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.checkout.CheckoutScreen
 import com.example.fooddelivery.ui.screens.checkout.CheckoutViewModel
-import com.example.fooddelivery.ui.screens.checkout.CheckoutEvent
 import com.example.fooddelivery.ui.screens.checkout.CheckoutSuccessScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
@@ -37,17 +34,24 @@ import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
 import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
 import com.example.fooddelivery.ui.screens.order.OrdersScreen
 import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
+import com.example.fooddelivery.ui.screens.chat.ChatScreen
+import com.example.fooddelivery.ui.screens.chat.ConversationScreen
 
 @Composable
 fun RootNavigationGraph(
     navController: NavHostController,
     startDestination: Any
 ) {
+    val initialGraph = if (startDestination is HomeRoute) CustomerGraph else AuthGraph
+
     NavHost(
         navController = navController,
-        startDestination = CustomerGraph
+        startDestination = initialGraph
     ) {
-        authNavGraph(navController = navController, startDestination = startDestination)
+        authNavGraph(
+            navController = navController, 
+            startDestination = if (startDestination is HomeRoute) LoginRoute else startDestination
+        )
         userNavGraph(navController = navController)
         vendorNavGraph(navController = navController)
     }
@@ -77,9 +81,11 @@ fun NavGraphBuilder.authNavGraph(
                 },
                 onNavigateToSignUp = { navController.navigate(RegisterRoute) },
                 onNavigateToForgotPassword = { navController.navigate(ForgotPasswordRoute) },
-                onNavigateHome = { navController.navigate(HomeRoute) {
-                    popUpTo<LoginRoute> { inclusive = true}
-                } }
+                onNavigateHome = { 
+                    navController.navigate(CustomerGraph) {
+                        popUpTo<AuthGraph> { inclusive = true }
+                    }
+                }
             )
         }
         composable<RegisterRoute> {
@@ -96,18 +102,18 @@ fun NavGraphBuilder.authNavGraph(
         composable<RegistrationSuccessRoute> {
             RegistrationSuccessScreen(
                 onStartOrdering = {
-                    navController.navigate(HomeRoute) {
-                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
+                    navController.navigate(CustomerGraph) {
+                        popUpTo<AuthGraph> { inclusive = true }
                     }
                 },
                 onViewProfile = {
                     navController.navigate(ProfileRoute) {
-                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
+                        popUpTo<AuthGraph> { inclusive = true }
                     }
                 },
                 onClose = {
-                    navController.navigate(HomeRoute) {
-                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
+                    navController.navigate(CustomerGraph) {
+                        popUpTo<AuthGraph> { inclusive = true }
                     }
                 }
             )
@@ -133,15 +139,14 @@ fun NavGraphBuilder.authNavGraph(
             )
         }
         composable<ResetPasswordRoute> { backStackEntry ->
-            val userEmail = backStackEntry.toRoute<ResetPasswordRoute>().email
-            val resetCode = backStackEntry.toRoute<ResetPasswordRoute>().resetCode
+            val args = backStackEntry.toRoute<ResetPasswordRoute>()
             ResetPasswordScreen(
-                email = userEmail,
-                resetCode = resetCode,
+                email = args.email,
+                resetCode = args.resetCode,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToLogin = {
                     navController.navigate(LoginRoute) {
-                        popUpTo<LoginRoute> { inclusive = false }
+                        popUpTo<LoginRoute> { inclusive = true }
                     }
                 }
             )
@@ -221,7 +226,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             CheckoutSuccessScreen(
                 onTrackOrder = {
                     navController.navigate(TrackOrderRoute(orderId = "162432")) {
-                        popUpTo<CheckoutSuccessRoute> { inclusive = true }
+                        popUpTo<CheckoutRoute> { inclusive = true }
                     }
                 }
             )
@@ -232,8 +237,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onEditProfile = { navController.navigate(EditProfileRoute) },
                 onLogout = {
-                    navController.navigate(LoginRoute) {
-                        popUpTo<ProfileRoute> { inclusive = true }
+                    navController.navigate(AuthGraph) {
+                        popUpTo<CustomerGraph> { inclusive = true }
                     }
                 }
             )
@@ -250,7 +255,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 orderId = args.orderId,
                 onNavigateBack = { navController.popBackStack() },
                 onChatWithRestaurant = { receiverId ->
-                    navController.navigate(ChatRoute(receiverId = receiverId))
+                    navController.navigate(ChatRoute(conversationId = receiverId))
                 }
             )
         }
@@ -297,10 +302,20 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        
-        composable<ChatRoute> { backStackEntry ->
-            val args = backStackEntry.toRoute<ChatRoute>()
-            Text ("Chat with ID: ${args.receiverId}")
+
+        composable<ConversationRoute> {
+            ConversationScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToChat = { id, name ->
+                    navController.navigate(ChatRoute(conversationId = id, restaurantName = name))
+                }
+            )
+        }
+
+        composable<ChatRoute> {
+            ChatScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

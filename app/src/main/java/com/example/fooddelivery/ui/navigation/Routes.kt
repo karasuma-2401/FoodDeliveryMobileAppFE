@@ -42,7 +42,8 @@ data class ResetPasswordRoute (
 @Serializable object EditProfileRoute
 @Serializable object MyAddressRoute
 @Serializable object AddAddressRoute
-@Serializable data class ChatRoute(val receiverId: String = "")
+@Serializable object ConversationRoute
+@Serializable data class ChatRoute(val conversationId: String, val restaurantName: String = "")
 
 // Restaurant
 @Serializable object RestaurantDashboardRoute
