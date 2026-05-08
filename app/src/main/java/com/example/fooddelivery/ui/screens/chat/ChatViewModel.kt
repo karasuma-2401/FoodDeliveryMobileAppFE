@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.BuildConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.socket.client.Ack
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 import org.json.JSONObject
 import javax.inject.Inject
 import io.socket.client.IO
@@ -23,7 +26,7 @@ data class ChatMessage(
     val createdAt: String = "12:00 PM",
     val who: String = "other",
     val isSending: Boolean = false,
-    val isError: Boolean = false
+    val isFailed: Boolean = false
 )
 
 data class ChatState(
@@ -50,6 +53,7 @@ sealed interface ChatEvent {
 @HiltViewModel
 class ChatViewModel @Inject constructor() : ViewModel() {
     private var socket: Socket? = null
+    private var isSocketInitialized = false
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
 
@@ -74,26 +78,34 @@ class ChatViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             delay(1000)
-            
+
             _state.update { it.copy(
                 isLoading = false,
-                conversationId = "conv_123",
+                conversationId = "conv_$orderId",
                 messages = listOf(
                     ChatMessage(content = "Hello! Your orders are preparing.", who = "other", createdAt = "12:05 PM")
                 )
             )}
-            
+
+            if (isSocketInitialized && socket?.connected() == true) {
+                return@launch
+            }
+            teardownSocket()
             setupSocket()
         }
     }
 
     private fun setupSocket() {
+        if (isSocketInitialized && socket?.connected() == true) {
+            return
+        }
+
         try {
             val options = IO.Options().apply {
                 forceNew = true
                 reconnection = true
             }
-            socket = IO.socket("http://10.0.2.2:4000", options) 
+            socket = IO.socket(BuildConfig.SOCKET_URL, options)
 
             socket?.on(Socket.EVENT_CONNECT) {
                 val joinData = JSONObject().apply {
@@ -103,20 +115,35 @@ class ChatViewModel @Inject constructor() : ViewModel() {
             }
 
             socket?.on("text-chat") { args ->
-                val data = args[0] as JSONObject
-                val newMessage = ChatMessage(
-                    content = data.optString("content"),
-                    senderId = data.optInt("senderId"),
-                    who = "other",
-                    createdAt = "Just now"
-                )
-                onEvent(ChatEvent.NewMessageReceived(newMessage))
+                try {
+                    if (args.isEmpty()) return@on
+                    val data = args.getOrNull(0) as? JSONObject ?: return@on
+                    val newMessage = ChatMessage(
+                        content = data.optString("content"),
+                        senderId = data.optInt("senderId"),
+                        who = "other",
+                        createdAt = "Just now"
+                    )
+                    onEvent(ChatEvent.NewMessageReceived(newMessage))
+                } catch (e: Exception) {
+                    // Ignore malformed payloads
+                }
             }
 
             socket?.connect()
+            isSocketInitialized = true
         } catch (e: Exception) {
-            _state.update { it.copy(error = "Cannot connect with chat server") }
+            val errorMessage = "Cannot connect with chat server: ${e.message}"
+            android.util.Log.e("ChatViewModel", "Socket connection failed", e)
+            _state.update { it.copy(error = errorMessage) }
         }
+    }
+
+    private fun teardownSocket() {
+        socket?.off()
+        socket?.disconnect()
+        socket = null
+        isSocketInitialized = false
     }
 
     private fun sendMessage() {
@@ -133,25 +160,51 @@ class ChatViewModel @Inject constructor() : ViewModel() {
             messages = it.messages + tempMessage,
             inputText = ""
         )}
+
+        // Check socket connectivity
+        if (socket == null || socket?.connected() != true) {
+            updateMessageStatus(tempMessage.id, success = false)
+            return
+        }
+
         val payload = JSONObject().apply {
             put("conversationId", _state.value.conversationId)
             put("content", text)
         }
-        socket?.emit(
-            "text-chat",
-            payload,
-            Ack {
-                viewModelScope.launch {
-                    updateMessageStatus(tempMessage.id)
+
+        viewModelScope.launch {
+            try {
+                var ackReceived = false
+                withTimeout(10000L) { // 10 second timeout
+                    socket?.emit(
+                        "text-chat",
+                        payload,
+                        Ack {
+                            ackReceived = true
+                            viewModelScope.launch {
+                                updateMessageStatus(tempMessage.id, success = true)
+                            }
+                        }
+                    )
+                    // Wait for ack
+                    while (!ackReceived) {
+                        delay(100)
+                    }
                 }
+            } catch (e: TimeoutCancellationException) {
+                updateMessageStatus(tempMessage.id, success = false)
             }
-        )
+        }
     }
 
-    private fun updateMessageStatus(tempId: String) {
+    private fun updateMessageStatus(tempId: String, success: Boolean) {
         _state.update { currentState ->
             val updatedMessages = currentState.messages.map {
-                if (it.id == tempId) it.copy(isSending = false) else it
+                if (it.id == tempId) {
+                    it.copy(isSending = false, isFailed = !success)
+                } else {
+                    it
+                }
             }
             currentState.copy(messages = updatedMessages)
         }

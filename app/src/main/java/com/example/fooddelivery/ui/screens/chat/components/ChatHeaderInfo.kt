@@ -33,7 +33,7 @@ fun ChatHeaderInfo(
         Box {
             AsyncImage(
                 model = restaurantImage,
-                contentDescription = null,
+                contentDescription = "$restaurantName avatar",
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)

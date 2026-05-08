@@ -105,8 +105,8 @@ fun ChatBottomSection(
                 enabled = inputText.isNotBlank()
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send, 
-                    contentDescription = null, 
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Send message",
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )

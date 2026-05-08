@@ -39,6 +39,7 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/\"")
+            buildConfigField("String", "SOCKET_URL", "\"http://10.0.2.2:4000\"")
         }
         release {
             isMinifyEnabled = false
@@ -47,6 +48,7 @@ android {
                 "proguard-rules.pro"
             )
             buildConfigField("String", "API_BASE_URL", "\"https://api.yourapp.com/\"")
+            buildConfigField("String", "SOCKET_URL", "\"https://api.yourapp.com\"")
         }
     }
     compileOptions {
@@ -94,7 +96,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
-    implementation("io.socket:socket.io-client:2.1.0")
+    implementation("io.socket:socket.io-client:2.1.0") {
+        exclude(group = "org.json", module = "json")
+    }
 
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-gif:2.7.0")

@@ -18,7 +18,7 @@ import coil.compose.AsyncImage
 import com.example.fooddelivery.ui.screens.chat.ChatMessage
 
 @Composable
-fun ChatBubble(message: ChatMessage, restaurantImage: String) {
+fun ChatBubble(message: ChatMessage, restaurantImage: String, restaurantName: String = "Restaurant") {
     val isMe = message.who == "me"
     val bubbleColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
     val textColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
@@ -36,7 +36,7 @@ fun ChatBubble(message: ChatMessage, restaurantImage: String) {
             if (!isMe) {
                 AsyncImage(
                     model = restaurantImage,
-                    contentDescription = null,
+                    contentDescription = "$restaurantName avatar",
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)

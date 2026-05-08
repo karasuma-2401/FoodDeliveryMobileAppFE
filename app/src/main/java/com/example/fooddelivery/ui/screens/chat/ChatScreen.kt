@@ -26,7 +26,7 @@ fun ChatScreen(
     ChatContent(
         state = state,
         onNavigateBack = onNavigateBack,
-        viewModel = viewModel
+        onEvent = viewModel::onEvent
     )
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +34,7 @@ fun ChatScreen(
 fun ChatContent(
     state: ChatState,
     onNavigateBack: () -> Unit,
-    viewModel: ChatViewModel
+    onEvent: (ChatEvent) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -49,8 +49,8 @@ fun ChatContent(
             ChatBottomSection(
                 inputText = state.inputText,
                 orderStatus = state.orderStatus,
-                onTextChange = { viewModel.onEvent(ChatEvent.OnTextChanged(it)) },
-                onSend = { viewModel.onEvent(ChatEvent.SendMessage) }
+                onTextChange = { onEvent(ChatEvent.OnTextChanged(it)) },
+                onSend = { onEvent(ChatEvent.SendMessage) }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -75,14 +75,15 @@ fun ChatContent(
             ) {
                 item {
                     SuggestedReplies(
-                        onReplyClick = { viewModel.onEvent(ChatEvent.SelectSuggestedReply(it)) }
+                        onReplyClick = { onEvent(ChatEvent.SelectSuggestedReply(it)) }
                     )
                 }
 
                 items(state.messages.reversed()) { message ->
                     ChatBubble(
                         message = message,
-                        restaurantImage = state.restaurantImage
+                        restaurantImage = state.restaurantImage,
+                        restaurantName = state.restaurantName
                     )
                 }
 
@@ -98,7 +99,7 @@ fun ChatScreenPreview() {
         ChatContent(
             state = ChatState(),
             onNavigateBack = {},
-            viewModel = hiltViewModel()
+            onEvent = {}
         )
     }
 }
