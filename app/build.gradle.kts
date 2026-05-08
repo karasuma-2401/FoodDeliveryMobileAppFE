@@ -94,6 +94,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
+    implementation("io.socket:socket.io-client:2.1.0")
+
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-gif:2.7.0")
 
@@ -111,6 +113,4 @@ dependencies {
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     
     implementation("com.airbnb.android:lottie-compose:6.7.1")
-
-    implementation("io.socket:socket.io-client:2.1.1")
 }

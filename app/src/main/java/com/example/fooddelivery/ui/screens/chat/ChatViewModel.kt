@@ -12,29 +12,35 @@ import javax.inject.Inject
 
 data class ChatMessage(
     val id: Int = 0,
-    val conservationId: Int = 0,
     val senderId: Int = 0,
     val content: String = "",
-    val createdAt: String = "",
-    val who: String = "other"
+    val createdAt: String = "12:00 PM",
+    val who: String = "other" // "me" or "other"
 )
+
 data class ChatState(
-    val message: List<ChatMessage> = emptyList(),
+    val messages: List<ChatMessage> = emptyList(),
     val isLoading: Boolean = false,
     val inputText: String = "",
-    val conservationId: Int? = null,
+    val conversationId: Int? = null,
+    val restaurantName: String = "Rose Garden Restaurant",
+    val restaurantImage: String = "",
+    val isOnline: Boolean = true,
+    val orderStatus: String = "Order Delivering",
+    val estimatedDelivery: String = "20 min",
     val error: String? = null
 )
+
 sealed interface ChatEvent {
     data class InitChat(val orderId: String) : ChatEvent
     data class OnTextChanged(val text: String) : ChatEvent
-    object SendMessage : ChatEvent
+    data object SendMessage : ChatEvent
+    data class SelectSuggestedReply(val text: String) : ChatEvent
     data class NewMessageReceived(val message: ChatMessage) : ChatEvent
 }
+
 @HiltViewModel
-class ChatViewModel @Inject constructor(
-    // private val chatRepository: ChatRepository
-) : ViewModel() {
+class ChatViewModel @Inject constructor() : ViewModel() {
     private var socket: io.socket.client.Socket? = null
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
@@ -44,50 +50,46 @@ class ChatViewModel @Inject constructor(
             is ChatEvent.InitChat -> loadHistoryAndConnectSocket(event.orderId)
             is ChatEvent.OnTextChanged -> _state.update { it.copy(inputText = event.text) }
             is ChatEvent.SendMessage -> sendMessage()
+            is ChatEvent.SelectSuggestedReply -> {
+                _state.update { it.copy(inputText = event.text) }
+                sendMessage()
+            }
             is ChatEvent.NewMessageReceived -> {
-                _state.update { it.copy(message = it.message + event.message) }
+                _state.update { it.copy(messages = it.messages + event.message) }
             }
         }
     }
-    private fun loadHistoryAndConnectSocket(orderid: String) {
+
+    private fun loadHistoryAndConnectSocket(orderId: String) {
         viewModelScope.launch {
-            // call api get details and history of order{id}
-            setupSocket()
+            _state.update { it.copy(
+                messages = listOf(
+                    ChatMessage(content = "Hello! Your order is being prepared.", who = "other", createdAt = "12:05 PM")
+                )
+            )}
+            // setupSocket()
         }
     }
-    private fun setupSocket() {
-        val options = io.socket.client.IO.Options().apply {
-            extraHeaders = mapOf("authorization" to listOf("Bearer YOUR_TOKEN_HERE"))
-        }
-        socket = io.socket.client.IO.socket("YOUR_BACKEND_URL", options)
-        socket?.on(io.socket.client.Socket.EVENT_CONNECT) {
-            val jointPayLoad = org.json.JSONObject().apply {
-                put("conservationId", _state.value.conservationId)
-            }
-            socket?.emit("join-room", jointPayLoad)
-        }
-        socket?.on("text-chat") { args ->
-            val data = (args[0] as org.json.JSONObject).getJSONObject("data")
-            val newMessage = ChatMessage(
-                content = data.getString("content"),
-                senderId = data.getInt("senderId"),
-                who = "other" // logic check senderId to "me" or "other"
-            )
-            onEvent(ChatEvent.NewMessageReceived(newMessage))
-        }
-        socket?.connect()
-    }
+
     private fun sendMessage() {
-        val payload = org.json.JSONObject().apply {
-            put("conversationId", _state.value.conservationId)
-            put("content", _state.value.inputText)
-        }
-        socket?.emit("text-chat", payload)
-        _state.update { it.copy(inputText = "") }
+        val text = _state.value.inputText
+        if (text.isBlank()) return
+
+        val newMessage = ChatMessage(
+            content = text,
+            who = "me",
+            createdAt = "Just now"
+        )
+        
+        _state.update { it.copy(
+            messages = it.messages + newMessage,
+            inputText = ""
+        )}
+        // socket?.emit("text-chat", payload)
     }
 
     override fun onCleared() {
-        socket?.disconnect() // disconnect with chat to avoid leak memory
+        socket?.disconnect()
         super.onCleared()
     }
 }
