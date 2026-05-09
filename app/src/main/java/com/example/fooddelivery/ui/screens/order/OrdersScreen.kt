@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 fun OrdersScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTrackOrder: (String) -> Unit,
-    onNavigateToRate: (String) -> Unit,
+    onNavigateToRate: (String, String) -> Unit,
     viewModel: OrderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -64,7 +64,7 @@ fun OrderContent(
     scope: CoroutineScope,
     onBackClick: () -> Unit,
     onTrackOrder: (String) -> Unit,
-    onRate: (String) -> Unit,
+    onRate: (String, String) -> Unit,
     onSelectTab: (Int) -> Unit,
     onCancelOrder: (String) -> Unit,
     onReOrder: (String) -> Unit
@@ -131,8 +131,8 @@ fun OrderContent(
                         onPrimaryAction = { id ->
                             if (page == 0) onTrackOrder(id) else onReOrder(id)
                         },
-                        onSecondaryAction = { id ->
-                            if (page == 0) onCancelOrder(id) else onRate(id)
+                        onSecondaryAction = { id, restaurantName ->
+                            if (page == 0) onCancelOrder(id) else onRate(id, restaurantName)
                         }
                     )
                 }
@@ -156,7 +156,7 @@ fun OrderContent(
 fun OrderList(
     orders: List<Order>,
     onPrimaryAction: (String) -> Unit,
-    onSecondaryAction: (String) -> Unit
+    onSecondaryAction: (String, String) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
@@ -166,7 +166,7 @@ fun OrderList(
             OrderItemCard(
                 order = order,
                 onPrimaryAction = { onPrimaryAction(order.id) },
-                onSecondaryAction = { onSecondaryAction(order.id) }
+                onSecondaryAction = { onSecondaryAction(order.id, order.restaurantName) }
             )
         }
     }
@@ -181,7 +181,7 @@ fun OrdersScreenPreview() {
             scope = rememberCoroutineScope(),
             onBackClick = {},
             onTrackOrder = {},
-            onRate = {},
+            onRate = { _, _ -> },
             onSelectTab = {},
             onCancelOrder = {},
             onReOrder = {}
