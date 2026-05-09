@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -32,13 +33,14 @@ fun StarRatingBar(
             val isChecked = i <= rating
             Icon(
                 imageVector = if (isChecked) Icons.Filled.Star else Icons.Filled.Star,
-                contentDescription = null,
+                contentDescription = "Rate $i star${if (i > 1) "s" else ""}",
                 tint = if (isChecked) starColor else MaterialTheme.colorScheme.outlineVariant,
                 modifier = Modifier
                     .size(48.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = null
+                        indication = null,
+                        role = Role.Button
                     ) {
                         onRRatingChanged(i)
                     }

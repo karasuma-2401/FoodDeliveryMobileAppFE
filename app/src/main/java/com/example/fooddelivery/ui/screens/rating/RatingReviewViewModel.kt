@@ -68,7 +68,8 @@ class RatingReviewViewModel @Inject constructor(
                 }
             }
             is RatingReviewEvent.OnRatingChanged -> {
-                _state.update { it.copy(rating = event.rating) }
+                val safeRating = event.rating.coerceIn(0, 5)
+                _state.update { it.copy(rating = safeRating) }
             }
             is RatingReviewEvent.OnTagToggled -> {
                 _state.update {
@@ -89,6 +90,8 @@ class RatingReviewViewModel @Inject constructor(
         }
     }
     private fun submitReview() {
+        if (_state.value.isSubmitting) return
+
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true) }
             // call api here

@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,6 +66,7 @@ fun RatingReviewScreen(
     RatingReviewContent(
         state = state,
         onEvent = viewModel::onEvent,
+        snackbarHost = snackBarHostState,
         modifier = Modifier
     )
 }
@@ -73,6 +75,7 @@ fun RatingReviewScreen(
 fun RatingReviewContent(
     state: RatingReviewState,
     onEvent: (RatingReviewEvent) -> Unit,
+    snackbarHost: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -82,6 +85,7 @@ fun RatingReviewContent(
                 onBackClick = { onEvent(RatingReviewEvent.OnNavigateBack) }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHost) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
@@ -148,7 +152,7 @@ fun RatingReviewContent(
                             .height(150.dp),
                         placeholder = {
                             Text(
-                                "Write you detailed experience here...",
+                                "Write your detailed experience here...",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -180,7 +184,8 @@ fun RatingReviewScreenPreview() {
     DFoodTheme(darkTheme = false) {
         RatingReviewContent(
             state = RatingReviewState(),
-            onEvent = {}
+            onEvent = {},
+            snackbarHost = remember { SnackbarHostState() }
         )
     }
 }

@@ -236,8 +236,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             OrdersScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTrackOrder = { orderId -> navController.navigate(TrackOrderRoute(orderId = orderId)) },
-                onNavigateToRate = { orderId ->
-                    navController.navigate(RatingReviewRoute(orderId = orderId, restaurantName = "Rose Garden Restaurant"))
+                onNavigateToRate = { orderId, restaurantName ->
+                    navController.navigate(RatingReviewRoute(orderId = orderId, restaurantName = restaurantName))
                 }
             )
         }
@@ -286,19 +286,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
         composable<LocationRoute> { Text("Location") }
-        
-        composable<MyOrdersRoute> {
-            OrdersScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToTrackOrder = { orderId ->
-                    navController.navigate(TrackOrderRoute(orderId = orderId))
-                },
-                onNavigateToRate = { orderId ->
-                    // Navigate to Rate screen if exists
-                }
-            )
-        }
-        
+
         composable<MyAddressRoute> {
             CustomerAddressScreen(
                 onNavigateBack = { navController.popBackStack() },
