@@ -1,6 +1,7 @@
 package com.example.fooddelivery.di
 
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.api.RestaurantApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -8,29 +9,70 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://24.01.20.06:5000/"
-
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
-        val contentType = "application/json".toMediaType()
-
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(Json.asConverterFactory(contentType))
-            .build()
+    fun provideJson(): Json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
     }
 
     @Provides
     @Singleton
-    fun provideAuthApi(retrofit: Retrofit): AuthApi {
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
+        return HttpLoggingInterceptor().apply {
+            level = if (com.example.fooddelivery.BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
+            redactHeader("Authorization")
+            redactHeader("Cookie")
+            redactHeader("Set-Cookie")
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+        return OkHttpClient.Builder().apply {
+            if (com.example.fooddelivery.BuildConfig.DEBUG) {
+                addInterceptor(loggingInterceptor)
+            }
+        }.build()
+    }
+
+    @Provides
+    @Singleton
+    @Named("MainRetrofit")
+    fun provideRetrofit(json: Json, okHttpClient: OkHttpClient): Retrofit {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl(com.example.fooddelivery.BuildConfig.API_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideAuthApi(@Named("MainRetrofit") retrofit: Retrofit): AuthApi {
         return retrofit.create(AuthApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRestaurantApi(@Named("MainRetrofit") retrofit: Retrofit): RestaurantApi {
+        return retrofit.create(RestaurantApi::class.java)
     }
 }

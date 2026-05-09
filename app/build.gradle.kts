@@ -13,8 +13,9 @@ val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
-val fbAppId = localProperties.getProperty("FACEBOOK_APP_ID") ?: ""
-val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN") ?: ""
+// Cung cấp giá trị mặc định "0" nếu không tìm thấy trong local.properties để tránh crash
+val fbAppId = localProperties.getProperty("FACEBOOK_APP_ID") ?: "0"
+val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN") ?: "0"
 val fbProtocolScheme = "fb$fbAppId"
 
 
@@ -34,6 +35,8 @@ android {
         resValue("string", "facebook_app_id", fbAppId)
         resValue("string", "facebook_client_token", fbClientToken)
         resValue("string", "fb_login_protocol_scheme", fbProtocolScheme)
+
+        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/\"")
     }
 
     buildTypes {
@@ -54,6 +57,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -69,6 +73,8 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.compose.ui.text)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,7 +84,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation("androidx.navigation:navigation-compose:2.8.3")
-
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.hilt.android)
     debugImplementation(libs.androidx.ui.tooling)
     ksp(libs.hilt.compiler)

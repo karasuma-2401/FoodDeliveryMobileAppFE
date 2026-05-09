@@ -18,16 +18,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +47,7 @@ fun VerificationScreen(
         topBar = {
             DFoodTopBar(
                 title = "Verification",
-                onBackClick = onNavigateBack
+                onBackClick = onNavigateBack,
             )
         },
         containerColor = MaterialTheme.colorScheme.background

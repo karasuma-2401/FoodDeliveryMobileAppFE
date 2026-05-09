@@ -45,10 +45,11 @@ data class ResetPasswordRoute (
 // Restaurant
 @Serializable object RestaurantDashboardRoute
 @Serializable object RestaurantFoodListRoute
-@Serializable data class RestaurantAddFoodRoute(val foodId: Int = -1)
+@Serializable data class RestaurantAddFoodRoute(val foodId: String? = null)
 @Serializable object RestaurantWalletRoute
 @Serializable object RestaurantWithdrawRoute
 @Serializable object RestaurantReviewsRoute
 @Serializable object RestaurantNotificationsRoute
 @Serializable object RestaurantMessagesRoute
 @Serializable object RestaurantProfileRoute
+@Serializable object RestaurantCouponRoute

@@ -71,7 +71,6 @@ fun RegisterScreen(
             DFoodTopBar(
                 title = "",
                 onBackClick = onNavigateBack,
-                scrollBehavior = null
             )
         }
     ) { innerPadding ->

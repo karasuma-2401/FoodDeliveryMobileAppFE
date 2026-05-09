@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.auth.login
 
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,10 +26,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -41,11 +38,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
 import com.example.fooddelivery.ui.components.button.SocialButton
 import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 
@@ -55,7 +47,7 @@ fun LoginScreen(
     onNavigateBack: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
-    onNavigateHome: () -> Unit,
+    onNavigateHome: (isVendor: Boolean) -> Unit, // Đổi từ () -> Unit sang (Boolean) -> Unit
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val triggerFacebookLogin = rememberFacebookLoginLauncher(
@@ -67,14 +59,13 @@ fun LoginScreen(
     val state by viewModel.state
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess)
-            onNavigateHome()
+            onNavigateHome(state.isVendor) // Truyền state.isVendor vào đây
     }
     Scaffold(
         topBar = {
             DFoodTopBar(
                 title = "",
                 onBackClick = onNavigateBack,
-                scrollBehavior = null
             )
         }
     ) { innerPadding ->
@@ -200,7 +191,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             DFoodButton(
-                text = if (state.isSuccess) "LOGGING IN..." else "LOG IN",
+                text = if (state.isLoading) "LOGGING IN..." else "LOG IN",
                 onClick = viewModel::login,
                 enabled = !state.isLoading
             )
