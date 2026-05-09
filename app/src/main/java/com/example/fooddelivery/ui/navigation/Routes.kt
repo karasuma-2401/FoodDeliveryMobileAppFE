@@ -37,6 +37,7 @@ data class ResetPasswordRoute (
 
 @Serializable object MyOrdersRoute
 @Serializable data class TrackOrderRoute(val orderId: String = "")
+@Serializable data class RatingReviewRoute(val orderId: String, val restaurantName: String = "", val restaurantImage: String = "")
 
 @Serializable object ProfileRoute
 @Serializable object EditProfileRoute

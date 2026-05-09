@@ -36,6 +36,7 @@ import com.example.fooddelivery.ui.screens.order.OrdersScreen
 import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
 import com.example.fooddelivery.ui.screens.chat.ChatScreen
 import com.example.fooddelivery.ui.screens.chat.ConversationScreen
+import com.example.fooddelivery.ui.screens.rating.RatingReviewScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -170,7 +171,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
                 },
-                onNavigateToAllRestaurants = { /* later */ },
+                onNavigateToAllRestaurants = {  },
                 onNavigateToAllCategories = { },
                 onOpenMenu = {},
                 onOpenLocationPicker = {},
@@ -229,6 +230,20 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                         popUpTo<CheckoutRoute> { inclusive = true }
                     }
                 }
+            )
+        }
+        composable<MyOrdersRoute> {
+            OrdersScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToTrackOrder = { orderId -> navController.navigate(TrackOrderRoute(orderId = orderId)) },
+                onNavigateToRate = { orderId ->
+                    navController.navigate(RatingReviewRoute(orderId = orderId, restaurantName = "Rose Garden Restaurant"))
+                }
+            )
+        }
+        composable<RatingReviewRoute> {
+            RatingReviewScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
