@@ -19,35 +19,58 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.theme.DFoodTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerificationScreen(
     email: String,
     onNavigateBack: () -> Unit,
-    onNavigateToResetPassword: () -> Unit,
+    onNavigateToResetPassword: (String, String) -> Unit,
     viewModel: VerificationViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackBarHostState = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
-        viewModel.initData(email)
+        viewModel.onEvent(VerificationEvent.Init(email))
     }
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            onNavigateToResetPassword()
+            onNavigateToResetPassword(state.email, state.otpCode)
         }
     }
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let { message ->
+            if (message.isNotEmpty()) {
+                snackBarHostState.showSnackbar(message)
+                viewModel.onEvent(VerificationEvent.ErrorDismissed)
+            }
+        }
+    }
+    VerificationContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        snackBarHostState = snackBarHostState
+    )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VerificationContent(
+    state: VerificationState,
+    onEvent: (VerificationEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    snackBarHostState: SnackbarHostState
+) {
     Scaffold(
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
             DFoodTopBar(
                 title = "Verification",
-                onBackClick = onNavigateBack,
+                onBackClick = onNavigateBack
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -76,7 +99,7 @@ fun VerificationScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = email,
+                text = state.email,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(top = 4.dp)
@@ -86,7 +109,11 @@ fun VerificationScreen(
 
             BasicTextField(
                 value = state.otpCode,
-                onValueChange = viewModel::onOtpChange,
+                onValueChange = {
+                    if (it.length <= 4) {
+                        onEvent(VerificationEvent.OtpChanged(it))
+                    }
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 decorationBox = {
                     Row(
@@ -124,15 +151,6 @@ fun VerificationScreen(
                     }
                 }
             )
-            if (state.errorMessage != null) {
-                Text(
-                    text = state.errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
 
             Row(
@@ -157,7 +175,7 @@ fun VerificationScreen(
                         text = "Resend Code",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable { viewModel.resendCode() }
+                        modifier = Modifier.clickable { onEvent(VerificationEvent.ResendCodeClicked) }
                     )
                 }
             }
@@ -166,21 +184,9 @@ fun VerificationScreen(
 
             DFoodButton(
                 text = if (state.isLoading) "VERIFYING..." else "VERIFY",
-                onClick = viewModel::verifyCode,
+                onClick = { onEvent(VerificationEvent.VerifyClicked) },
                 enabled = state.otpCode.length == 4 && !state.isLoading
             )
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun VerificationScreenPreview() {
-    DFoodTheme() {
-        VerificationScreen(
-            email = "leminhthang24012006@gmail.com",
-            onNavigateBack = {},
-            onNavigateToResetPassword = {}
-        )
     }
 }

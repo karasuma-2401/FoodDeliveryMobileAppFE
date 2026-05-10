@@ -5,4 +5,6 @@ interface AuthRepository {
     suspend fun loginFacebook(facebookToken: String) : Result<String>
     suspend fun register (fullName: String, email: String, phone: String, password: String): Result<String>
     suspend fun sendResetPasswordCode(email: String): Result<Unit>
+    suspend fun verifyCode(email: String, code: String): Result<Unit>
+    suspend fun resetPassword (email: String, resetCode: String, newPassword: String) : Result<Unit>
 }

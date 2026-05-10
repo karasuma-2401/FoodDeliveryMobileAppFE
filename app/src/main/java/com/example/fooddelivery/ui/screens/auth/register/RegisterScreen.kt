@@ -25,10 +25,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -36,17 +39,20 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.button.SocialButton
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
@@ -54,19 +60,48 @@ fun RegisterScreen(
     onNavigateToRegistrationSuccess: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackBarHostState = remember { SnackbarHostState() }
 
     val triggerFacebookLogin = rememberFacebookLoginLauncher(
-        onSuccess = { token -> viewModel.loginWithFacebook(token) },
-        onCancel = { viewModel.setErrorMessage("Cancelled login with facebook") },
-        onError = { errorMsg -> viewModel.setErrorMessage("Facebook error: $errorMsg") }
+        onSuccess = { token -> viewModel.onEvent(RegisterEvent.FacebookLoginClicked(token))},
+        onCancel = { viewModel.onEvent(RegisterEvent.ErrorMessageSet("Facebook Login Cancelled")) },
+        onError = { viewModel.onEvent(RegisterEvent.ErrorMessageSet("Facebook error: $it")) }
     )
-    LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess)
-            onNavigateToRegistrationSuccess()
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let { message ->
+            if (message.isNotEmpty()) {
+                snackBarHostState.showSnackbar(message)
+                viewModel.onEvent(RegisterEvent.ErrorMessageSet(""))
+            }
+        }
     }
 
+    LaunchedEffect(state.isSuccess, state.isFacebookAuthSuccess) {
+        if (state.isSuccess || state.isFacebookAuthSuccess)
+            onNavigateToRegistrationSuccess()
+    }
+    RegisterContent(
+        state = state,
+        onEvent =  viewModel::onEvent,
+        triggerFacebookLogin = triggerFacebookLogin,
+        onNavigateBack = onNavigateBack,
+        onNavigateToLogin = onNavigateToLogin,
+        snackBarHostState = snackBarHostState
+    )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegisterContent(
+        state: RegisterState,
+        onEvent: (RegisterEvent) -> Unit,
+        triggerFacebookLogin: () -> Unit,
+        onNavigateBack: () -> Unit,
+        onNavigateToLogin: () -> Unit,
+        snackBarHostState: SnackbarHostState
+    ) {
     Scaffold(
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
             DFoodTopBar(
                 title = "",
@@ -108,7 +143,7 @@ fun RegisterScreen(
             Text("Full Name", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
             DFoodFTextField(
                 value = state.fullName,
-                onValueChange = viewModel::onFullNameChange,
+                onValueChange = { onEvent(RegisterEvent.FullNameChanged(it))},
                 label = "",
                 leadingIcon = { Icon(Icons.Outlined.Person, null)},
                 isError = state.fullNameError?.isNotEmpty() == true,
@@ -119,11 +154,11 @@ fun RegisterScreen(
             Text("Email", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
             DFoodFTextField(
                 value = state.email,
-                onValueChange = viewModel::onEmailChange,
+                onValueChange = { onEvent(RegisterEvent.EmailChanged(it))},
                 label = "",
                 leadingIcon = { Icon(Icons.Outlined.Email, null)},
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                isError = state.email?.isNotEmpty() == true,
+                isError = state.emailError?.isNotEmpty() == true,
                 errorMessage = state.emailError
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -131,7 +166,7 @@ fun RegisterScreen(
             Text("Phone Number", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
             DFoodFTextField(
                 value = state.phone,
-                onValueChange = viewModel::onPhoneChange,
+                onValueChange = { onEvent(RegisterEvent.PhoneChanged(it))},
                 label = "",
                 leadingIcon = { Icon(Icons.Outlined.Phone, null)},
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -143,7 +178,7 @@ fun RegisterScreen(
             Text("Password", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
             DFoodFTextField(
                 value = state.password,
-                onValueChange = viewModel::onPasswordChange,
+                onValueChange = { onEvent(RegisterEvent.PasswordChanged(it))},
                 label = "",
                 isPassword = true,
                 leadingIcon = { Icon(Icons.Outlined.Lock, null)},
@@ -157,13 +192,13 @@ fun RegisterScreen(
             Text("Confirm Password", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
             DFoodFTextField(
                 value = state.confirmPassword,
-                onValueChange = viewModel::onConfirmPasswordChange,
+                onValueChange = { onEvent(RegisterEvent.ConfirmPasswordChanged(it))},
                 label = "",
                 leadingIcon = { Icon(painterResource(id = R.drawable.ic_lock_reset), null)},
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 isPassword = true,
                 isError = state.confirmPasswordError?.isNotEmpty() == true,
-                errorMessage = state.passwordError
+                errorMessage = state.confirmPasswordError
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -174,7 +209,7 @@ fun RegisterScreen(
             ) {
                 Checkbox(
                     checked = state.agreeToTerms,
-                    onCheckedChange = viewModel::onAgreeToTermsChange,
+                    onCheckedChange = { onEvent(RegisterEvent.AgreeToTermsChanged(it))},
                     colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                 )
                 Text(
@@ -228,8 +263,8 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             DFoodButton(
-                text = if (state.isSuccess) "CREATING ACCOUNT..." else "SIGN UP",
-                onClick = viewModel::register,
+                text = if (state.isLoading) "CREATING ACCOUNT..." else "SIGN UP",
+                onClick = { onEvent(RegisterEvent.RegisterClicked)},
                 enabled = !state.isLoading && state.agreeToTerms
             )
 

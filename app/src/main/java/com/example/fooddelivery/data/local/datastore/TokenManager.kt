@@ -17,7 +17,7 @@ private val Context.userPrefDataStore: DataStore<Preferences> by preferencesData
 
 @Singleton
 class TokenManager @Inject constructor (
-    @param:ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     companion object {
         val TOKEN_KEY = stringPreferencesKey("jwt_token")
@@ -35,6 +35,11 @@ class TokenManager @Inject constructor (
                 preferences.remove(PHONE_KEY)
                 preferences[REMEMBER_ME_KEY] = false
             }
+        }
+    }
+    suspend fun clearAuthData() {
+        context.userPrefDataStore.edit { preferences ->
+            preferences.remove(TOKEN_KEY)
         }
     }
     val getToken: Flow<String?> = context.userPrefDataStore.data.map { preferences ->

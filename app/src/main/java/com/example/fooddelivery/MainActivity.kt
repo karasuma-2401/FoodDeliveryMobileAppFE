@@ -5,7 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.navigation.RootNavigationGraph
 import com.example.fooddelivery.ui.theme.DFoodTheme
@@ -26,7 +28,7 @@ class MainActivity : ComponentActivity() {
             DFoodTheme (darkTheme = false) {
                 val isLoading = mainViewModel.isLoading.value
                 if (!isLoading) {
-                    val navController = rememberNavController();
+                    val navController = rememberNavController()
                     RootNavigationGraph(
                         navController = navController,
                         startDestination = mainViewModel.startDestination.value

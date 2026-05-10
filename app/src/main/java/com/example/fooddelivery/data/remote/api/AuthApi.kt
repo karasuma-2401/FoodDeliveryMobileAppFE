@@ -6,9 +6,12 @@ import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
 import com.example.fooddelivery.data.remote.dto.LoginRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
+import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface AuthApi {
     @POST("auth/login")
@@ -19,6 +22,9 @@ interface AuthApi {
 
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
+
+    @POST("auth/reset-email/verify")
+    suspend fun verifyCode(@Body request: VerifyCodeRequest): Response<AuthResponse>
 
     @POST("auth/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<AuthResponse>

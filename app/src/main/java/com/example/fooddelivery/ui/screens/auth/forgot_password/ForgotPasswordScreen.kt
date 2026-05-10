@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
@@ -35,24 +37,42 @@ fun ForgotPasswordScreen(
     onNavigateToVerify: (String) -> Unit,
     viewModel: ForgotPasswordViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
 
-    // Xử lý điều hướng một lần (One-shot navigation)
     LaunchedEffect(state.successEmail) {
         state.successEmail?.let { email ->
             onNavigateToVerify(email)
-            viewModel.clearSuccessEmail()
+            viewModel.onEvent(ForgotPasswordEvent.ResetSuccessState)
         }
     }
 
     LaunchedEffect(state.errorMessage) {
-        state.errorMessage?.let {
-            snackBarHostState.showSnackbar(it)
+        state.errorMessage?.let { message ->
+            if (message.isNotEmpty()) {
+                snackBarHostState.showSnackbar(message)
+                viewModel.onEvent(ForgotPasswordEvent.ErrorMessageSet(""))
+            }
         }
     }
-
+    ForgotPasswordContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        snackBarHostState = snackBarHostState,
+        focusManager = focusManager
+    )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ForgotPasswordContent (
+    state: ForgotPasswordState,
+    onEvent: (ForgotPasswordEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    snackBarHostState: SnackbarHostState,
+    focusManager: FocusManager
+) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
@@ -114,7 +134,7 @@ fun ForgotPasswordScreen(
 
             DFoodFTextField(
                 value = state.email,
-                onValueChange = viewModel::onEmailChange,
+                onValueChange = { onEvent(ForgotPasswordEvent.EmailChanged(it))},
                 label = "Email Address",
                 leadingIcon = {
                     Icon(
@@ -130,7 +150,7 @@ fun ForgotPasswordScreen(
                 keyboardActions = KeyboardActions(
                     onSend = {
                         focusManager.clearFocus()
-                        viewModel.sendResetCode()
+                        onEvent(ForgotPasswordEvent.SendResetCodeClicked)
                     }
                 ),
                 isError = state.emailError != null,
@@ -147,7 +167,7 @@ fun ForgotPasswordScreen(
             Button(
                 onClick = {
                     focusManager.clearFocus()
-                    viewModel.sendResetCode()
+                    onEvent(ForgotPasswordEvent.SendResetCodeClicked)
                 },
                 enabled = !state.isLoading,
                 modifier = Modifier

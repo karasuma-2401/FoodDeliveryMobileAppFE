@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
@@ -25,21 +26,45 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun ResetPasswordScreen(
     email: String,
+    resetCode: String,
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
     viewModel: ResetPasswordViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
-        viewModel.setEmail(email)
+        viewModel.onEvent(ResetPasswordEvent.Init(email, resetCode))
     }
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onNavigateToLogin()
         }
     }
-
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let { message ->
+            if (message.isNotEmpty()) {
+                snackBarHostState.showSnackbar(message)
+                viewModel.onEvent(ResetPasswordEvent.ErrorDismissed)
+            }
+        }
+    }
+    ResetPasswordContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        snackBarHostState = snackBarHostState
+    )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ResetPasswordContent (
+    state: ResetPasswordState,
+    onEvent: (ResetPasswordEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    snackBarHostState: SnackbarHostState
+) {
     Scaffold(
         topBar = {
             DFoodTopBar(
@@ -83,7 +108,7 @@ fun ResetPasswordScreen(
             )
             DFoodFTextField(
                 value = state.newPassword,
-                onValueChange = viewModel::onNewPasswordChange,
+                onValueChange = { onEvent(ResetPasswordEvent.NewPasswordChanged(it))},
                 label = "",
                 isPassword = true,
                 isError = state.passwordError != null,
@@ -101,7 +126,7 @@ fun ResetPasswordScreen(
             )
             DFoodFTextField(
                 value = state.confirmPassword,
-                onValueChange = viewModel::onConfirmPasswordChange,
+                onValueChange = { onEvent(ResetPasswordEvent.ConfirmPasswordChanged(it))},
                 label = "",
                 isPassword = true,
                 isError = state.passwordError != null,
@@ -111,7 +136,7 @@ fun ResetPasswordScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             Button(
-                onClick = viewModel::resetPassword,
+                onClick = { onEvent(ResetPasswordEvent.ResetPasswordClicked) },
                 enabled = !state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,14 +162,4 @@ fun ResetPasswordScreen(
     }
 }
 
-@Preview (showBackground = true, showSystemUi = true)
-@Composable
-fun resetPasswordScreenPreview() {
-    DFoodTheme{
-        ResetPasswordScreen(
-            email = "leminhthang24012006@gmail.com",
-            onNavigateBack = {},
-            onNavigateToLogin = {}
-        )
-    }
-}
+
