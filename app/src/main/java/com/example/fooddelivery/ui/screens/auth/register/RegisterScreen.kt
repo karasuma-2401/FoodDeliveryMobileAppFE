@@ -106,7 +106,6 @@ fun RegisterContent(
             DFoodTopBar(
                 title = "",
                 onBackClick = onNavigateBack,
-                scrollBehavior = null
             )
         }
     ) { innerPadding ->

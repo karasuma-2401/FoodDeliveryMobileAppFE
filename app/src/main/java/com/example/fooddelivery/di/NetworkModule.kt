@@ -4,6 +4,7 @@ import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
 import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.UserApi
+import com.example.fooddelivery.data.remote.api.RestaurantApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -58,6 +59,7 @@ object NetworkModule {
     @Named("MainRetrofit")
     fun provideRetrofit(json: Json, okHttpClient: OkHttpClient): Retrofit {
         val contentType = "application/json".toMediaType()
+
         return Retrofit.Builder()
             .baseUrl(com.example.fooddelivery.BuildConfig.API_BASE_URL)
             .client(okHttpClient)
@@ -81,6 +83,12 @@ object NetworkModule {
     @Singleton
     fun provideAuthApi(@Named("MainRetrofit") retrofit: Retrofit): AuthApi {
         return retrofit.create(AuthApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRestaurantApi(@Named("MainRetrofit") retrofit: Retrofit): RestaurantApi {
+        return retrofit.create(RestaurantApi::class.java)
     }
 
     @Provides

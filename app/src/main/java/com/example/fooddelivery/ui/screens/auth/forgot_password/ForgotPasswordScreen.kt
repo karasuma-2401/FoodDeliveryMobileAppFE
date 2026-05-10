@@ -79,7 +79,6 @@ fun ForgotPasswordContent (
             DFoodTopBar(
                 title = "Forgot Password",
                 onBackClick = onNavigateBack,
-                scrollBehavior = null
             )
         },
         containerColor = MaterialTheme.colorScheme.background

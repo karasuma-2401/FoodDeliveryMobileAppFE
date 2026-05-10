@@ -2,6 +2,8 @@ package com.example.fooddelivery.ui.navigation
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +29,13 @@ import com.example.fooddelivery.ui.screens.checkout.CheckoutSuccessScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
+import com.example.fooddelivery.ui.screens.restaurant.coupon.RestaurantCouponScreen
+import com.example.fooddelivery.ui.screens.restaurant.dashboard.DashboardScreen
+import com.example.fooddelivery.ui.screens.restaurant.food_management.AddFoodScreen
+import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodScreen
+import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
+import com.example.fooddelivery.ui.screens.admin.AdminCategoryScreen
+import com.example.fooddelivery.ui.screens.admin.AdminRestaurantScreen
 import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
@@ -50,11 +59,12 @@ fun RootNavigationGraph(
         startDestination = initialGraph
     ) {
         authNavGraph(
-            navController = navController, 
+            navController = navController,
             startDestination = if (startDestination is HomeRoute) LoginRoute else startDestination
         )
         userNavGraph(navController = navController)
         vendorNavGraph(navController = navController)
+        adminNavGraph(navController = navController)
     }
 }
 
@@ -64,6 +74,7 @@ fun NavGraphBuilder.authNavGraph(
     startDestination: Any
 ) {
     navigation<AuthGraph>(startDestination = startDestination) {
+
         composable<OnboardingRoute> {
             OnboardingScreen(onFinishOnboarding = {
                 navController.navigate(LoginRoute) {
@@ -71,6 +82,7 @@ fun NavGraphBuilder.authNavGraph(
                 }
             })
         }
+
         composable<LoginRoute> {
             val context = LocalContext.current as? Activity
             BackHandler{
@@ -82,13 +94,14 @@ fun NavGraphBuilder.authNavGraph(
                 },
                 onNavigateToSignUp = { navController.navigate(RegisterRoute) },
                 onNavigateToForgotPassword = { navController.navigate(ForgotPasswordRoute) },
-                onNavigateHome = { 
+                onNavigateHome = {
                     navController.navigate(CustomerGraph) {
                         popUpTo<AuthGraph> { inclusive = true }
                     }
                 }
             )
         }
+
         composable<RegisterRoute> {
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack()},
@@ -103,22 +116,23 @@ fun NavGraphBuilder.authNavGraph(
         composable<RegistrationSuccessRoute> {
             RegistrationSuccessScreen(
                 onStartOrdering = {
-                    navController.navigate(CustomerGraph) {
-                        popUpTo<AuthGraph> { inclusive = true }
+                    navController.navigate(HomeRoute) {
+                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
                     }
                 },
                 onViewProfile = {
                     navController.navigate(ProfileRoute) {
-                        popUpTo<AuthGraph> { inclusive = true }
+                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
                     }
                 },
                 onClose = {
-                    navController.navigate(CustomerGraph) {
-                        popUpTo<AuthGraph> { inclusive = true }
+                    navController.navigate(HomeRoute) {
+                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
                     }
                 }
             )
         }
+
         composable<ForgotPasswordRoute> {
             ForgotPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -127,6 +141,7 @@ fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
+
         composable<VerificationRoute> { backStackEntry ->
             val userEmail = backStackEntry.toRoute<VerificationRoute>().email
             VerificationScreen(
@@ -139,6 +154,7 @@ fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
+
         composable<ResetPasswordRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<ResetPasswordRoute>()
             ResetPasswordScreen(
@@ -296,7 +312,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        
+
         composable<AddAddressRoute> {
             AddAddressScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -325,15 +341,51 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
 // vendor graph
 fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
+    val onVendorNavigate: (String) -> Unit = { route ->
+        when (route) {
+            "dashboard" -> navController.navigate(RestaurantDashboardRoute)
+            "menu" -> navController.navigate(RestaurantFoodListRoute)
+            "notifications" -> navController.navigate(RestaurantNotificationsRoute)
+            "profile" -> navController.navigate(RestaurantProfileRoute)
+            "coupons" -> navController.navigate(RestaurantCouponRoute)
+        }
+    }
+    val onAddFood: () -> Unit = {
+        navController.navigate(RestaurantAddFoodRoute())
+    }
+
     navigation<RestaurantGraph>(startDestination = RestaurantDashboardRoute) {
-        composable<RestaurantDashboardRoute> { Text("Dashboard management") }
-        composable<RestaurantFoodListRoute> { Text("Food List") }
+
+        composable<RestaurantDashboardRoute> {
+            DashboardScreen(
+                onSeeAllClick = { navController.navigate(RestaurantFoodListRoute) },
+                onSeeAllReviewsClick = { navController.navigate(RestaurantReviewsRoute) },
+                onAddFoodClick = onAddFood,
+                onNavigate = onVendorNavigate
+            )
+        }
+
+        composable<RestaurantFoodListRoute> {
+            MyFoodListScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onEditFood = { foodId ->
+                    navController.navigate(RestaurantAddFoodRoute(foodId = foodId))
+                },
+                onAddFoodClick = onAddFood,
+                onNavigate = onVendorNavigate
+            )
+        }
+
         composable<RestaurantAddFoodRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<RestaurantAddFoodRoute>()
-            if (args.foodId == -1) {
-                Text("Add new food")
+            if (args.foodId == null) {
+                AddFoodScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             } else {
-                Text("Edit food with ID: ${args.foodId}")
+                EditFoodScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
         composable<RestaurantWalletRoute> { Text("Wallet") }
@@ -342,5 +394,67 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
         composable<RestaurantNotificationsRoute> { Text("Notifications") }
         composable<RestaurantMessagesRoute> { Text("Messages")  }
         composable<RestaurantProfileRoute> { Text("Profile") }
+
+        composable<RestaurantCouponRoute> {
+            RestaurantCouponScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+    }
+}
+
+// admin graph
+fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
+    val onAdminNavigate: (String) -> Unit = { route ->
+        when (route) {
+            "dashboard" -> navController.navigate(AdminDashboardRoute) {
+                launchSingleTop = true
+                popUpTo<AdminDashboardRoute> { inclusive = false }
+            }
+            "categories" -> navController.navigate(AdminCategoriesRoute) {
+                launchSingleTop = true
+            }
+            "coupons" -> navController.navigate(AdminCouponRoute) {
+                launchSingleTop = true
+            }
+            "settings" -> navController.navigate(AdminSettingsRoute) {
+                launchSingleTop = true
+            }
+        }
+    }
+
+    navigation<AdminGraph>(startDestination = AdminDashboardRoute) {
+        composable<AdminDashboardRoute> {
+            AdminRestaurantScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAdd = { /* TODO */ },
+                onNavigateToEdit = { /* TODO */ },
+                onNavigate = onAdminNavigate
+            )
+        }
+
+        composable<AdminCategoriesRoute> {
+            AdminCategoryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAdd = { /* TODO: navController.navigate(CreateCategoryRoute) */ },
+                onNavigateToEdit = { /* TODO */ },
+                onNavigate = onAdminNavigate
+            )
+        }
+
+        composable<AdminCouponRoute> {
+            RestaurantCouponScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<AdminSettingsRoute> {
+            Column {
+                Text("Admin Settings")
+                Button(onClick = { navController.popBackStack() }) {
+                    Text("Back")
+                }
+            }
+        }
     }
 }

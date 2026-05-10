@@ -69,7 +69,7 @@ fun ResetPasswordContent (
         topBar = {
             DFoodTopBar(
                 title = "Reset Password",
-                onBackClick = onNavigateBack
+                onBackClick = onNavigateBack,
             )
         },
     ) { innerPadding ->
