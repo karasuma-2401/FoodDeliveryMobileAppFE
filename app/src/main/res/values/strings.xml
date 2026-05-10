@@ -1,4 +1,29 @@
 <resources>
     <string name="app_name">DFood</string>
     <string name="dashboard_location">Location</string>
+    <string name="starting">Starting</string>
+    <string name="see_all">See All</string>
+    <string name="promo_title">Đại tiệc Burger\nGiảm 50%</string>
+    <string name="promo_button">ORDER NOW</string>
+
+    <!-- Checkout -->
+    <string name="open_momo_app">Opening MoMo app: %s</string>
+    <string name="pay_with_momo">Pay with MoMo - %s</string>
+    <string name="place_order">Place Order</string>
+
+    <!-- Payment Method -->
+    <string name="payment_method">Payment method</string>
+    <string name="cash">Cash</string>
+    <string name="cash_title">Cash</string>
+    <string name="cash_on_delivery">Cash on delivery</string>
+    <string name="momo_ewallet">MoMo E-Wallet</string>
+    <string name="momo_title">MoMo E-Wallet</string>
+    <string name="pay_with_momo_ewallet">Pay with MoMo E-Wallet</string>
+    <string name="linked_ewallet">Linked e-wallet</string>
+    <string name="pay_with_cash">Pay with cash</string>
+
+    <!-- Success Screen -->
+    <string name="congratulations">Congratulations!</string>
+    <string name="payment_success_message">You successfully made a payment,\nenjoy our service!</string>
+    <string name="payment_success">Payment successful</string>
 </resources>
