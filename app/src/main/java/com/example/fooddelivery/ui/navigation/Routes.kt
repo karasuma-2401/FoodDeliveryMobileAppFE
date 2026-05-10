@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable object AuthGraph
 @Serializable object CustomerGraph
 @Serializable object RestaurantGraph
+@Serializable object AdminGraph
 
 // auth
 @Serializable object OnboardingRoute
@@ -53,3 +54,9 @@ data class ResetPasswordRoute (
 @Serializable object RestaurantMessagesRoute
 @Serializable object RestaurantProfileRoute
 @Serializable object RestaurantCouponRoute
+
+// Admin
+@Serializable object AdminDashboardRoute
+@Serializable object AdminCategoriesRoute
+@Serializable object AdminCouponRoute
+@Serializable object AdminSettingsRoute

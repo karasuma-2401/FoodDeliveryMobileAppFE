@@ -16,6 +16,7 @@ uiTooling = "1.10.6"
 foundation = "1.10.6"
 foundationVersion = "1.11.0"
 uiText = "1.11.0"
+androidxFoundation = "1.11.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +41,7 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", vers
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
+foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "androidxFoundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

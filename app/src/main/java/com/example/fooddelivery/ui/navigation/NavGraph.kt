@@ -25,6 +25,8 @@ import com.example.fooddelivery.ui.screens.restaurant.dashboard.DashboardScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.AddFoodScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
+import com.example.fooddelivery.ui.screens.admin.AdminCategoryScreen
+import com.example.fooddelivery.ui.screens.admin.AdminRestaurantScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -35,6 +37,7 @@ fun RootNavigationGraph(
     val rootStartDestination = when (startDestination) {
         is HomeRoute, is CustomerGraph -> CustomerGraph
         is RestaurantDashboardRoute, is RestaurantGraph -> RestaurantGraph
+        is AdminDashboardRoute, is AdminGraph -> AdminGraph
         else -> AuthGraph
     }
 
@@ -48,6 +51,7 @@ fun RootNavigationGraph(
         )
         userNavGraph(navController = navController)
         vendorNavGraph(navController = navController)
+        adminNavGraph(navController = navController)
     }
 }
 
@@ -77,9 +81,15 @@ fun NavGraphBuilder.authNavGraph(
                 },
                 onNavigateToSignUp = { navController.navigate(RegisterRoute) },
                 onNavigateToForgotPassword = { navController.navigate(ForgotPasswordRoute) },
-                onNavigateHome = { isVendor ->
-                    // Điều hướng dựa trên role
-                    val destination = if (isVendor) RestaurantGraph else CustomerGraph
+                onNavigateHome = { role ->
+                    // Điều hướng dựa trên role: 0: Customer, 1: Vendor, 2: Admin (Giả định logic role)
+                    // Ở đây tôi tạm thời giữ logic cũ hoặc điều hướng sang AdminGraph nếu là admin
+                    // Giả sử logic là truyền thẳng object Graph hoặc Route
+                    val destination = when(role) {
+                        "admin" -> AdminGraph
+                        "vendor" -> RestaurantGraph
+                        else -> CustomerGraph
+                    }
                     navController.navigate(destination) {
                         popUpTo<AuthGraph> { inclusive = true }
                     }
@@ -163,14 +173,20 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<HomeRoute> {
             Column {
                 Text("customer home")
-                // Temporary button to switch to Vendor Dashboard for testing
+                // Temporary button to switch roles for testing
                 Button(onClick = {
                     navController.navigate(RestaurantGraph) {
-                        // Clear customer graph if we are switching roles entirely
                         popUpTo<CustomerGraph> { inclusive = true }
                     }
                 }) {
                     Text("Go to Vendor Dashboard")
+                }
+                Button(onClick = {
+                    navController.navigate(AdminGraph) {
+                        popUpTo<CustomerGraph> { inclusive = true }
+                    }
+                }) {
+                    Text("Go to Admin Dashboard")
                 }
             }
         }
@@ -263,6 +279,62 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
             RestaurantCouponScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
+        }
+    }
+}
+
+// admin graph
+fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
+    val onAdminNavigate: (String) -> Unit = { route ->
+        when (route) {
+            "dashboard" -> navController.navigate(AdminDashboardRoute) {
+                launchSingleTop = true
+                popUpTo<AdminDashboardRoute> { inclusive = false }
+            }
+            "categories" -> navController.navigate(AdminCategoriesRoute) {
+                launchSingleTop = true
+            }
+            "coupons" -> navController.navigate(AdminCouponRoute) {
+                launchSingleTop = true
+            }
+            "settings" -> navController.navigate(AdminSettingsRoute) {
+                launchSingleTop = true
+            }
+        }
+    }
+
+    navigation<AdminGraph>(startDestination = AdminDashboardRoute) {
+        composable<AdminDashboardRoute> {
+            AdminRestaurantScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAdd = { /* TODO */ },
+                onNavigateToEdit = { /* TODO */ },
+                onNavigate = onAdminNavigate
+            )
+        }
+
+        composable<AdminCategoriesRoute> {
+            AdminCategoryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAdd = { /* TODO: navController.navigate(CreateCategoryRoute) */ },
+                onNavigateToEdit = { /* TODO */ },
+                onNavigate = onAdminNavigate
+            )
+        }
+
+        composable<AdminCouponRoute> {
+            RestaurantCouponScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<AdminSettingsRoute> {
+            Column {
+                Text("Admin Settings")
+                Button(onClick = { navController.popBackStack() }) {
+                    Text("Back")
+                }
+            }
         }
     }
 }

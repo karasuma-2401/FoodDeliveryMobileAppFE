@@ -2,52 +2,37 @@ package com.example.fooddelivery.ui.screens.auth.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Phone
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.fooddelivery.R
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
+import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.button.DFoodButton
-import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.components.button.SocialButton
+import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
+import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 
-@OptIn (ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onNavigateBack: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
-    onNavigateHome: (isVendor: Boolean) -> Unit, // Đổi từ () -> Unit sang (Boolean) -> Unit
+    onNavigateHome: (role: String) -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val triggerFacebookLogin = rememberFacebookLoginLauncher(
@@ -57,10 +42,13 @@ fun LoginScreen(
     )
 
     val state by viewModel.state
+    
     LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess)
-            onNavigateHome(state.isVendor) // Truyền state.isVendor vào đây
+        if (state.isSuccess) {
+            onNavigateHome(state.role)
+        }
     }
+
     Scaffold(
         topBar = {
             DFoodTopBar(
@@ -71,7 +59,7 @@ fun LoginScreen(
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp)
@@ -88,7 +76,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Icon (
+                Icon(
                     painter = painterResource(id = R.drawable.ic_fork_knife),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
@@ -98,7 +86,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text (
+            Text(
                 text = "Deliciousness is just a tap away",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -111,7 +99,7 @@ fun LoginScreen(
                     text = state.errorMessage!!,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier =  Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
             Text(
@@ -125,7 +113,7 @@ fun LoginScreen(
                 onValueChange = viewModel::onPhoneChange,
                 label = "",
                 leadingIcon = {
-                    Icon (
+                    Icon(
                         imageVector = Icons.Outlined.Phone,
                         contentDescription = null,
                     )
@@ -159,7 +147,7 @@ fun LoginScreen(
                 errorMessage = state.passwordError
             )
 
-            Spacer (modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -174,13 +162,13 @@ fun LoginScreen(
                         onCheckedChange = viewModel::onRememberMeChange,
                         colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                     )
-                    Text (
+                    Text(
                         text = "Remember Me",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 }
-                Text (
+                Text(
                     text = "Forgot Password?",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
@@ -202,17 +190,24 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceVariant)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                )
 
                 Text(
                     text = "SOCIAL CONNECT",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceVariant)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

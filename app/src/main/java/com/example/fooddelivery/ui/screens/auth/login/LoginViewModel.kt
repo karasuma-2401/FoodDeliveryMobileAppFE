@@ -8,7 +8,6 @@ import com.example.fooddelivery.domain.usecase.LoginUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
 import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,7 +20,7 @@ data class LoginState (
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSuccess: Boolean = false,
-    val isVendor: Boolean = false, // Thêm để phân biệt role
+    val role: String = "customer", // Phân biệt role: customer, vendor, admin
 )
 
 @HiltViewModel
@@ -71,7 +70,7 @@ class LoginViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
             val result = loginWithFacebookUseCase(facebookToken)
             result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isSuccess = true, isVendor = false)
+                _state.value = _state.value.copy(isLoading = false, isSuccess = true, role = "customer")
             }.onFailure { exception ->
                 _state.value = _state.value.copy(
                     isLoading = false,
@@ -91,18 +90,6 @@ class LoginViewModel @Inject constructor(
                 errorMessage = null,
             )
 
-            // HARDCODE ACCOUNT FOR TESTING VENDOR FEATURES
-            // Phone: 0123456789, Pass: 123456
-            if (currentState.phone == "0923456789" && currentState.password == "123456") {
-                delay(1000) // Giả lập network delay
-                _state.value = _state.value.copy(
-                    isLoading = false, 
-                    isSuccess = true, 
-                    isVendor = true
-                )
-                return@launch
-            }
-
             val result = loginUseCase(
                 phone = currentState.phone,
                 password = currentState.password,
@@ -110,7 +97,8 @@ class LoginViewModel @Inject constructor(
             )
             
             result.onSuccess {
-                _state.value = _state.value.copy(isLoading = false, isSuccess = true, isVendor = false)
+                // Mặc định là customer, role thực tế nên được trả về từ API hoặc giải mã từ Token
+                _state.value = _state.value.copy(isLoading = false, isSuccess = true, role = "customer")
             }.onFailure { exception ->
                 _state.value = _state.value.copy(
                     isLoading =  false,
