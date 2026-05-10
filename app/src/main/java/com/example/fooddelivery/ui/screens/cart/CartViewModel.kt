@@ -7,8 +7,10 @@ import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.domain.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
@@ -22,12 +24,16 @@ data class CartState(
     val selectedVoucher: Voucher? = null,
     val promoCode: String = "",
     val promoError: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val selectedRestaurantName: String? = null
 ) {
-    val subTotal: Double get() = items.sumOf { it.totalPrice }
+    val itemsByRestaurant: Map<String, List<CartItem>> get() = items.groupBy { it.restaurantName }
+    val selectedItems: List<CartItem> get() = items.filter { it.restaurantName == selectedRestaurantName }
+    val subTotal: Double get() = selectedItems.sumOf { it.totalPrice }
     val discount: Double get() = selectedVoucher?.discountAmount ?: 0.0
     val total: Double get() = (subTotal + deliveryFee - discount).coerceAtLeast(0.0)
     val isCartEmpty: Boolean get() = items.isEmpty()
+    val canCheckout: Boolean get() = selectedItems.isNotEmpty() && selectedRestaurantName != null
 }
 
 sealed interface CartEvent {
@@ -38,6 +44,12 @@ sealed interface CartEvent {
     data class PromoCodeChanged(val code: String): CartEvent
     data object ApplyPromoCode: CartEvent
     data object ProceedToCheckout: CartEvent
+    data class SelectRestaurant(val restaurantName: String): CartEvent
+}
+
+sealed interface CartUiEffect {
+    data object NavigateToCheckout : CartUiEffect
+    data class ShowError(val message: String) : CartUiEffect
 }
 
 @HiltViewModel
@@ -48,6 +60,9 @@ class CartViewModel @Inject constructor(
     private val _state = MutableStateFlow(CartState())
     val state: StateFlow<CartState> = _state.asStateFlow()
 
+    private val _uiEffect = MutableSharedFlow<CartUiEffect>()
+    val uiEffect = _uiEffect.asSharedFlow()
+
     init {
         observeCart()
         loadMockVouchers()
@@ -56,7 +71,17 @@ class CartViewModel @Inject constructor(
     private fun observeCart() {
         viewModelScope.launch {
             cartRepository.getCartItems().collectLatest { items ->
-                _state.update { it.copy(items = items) }
+                _state.update { currentState ->
+                    val newSelectedName = if (items.any { it.restaurantName == currentState.selectedRestaurantName}) {
+                        currentState.selectedRestaurantName
+                    } else {
+                        items.firstOrNull()?.restaurantName
+                    }
+                    currentState.copy(
+                        items = items,
+                        selectedRestaurantName = newSelectedName
+                    )
+                }
             }
         }
     }
@@ -101,7 +126,38 @@ class CartViewModel @Inject constructor(
                     _state.update { it.copy(promoError = "Invalid code") }
                 }
             }
-            is CartEvent.ProceedToCheckout -> { /* Handle checkout */ }
+            is CartEvent.ProceedToCheckout -> {
+                handleProceedToCheckout()
+            }
+            is CartEvent.SelectRestaurant -> {
+                if (_state.value.selectedRestaurantName != event.restaurantName) {
+                    _state.update {
+                        it.copy(
+                            selectedRestaurantName = event.restaurantName,
+                            // delete voucher now to calculate new total
+                            selectedVoucher = null,
+                            promoCode = "",
+                            promoError = null
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleProceedToCheckout() {
+        val currentState = _state.value
+        viewModelScope.launch {
+            if (currentState.canCheckout) {
+                _uiEffect.emit(CartUiEffect.NavigateToCheckout)
+            } else {
+                val errorMsg = if (currentState.isCartEmpty) {
+                    "Your cart is empty"
+                } else {
+                    "Please select items to checkout"
+                }
+                _uiEffect.emit(CartUiEffect.ShowError(errorMsg))
+            }
         }
     }
 }
