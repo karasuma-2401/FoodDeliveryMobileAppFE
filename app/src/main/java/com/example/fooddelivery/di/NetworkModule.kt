@@ -69,7 +69,6 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthApi(@Named("MainRetrofit") retrofit: Retrofit): AuthApi {
     @Named("PhotonRetrofit")
     fun providePhotonRetrofit(json: Json, okHttpClient: OkHttpClient): Retrofit {
         val contentType = "application/json".toMediaType()
