@@ -50,15 +50,12 @@ fun RestaurantItem(
                     .clip(RoundedCornerShape(24.dp)),
                 contentScale = ContentScale.Crop
             )
-
-            // Promo Badges
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Left badge (e.g., PROMO, Discount)
                 restaurant.promoTags.firstOrNull { !it.contains("Freeship", ignoreCase = true) }?.let { promo ->
                     val badgeColor = if (promo.contains("PROMO", ignoreCase = true)) 
                         Color(0xFFF58D1F) else Color(0xFFF15A5A)
@@ -77,8 +74,6 @@ fun RestaurantItem(
                         )
                     }
                 }
-
-                // Right badge (e.g., Freeship)
                 restaurant.promoTags.firstOrNull { it.contains("Freeship", ignoreCase = true) }?.let { freeship ->
                     Box(
                         modifier = Modifier
@@ -135,8 +130,6 @@ fun RestaurantItem(
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
-            
-            // Delivery Fee
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.DirectionsRun,
@@ -146,7 +139,7 @@ fun RestaurantItem(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = restaurant.deliveryFee,
+                    text = (if (restaurant.deliveryFee == 0.0) "Free" else "$${restaurant.deliveryFee}"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )

@@ -126,7 +126,7 @@ fun FoodDetailContent(
                 item {
                     FoodInfoRow(
                         rating = state.restaurant?.rating ?: 4.7f,
-                        deliveryFee = state.restaurant?.deliveryFee ?: "Free",
+                        deliveryFee = state.restaurant!!.deliveryFee,
                         deliveryTime = state.restaurant?.deliveryTime ?: "20 min"
                     )
                 }

@@ -71,7 +71,7 @@ class SearchViewModel @Inject constructor() : ViewModel() {
         if (query.isEmpty()) return allFoodItems
         return allFoodItems.filter { food ->
             food.name.contains(query, ignoreCase = true) ||
-            food.category.contains(query, ignoreCase = true)
+            food.restaurantName.contains(query, ignoreCase = true)
         }
     }
 
@@ -94,10 +94,10 @@ class SearchViewModel @Inject constructor() : ViewModel() {
                 Restaurant(
                     id = "1",
                     name = "Spicy Restaurant",
-                    description = "Maecenas sed diam eget risus varius blandit sit amet non magna. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
+                    description = "Maecenas sed diam eget risus varius blandit sit amet non magna.",
                     tags = listOf("Burger", "Chicken", "Rice", "Wings"),
                     rating = 4.7f,
-                    deliveryFee = "Free",
+                    deliveryFee = 0.0,
                     deliveryTime = "20 min",
                     imageRes = R.drawable.food_bowl
                 ),
@@ -107,7 +107,7 @@ class SearchViewModel @Inject constructor() : ViewModel() {
                     description = "World famous fried chicken and fast food.",
                     tags = listOf("Fast Food", "Fried Chicken"),
                     rating = 4.5f,
-                    deliveryFee = "$1.5",
+                    deliveryFee = 1.5,
                     deliveryTime = "15 min",
                     imageRes = R.drawable.food_bowl
                 ),
@@ -117,19 +117,19 @@ class SearchViewModel @Inject constructor() : ViewModel() {
                     description = "Premium pizzas and Italian food.",
                     tags = listOf("Pizza", "Italian", "Pasta"),
                     rating = 4.8f,
-                    deliveryFee = "Free",
+                    deliveryFee = 0.0,
                     deliveryTime = "30 min",
                     imageRes = R.drawable.food_bowl
                 )
             )
 
             allFoodItems = listOf(
-                FoodItem("1", "Burger Ferguson", "Spicy Restaurant", "Burger", "40", R.drawable.food_bowl, "PROMOTION"),
-                FoodItem("2", "Rockin' Burgers", "Cafecafachino", "Burger", "40", R.drawable.food_bowl, "GIẢM 20%"),
-                FoodItem("3", "Egg Burger", "Spicy Restaurant", "Burger", "35", R.drawable.food_bowl, "FREESHIP"),
-                FoodItem("4", "BBQ Special", "Flame Grills", "Burger", "45", R.drawable.food_bowl, "HOT"),
-                FoodItem("5", "Margherita Pizza", "Pizza Hut Deli", "Pizza", "120", R.drawable.food_bowl, "GIẢM 10%"),
-                FoodItem("6", "Pepperoni Pizza", "Pizza Hut Deli", "Pizza", "150", R.drawable.food_bowl, "HOT")
+                FoodItem(id = "1", name = "Burger Ferguson", restaurantId = "1", restaurantName = "Spicy Restaurant", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "PROMOTION"),
+                FoodItem(id = "2", name = "Rockin' Burgers", restaurantId = "4", restaurantName = "Cafecafachino", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 20%"),
+                FoodItem(id = "3", name = "Egg Burger", restaurantId = "1", restaurantName = "Spicy Restaurant", price = 35.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP"),
+                FoodItem(id = "4", name = "BBQ Special", restaurantId = "5", restaurantName = "Flame Grills", price = 45.0, imageRes = R.drawable.food_bowl, promoTag = "HOT"),
+                FoodItem(id = "5", name = "Margherita Pizza", restaurantId = "3", restaurantName = "Pizza Hut Deli", price = 120.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 10%"),
+                FoodItem(id = "6", name = "Pepperoni Pizza", restaurantId = "3", restaurantName = "Pizza Hut Deli", price = 150.0, imageRes = R.drawable.food_bowl, promoTag = "HOT")
             )
 
             _state.update {

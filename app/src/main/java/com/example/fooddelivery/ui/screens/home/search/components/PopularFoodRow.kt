@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.FoodItem
 
 @Composable
@@ -33,7 +34,7 @@ fun PopularFoodRow(popularFood: List<FoodItem>) {
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Image(
-                        painter = painterResource(id = food.imageRes),
+                        painter = painterResource(id = food.imageRes ?: R.drawable.food_bowl),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -48,7 +49,7 @@ fun PopularFoodRow(popularFood: List<FoodItem>) {
                         maxLines = 1
                     )
                     Text(
-                        text = food.category, 
+                        text = food.restaurantName,
                         color = Color.Gray, 
                         fontSize = 12.sp,
                         maxLines = 1

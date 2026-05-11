@@ -76,8 +76,6 @@ fun HomeContent(
         in 16..20 -> "Good Evening"
         else -> "Good Night"
     }
-
-    // Show loading state
     if (state.isLoading) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -87,8 +85,6 @@ fun HomeContent(
         }
         return
     }
-
-    // Show error state
     state.errorMessage?.let { error ->
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -214,8 +210,6 @@ fun HomeContent(
                     onSeeAllClick = onNavigateToAllRestaurants
                 )
             }
-
-            // Tối ưu hóa: Dùng items trực tiếp của LazyColumn cho danh sách nhà hàng
             items(state.restaurants) { restaurant ->
                 RestaurantItem(
                     restaurant = restaurant,

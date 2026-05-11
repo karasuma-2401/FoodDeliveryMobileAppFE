@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.CartItem
 
 @Composable
@@ -39,7 +40,7 @@ fun CartItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = item.food.imageRes),
+                painter = painterResource(id = item.food.imageRes ?: R.drawable.food_bowl),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

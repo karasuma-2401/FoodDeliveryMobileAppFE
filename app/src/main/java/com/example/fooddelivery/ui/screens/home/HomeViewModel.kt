@@ -89,11 +89,11 @@ class HomeViewModel @Inject constructor(
             delay(1000)
 
             fullCategories = listOf(
-                Category("1", "Pizza", R.drawable.food_bowl, "$70", "Giảm 20%"),
-                Category("2", "Burger", R.drawable.food_bowl, "$50", "PROMO"),
-                Category("3", "Pasta", R.drawable.food_bowl, "$60"),
-                Category("4", "Drink", R.drawable.food_bowl, "$20"),
-                Category("5", "Chicken", R.drawable.food_bowl, "$45")
+                Category(id = "1", name = "Pizza", imageRes = R.drawable.food_bowl, startingPrice = 70.0, promoText = "Giảm 20%"),
+                Category(id = "2", name = "Burger", imageRes = R.drawable.food_bowl, startingPrice = 50.0, promoText = "PROMO"),
+                Category(id = "3", name = "Pasta", imageRes = R.drawable.food_bowl, startingPrice = 60.0),
+                Category(id = "4", name = "Drink", imageRes = R.drawable.food_bowl, startingPrice = 20.0),
+                Category(id = "5", name = "Chicken", imageRes = R.drawable.food_bowl, startingPrice = 45.0)
             )
             
             fullRestaurants = listOf(
@@ -102,7 +102,7 @@ class HomeViewModel @Inject constructor(
                     name = "Rose Garden Restaurant",
                     tags = listOf("Burger", "Chicken", "Rice", "Wings"),
                     rating = 4.7f,
-                    deliveryFee = "Free",
+                    deliveryFee = 0.0,
                     deliveryTime = "20 min",
                     imageRes = R.drawable.food_bowl,
                     promoTags = listOf("PROMO", "Freeship")
@@ -112,7 +112,7 @@ class HomeViewModel @Inject constructor(
                     name = "KFC - Ho Chi Minh",
                     tags = listOf("Fast Food", "Fried Chicken"),
                     rating = 4.5f,
-                    deliveryFee = "$1.5",
+                    deliveryFee = 1.5,
                     deliveryTime = "15 min",
                     imageRes = R.drawable.food_bowl,
                     promoTags = listOf("Giảm 50%")
@@ -122,7 +122,7 @@ class HomeViewModel @Inject constructor(
                     name = "Pizza Hut Deli",
                     tags = listOf("Pizza", "Italian", "Pasta"),
                     rating = 4.8f,
-                    deliveryFee = "Free",
+                    deliveryFee = 0.0,
                     deliveryTime = "30 min",
                     imageRes = R.drawable.food_bowl
                 )

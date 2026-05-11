@@ -82,18 +82,18 @@ class RestaurantDetailViewModel @Inject constructor(
                         description = "Authentic Asian cuisine with fresh ingredients and traditional recipes.",
                         tags = listOf("Burger", "Chicken", "Rice", "Wings"),
                         rating = 4.7f,
-                        deliveryFee = "Free",
+                        deliveryFee = 0.0,
                         deliveryTime = "20 min",
                         imageRes = R.drawable.food_bowl
                     )
                     val items = listOf(
-                        FoodItem("1", "Burger Ferguson", "Rose Garden Restaurant", "Burger", "40", R.drawable.food_bowl, "PROMOTION"),
-                        FoodItem("2", "Rockin' Burgers", "Rose Garden Restaurant", "Burger", "40", R.drawable.food_bowl, "GIẢM 20%"),
-                        FoodItem("3", "Egg Burger", "Rose Garden Restaurant", "Burger", "35", R.drawable.food_bowl, "FREESHIP"),
-                        FoodItem("5", "Club Sandwich", "Rose Garden Restaurant", "Sandwich", "30", R.drawable.food_bowl, "BÁN CHẠY"),
-                        FoodItem("6", "Tuna Melt", "Rose Garden Restaurant", "Sandwich", "32", R.drawable.food_bowl, "FREESHIP"),
-                        FoodItem("9", "Margherita Pizza", "Rose Garden Restaurant", "Pizza", "120", R.drawable.food_bowl, "GIẢM 10%"),
-                        FoodItem("10", "Pepperoni Feast", "Rose Garden Restaurant", "Pizza", "150", R.drawable.food_bowl, "HOT")
+                        FoodItem(id = "1", name = "Burger Ferguson", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Burger", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "PROMOTION"),
+                        FoodItem(id = "2", name = "Rockin' Burgers", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Burger", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 20%"),
+                        FoodItem(id = "3", name = "Egg Burger", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Burger", price = 35.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP"),
+                        FoodItem(id = "5", name = "Club Sandwich", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Sandwich", price = 30.0, imageRes = R.drawable.food_bowl, promoTag = "BÁN CHẠY"),
+                        FoodItem(id = "6", name = "Tuna Melt", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Sandwich", price = 32.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP"),
+                        FoodItem(id = "9", name = "Margherita Pizza", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Pizza", price = 120.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 10%"),
+                        FoodItem(id = "10", name = "Pepperoni Feast", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Pizza", price = 150.0, imageRes = R.drawable.food_bowl, promoTag = "HOT")
                     )
                     Pair(restaurant, items)
                 }
@@ -104,14 +104,14 @@ class RestaurantDetailViewModel @Inject constructor(
                         description = "World famous fried chicken and fast food favorites.",
                         tags = listOf("Fast Food", "Fried Chicken"),
                         rating = 4.5f,
-                        deliveryFee = "$1.5",
+                        deliveryFee = 1.5,
                         deliveryTime = "15 min",
                         imageRes = R.drawable.food_bowl
                     )
                     val items = listOf(
-                        FoodItem("4", "BBQ Special", "KFC - Ho Chi Minh", "Burger", "45", R.drawable.food_bowl, "HOT"),
-                        FoodItem("7", "Beef Pastrami", "KFC - Ho Chi Minh", "Sandwich", "50", R.drawable.food_bowl, "NEW"),
-                        FoodItem("8", "Veggie Supreme", "KFC - Ho Chi Minh", "Sandwich", "28", R.drawable.food_bowl, "HEALTHY")
+                        FoodItem(id = "4", name = "BBQ Special", restaurantId = restaurantId, restaurantName = "KFC - Ho Chi Minh", categoryId = "Burger", price = 45.0, imageRes = R.drawable.food_bowl, promoTag = "HOT"),
+                        FoodItem(id = "7", name = "Beef Pastrami", restaurantId = restaurantId, restaurantName = "KFC - Ho Chi Minh", categoryId = "Sandwich", price = 50.0, imageRes = R.drawable.food_bowl, promoTag = "NEW"),
+                        FoodItem(id = "8", name = "Veggie Supreme", restaurantId = restaurantId, restaurantName = "KFC - Ho Chi Minh", categoryId = "Sandwich", price = 28.0, imageRes = R.drawable.food_bowl, promoTag = "HEALTHY")
                     )
                     Pair(restaurant, items)
                 }
@@ -122,13 +122,13 @@ class RestaurantDetailViewModel @Inject constructor(
                         description = "Premium pizzas and Italian specialties delivered hot and fresh.",
                         tags = listOf("Pizza", "Italian", "Pasta"),
                         rating = 4.8f,
-                        deliveryFee = "Free",
+                        deliveryFee = 0.0,
                         deliveryTime = "30 min",
                         imageRes = R.drawable.food_bowl
                     )
                     val items = listOf(
-                        FoodItem("11", "Seafood Black Pepper", "Pizza Hut Deli", "Pizza", "180", R.drawable.food_bowl, "PROMOTION"),
-                        FoodItem("12", "Hawaiian Classic", "Pizza Hut Deli", "Pizza", "140", R.drawable.food_bowl, "FREESHIP")
+                        FoodItem(id = "11", name = "Seafood Black Pepper", restaurantId = restaurantId, restaurantName = "Pizza Hut Deli", categoryId = "Pizza", price = 180.0, imageRes = R.drawable.food_bowl, promoTag = "PROMOTION"),
+                        FoodItem(id = "12", name = "Hawaiian Classic", restaurantId = restaurantId, restaurantName = "Pizza Hut Deli", categoryId = "Pizza", price = 140.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP")
                     )
                     Pair(restaurant, items)
                 }
@@ -137,19 +137,19 @@ class RestaurantDetailViewModel @Inject constructor(
                     val restaurant = Restaurant(
                         id = restaurantId,
                         name = "Spicy Restaurant",
-                        description = "Maecenas sed diam eget risus varius blandit sit amet non magna. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
+                        description = "Maecenas sed diam eget risus varius blandit sit amet non magna.",
                         tags = listOf("Burger", "Chicken", "Rice", "Wings"),
                         rating = 4.7f,
-                        deliveryFee = "Free",
+                        deliveryFee = 0.0,
                         deliveryTime = "20 min",
                         imageRes = R.drawable.food_bowl
                     )
                     val items = listOf(
-                        FoodItem("1", "Burger Ferguson", "Spicy Restaurant", "Burger", "40", R.drawable.food_bowl, "PROMOTION"),
-                        FoodItem("2", "Rockin' Burgers", "Spicy Restaurant", "Burger", "40", R.drawable.food_bowl, "GIẢM 20%"),
-                        FoodItem("3", "Egg Burger", "Spicy Restaurant", "Burger", "35", R.drawable.food_bowl, "FREESHIP"),
-                        FoodItem("5", "Club Sandwich", "Spicy Restaurant", "Sandwich", "30", R.drawable.food_bowl, "BÁN CHẠY"),
-                        FoodItem("9", "Margherita Pizza", "Spicy Restaurant", "Pizza", "120", R.drawable.food_bowl, "GIẢM 10%")
+                        FoodItem(id = "1", name = "Burger Ferguson", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Burger", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "PROMOTION"),
+                        FoodItem(id = "2", name = "Rockin' Burgers", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Burger", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 20%"),
+                        FoodItem(id = "3", name = "Egg Burger", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Burger", price = 35.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP"),
+                        FoodItem(id = "5", name = "Club Sandwich", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Sandwich", price = 30.0, imageRes = R.drawable.food_bowl, promoTag = "BÁN CHẠY"),
+                        FoodItem(id = "9", name = "Margherita Pizza", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Pizza", price = 120.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 10%")
                     )
                     Pair(restaurant, items)
                 }
@@ -159,7 +159,7 @@ class RestaurantDetailViewModel @Inject constructor(
                 it.copy(
                     restaurant = mockRestaurant,
                     foodItems = mockFoodItems,
-                    categorizedFoodItem = mockFoodItems.groupBy { item -> item.category },
+                    categorizedFoodItem = mockFoodItems.groupBy { item -> item.categoryId },
                     isLoading = false
                 )
             }

@@ -28,6 +28,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.FoodItem
 
 @Composable
@@ -52,7 +53,7 @@ fun FoodItemCard(
                     .height(140.dp)
             ) {
                 Image(
-                    painter = painterResource(id = foodItem.imageRes),
+                    painter = painterResource(R.drawable.food_bowl),
                     contentDescription = foodItem.name,
                     modifier = Modifier
                         .fillMaxSize()

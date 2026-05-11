@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun FoodInfoRow(
     rating: Float,
-    deliveryFee: String,
+    deliveryFee: Double,
     deliveryTime: String,
     modifier: Modifier = Modifier
 ) {
@@ -40,7 +40,7 @@ fun FoodInfoRow(
         )
         InfoIconText(
             icon = Icons.Outlined.DirectionsRun,
-            text = deliveryFee,
+            text = "String.format(\"%.0f\", deliveryFee)",
             iconColor = MaterialTheme.colorScheme.primary
         )
         InfoIconText(
