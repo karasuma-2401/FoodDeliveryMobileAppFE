@@ -41,7 +41,7 @@ data class HomeState(
     val categories: List<Category> = emptyList(),
     val restaurants: List<Restaurant> = emptyList(),
     val cartItemCount: Int = 0,
-    val selectedLocation: String = "Halal Lab office",
+    val selectedLocation: String = "Home",
     val availableLocations: List<String> = listOf("Home", "Work", "Other"),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
@@ -144,7 +144,7 @@ class HomeViewModel @Inject constructor(
             )
 
             val mockCategories = listOf(
-                Category(id = "1", name = "Pizza", imageRes = R.drawable.food_bowl, startingPrice = 70.0, promoText = "Giảm 20%"),
+                Category(id = "1", name = "Pizza", imageRes = R.drawable.food_bowl, startingPrice = 70.0, promoText = "Discount 20%"),
                 Category(id = "2", name = "Burger", imageRes = R.drawable.food_bowl, startingPrice = 50.0, promoText = "PROMO"),
                 Category(id = "3", name = "Pasta", imageRes = R.drawable.food_bowl, startingPrice = 60.0),
                 Category(id = "4", name = "Drink", imageRes = R.drawable.food_bowl, startingPrice = 20.0),

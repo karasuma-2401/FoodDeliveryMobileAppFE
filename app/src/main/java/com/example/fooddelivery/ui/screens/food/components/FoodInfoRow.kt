@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 
 @Composable
 fun FoodInfoRow(
@@ -40,7 +41,7 @@ fun FoodInfoRow(
         )
         InfoIconText(
             icon = Icons.Outlined.DirectionsRun,
-            text = "String.format(\"%.0f\", deliveryFee)",
+            text = String.format(Locale.US,"%.0f", deliveryFee),
             iconColor = MaterialTheme.colorScheme.primary
         )
         InfoIconText(

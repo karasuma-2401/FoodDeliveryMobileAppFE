@@ -23,8 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.screens.home.HomeBanner
 
 @Composable
-fun PromoBanner(
-    banner: HomeBanner,
+fun PromoBanner(    banner: HomeBanner,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {

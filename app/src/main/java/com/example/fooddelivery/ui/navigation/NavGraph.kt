@@ -56,7 +56,7 @@ fun RootNavigationGraph(
     navController: NavHostController,
     startDestination: Any
 ) {
-    val initialGraph = if (startDestination is HomeRoute || startDestination is LocationRoute) CustomerGraph else AuthGraph
+    val initialGraph = CustomerGraph
 
     NavHost(
         navController = navController,
@@ -264,17 +264,14 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<CartRoute> {
             CartScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCheckout = { navController.navigate(CheckoutRoute) }
+                onNavigateToCheckout = { restaurantName, discount ->
+                    navController.navigate(CheckoutRoute(restaurantName = restaurantName, discount = discount))
+                }
             )
         }
 
-        composable<CheckoutRoute> { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(CustomerGraph)
-            }
-            val viewModel: CheckoutViewModel = hiltViewModel(parentEntry)
+        composable<CheckoutRoute> {
             CheckoutScreen(
-                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAddAddress = { navController.navigate(AddAddressRoute) },
                 onNavigateToPaymentSuccessful = { navController.navigate(CheckoutSuccessRoute) }

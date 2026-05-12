@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +29,7 @@ import com.example.fooddelivery.ui.screens.home.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 @Composable
@@ -104,7 +106,7 @@ fun HomeContent(
                 currentRoute = "home",
                 onItemClick = { item ->
                     when(item) {
-                        BottomNavItem.Home -> { /* Already here */ }
+                        BottomNavItem.Home -> { }
                         BottomNavItem.Search -> onNavigateToSearch()
                         BottomNavItem.Orders -> onNavigateToOrders()
                         BottomNavItem.Profile -> onNavigateToProfile()
@@ -149,26 +151,33 @@ fun HomeContent(
             }
             item {
                 if (state.banners.isNotEmpty()) {
-                    val pagerState = rememberPagerState(pageCount = { state.banners.size })
-                    
-                    LaunchedEffect(key1 = pagerState.currentPage) {
-                        delay(2500)
-                        val nextPage = (pagerState.currentPage + 1) % state.banners.size
-                        pagerState.animateScrollToPage(nextPage)
-                    }
+                    val pagerState = rememberPagerState(pageCount = { state.banners.size})
 
                     HorizontalPager(
                         state = pagerState,
                         contentPadding = PaddingValues(horizontal = 24.dp),
                         pageSpacing = 16.dp,
                         modifier = Modifier.fillMaxWidth()
-                    ) { page ->
-                        val banner = state.banners[page]
+                    ) { pagerIndex ->
+                        val banner = state.banners[pagerIndex]
                         PromoBanner(
                             banner = banner,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
                         )
+                    }
+                    val scope = rememberCoroutineScope()
+                    with(pagerState) {
+                        LaunchedEffect(key1 = currentPage) {
+                            launch {
+                                delay(2500)
+                                scope.launch {
+                                    animateScrollToPage(
+                                        page = (currentPage + 1).mod(pageCount)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(32.dp))

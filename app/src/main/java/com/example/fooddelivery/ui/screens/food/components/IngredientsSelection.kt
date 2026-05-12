@@ -39,13 +39,11 @@ fun IngredientsSection(
             style = MaterialTheme.typography.labelLarge.copy(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
-            ),
-            modifier = Modifier.padding(horizontal = 24.dp)
+            )
         )
         Spacer(modifier = Modifier.height(12.dp))
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 24.dp) 
         ) {
             items(ingredients) { icon ->
                 Box(
