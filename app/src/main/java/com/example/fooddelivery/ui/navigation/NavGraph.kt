@@ -342,6 +342,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToRestaurant = { restaurant ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = restaurant.id))
+                },
+                onNavigateToFoodDetail = { foodId ->
+                    navController.navigate(FoodDetailRoute(foodId = foodId))
                 }
             )
         }

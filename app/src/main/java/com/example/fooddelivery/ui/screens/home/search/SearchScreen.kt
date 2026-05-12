@@ -25,6 +25,7 @@ fun SearchScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToCart: () -> Unit,
     onNavigateToRestaurant: (Restaurant) -> Unit,
+    onNavigateToFoodDetail: (String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -36,7 +37,7 @@ fun SearchScreen(
                 onItemClick = { item ->
                     when (item) {
                         BottomNavItem.Home -> onNavigateToHome()
-                        BottomNavItem.Search -> { /* Đang ở màn hình Search */ }
+                        BottomNavItem.Search -> { }
                         BottomNavItem.Orders -> onNavigateToOrders()
                         BottomNavItem.Profile -> onNavigateToProfile()
                     }
@@ -59,6 +60,7 @@ fun SearchScreen(
             state = state,
             onEvent = viewModel::onEvent,
             onNavigateToRestaurant = onNavigateToRestaurant,
+            onNavigateToFoodDetail = onNavigateToFoodDetail,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -69,6 +71,7 @@ fun SearchContent(
     state: SearchState,
     onEvent: (SearchEvent) -> Unit,
     onNavigateToRestaurant: (Restaurant) -> Unit,
+    onNavigateToFoodDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -82,30 +85,65 @@ fun SearchContent(
                 onClear = { onEvent(SearchEvent.ClearSearch) }
             )
         }
-        item {
-            RecentKeywordsList(
-                keywords = state.recentKeyWords,
-                onKeywordClick = { onEvent(SearchEvent.KeywordClicked(it)) }
-            )
-        }
-        item {
-            SectionHeader(title = "Suggested Restaurants")
-        }
+        if (state.searchQuery.isEmpty()) {
+            if(state.recentKeyWords.isNotEmpty()) {
+                item {
+                    RecentKeywordsList(
+                        keywords = state.recentKeyWords,
+                        onKeywordClick = { onEvent(SearchEvent.KeywordClicked(it)) }
+                    )
+                }
+            }
+            item {
+                SectionHeader(title = "Suggested Restaurants")
+            }
 
-        items(state.suggestedRestaurants) { restaurant ->
-            SearchRestaurantItem(
-                restaurant = restaurant,
-                onClick = { onNavigateToRestaurant(restaurant) }
-            )
-        }
-        item {
-            SectionHeader(title = "Popular Fast Food", modifier = Modifier.padding(top = 24.dp))
-        }
+            items(state.suggestedRestaurants) { restaurant ->
+                SearchRestaurantItem(
+                    restaurant = restaurant,
+                    onClick = { onNavigateToRestaurant(restaurant) }
+                )
+            }
+            item {
+                SectionHeader(title = "Popular Fast Food", modifier = Modifier.padding(top = 24.dp))
+            }
 
-        item {
-            PopularFoodRow(popularFood = state.popularFood)
+            item {
+                PopularFoodRow(
+                    popularFood = state.popularFood,
+                    onFoodItemClick = onNavigateToFoodDetail
+                )
+            }
+        } else {
+            if (state.isLoading) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            } else if (state.suggestedRestaurants.isEmpty() && state.popularFood.isEmpty()) {
+                item { EmptySearchView(query = state.searchQuery) }
+            } else {
+                if (state.suggestedRestaurants.isNotEmpty()) {
+                    item { SectionHeader("Restaurants R Found") }
+                    items(state.suggestedRestaurants) { restaurant ->
+                        SearchRestaurantItem(
+                            restaurant = restaurant,
+                            onClick = { onNavigateToRestaurant(restaurant) }
+                        )
+                    }
+                }
+                if (state.popularFood.isNotEmpty()) {
+                    item { SectionHeader(title = "Dishes Found", modifier = Modifier.padding(top = 16.dp)) }
+                    item {
+                        PopularFoodRow(
+                            popularFood = state.popularFood,
+                            onFoodItemClick = onNavigateToFoodDetail
+                        )
+                    }
+                }
+            }
         }
-
         item { Spacer(modifier = Modifier.height(32.dp)) }
     }
 }
@@ -116,7 +154,8 @@ fun SearchScreenPreview() {
         SearchContent(
             state = SearchState(),
             onEvent = {},
-            onNavigateToRestaurant = {}
+            onNavigateToRestaurant = {},
+            onNavigateToFoodDetail = {}
         )
     }
 }
