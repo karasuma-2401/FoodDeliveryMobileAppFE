@@ -104,7 +104,13 @@ fun DashboardContent(
                 
                 BestSellerSection(
                     items = listOf(
-                        BestSellerItem("Burger", "$5.99", 4.5f, 120, R.drawable.ic_launcher_background),
+                        BestSellerItem(
+                            "Burger",
+                            "$5.99",
+                            4.5f,
+                            120,
+                            R.drawable.ic_launcher_background
+                        ),
                         BestSellerItem("Pizza", "$8.99", 4.8f, 200, R.drawable.ic_launcher_background),
                         BestSellerItem("Chicken", "$6.49", 4.6f, 150, R.drawable.ic_launcher_background)
                     ),

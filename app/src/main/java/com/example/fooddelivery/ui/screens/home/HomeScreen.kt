@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +26,8 @@ import com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar
 import com.example.fooddelivery.ui.components.bottombar.BottomNavItem
 import com.example.fooddelivery.ui.screens.home.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import java.util.Calendar
 
 @Composable
@@ -32,24 +37,30 @@ fun HomeScreen(
     onNavigateToCategory: (String) -> Unit,
     onNavigateToAllCategories: () -> Unit,
     onNavigateToAllRestaurants: () -> Unit,
-    onOpenMenu: () -> Unit,
-    onOpenLocationPicker: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToOrders: () -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToFoodDetail: (String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                is HomeUiEffect.NavigateToCart -> onNavigateToCart()
+                is HomeUiEffect.NavigateToAllCategories -> onNavigateToAllCategories()
+                is HomeUiEffect.NavigateToAllRestaurants -> onNavigateToAllRestaurants()
+                is HomeUiEffect.NavigateToCategory -> onNavigateToCategory(effect.categoryId)
+                is HomeUiEffect.NavigateToRestaurant -> onNavigateToRestaurant(effect.restaurantId)
+                is HomeUiEffect.NavigateToFoodDetail -> onNavigateToFoodDetail(effect.foodId)
+            }
+        }
+    }
+
     HomeContent(
         state = state,
-        onNavigateToCart = onNavigateToCart,
-        onNavigateToRestaurant = onNavigateToRestaurant,
-        onNavigateToCategory = onNavigateToCategory,
-        onNavigateToAllCategories = onNavigateToAllCategories,
-        onNavigateToAllRestaurants = onNavigateToAllRestaurants,
-        onOpenMenu = onOpenMenu,
-        onOpenLocationPicker = onOpenLocationPicker,
+        onEvent = viewModel::onEvent,
         onNavigateToProfile = onNavigateToProfile,
         onNavigateToOrders = onNavigateToOrders,
         onNavigateToSearch = onNavigateToSearch
@@ -59,13 +70,7 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     state: HomeState,
-    onNavigateToCart: () -> Unit,
-    onNavigateToRestaurant: (String) -> Unit,
-    onNavigateToCategory: (String) -> Unit,
-    onNavigateToAllCategories: () -> Unit,
-    onNavigateToAllRestaurants: () -> Unit,
-    onOpenMenu: () -> Unit,
-    onOpenLocationPicker: () -> Unit,
+    onEvent: (HomeEvent) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToOrders: () -> Unit,
     onNavigateToSearch: () -> Unit
@@ -76,30 +81,10 @@ fun HomeContent(
         in 16..20 -> "Good Evening"
         else -> "Good Night"
     }
+    
     if (state.isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
-        }
-        return
-    }
-    state.errorMessage?.let { error ->
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = error,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
         }
         return
     }
@@ -107,11 +92,11 @@ fun HomeContent(
     Scaffold(
         topBar = {
             HomeTopBar(
-                location = state.selectedLocation,
+                selectedLocation = state.selectedLocation,
+                availableLocations = state.availableLocations,
+                onLocationSelected = { onEvent(HomeEvent.LocationSelected(it)) },
                 cartItemCount = state.cartItemCount,
-                onMenuClick = onOpenMenu,
-                onLocationClick = onOpenLocationPicker,
-                onCartClick = onNavigateToCart
+                onCartClick = { onEvent(HomeEvent.CartClicked) }
             )
         },
         bottomBar = {
@@ -130,15 +115,13 @@ fun HomeContent(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item {
                 Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                     Text(
-                        text = "Hey ${state.user.fullName.ifEmpty { "Halal" }}, $greeting!",
+                        text = "Hey ${state.user.fullName.ifEmpty { "Customer" }}, $greeting!",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -147,47 +130,54 @@ fun HomeContent(
             }
             item {
                 Surface(
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp)
-                        .fillMaxWidth()
-                        .height(56.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp).fillMaxWidth().height(56.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .clickable { onNavigateToSearch() },
                     shape = RoundedCornerShape(12.dp),
                     color = Color(0xFFF6F6F6)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            tint = Color.Gray
-                        )
+                        Icon(Icons.Default.Search, null, tint = Color.Gray)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Search dishes, restaurants",
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Text("Search dishes, restaurants", color = Color.Gray)
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
             item {
-                PromoBanner(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    onOrderNowClick = { /* Xử lý sự kiện */ }
-                )
+                if (state.banners.isNotEmpty()) {
+                    val pagerState = rememberPagerState(pageCount = { state.banners.size })
+                    
+                    LaunchedEffect(key1 = pagerState.currentPage) {
+                        delay(2500)
+                        val nextPage = (pagerState.currentPage + 1) % state.banners.size
+                        pagerState.animateScrollToPage(nextPage)
+                    }
+
+                    HorizontalPager(
+                        state = pagerState,
+                        contentPadding = PaddingValues(horizontal = 24.dp),
+                        pageSpacing = 16.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { page ->
+                        val banner = state.banners[page]
+                        PromoBanner(
+                            banner = banner,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(32.dp))
             }
+
             item {
                 SectionHeader(
                     title = "All Categories",
-                    onSeeAllClick = onNavigateToAllCategories
+                    onSeeAllClick = { onEvent(HomeEvent.SeeAllCategoriesClicked) }
                 )
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 24.dp),
@@ -197,23 +187,21 @@ fun HomeContent(
                     items(state.categories) { category ->
                         CategoryItem(
                             category = category,
-                            onClick = { onNavigateToCategory(category.id) }
+                            onClick = { onEvent(HomeEvent.CategoryClicked(category.id)) }
                         )
                     }
                 }
             }
-
-            // 5. Section Restaurants
             item {
                 SectionHeader(
                     title = "Open Restaurants",
-                    onSeeAllClick = onNavigateToAllRestaurants
+                    onSeeAllClick = { onEvent(HomeEvent.SeeAllRestaurantsClicked) }
                 )
             }
             items(state.restaurants) { restaurant ->
                 RestaurantItem(
                     restaurant = restaurant,
-                    onClick = { onNavigateToRestaurant(restaurant.id) }
+                    onClick = { onEvent(HomeEvent.RestaurantClicked(restaurant.id)) }
                 )
             }
         }
@@ -226,16 +214,10 @@ fun HomeScreenPreview() {
     DFoodTheme {
         HomeContent(
             state = HomeState(),
-            onNavigateToCart = {},
-            onNavigateToRestaurant = {},
-            onNavigateToCategory = {},
-            onNavigateToAllCategories = {},
-            onNavigateToAllRestaurants = {},
-            onOpenMenu = {},
-            onOpenLocationPicker = {},
+            onEvent = {},
             onNavigateToProfile = {},
             onNavigateToOrders = {},
-            onNavigateToSearch = {},
+            onNavigateToSearch = {}
         )
     }
 }

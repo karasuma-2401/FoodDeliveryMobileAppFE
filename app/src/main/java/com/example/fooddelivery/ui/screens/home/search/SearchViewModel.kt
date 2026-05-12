@@ -20,7 +20,9 @@ data class SearchState(
     val suggestedRestaurants: List<Restaurant> = emptyList(),
     val popularFood: List<FoodItem> = emptyList(),
     val cartItemCount: Int = 2,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val selectedLocation: String = "Halal Lab office",
+    val availableLocations: List<String> = listOf("Home", "Work", "Other")
 )
 
 sealed interface SearchEvent {
@@ -28,6 +30,7 @@ sealed interface SearchEvent {
     data class KeywordClicked(val keyword: String): SearchEvent
     object ClearSearch: SearchEvent
     object LoadSearchData: SearchEvent
+    data class LocationSelected(val location: String) : SearchEvent
 }
 @HiltViewModel
 class SearchViewModel @Inject constructor() : ViewModel() {
@@ -56,6 +59,9 @@ class SearchViewModel @Inject constructor() : ViewModel() {
                 filterData("")
             }
             SearchEvent.LoadSearchData -> loadInitialData()
+            is SearchEvent.LocationSelected -> {
+                _state.update { it.copy(selectedLocation = event.location) }
+            }
         }
     }
 

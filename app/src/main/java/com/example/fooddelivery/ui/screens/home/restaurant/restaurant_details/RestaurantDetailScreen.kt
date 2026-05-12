@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.home.restaurant_detail
+package com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -16,9 +16,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.home.search.components.SectionHeader
-import com.example.fooddelivery.ui.screens.home.restaurant_detail.components.CategoryTabs
-import com.example.fooddelivery.ui.screens.home.restaurant_detail.components.FoodItemCard
-import com.example.fooddelivery.ui.screens.home.restaurant_detail.components.RestaurantHeader
+import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.CategoryTabs
+import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.FoodItemCard
+import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.RestaurantHeader
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -159,7 +159,12 @@ fun RestaurantDetailScreen(
                                     FoodItemCard(
                                         foodItem = foodItem,
                                         onAddClick = {
-                                            viewModel.onEvent(RestaurantDetailEvent.AddFoodToCart(foodItem)) },
+                                            viewModel.onEvent(
+                                                RestaurantDetailEvent.AddFoodToCart(
+                                                    foodItem
+                                                )
+                                            )
+                                        },
                                         onItemClick = { onNavigateToFoodDetail(foodItem.id) },
                                         modifier = Modifier.weight(1f)
                                     )

@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import com.example.fooddelivery.domain.model.BestSellerItem
+
 @Composable
 fun BestSellerItemCard(item: BestSellerItem) {
     Column(

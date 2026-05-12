@@ -45,11 +45,12 @@ fun SearchScreen(
         },
         topBar = {
             HomeTopBar(
-                location = "Search",
+                selectedLocation = state.selectedLocation,
+                availableLocations = state.availableLocations,
+                onLocationSelected = { viewModel.onEvent(SearchEvent.LocationSelected(it)) },
                 cartItemCount = state.cartItemCount,
-                onMenuClick = { /* Xử lý Menu */ },
-                onLocationClick = { /* Xử lý Vị trí */ },
-                onCartClick = onNavigateToCart
+                onCartClick = onNavigateToCart,
+                onBackClick = onNavigateToHome
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -119,4 +120,3 @@ fun SearchScreenPreview() {
         )
     }
 }
-

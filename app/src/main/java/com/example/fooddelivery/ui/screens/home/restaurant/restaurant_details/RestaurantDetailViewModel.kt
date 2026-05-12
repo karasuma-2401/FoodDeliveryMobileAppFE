@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.home.restaurant_detail
+package com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
