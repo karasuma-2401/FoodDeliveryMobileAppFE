@@ -102,7 +102,6 @@ class AllRestaurantsViewModel @Inject constructor() : ViewModel() {
                 tags = listOf("Fast Food", "Burger"),
                 rating = 4.0f + (index * 0.1f),
                 deliveryFee = if (index % 2 == 0) 0.0 else 1.5,
-                deliveryTime = "${15 + index * 5} min",
                 imageRes = R.drawable.food_bowl,
                 promoTags = if (index % 3 == 0) listOf("PROMO", "Freeship") else emptyList()
             )

@@ -43,9 +43,9 @@ data class CheckoutState(
     val total: Double get() = (subtotal + deliveryFee - discount).coerceAtLeast(0.0)
 }
 
-enum class DeliveryOption(val title: String, val time: String, val fee: Double) {
-    STANDARD("Standard", "20-30 min", 5.0),
-    EXPRESS("Express", "10-15 min", 10.0)
+enum class DeliveryOption(val title: String, val fee: Double) {
+    STANDARD("Standard", 5.0),
+    EXPRESS("Express", 10.0)
 }
 
 sealed class PaymentMethod(@StringRes val titleRes: Int, val value: String) {

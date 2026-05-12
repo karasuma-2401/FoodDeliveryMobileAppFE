@@ -83,7 +83,6 @@ class RestaurantDetailViewModel @Inject constructor(
                         tags = listOf("Burger", "Chicken", "Rice", "Wings"),
                         rating = 4.7f,
                         deliveryFee = 0.0,
-                        deliveryTime = "20 min",
                         imageRes = R.drawable.food_bowl
                     )
                     val items = listOf(
@@ -105,7 +104,6 @@ class RestaurantDetailViewModel @Inject constructor(
                         tags = listOf("Fast Food", "Fried Chicken"),
                         rating = 4.5f,
                         deliveryFee = 1.5,
-                        deliveryTime = "15 min",
                         imageRes = R.drawable.food_bowl
                     )
                     val items = listOf(
@@ -123,7 +121,6 @@ class RestaurantDetailViewModel @Inject constructor(
                         tags = listOf("Pizza", "Italian", "Pasta"),
                         rating = 4.8f,
                         deliveryFee = 0.0,
-                        deliveryTime = "30 min",
                         imageRes = R.drawable.food_bowl
                     )
                     val items = listOf(
@@ -141,7 +138,6 @@ class RestaurantDetailViewModel @Inject constructor(
                         tags = listOf("Burger", "Chicken", "Rice", "Wings"),
                         rating = 4.7f,
                         deliveryFee = 0.0,
-                        deliveryTime = "20 min",
                         imageRes = R.drawable.food_bowl
                     )
                     val items = listOf(

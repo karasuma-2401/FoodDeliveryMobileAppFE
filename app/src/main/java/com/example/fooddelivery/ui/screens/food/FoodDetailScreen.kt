@@ -128,8 +128,7 @@ fun FoodDetailContent(
                 item {
                     FoodInfoRow(
                         rating = state.restaurant?.rating ?: 4.7f,
-                        deliveryFee = state.restaurant!!.deliveryFee,
-                        deliveryTime = state.restaurant?.deliveryTime ?: "20 min"
+                        deliveryFee = state.restaurant?.deliveryFee ?: 0.0
                     )
                 }
                 item { Spacer(modifier = Modifier.height(24.dp)) }

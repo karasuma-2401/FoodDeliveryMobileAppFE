@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material3.Icon
@@ -67,7 +66,6 @@ fun RestaurantHeader(restaurant: Restaurant) {
             InfoItem(icon = Icons.Default.Star, text = "${restaurant.rating}", iconColor = Color(0xFFFF9800))
             val deliveryFeeText = if (restaurant.deliveryFee == 0.0) "Free" else "$${restaurant.deliveryFee}"
             InfoItem(icon = Icons.Outlined.DirectionsRun, text = deliveryFeeText, iconColor = MaterialTheme.colorScheme.primary)
-            InfoItem(icon = Icons.Default.AccessTime, text = restaurant.deliveryTime, iconColor = MaterialTheme.colorScheme.primary)
         }
     }
 }

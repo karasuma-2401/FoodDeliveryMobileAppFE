@@ -142,7 +142,6 @@ class FoodDetailViewModel @Inject constructor(
                 tags = listOf("Pizza", "Italian"),
                 rating = 4.7f,
                 deliveryFee = 0.0,
-                deliveryTime = "20 min",
                 imageRes = R.drawable.food_bowl
             )
             

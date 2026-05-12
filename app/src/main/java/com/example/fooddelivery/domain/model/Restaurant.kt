@@ -7,7 +7,6 @@ data class Restaurant(
     val tags: List<String>,
     val rating: Float,
     val deliveryFee: Double,
-    val deliveryTime: String,
     val imageUrl: String? = null,
     val imageRes: Int? = null,
     val promoTags: List<String> = emptyList()

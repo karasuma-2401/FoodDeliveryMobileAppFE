@@ -127,9 +127,9 @@ class SearchViewModel @Inject constructor(
             delay(500)
 
             allRestaurants = listOf(
-                Restaurant(id = "1", name = "Spicy Restaurant", tags = listOf("Burger", "Chicken"), rating = 4.7f, deliveryFee = 0.0, deliveryTime = "20 min", imageRes = R.drawable.food_bowl),
-                Restaurant(id = "2", name = "KFC - Ho Chi Minh", tags = listOf("Fast Food", "Fried Chicken"), rating = 4.5f, deliveryFee = 1.5, deliveryTime = "15 min", imageRes = R.drawable.food_bowl),
-                Restaurant(id = "3", name = "Pizza Hut Deli", tags = listOf("Pizza", "Italian"), rating = 4.8f, deliveryFee = 0.0, deliveryTime = "30 min", imageRes = R.drawable.food_bowl)
+                Restaurant(id = "1", name = "Spicy Restaurant", tags = listOf("Burger", "Chicken"), rating = 4.7f, deliveryFee = 0.0, imageRes = R.drawable.food_bowl),
+                Restaurant(id = "2", name = "KFC - Ho Chi Minh", tags = listOf("Fast Food", "Fried Chicken"), rating = 4.5f, deliveryFee = 1.5, imageRes = R.drawable.food_bowl),
+                Restaurant(id = "3", name = "Pizza Hut Deli", tags = listOf("Pizza", "Italian"), rating = 4.8f, deliveryFee = 0.0, imageRes = R.drawable.food_bowl)
             )
 
             allFoodItems = listOf(

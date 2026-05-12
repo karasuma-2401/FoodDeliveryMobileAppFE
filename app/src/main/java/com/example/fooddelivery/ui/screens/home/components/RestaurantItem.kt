@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material3.*
@@ -140,21 +139,6 @@ fun RestaurantItem(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = (if (restaurant.deliveryFee == 0.0) "Free" else "$${restaurant.deliveryFee}"),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.AccessTime,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = restaurant.deliveryTime,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )

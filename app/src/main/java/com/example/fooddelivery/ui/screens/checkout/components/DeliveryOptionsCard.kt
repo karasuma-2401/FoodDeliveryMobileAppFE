@@ -6,7 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ElectricBolt
-import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.screens.checkout.DeliveryOption
+import java.util.Locale
 
 @Composable
 fun DeliveryOptionsCard(
@@ -54,7 +54,7 @@ private fun DeliveryOptionItem(
     
     Surface(
         onClick = onClick,
-        modifier = modifier.height(130.dp),
+        modifier = modifier.height(110.dp),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(2.dp, borderColor)
@@ -64,7 +64,7 @@ private fun DeliveryOptionItem(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = Color(0xFF9C4400),
+                    tint = Color(0xFFFF7622),
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
@@ -79,27 +79,20 @@ private fun DeliveryOptionItem(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Icon(
-                    imageVector = if (option == DeliveryOption.STANDARD) Icons.Outlined.AccessTime else Icons.Default.ElectricBolt,
+                    imageVector = if (option == DeliveryOption.STANDARD) Icons.Outlined.DirectionsRun else Icons.Default.ElectricBolt,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = if (isSelected) Color(0xFFFF7622) else Color.Gray,
                     modifier = Modifier.size(24.dp)
                 )
                 
-                Column {
-                    Text(
-                        text = option.title,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = option.time,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
-                }
+                Text(
+                    text = option.title,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
                 
                 Text(
-                    text = "$${String.format("%.2f", option.fee)}",
+                    text = "$${String.format(Locale.US, "%.2f", option.fee)}",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                     color = MaterialTheme.colorScheme.onBackground
                 )
