@@ -126,6 +126,11 @@ class FoodDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
+            if (foodId.isBlank()) {
+                _state.update { it.copy(isLoading = false) }
+                return@launch
+            }
+
             val mockFood = FoodItem(
                 id = foodId,
                 name = "Pizza Calzone European",

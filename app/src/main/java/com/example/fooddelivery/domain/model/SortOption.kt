@@ -2,7 +2,7 @@ package com.example.fooddelivery.domain.model
 
 enum class RestaurantSortOption(val title: String) {
     RATING("Best Rating"),
-    DELIVERY_FEE("Free Delivery"),
+    DELIVERY_FEE("Delivery fee"),
 }
 enum class FoodSortOption(val title: String) {
     POPULARITY("Popular"),

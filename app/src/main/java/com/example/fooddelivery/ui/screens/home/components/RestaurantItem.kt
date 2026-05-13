@@ -138,7 +138,7 @@ fun RestaurantItem(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = (if (restaurant.deliveryFee == 0.0) "Free" else "$${restaurant.deliveryFee}"),
+                    text = (if (restaurant.deliveryFee == 0.0) "Free" else "$${String.format(java.util.Locale.US, "%.2f", restaurant.deliveryFee)}"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )

@@ -70,8 +70,13 @@ class AllRestaurantsViewModel @Inject constructor() : ViewModel() {
             val newData = getMockRestaurants(nextPage)
 
             _state.update { state ->
+                val combinedList = state.restaurants + newData
+                val sortedList = when(state.currentSortOption) {
+                    RestaurantSortOption.RATING -> combinedList.sortedByDescending { it.rating }
+                    RestaurantSortOption.DELIVERY_FEE -> combinedList.sortedBy { it.deliveryFee }
+                }
                 state.copy(
-                    restaurants = state.restaurants + newData,
+                    restaurants = sortedList,
                     page = nextPage,
                     isPaginating = false,
                     isEndReached = newData.isEmpty()

@@ -95,7 +95,7 @@ fun CategoryFoodCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "$${String.format("%.2f", food.price)}",
+                        text = "$${String.format(java.util.Locale.US, "%.2f", food.price)}",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                         color = MaterialTheme.colorScheme.primary
                     )

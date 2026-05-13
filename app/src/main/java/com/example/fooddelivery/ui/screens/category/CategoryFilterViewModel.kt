@@ -51,17 +51,17 @@ class CategoryFilterViewModel @Inject constructor(
                 Category(id = "2", name = "Pizza", startingPrice = 8.0),
                 Category(id = "3", name = "Drink", startingPrice = 2.0),
                 Category(id = "4", name = "Sushi", startingPrice = 12.0),
-                Category(id = "5", name = "Desert", startingPrice = 4.0)
+                Category(id = "5", name = "Dessert", startingPrice = 4.0)
             )
             val actualSelectedId = initialId.ifEmpty { mockCategories.firstOrNull()?.id ?: ""}
             _state.update { it.copy(categories = mockCategories, selectedCategoryId = actualSelectedId) }
-            loadFoodsByCategory(initialId)
+            loadFoodsByCategory(actualSelectedId)
         }
     }
     private fun loadFoodsByCategory(categoryId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            delay(800)
+            // Simulated delay removed for production performance
             val allFoods = listOf(
                 FoodItem(
                     id = "f1", name = "Cheese Burger", restaurantId = "r1",

@@ -34,7 +34,7 @@ class AllCategoriesViewModel @Inject constructor() : ViewModel() {
                 Category(id = "2", name = "Pizza", imageRes = R.drawable.food_bowl, startingPrice = 8.0, promoText = "Giảm 10%"),
                 Category(id = "3", name = "Drink", imageRes = R.drawable.food_bowl, startingPrice = 2.0),
                 Category(id = "4", name = "Sushi", imageRes = R.drawable.food_bowl, startingPrice = 12.0),
-                Category(id = "5", name = "Desert", imageRes = R.drawable.food_bowl, startingPrice = 4.0),
+                Category(id = "5", name = "Dessert", imageRes = R.drawable.food_bowl, startingPrice = 4.0),
                 Category(id = "6", name = "Chicken", imageRes = R.drawable.food_bowl, startingPrice = 6.0),
                 Category(id = "7", name = "Healthy", imageRes = R.drawable.food_bowl, startingPrice = 10.0),
                 Category(id = "8", name = "Noodles", imageRes = R.drawable.food_bowl, startingPrice = 5.0),

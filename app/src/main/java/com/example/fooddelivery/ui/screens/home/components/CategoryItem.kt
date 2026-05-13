@@ -70,7 +70,7 @@ fun CategoryItem(
                         Text(
                             text = promo,
                             color = Color.White,
-                            fontSize = 8.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }

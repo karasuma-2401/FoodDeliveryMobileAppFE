@@ -16,5 +16,8 @@ data class FoodItem(
 ) {
     init {
         require(id.isNotEmpty()) { "FoodItem id must not be empty" }
+        require(price >= 0.0) { "FoodItem price must not be negative" }
+        require(reviewCount >= 0) { "FoodItem reviewCount must not be negative" }
+        require(soldCount >= 0) { "FoodItem soldCount must not be negative" }
     }
 }
