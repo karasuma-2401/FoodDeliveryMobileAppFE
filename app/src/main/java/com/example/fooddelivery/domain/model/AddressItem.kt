@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.profile.address
+package com.example.fooddelivery.domain.model
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector

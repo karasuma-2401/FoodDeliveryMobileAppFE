@@ -86,14 +86,71 @@ class OrderViewModel @Inject constructor() : ViewModel() {
 
     private fun loadOrders() {
         val mockOngoing = listOf(
-            Order("162432", "Pizza Hut", "https://img.freepik.com/free-photo/pizza-pizza-filled-with-tomatoes-salami-olives_140725-1200.jpg", 35.25, 3, OrderType.FOOD, OrderStatus.ONGOING),
-            Order("242432", "McDonald", "https://img.freepik.com/free-photo/delicious-burger-with-fresh-ingredients_23-2150857908.jpg", 40.15, 2, OrderType.FOOD, OrderStatus.ONGOING),
-            Order("240112", "Starbucks", "https://img.freepik.com/free-photo/cup-coffee-with-heart-drawn-it_188544-12644.jpg", 10.20, 1, OrderType.DRINK, OrderStatus.ONGOING)
+            Order(
+                id = "162432",
+                restaurantId = "res_1",
+                restaurantName = "Pizza Hut",
+                restaurantImage = "https://img.freepik.com/free-photo/pizza-pizza-filled-with-tomatoes-salami-olives_140725-1200.jpg",
+                price = 35.25,
+                itemCount = 3,
+                type = OrderType.FOOD,
+                status = OrderStatus.ONGOING
+            ),
+            Order(
+                id = "242432",
+                restaurantId = "res_2",
+                restaurantName = "McDonald",
+                restaurantImage = "https://img.freepik.com/free-photo/delicious-burger-with-fresh-ingredients_23-2150857908.jpg",
+                price = 40.15,
+                itemCount = 2,
+                type = OrderType.FOOD,
+                status = OrderStatus.ONGOING
+            ),
+            Order(
+                id = "240112",
+                restaurantId = "res_3",
+                restaurantName = "Starbucks",
+                restaurantImage = "https://img.freepik.com/free-photo/cup-coffee-with-heart-drawn-it_188544-12644.jpg",
+                price = 10.20,
+                itemCount = 1,
+                type = OrderType.DRINK,
+                status = OrderStatus.ONGOING
+            )
         )
         val mockHistory = listOf(
-            Order("162435", "Pizza Hut", "https://img.freepik.com/free-photo/pizza-pizza-filled-with-tomatoes-salami-olives_140725-1200.jpg", 35.25, 3, OrderType.FOOD, OrderStatus.COMPLETED, "29 JAN, 12:30"),
-            Order("242436", "McDonald", "https://img.freepik.com/free-photo/delicious-burger-with-fresh-ingredients_23-2150857908.jpg", 40.15, 2, OrderType.FOOD, OrderStatus.COMPLETED, "30 JAN, 12:30"),
-            Order("240117", "Starbucks", "https://img.freepik.com/free-photo/cup-coffee-with-heart-drawn-it_188544-12644.jpg", 10.20, 1, OrderType.DRINK, OrderStatus.CANCELED, "30 JAN, 12:30")
+            Order(
+                id = "162435",
+                restaurantId = "res_1",
+                restaurantName = "Pizza Hut",
+                restaurantImage = "https://img.freepik.com/free-photo/pizza-pizza-filled-with-tomatoes-salami-olives_140725-1200.jpg",
+                price = 35.25,
+                itemCount = 3,
+                type = OrderType.FOOD,
+                status = OrderStatus.COMPLETED,
+                date = "29 JAN, 12:30"
+            ),
+            Order(
+                id = "242436",
+                restaurantId = "res_2",
+                restaurantName = "McDonald",
+                restaurantImage = "https://img.freepik.com/free-photo/delicious-burger-with-fresh-ingredients_23-2150857908.jpg",
+                price = 40.15,
+                itemCount = 2,
+                type = OrderType.FOOD,
+                status = OrderStatus.COMPLETED,
+                date = "30 JAN, 12:30"
+            ),
+            Order(
+                id = "240117",
+                restaurantId = "res_3",
+                restaurantName = "Starbucks",
+                restaurantImage = "https://img.freepik.com/free-photo/cup-coffee-with-heart-drawn-it_188544-12644.jpg",
+                price = 10.20,
+                itemCount = 1,
+                type = OrderType.DRINK,
+                status = OrderStatus.CANCELED,
+                date = "30 JAN, 12:30"
+            )
         )
         _state.update { it.copy(ongoingOrders = mockOngoing, historyOrders = mockHistory) }
     }

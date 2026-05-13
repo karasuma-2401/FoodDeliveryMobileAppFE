@@ -129,7 +129,7 @@ fun EditProfileContent(
                 ) {
                     if (!state.user.profileImage.isNullOrEmpty()) {
                         AsyncImage(
-                            model = state.user.profileImage,
+                            model = state.selectedImageUri ?: state.user.profileImage,
                             contentDescription = "Profile Picture",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),

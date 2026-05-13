@@ -24,7 +24,6 @@ import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
 import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.checkout.CheckoutScreen
-import com.example.fooddelivery.ui.screens.checkout.CheckoutViewModel
 import com.example.fooddelivery.ui.screens.checkout.CheckoutSuccessScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
@@ -40,19 +39,25 @@ import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
 import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
-import com.example.fooddelivery.ui.screens.home.restaurant_detail.RestaurantDetailScreen
+import com.example.fooddelivery.ui.screens.profile.favourite.FavouriteScreen
+//import com.example.fooddelivery.ui.screens.profile.notification.NotificationScreen
+import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.RestaurantDetailScreen
 import com.example.fooddelivery.ui.screens.order.OrdersScreen
 import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
 import com.example.fooddelivery.ui.screens.chat.ChatScreen
 import com.example.fooddelivery.ui.screens.chat.ConversationScreen
 import com.example.fooddelivery.ui.screens.rating.RatingReviewScreen
+import com.example.fooddelivery.ui.screens.category.CategoryFilterScreen
+import com.example.fooddelivery.ui.screens.category.AllCategoriesScreen
+import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
+import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 
 @Composable
 fun RootNavigationGraph(
     navController: NavHostController,
     startDestination: Any
 ) {
-    val initialGraph = if (startDestination is HomeRoute) CustomerGraph else AuthGraph
+    val initialGraph = CustomerGraph
 
     NavHost(
         navController = navController,
@@ -187,18 +192,56 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
                 },
-                onNavigateToAllRestaurants = {  },
-                onNavigateToAllCategories = { },
-                onOpenMenu = {},
-                onOpenLocationPicker = {},
+                onNavigateToAllRestaurants = { 
+                    navController.navigate(AllRestaurantsRoute)
+                },
+                onNavigateToAllCategories = { 
+                    navController.navigate(AllCategoriesRoute)
+                },
+                onNavigateToFoodDetail = { foodId ->
+                    navController.navigate(FoodDetailRoute(foodId = foodId))
+                }
             )
         }
-        composable<CategoryFilterRoute> { backStackEntry ->
-            val args = backStackEntry.toRoute<CategoryFilterRoute>()
-            Text("Category with id: ${args.categoryId}")
+        
+        composable<LocationRoute> {
+            LocationScreen(
+                onPermissionGranted = {
+                    navController.navigate(HomeRoute) {
+                        popUpTo<LocationRoute> { inclusive = true }
+                    }
+                }
+            )
         }
+
+        composable<AllCategoriesRoute> {
+            AllCategoriesScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCategory = { id ->
+                    navController.navigate(CategoryFilterRoute(categoryId = id))
+                }
+            )
+        }
+
+        composable<AllRestaurantsRoute> {
+            AllRestaurantScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRestaurantDetail = { id ->
+                    navController.navigate(RestaurantDetailRoute(restaurantId = id))
+                }
+            )
+        }
+
+        composable<CategoryFilterRoute> {
+            CategoryFilterScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToFoodDetail = { foodId ->
+                    navController.navigate(FoodDetailRoute(foodId = foodId))
+                }
+            )
+        }
+        
         composable<RestaurantDetailRoute> { backStackEntry ->
-            val args = backStackEntry.toRoute<RestaurantDetailRoute>()
             RestaurantDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToFoodDetail = { foodId ->
@@ -206,7 +249,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        composable<FoodDetailRoute> { backStackEntry ->
+        
+        composable<FoodDetailRoute> {
             FoodDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToRestaurant = { restaurantId ->
@@ -221,19 +265,16 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<CartRoute> {
             CartScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCheckout = { navController.navigate(CheckoutRoute) }
+                onNavigateToCheckout = { restaurantName, discount ->
+                    navController.navigate(CheckoutRoute(restaurantName = restaurantName, discount = discount))
+                }
             )
         }
 
-        composable<CheckoutRoute> { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(CustomerGraph)
-            }
-            val viewModel: CheckoutViewModel = hiltViewModel(parentEntry)
+        composable<CheckoutRoute> {
             CheckoutScreen(
-                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAddAddress = { navController.navigate(AddAddressRoute) },
+                onNavigateToAddAddress = { navController.navigate(AddAddressRoute()) },
                 onNavigateToPaymentSuccessful = { navController.navigate(CheckoutSuccessRoute) }
             )
         }
@@ -248,6 +289,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
+        
         composable<MyOrdersRoute> {
             OrdersScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -257,6 +299,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
+        
         composable<RatingReviewRoute> {
             RatingReviewScreen(
                 onNavigateBack = { navController.popBackStack() }
@@ -267,6 +310,10 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             ProfileScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onEditProfile = { navController.navigate(EditProfileRoute) },
+                onManageAddress = { navController.navigate(MyAddressRoute) },
+                onNavigateToCart = { navController.navigate(CartRoute) },
+                onNavigateToFavourite = { navController.navigate(FavouriteRoute) },
+                onNavigateToNotification = { navController.navigate(NotificationRoute) },
                 onLogout = {
                     navController.navigate(AuthGraph) {
                         popUpTo<CustomerGraph> { inclusive = true }
@@ -274,11 +321,30 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
+        
         composable<EditProfileRoute> {
             EditProfileScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        composable<FavouriteRoute> {
+            FavouriteScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRestaurant = { id ->
+                    navController.navigate(RestaurantDetailRoute(restaurantId = id))
+                }
+            )
+        }
+
+//        composable<NotificationRoute> {
+//            NotificationScreen(
+//                onNavigateBack = { navController.popBackStack() },
+//                onNavigateToOrder = { orderId ->
+//                    navController.navigate(TrackOrderRoute(orderId = orderId))
+//                }
+//            )
+//        }
 
         composable<TrackOrderRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<TrackOrderRoute>()
@@ -290,6 +356,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
+        
         composable<SearchRoute> {
             SearchScreen(
                 onNavigateToHome = { navController.popBackStack() },
@@ -298,17 +365,19 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToRestaurant = { restaurant ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = restaurant.id))
+                },
+                onNavigateToFoodDetail = { foodId ->
+                    navController.navigate(FoodDetailRoute(foodId = foodId))
                 }
             )
         }
-        composable<LocationRoute> { Text("Location") }
 
         composable<MyAddressRoute> {
             CustomerAddressScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onAddNewAddress = { navController.navigate(AddAddressRoute) },
+                onAddNewAddress = { navController.navigate(AddAddressRoute()) },
                 onEditAddress = { addressId ->
-                    // Bạn có thể thêm route EditAddressRoute sau
+                    navController.navigate(AddAddressRoute(addressId = addressId))
                 }
             )
         }

@@ -1,5 +1,7 @@
 package com.example.fooddelivery.ui.screens.checkout
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,9 +26,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.checkout.components.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,9 +63,13 @@ fun CheckoutScreen(
                 is CheckoutUiEffect.NavigateToPaymentSuccessful -> onNavigateToPaymentSuccessful()
                 is CheckoutUiEffect.NavigateToAddAddress -> onNavigateToAddAddress()
                 is CheckoutUiEffect.OpenMoMoApp -> {
-                    val formattedTotal = String.format("$%.2f", effect.total)
+                    val formattedTotal = String.format(Locale.US,"$%.2f", effect.total)
                     val message = context.getString(R.string.open_momo_app, formattedTotal)
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(effect.deeplink)))
+                }
+                is CheckoutUiEffect.ShowError -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -81,7 +87,7 @@ fun CheckoutScreen(
             ) {
                 Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(24.dp)) {
                     val buttonText = if (state.paymentMethod is PaymentMethod.MoMo) {
-                        val formattedTotal = String.format("$%.2f", state.total)
+                        val formattedTotal = String.format(Locale.US,"$%.2f", state.total)
                         stringResource(R.string.pay_with_momo, formattedTotal)
                     } else stringResource(R.string.place_order)
 
@@ -110,7 +116,10 @@ fun CheckoutScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 SectionTitle("Delivery Address")
-                AddressCard(address = state.address, onChangeClick = { viewModel.onEvent(CheckoutEvent.ChangeAddress) })
+                AddressCard(
+                    address = state.address, 
+                    onChangeClick = { viewModel.onEvent(CheckoutEvent.ChangeAddress) }
+                )
 
                 SectionTitle("Delivery Options")
                 DeliveryOptionsCard(
@@ -119,7 +128,10 @@ fun CheckoutScreen(
                 )
 
                 SectionTitle("Order Notes")
-                OrderNotesCard(note = state.orderNote, onNoteChange = { viewModel.onEvent(CheckoutEvent.NoteChanged(it)) })
+                OrderNotesCard(
+                    note = state.orderNote, 
+                    onNoteChange = { viewModel.onEvent(CheckoutEvent.NoteChanged(it)) }
+                )
 
                 SectionTitle("Payment Method")
                 PaymentMethodCard(
@@ -163,7 +175,11 @@ fun CheckoutScreen(
             onDismissRequest = { showPaymentSheet = false },
             onPaymentMethodSelected = { method ->
                 viewModel.onEvent(CheckoutEvent.PaymentMethodSelected(method))
-                scope.launch { sheetState.hide() }.invokeOnCompletion { showPaymentSheet = false }
+                scope.launch { 
+                    sheetState.hide() 
+                }.invokeOnCompletion { 
+                    if (!sheetState.isVisible) showPaymentSheet = false 
+                }
             },
             selectedPaymentMethod = state.paymentMethod,
             sheetState = sheetState

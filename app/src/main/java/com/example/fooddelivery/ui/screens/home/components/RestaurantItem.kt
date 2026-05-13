@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material3.*
@@ -50,15 +49,12 @@ fun RestaurantItem(
                     .clip(RoundedCornerShape(24.dp)),
                 contentScale = ContentScale.Crop
             )
-
-            // Promo Badges
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Left badge (e.g., PROMO, Discount)
                 restaurant.promoTags.firstOrNull { !it.contains("Freeship", ignoreCase = true) }?.let { promo ->
                     val badgeColor = if (promo.contains("PROMO", ignoreCase = true)) 
                         Color(0xFFF58D1F) else Color(0xFFF15A5A)
@@ -77,8 +73,6 @@ fun RestaurantItem(
                         )
                     }
                 }
-
-                // Right badge (e.g., Freeship)
                 restaurant.promoTags.firstOrNull { it.contains("Freeship", ignoreCase = true) }?.let { freeship ->
                     Box(
                         modifier = Modifier
@@ -135,8 +129,6 @@ fun RestaurantItem(
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
-            
-            // Delivery Fee
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.DirectionsRun,
@@ -146,22 +138,7 @@ fun RestaurantItem(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = restaurant.deliveryFee,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.AccessTime,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = restaurant.deliveryTime,
+                    text = (if (restaurant.deliveryFee == 0.0) "Free" else "$${String.format(java.util.Locale.US, "%.2f", restaurant.deliveryFee)}"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )

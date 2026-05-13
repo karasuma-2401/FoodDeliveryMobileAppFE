@@ -21,6 +21,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,6 +31,7 @@ import com.example.fooddelivery.ui.components.header.LocationPickerHeader
 import com.example.fooddelivery.ui.screens.profile.address.components.CustomAddressTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.profile.address.components.AddressTypeItem
+import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable
 fun AddAddressScreen(
@@ -71,11 +73,13 @@ fun AddAddressContent(
 ) {
     var showSearchDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val isEditMode = state.isEditMode
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
             DFoodTopBar(
-                title = "Location Settings",
+                title = if (isEditMode) "Edit Address" else "Add New Address",
                 onBackClick = onNavigateBack
             )
         },
@@ -87,12 +91,16 @@ fun AddAddressContent(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            LocationPickerHeader(onSearchClick = { showSearchDialog = true })
+            if (!isEditMode) {
+                LocationPickerHeader(onSearchClick = { showSearchDialog = true })
+            } else {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .offset(y = (-24).dp),
+                    .offset(y = if (!isEditMode) (-24).dp else 0.dp),
                 shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
                 color = MaterialTheme.colorScheme.background,
                 tonalElevation = 2.dp
@@ -103,12 +111,12 @@ fun AddAddressContent(
                         .padding(bottom = 24.dp)
                 ) {
                     Text(
-                        text = "Location Details",
+                        text = if (isEditMode) "Update Location" else "Location Details",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "Confirm your delivery address to proceed",
+                        text = if (isEditMode) "Edit your delivery information below" else "Confirm your delivery address to proceed",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
@@ -174,36 +182,35 @@ fun AddAddressContent(
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Text(
-                        text = "CITY",
+                        text = "DELIVERY ADDRESS",
                         style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     CustomAddressTextField(
-                        value = state.city,
-                        onValueChange = { onEvent(AddAddressEvent.CityChanged(it))},
+                        value = state.fullAddress,
+                        onValueChange = { onEvent(AddAddressEvent.FullAddressChanged(it)) },
                         leadingIcon = Icons.Default.LocationOn,
-                        placeholder = "City, State, Country",
+                        placeholder = "Search or enter full address",
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
-                        text = "STREET NAME",
+                        text = "BUILDING / FLOOR / NOTE (Optional)",
                         style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     CustomAddressTextField(
-                        value = state.streetName,
-                        onValueChange = { onEvent(AddAddressEvent.StreetNameChanged(it))},
+                        value = state.buildingNote,
+                        onValueChange = { onEvent(AddAddressEvent.BuildingNoteChanged(it)) },
                         leadingIcon = Icons.Default.Apartment,
+                        placeholder = "e.g. Floor 4, Room 402, Building A",
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { 
+                        keyboardActions = KeyboardActions(onDone = {
                             focusManager.clearFocus()
                             onEvent(AddAddressEvent.SaveAddressClicked)
                         })
@@ -231,7 +238,7 @@ fun AddAddressContent(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     DFoodButton(
-                        text = if (state.isLoading) "SAVING..." else "SAVE LOCATION",
+                        text = if (state.isLoading) "SAVING..." else if (isEditMode) "UPDATE ADDRESS" else "SAVE LOCATION",
                         onClick = {
                             focusManager.clearFocus()
                             onEvent(AddAddressEvent.SaveAddressClicked)
@@ -240,7 +247,7 @@ fun AddAddressContent(
                         leadingIcon = {
                             if (!state.isLoading) {
                                 Icon(
-                                    Icons.Default.CheckCircle,
+                                    if (isEditMode) Icons.Default.EditLocation else Icons.Default.CheckCircle,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(20.dp)
@@ -257,5 +264,17 @@ fun AddAddressContent(
                 }
             }
         }
+    }
+}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun AddAddressScreenPreview() {
+    DFoodTheme(darkTheme = false) {
+        AddAddressContent(
+            state = AddAddressState(),
+            onEvent = {},
+            onNavigateBack = {},
+            snackBarHostState = SnackbarHostState()
+        )
     }
 }

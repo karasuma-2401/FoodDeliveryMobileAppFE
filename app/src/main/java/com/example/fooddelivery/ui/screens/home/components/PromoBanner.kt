@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.home.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -16,16 +17,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.screens.home.HomeBanner
 
 @Composable
-fun PromoBanner(
+fun PromoBanner(    banner: HomeBanner,
     modifier: Modifier = Modifier,
-    onOrderNowClick: () -> Unit = {}
+    onClick: () -> Unit = {}
 ) {
     Box(
         modifier = modifier
@@ -34,9 +34,13 @@ fun PromoBanner(
             .clip(RoundedCornerShape(28.dp))
             .background(
                 brush = Brush.horizontalGradient(
-                    colors = listOf(Color(0xFFFF8142), Color(0xFFFFB087))
+                    colors = listOf(
+                        Color(banner.backgroundColor),
+                        Color(banner.backgroundColor).copy(alpha = 0.7f)
+                    )
                 )
             )
+            .clickable { onClick() }
     ) {
         Box(
             modifier = Modifier
@@ -58,24 +62,29 @@ fun PromoBanner(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = stringResource(R.string.promo_title),
+                    text = banner.title,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.ExtraBold,
                         lineHeight = 28.sp
                     ),
                     color = Color.White
                 )
+                Text(
+                    text = banner.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
-                    onClick = onOrderNowClick,
+                    onClick = onClick,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.height(36.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.promo_button),
-                        color = Color(0xFFFF8142),
+                        text = "Check Now",
+                        color = Color(banner.backgroundColor),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -83,7 +92,7 @@ fun PromoBanner(
             }
 
             Image(
-                painter = painterResource(id = R.drawable.food_bowl),
+                painter = painterResource(id = banner.imageRes),
                 contentDescription = null,
                 modifier = Modifier
                     .size(100.dp)

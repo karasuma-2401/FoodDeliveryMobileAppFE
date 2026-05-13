@@ -64,7 +64,7 @@ class FoodDetailViewModel @Inject constructor(
             is FoodDetailEvent.UpdateQuantity -> {
                 _state.update {
                     val newQuantity = (it.quantity + event.delta).coerceAtLeast(1)
-                    val basePrice = it.food?.price?.toDoubleOrNull() ?: 0.0
+                    val basePrice = it.food?.price ?: 0.0
                     it.copy(
                         quantity = newQuantity,
                         totalPrice = calculatePrice(basePrice, it.selectedSize, newQuantity)
@@ -73,7 +73,7 @@ class FoodDetailViewModel @Inject constructor(
             }
             is FoodDetailEvent.SelectSize -> {
                 _state.update {
-                    val basePrice = it.food?.price?.toDoubleOrNull() ?: 0.0
+                    val basePrice = it.food?.price ?: 0.0
                     it.copy(
                         selectedSize = event.size,
                         totalPrice = calculatePrice(basePrice, event.size, it.quantity)
@@ -88,7 +88,7 @@ class FoodDetailViewModel @Inject constructor(
                 val food = currentState.food
                 val restaurant = currentState.restaurant
                 if (food != null && restaurant != null) {
-                    val basePrice = food.price.toDoubleOrNull() ?: 0.0
+                    val basePrice = food.price
                     val unitPrice = calculateUnitPrice(basePrice, currentState.selectedSize)
                     
                     val cartItem = CartItem(
@@ -125,13 +125,18 @@ class FoodDetailViewModel @Inject constructor(
     private fun loadFoodDetail() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            
+
+            if (foodId.isBlank()) {
+                _state.update { it.copy(isLoading = false) }
+                return@launch
+            }
+
             val mockFood = FoodItem(
-                id = foodId.toString(),
+                id = foodId,
                 name = "Pizza Calzone European",
                 restaurantName = "Uttora Coffe House",
-                category = "Pizza",
-                price = "32.0",
+                categoryId = "Pizza",
+                price = 32.0,
                 imageRes = R.drawable.food_bowl
             )
 
@@ -141,12 +146,11 @@ class FoodDetailViewModel @Inject constructor(
                 description = "Prosciutto e funghi is a pizza variety that is topped with tomato sauce.",
                 tags = listOf("Pizza", "Italian"),
                 rating = 4.7f,
-                deliveryFee = "Free",
-                deliveryTime = "20 min",
+                deliveryFee = 0.0,
                 imageRes = R.drawable.food_bowl
             )
             
-            val basePrice = mockFood.price.toDoubleOrNull() ?: 0.0
+            val basePrice = mockFood.price
             
             _state.update {
                 it.copy(

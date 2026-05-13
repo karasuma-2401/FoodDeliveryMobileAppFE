@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.screens.cart
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,23 +27,38 @@ import com.example.fooddelivery.ui.screens.cart.components.SwipeToDeleteContaine
 import com.example.fooddelivery.ui.screens.cart.components.VoucherSection
 import com.example.fooddelivery.ui.screens.cart.components.VoucherSelectionSheet
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToCheckout: () -> Unit,
+    onNavigateToCheckout: (String, Double) -> Unit,
     viewModel: CartViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showVoucherSheet by remember { mutableStateOf(false) }
     var selectedVoucher by remember { mutableStateOf<Voucher?>(null) }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collectLatest { effect ->
+            when (effect) {
+                is CartUiEffect.NavigateToCheckout -> {
+                    onNavigateToCheckout(effect.restaurantName, effect.discount)
+                }
+                is CartUiEffect.ShowError -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     CartContent(
         state = state,
         onEvent = viewModel::onEvent,
         onBackClick = onNavigateBack,
-        onCheckoutClick = onNavigateToCheckout,
+        onCheckoutClick = { viewModel.onEvent(CartEvent.ProceedToCheckout) },
         onShowVoucherSheet = { showVoucherSheet = true }
     )
 
@@ -215,7 +232,3 @@ fun CartScreenPreview() {
         )
     }
 }
-
-
-
-

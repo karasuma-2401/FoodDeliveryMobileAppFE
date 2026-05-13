@@ -13,6 +13,7 @@ enum class OrderType {
 
 data class Order(
     val id: String,
+    val restaurantId: String,
     val restaurantName: String,
     val restaurantImage: String,
     val price: Double,

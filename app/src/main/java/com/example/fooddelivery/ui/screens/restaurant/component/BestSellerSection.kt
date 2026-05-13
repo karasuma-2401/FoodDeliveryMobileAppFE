@@ -8,9 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-import com.example.fooddelivery.domain.model.BestSellerItem
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.fooddelivery.domain.model.BestSellerItem
 
 
 @Composable

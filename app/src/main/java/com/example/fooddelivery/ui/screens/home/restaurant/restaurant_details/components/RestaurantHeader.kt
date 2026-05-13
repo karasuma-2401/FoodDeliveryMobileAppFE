@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.home.restaurant_detail.components
+package com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material3.Icon
@@ -60,13 +59,13 @@ fun RestaurantHeader(restaurant: Restaurant) {
             modifier = Modifier.padding(top = 8.dp)
         )
         Row (
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             InfoItem(icon = Icons.Default.Star, text = "${restaurant.rating}", iconColor = Color(0xFFFF9800))
-            InfoItem(icon = Icons.Outlined.DirectionsRun, text = restaurant.deliveryFee, iconColor = MaterialTheme.colorScheme.primary)
-            InfoItem(icon = Icons.Default.AccessTime, text = restaurant.deliveryTime, iconColor = MaterialTheme.colorScheme.primary)
+            val deliveryFeeText = if (restaurant.deliveryFee == 0.0) "Free" else "$${restaurant.deliveryFee}"
+            InfoItem(icon = Icons.Outlined.DirectionsRun, text = deliveryFeeText, iconColor = MaterialTheme.colorScheme.primary)
         }
     }
 }

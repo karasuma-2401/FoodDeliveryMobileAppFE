@@ -6,17 +6,17 @@ import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import com.example.fooddelivery.domain.usecase.UpdateUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class EditProfileState(
     val user: User = User(),
+    val selectedImageUri: String? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null
@@ -38,7 +38,6 @@ class EditProfileViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(EditProfileState())
     val state: StateFlow<EditProfileState> = _state.asStateFlow()
 
@@ -61,7 +60,7 @@ class EditProfileViewModel @Inject constructor(
                 _state.update { it.copy(user = it.user.copy(bio = event.bio)) }
             }
             is EditProfileEvent.ProfileImageChanged -> {
-                _state.update { it.copy(user = it.user.copy(profileImage = event.uri)) }
+                _state.update { it.copy(selectedImageUri = event.uri) }
             }
             EditProfileEvent.SaveClicked -> {
                 saveProfile()
@@ -78,40 +77,31 @@ class EditProfileViewModel @Inject constructor(
     private fun loadUserProfile() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = withContext(Dispatchers.IO) {
-                getUserProfileUseCase()
-            }
-            result.onSuccess { user ->
-                _state.update { it.copy(isLoading = false, user = user) }
-            }.onFailure { exception ->
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = exception.message ?: "Failed to load profile"
-                    )
-                }
-            }
+
+            delay(1000)
+            val mockUser = User(
+                id = "user123",
+                fullName = "Lê Minh",
+                email = "leminh@example.com",
+                phone = "0123456789",
+                bio = "I love food delivery!",
+                profileImage = null
+            )
+            
+            _state.update { it.copy(isLoading = false, user = mockUser) }
         }
     }
 
     private fun saveProfile() {
         if (_state.value.isLoading) return
-        
+
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = withContext(Dispatchers.IO) {
-                updateUserProfileUseCase(_state.value.user)
-            }
-            result.onSuccess {
-                _state.update { it.copy(isLoading = false, isSuccess = true) }
-            }.onFailure { exception ->
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = exception.message ?: "Failed to update profile"
-                    )
-                }
-            }
+
+            // Mocking API call for saving
+            delay(1500)
+            
+            _state.update { it.copy(isLoading = false, isSuccess = true) }
         }
     }
 }

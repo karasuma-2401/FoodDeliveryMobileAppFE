@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material3.Icon
@@ -21,16 +20,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 
 @Composable
 fun FoodInfoRow(
     rating: Float,
-    deliveryFee: String,
-    deliveryTime: String,
+    deliveryFee: Double,
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         InfoIconText(
@@ -40,12 +39,7 @@ fun FoodInfoRow(
         )
         InfoIconText(
             icon = Icons.Outlined.DirectionsRun,
-            text = deliveryFee,
-            iconColor = MaterialTheme.colorScheme.primary
-        )
-        InfoIconText(
-            icon = Icons.Default.AccessTime,
-            text = deliveryTime,
+            text = String.format(Locale.US,"%.0f", deliveryFee),
             iconColor = MaterialTheme.colorScheme.primary
         )
     }
