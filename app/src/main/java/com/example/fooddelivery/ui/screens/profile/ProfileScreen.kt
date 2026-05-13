@@ -36,6 +36,7 @@ fun ProfileScreen(
     onManageAddress: () -> Unit,
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
+    onNavigateToNotification: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -87,6 +88,7 @@ fun ProfileScreen(
         onManageAddress = onManageAddress,
         onNavigateToCart = onNavigateToCart,
         onNavigateToFavourite = onNavigateToFavourite,
+        onNavigateToNotification = onNavigateToNotification,
         onShowLogoutDialog = { showLogoutDialog = true },
         snackBarHostState = snackBarHostState
     )
@@ -102,6 +104,7 @@ fun ProfileContent(
     onManageAddress: () -> Unit,
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
+    onNavigateToNotification: () -> Unit,
     onShowLogoutDialog: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
@@ -231,7 +234,7 @@ fun ProfileContent(
                         iconContainerColor = Color(0xFFFFFDE7),
                         iconTint = Color(0xFFFFEB3B),
                         tittle = "Notification",
-                        onClick = {}
+                        onClick = onNavigateToNotification
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     ProfileMenuItem(

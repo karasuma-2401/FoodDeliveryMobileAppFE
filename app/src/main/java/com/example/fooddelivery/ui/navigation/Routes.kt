@@ -51,6 +51,7 @@ data class CheckoutRoute(
 @Serializable object MyAddressRoute
 @Serializable data class AddAddressRoute(val addressId: String? = null)
 @Serializable object FavouriteRoute
+@Serializable object NotificationRoute
 @Serializable object ConversationRoute
 @Serializable data class ChatRoute(val conversationId: String, val restaurantName: String = "")
 

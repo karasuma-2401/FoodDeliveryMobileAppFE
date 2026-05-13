@@ -24,7 +24,6 @@ import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
 import com.example.fooddelivery.ui.screens.cart.CartScreen
 import com.example.fooddelivery.ui.screens.checkout.CheckoutScreen
-import com.example.fooddelivery.ui.screens.checkout.CheckoutViewModel
 import com.example.fooddelivery.ui.screens.checkout.CheckoutSuccessScreen
 import com.example.fooddelivery.ui.screens.home.HomeScreen
 import com.example.fooddelivery.ui.screens.home.search.SearchScreen
@@ -41,6 +40,7 @@ import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
 import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
 import com.example.fooddelivery.ui.screens.profile.favourite.FavouriteScreen
+//import com.example.fooddelivery.ui.screens.profile.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.RestaurantDetailScreen
 import com.example.fooddelivery.ui.screens.order.OrdersScreen
 import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
@@ -313,6 +313,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onManageAddress = { navController.navigate(MyAddressRoute) },
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToFavourite = { navController.navigate(FavouriteRoute) },
+                onNavigateToNotification = { navController.navigate(NotificationRoute) },
                 onLogout = {
                     navController.navigate(AuthGraph) {
                         popUpTo<CustomerGraph> { inclusive = true }
@@ -335,6 +336,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
+
+//        composable<NotificationRoute> {
+//            NotificationScreen(
+//                onNavigateBack = { navController.popBackStack() },
+//                onNavigateToOrder = { orderId ->
+//                    navController.navigate(TrackOrderRoute(orderId = orderId))
+//                }
+//            )
+//        }
 
         composable<TrackOrderRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<TrackOrderRoute>()
