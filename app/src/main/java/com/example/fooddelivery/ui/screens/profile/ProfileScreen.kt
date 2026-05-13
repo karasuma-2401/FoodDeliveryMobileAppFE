@@ -37,6 +37,7 @@ fun ProfileScreen(
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
     onNavigateToNotification: () -> Unit,
+    onNavigateToPaymentMethod: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -89,6 +90,7 @@ fun ProfileScreen(
         onNavigateToCart = onNavigateToCart,
         onNavigateToFavourite = onNavigateToFavourite,
         onNavigateToNotification = onNavigateToNotification,
+        onNavigateToPaymentMethod = onNavigateToPaymentMethod,
         onShowLogoutDialog = { showLogoutDialog = true },
         snackBarHostState = snackBarHostState
     )
@@ -105,6 +107,7 @@ fun ProfileContent(
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
     onNavigateToNotification: () -> Unit,
+    onNavigateToPaymentMethod: () -> Unit,
     onShowLogoutDialog: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
@@ -242,7 +245,7 @@ fun ProfileContent(
                         iconContainerColor = Color(0xFFF3E5F5),
                         iconTint = Color(0xFF9C27B0),
                         tittle = "Payment Method",
-                        onClick = {}
+                        onClick = onNavigateToPaymentMethod
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
