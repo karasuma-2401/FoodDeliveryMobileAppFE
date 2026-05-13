@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -32,6 +33,9 @@ import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onEditProfile: () -> Unit,
+    onManageAddress: () -> Unit,
+    onNavigateToCart: () -> Unit,
+    onNavigateToFavourite: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -80,6 +84,9 @@ fun ProfileScreen(
         onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
         onEditProfile = onEditProfile,
+        onManageAddress = onManageAddress,
+        onNavigateToCart = onNavigateToCart,
+        onNavigateToFavourite = onNavigateToFavourite,
         onShowLogoutDialog = { showLogoutDialog = true },
         snackBarHostState = snackBarHostState
     )
@@ -92,6 +99,9 @@ fun ProfileContent(
     onEvent: (ProfileEvent) -> Unit,
     onNavigateBack: () -> Unit,
     onEditProfile: () -> Unit,
+    onManageAddress: () -> Unit,
+    onNavigateToCart: () -> Unit,
+    onNavigateToFavourite: () -> Unit,
     onShowLogoutDialog: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
@@ -154,7 +164,7 @@ fun ProfileContent(
                     Spacer(modifier = Modifier.width(20.dp))
                     Column {
                         Text(
-                            text = state.user.fullName.ifEmpty { "User Name" },
+                            text = state.user.fullName.ifEmpty { "Lê Minh" },
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -181,7 +191,7 @@ fun ProfileContent(
                         iconContainerColor = Color(0xFFFFF4E5),
                         iconTint = Color(0xFFFF9800),
                         tittle = "Addresses",
-                        onClick = { }
+                        onClick = onManageAddress
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -192,7 +202,20 @@ fun ProfileContent(
                         iconContainerColor = Color(0xFFE6F7EF),
                         iconTint = Color(0xFF00C569),
                         tittle = "Cart",
-                        onClick = {}
+                        onClick = onNavigateToCart,
+                        trailing = {
+                            if (state.cartItemCount > 0) {
+                                Badge(
+                                    containerColor = Color(0xFFFF7622),
+                                    contentColor = Color.White,
+                                ) {
+                                    Text(
+                                        text = if (state.cartItemCount > 99) "99+" else state.cartItemCount.toString(),
+                                        fontSize = 10.sp
+                                    )
+                                }
+                            }
+                        }
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     ProfileMenuItem(
@@ -200,7 +223,7 @@ fun ProfileContent(
                         iconContainerColor = Color(0xFFFFEBEE),
                         iconTint = Color(0xFFF44336),
                         tittle = "Favourite",
-                        onClick = {}
+                        onClick = onNavigateToFavourite
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     ProfileMenuItem(

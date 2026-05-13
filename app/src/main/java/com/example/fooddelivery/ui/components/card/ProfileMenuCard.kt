@@ -24,8 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.PinnableContainer
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -41,6 +39,7 @@ fun ProfileMenuCard(content: @Composable ColumnScope.() -> Unit) {
         Column(content = content)
     }
 }
+
 @Composable
 fun ProfileMenuItem(
     icon: ImageVector,
@@ -49,12 +48,13 @@ fun ProfileMenuItem(
     tittle: String,
     tittleColor: Color = MaterialTheme.colorScheme.onBackground,
     onClick: () -> Unit,
+    trailing: @Composable (() -> Unit)? = null
 ) {
     Row(
-      modifier = Modifier
-          .fillMaxWidth()
-          .clickable(onClick = onClick)
-          .padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -64,7 +64,7 @@ fun ProfileMenuItem(
                 .background(iconContainerColor),
             contentAlignment = Alignment.Center
         ) {
-            Icon (
+            Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
@@ -74,10 +74,14 @@ fun ProfileMenuItem(
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = tittle,
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Medium),
             color = tittleColor,
             modifier = Modifier.weight(1f)
         )
+        if (trailing != null) {
+            trailing()
+            Spacer(modifier = Modifier.width(8.dp))
+        }
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,

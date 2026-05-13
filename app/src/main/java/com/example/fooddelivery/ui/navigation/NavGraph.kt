@@ -40,6 +40,7 @@ import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
 import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
+import com.example.fooddelivery.ui.screens.profile.favourite.FavouriteScreen
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.RestaurantDetailScreen
 import com.example.fooddelivery.ui.screens.order.OrdersScreen
 import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
@@ -273,7 +274,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<CheckoutRoute> {
             CheckoutScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAddAddress = { navController.navigate(AddAddressRoute) },
+                onNavigateToAddAddress = { navController.navigate(AddAddressRoute()) },
                 onNavigateToPaymentSuccessful = { navController.navigate(CheckoutSuccessRoute) }
             )
         }
@@ -309,6 +310,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             ProfileScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onEditProfile = { navController.navigate(EditProfileRoute) },
+                onManageAddress = { navController.navigate(MyAddressRoute) },
+                onNavigateToCart = { navController.navigate(CartRoute) },
+                onNavigateToFavourite = { navController.navigate(FavouriteRoute) },
                 onLogout = {
                     navController.navigate(AuthGraph) {
                         popUpTo<CustomerGraph> { inclusive = true }
@@ -320,6 +324,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<EditProfileRoute> {
             EditProfileScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<FavouriteRoute> {
+            FavouriteScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRestaurant = { id ->
+                    navController.navigate(RestaurantDetailRoute(restaurantId = id))
+                }
             )
         }
 
@@ -352,9 +365,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<MyAddressRoute> {
             CustomerAddressScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onAddNewAddress = { navController.navigate(AddAddressRoute) },
+                onAddNewAddress = { navController.navigate(AddAddressRoute()) },
                 onEditAddress = { addressId ->
-                    // Bạn có thể thêm route EditAddressRoute sau
+                    navController.navigate(AddAddressRoute(addressId = addressId))
                 }
             )
         }

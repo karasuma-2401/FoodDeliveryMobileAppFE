@@ -12,9 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.card.AddressCard
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.screens.profile.ProfileEvent
+import com.example.fooddelivery.ui.screens.profile.ProfileState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,9 +28,8 @@ fun CustomerAddressScreen(
     onEditAddress: (String) -> Unit = {},
     viewModel: CustomerAddressViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
     var addressIdToDelete by remember { mutableStateOf<String?>(null) }
-
     if (addressIdToDelete != null) {
         AlertDialog(
             onDismissRequest = { addressIdToDelete = null },
@@ -35,7 +38,7 @@ fun CustomerAddressScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        addressIdToDelete?.let { viewModel.deleteAddress(it) }
+                        addressIdToDelete?.let { viewModel.onEvent(CustomerAddressEvent.DeleteAddress(it)) }
                         addressIdToDelete = null
                     }
                 ) {
@@ -49,12 +52,30 @@ fun CustomerAddressScreen(
             }
         )
     }
-
+    CustomerAddressContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        onAddNewAddress = onAddNewAddress,
+        onEditAddress = onEditAddress,
+    )
+}
+@OptIn( ExperimentalMaterial3Api::class)
+@Composable
+fun CustomerAddressContent(
+    state: CustomerAddressState,
+    onEvent: (CustomerAddressEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    onAddNewAddress: () -> Unit,
+    onEditAddress: (String) -> Unit
+) {
     Scaffold(
         topBar = {
             DFoodTopBar(
                 title = "My Address",
-                onBackClick = onNavigateBack
+                onBackClick = onNavigateBack,
+                actions = {},
+                scrollBehavior = null
             )
         },
         bottomBar = {
@@ -97,7 +118,7 @@ fun CustomerAddressScreen(
                         AddressCard(
                             address = address,
                             onEdit = { onEditAddress(address.id) },
-                            onDelete = { addressIdToDelete = address.id }
+                            onDelete = { onEvent(CustomerAddressEvent.DeleteAddress(address.id)) }
                         )
                     }
                 }

@@ -3,20 +3,22 @@ package com.example.fooddelivery.ui.screens.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.User
+import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import com.example.fooddelivery.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class ProfileState(
     val user: User = User(),
+    val cartItemCount: Int = 0,
     val isLoading: Boolean = false,
     val isLogoutSuccess: Boolean = false,
     val errorMessage: String? = null
@@ -31,7 +33,8 @@ sealed interface ProfileEvent {
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val cartRepository: CartRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
@@ -39,6 +42,16 @@ class ProfileViewModel @Inject constructor(
 
     init {
         onEvent(ProfileEvent.LoadUserProfile)
+        observeCart()
+    }
+
+    private fun observeCart() {
+        viewModelScope.launch {
+            cartRepository.getCartItems().collectLatest { items ->
+                val totalCount = items.sumOf { it.quantity }
+                _state.update { it.copy(cartItemCount = totalCount) }
+            }
+        }
     }
 
     fun onEvent(event: ProfileEvent) {
@@ -54,19 +67,19 @@ class ProfileViewModel @Inject constructor(
         
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val result = withContext(Dispatchers.IO) {
-                getUserProfileUseCase()
-            }
-            result.onSuccess { user ->
-                _state.update { it.copy(user = user, isLoading = false) }
-            }.onFailure { exception ->
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = exception.message ?: "Failed to load user profile"
-                    )
-                }
-            }
+            
+            // Mocking API call
+            delay(1000)
+            val mockUser = User(
+                id = "user123",
+                fullName = "Lê Minh",
+                email = "leminh@example.com",
+                phone = "0123456789",
+                bio = "I love food delivery!",
+                profileImage = null
+            )
+            
+            _state.update { it.copy(user = mockUser, isLoading = false) }
         }
     }
     
@@ -74,14 +87,11 @@ class ProfileViewModel @Inject constructor(
         if (_state.value.isLoading) return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val result = withContext(Dispatchers.IO) {
-                logoutUseCase()
-            }
-            result.onSuccess {
-                _state.update { it.copy(isLoading = false, isLogoutSuccess = true) }
-            }.onFailure {
-                _state.update { it.copy(isLoading = false, errorMessage = "Logout failed") }
-            }
+            
+            // Mocking API call
+            delay(1000)
+
+            _state.update { it.copy(isLoading = false, isLogoutSuccess = true) }
         }
     }
 }
