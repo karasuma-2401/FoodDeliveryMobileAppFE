@@ -38,6 +38,7 @@ fun ProfileScreen(
     onNavigateToFavourite: () -> Unit,
     onNavigateToNotification: () -> Unit,
     onNavigateToPaymentMethod: () -> Unit,
+    onNavigateToReview: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -91,6 +92,7 @@ fun ProfileScreen(
         onNavigateToFavourite = onNavigateToFavourite,
         onNavigateToNotification = onNavigateToNotification,
         onNavigateToPaymentMethod = onNavigateToPaymentMethod,
+        onNavigateToReview = onNavigateToReview,
         onShowLogoutDialog = { showLogoutDialog = true },
         snackBarHostState = snackBarHostState
     )
@@ -108,6 +110,7 @@ fun ProfileContent(
     onNavigateToFavourite: () -> Unit,
     onNavigateToNotification: () -> Unit,
     onNavigateToPaymentMethod: () -> Unit,
+    onNavigateToReview: () -> Unit,
     onShowLogoutDialog: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
@@ -255,7 +258,7 @@ fun ProfileContent(
                         iconContainerColor = Color(0xFFE0F7FA),
                         iconTint = Color(0xFF00BCD4),
                         tittle = "Review",
-                        onClick = {}
+                        onClick = { onNavigateToReview() }
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     ProfileMenuItem(

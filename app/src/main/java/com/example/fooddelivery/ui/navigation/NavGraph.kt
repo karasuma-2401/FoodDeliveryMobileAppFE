@@ -7,14 +7,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
-import androidx.compose.runtime.remember
 import com.example.fooddelivery.ui.screens.auth.forgot_password.ForgotPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
@@ -41,6 +39,7 @@ import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
 import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
 import com.example.fooddelivery.ui.screens.profile.favourite.FavouriteScreen
 import com.example.fooddelivery.ui.screens.payment.PaymentMethodScreen
+import com.example.fooddelivery.ui.screens.profile.review.UserReviewScreen
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.RestaurantDetailScreen
 import com.example.fooddelivery.ui.screens.order.OrdersScreen
 import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
@@ -315,6 +314,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToFavourite = { navController.navigate(FavouriteRoute) },
                 onNavigateToNotification = { navController.navigate(NotificationRoute) },
                 onNavigateToPaymentMethod = { navController.navigate(PaymentMethodRoute) },
+                onNavigateToReview = { navController.navigate(UserReviewRoute) },
                 onLogout = {
                     navController.navigate(AuthGraph) {
                         popUpTo<CustomerGraph> { inclusive = true }
@@ -338,18 +338,26 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-//        composable<NotificationRoute> {
-//            NotificationScreen(
-//                onNavigateBack = { navController.popBackStack() },
-//                onNavigateToOrder = { orderId ->
-//                    navController.navigate(TrackOrderRoute(orderId = orderId))
-//                }
-//            )
-//        }
-
         composable<PaymentMethodRoute> {
             PaymentMethodScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<UserReviewRoute> {
+            UserReviewScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { orderId, name, image, rating, comment ->
+                    navController.navigate(
+                        RatingReviewRoute(
+                            orderId = orderId,
+                            restaurantName = name,
+                            restaurantImage = image,
+                            initialRating = rating,
+                            initialComment = comment
+                        )
+                    )
+                }
             )
         }
 
