@@ -5,8 +5,6 @@ import androidx.room.Room
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.local.room.AppDatabase
 import com.example.fooddelivery.data.local.room.dao.NotificationDao
-//import com.example.fooddelivery.data.local.room.AppDatabase
-//import com.example.fooddelivery.data.local.room.dao.NotificationDao
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
 import com.example.fooddelivery.data.remote.api.OrderApi
@@ -24,7 +22,6 @@ import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.AuthRepository
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.NotificationRepository
-//import com.example.fooddelivery.domain.repository.NotificationRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.domain.repository.UserRepository
@@ -64,9 +61,10 @@ object AppModule {
     @Singleton
     fun provideUserRepository(
         api: UserApi,
-        tokenManager: TokenManager
+        tokenManager: TokenManager,
+        database: AppDatabase
     ): UserRepository {
-        return UserRepositoryImpl(api, tokenManager)
+        return UserRepositoryImpl(api, tokenManager, database)
     }
 
     @Provides

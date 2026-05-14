@@ -15,4 +15,7 @@ interface UserApi {
     @Multipart
     @POST("user/profile/image")
     suspend fun uploadProfileImage(@Part image: MultipartBody.Part): Response<String>
+
+    @POST("auth/logout")
+    suspend fun logout(): Response<Unit>
 }

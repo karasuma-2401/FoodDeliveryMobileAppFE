@@ -316,8 +316,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToPaymentMethod = { navController.navigate(PaymentMethodRoute) },
                 onNavigateToReview = { navController.navigate(UserReviewRoute) },
                 onLogout = {
+                    // delete all backstack
                     navController.navigate(AuthGraph) {
-                        popUpTo<CustomerGraph> { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )

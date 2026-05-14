@@ -6,10 +6,12 @@ import com.example.fooddelivery.domain.repository.UserRepository
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.data.local.room.AppDatabase
 
 class UserRepositoryImpl @Inject constructor(
     private val api: UserApi,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val database: AppDatabase
 ) : UserRepository {
     override suspend fun getUserProfile(): Result<User> {
         return try {
@@ -42,7 +44,16 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun logout(): Result<Unit> {
         return try {
+            try {
+                api.logout()
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+            }
+            // clear local data
             tokenManager.clearAuthData()
+            // delete all data
+            database.clearAllTables()
+
             Result.success(Unit)
         } catch (e: Exception) {
             if (e is CancellationException) throw e

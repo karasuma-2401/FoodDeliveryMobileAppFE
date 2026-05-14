@@ -8,7 +8,6 @@ import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import com.example.fooddelivery.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -99,7 +98,7 @@ class ProfileViewModel @Inject constructor(
 
     private fun loadUserProfile(isManualRefresh: Boolean) {
         if (_state.value.isLoading || _state.value.isRefreshing) return
-
+        
         if (!isManualRefresh && _state.value.user != null) return
 
         viewModelScope.launch {
@@ -108,22 +107,12 @@ class ProfileViewModel @Inject constructor(
             } else {
                 _state.update { it.copy(isLoading = true) }
             }
-            delay(1000)
             
-            val mockUser = User(
-                id = "customer2401",
-                fullName = "Win Pear",
-                email = "leminhthang24012006@gmail.com",
-                phone = "0867070087",
-                bio = "I love food delivery!",
-                profileImage = null
-            )
-            
-            _state.update { it.copy(
-                user = mockUser, 
-                isLoading = false,
-                isRefreshing = false
-            ) }
+            getUserProfileUseCase().onSuccess { user ->
+                _state.update { it.copy(user = user, isLoading = false, isRefreshing = false) }
+            }.onFailure { error ->
+                _state.update { it.copy(errorMessage = error.message, isLoading = false, isRefreshing = false) }
+            }
         }
     }
     
@@ -131,8 +120,11 @@ class ProfileViewModel @Inject constructor(
         if (_state.value.isLoading) return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            delay(1000)
-            _state.update { it.copy(isLoading = false, isLogoutSuccess = true) }
+            logoutUseCase().onSuccess {
+                _state.update { it.copy(isLoading = false, isLogoutSuccess = true) }
+            }.onFailure { error ->
+                _state.update { it.copy(isLoading = false, errorMessage = error.message) }
+            }
         }
     }
 }
