@@ -25,7 +25,9 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            DFoodTheme (darkTheme = false) {
+            val isDarkMode by mainViewModel.isDarkMode.collectAsStateWithLifecycle()
+            
+            DFoodTheme(darkTheme = isDarkMode) {
                 val isLoading = mainViewModel.isLoading.value
                 if (!isLoading) {
                     val navController = rememberNavController()

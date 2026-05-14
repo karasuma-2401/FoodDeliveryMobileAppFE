@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.data.local.datastore.DataStoreManager
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
@@ -17,32 +18,55 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ProfileState(
-    val user: User = User(),
+    val user: User? = null,
     val cartItemCount: Int = 0,
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val isLogoutSuccess: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isDarkMode: Boolean = false,
+    val isNotificationsEnabled: Boolean = true
 )
 
 sealed interface ProfileEvent {
     object LoadUserProfile : ProfileEvent
+    object RefreshUserProfile : ProfileEvent
     object LogoutClicked : ProfileEvent
     object ErrorDismissed : ProfileEvent
+    data class ToggleDarkMode(val enabled: Boolean) : ProfileEvent
+    data class ToggleNotifications(val enabled: Boolean) : ProfileEvent
 }
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()
 
     init {
-        onEvent(ProfileEvent.LoadUserProfile)
+        if (_state.value.user == null) {
+            onEvent(ProfileEvent.LoadUserProfile)
+        }
         observeCart()
+        observeSettings()
+    }
+
+    private fun observeSettings() {
+        viewModelScope.launch {
+            dataStoreManager.readDarkModeState().collectLatest { isDark ->
+                _state.update { it.copy(isDarkMode = isDark) }
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.readNotificationsState().collectLatest { enabled ->
+                _state.update { it.copy(isNotificationsEnabled = enabled) }
+            }
+        }
     }
 
     private fun observeCart() {
@@ -56,30 +80,50 @@ class ProfileViewModel @Inject constructor(
 
     fun onEvent(event: ProfileEvent) {
         when (event) {
-            ProfileEvent.LoadUserProfile -> loadUserProfile()
+            ProfileEvent.LoadUserProfile -> loadUserProfile(isManualRefresh = false)
+            ProfileEvent.RefreshUserProfile -> loadUserProfile(isManualRefresh = true)
             ProfileEvent.LogoutClicked -> logout()
             ProfileEvent.ErrorDismissed -> _state.update { it.copy(errorMessage = null) }
+            is ProfileEvent.ToggleDarkMode -> {
+                viewModelScope.launch {
+                    dataStoreManager.saveDarkModeState(event.enabled)
+                }
+            }
+            is ProfileEvent.ToggleNotifications -> {
+                viewModelScope.launch {
+                    dataStoreManager.saveNotificationsState(event.enabled)
+                }
+            }
         }
     }
 
-    private fun loadUserProfile() {
-        if (_state.value.isLoading) return
-        
+    private fun loadUserProfile(isManualRefresh: Boolean) {
+        if (_state.value.isLoading || _state.value.isRefreshing) return
+
+        if (!isManualRefresh && _state.value.user != null) return
+
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            
-            // Mocking API call
+            if (isManualRefresh) {
+                _state.update { it.copy(isRefreshing = true) }
+            } else {
+                _state.update { it.copy(isLoading = true) }
+            }
             delay(1000)
+            
             val mockUser = User(
-                id = "user123",
-                fullName = "Lê Minh",
-                email = "leminh@example.com",
-                phone = "0123456789",
+                id = "customer2401",
+                fullName = "Win Pear",
+                email = "leminhthang24012006@gmail.com",
+                phone = "0867070087",
                 bio = "I love food delivery!",
                 profileImage = null
             )
             
-            _state.update { it.copy(user = mockUser, isLoading = false) }
+            _state.update { it.copy(
+                user = mockUser, 
+                isLoading = false,
+                isRefreshing = false
+            ) }
         }
     }
     
@@ -87,10 +131,7 @@ class ProfileViewModel @Inject constructor(
         if (_state.value.isLoading) return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            
-            // Mocking API call
             delay(1000)
-
             _state.update { it.copy(isLoading = false, isLogoutSuccess = true) }
         }
     }

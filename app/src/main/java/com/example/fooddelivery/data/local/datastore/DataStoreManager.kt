@@ -12,13 +12,17 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "dfood_preferences")
+
 class DataStoreManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     companion object {
         val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
+        val DARK_MODE_KEY = booleanPreferencesKey("dark_mode")
+        val NOTIFICATIONS_ENABLED_KEY = booleanPreferencesKey("notifications_enabled")
     }
 
+    // Onboarding
     fun readOnboardingState(): Flow<Boolean> {
         return context.dataStore.data.map { preferences ->
             preferences[ONBOARDING_COMPLETED_KEY] ?: false
@@ -28,6 +32,30 @@ class DataStoreManager @Inject constructor(
     suspend fun saveOnboardingState(completed: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[ONBOARDING_COMPLETED_KEY] = completed
+        }
+    }
+    // Dark Mode
+    fun readDarkModeState(): Flow<Boolean> {
+        return context.dataStore.data.map { preferences ->
+            preferences[DARK_MODE_KEY] ?: false
+        }
+    }
+    suspend fun saveDarkModeState(isDarkMode: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[DARK_MODE_KEY] = isDarkMode
+        }
+    }
+
+    // Notifications
+    fun readNotificationsState(): Flow<Boolean> {
+        return context.dataStore.data.map { preferences ->
+            preferences[NOTIFICATIONS_ENABLED_KEY] ?: true
+        }
+    }
+
+    suspend fun saveNotificationsState(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[NOTIFICATIONS_ENABLED_KEY] = enabled
         }
     }
 }

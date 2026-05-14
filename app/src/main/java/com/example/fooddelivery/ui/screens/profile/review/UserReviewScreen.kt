@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun UserReviewScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToEdit: (String, String, String, Int, String) -> Unit, // Thêm rating và comment vào đây
+    onNavigateToEdit: (String, String, String, Int, String) -> Unit,
     viewModel: UserReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -40,7 +40,7 @@ fun UserReviewScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
-                is UserReviewUiEffect.NavigateToEdit -> { // Sửa tên từ NavigateToEditReview thành NavigateToEdit
+                is UserReviewUiEffect.NavigateToEdit -> {
                     onNavigateToEdit(
                         effect.orderId,
                         effect.restaurantName,
@@ -56,8 +56,6 @@ fun UserReviewScreen(
             }
         }
     }
-
-    // Pagination check logic
     val shouldLoadNextPage = remember {
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
