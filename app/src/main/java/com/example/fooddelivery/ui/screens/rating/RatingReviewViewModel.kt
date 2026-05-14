@@ -25,13 +25,10 @@ data class RatingReviewState (
     val comment: String = "",
     val isSubmitting: Boolean = false,
     val availableTags: List<String> = listOf(
-        "Delicious Food",
-        "Great Delivery",
-        "Fast Delivery",
-        "Food Delivery",
-        "Good Value",
+        "Delicious Food", "Great Delivery", "Fast Delivery", "Food Delivery", "Good Value",
     )
 )
+
 sealed interface RatingReviewEvent {
     object OnNavigateBack: RatingReviewEvent
     data class OnRatingChanged(val rating: Int): RatingReviewEvent
@@ -39,6 +36,7 @@ sealed interface RatingReviewEvent {
     data class OnCommentChanged(val comment: String): RatingReviewEvent
     object OnSubmit: RatingReviewEvent
 }
+
 sealed interface RatingReviewUiEffect {
     data class ShowSnackBar (val message: String): RatingReviewUiEffect
     object NavigateBack: RatingReviewUiEffect
@@ -49,57 +47,53 @@ class RatingReviewViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val routeData = savedStateHandle.toRoute<RatingReviewRoute>()
+    
     private val _state = MutableStateFlow(
         RatingReviewState(
             orderId = routeData.orderId,
             restaurantName = routeData.restaurantName,
-            restaurantImage = routeData.restaurantImage
+            restaurantImage = routeData.restaurantImage,
+            rating = routeData.initialRating,
+            comment = routeData.initialComment
         )
     )
     val state: StateFlow<RatingReviewState> = _state.asStateFlow()
+    
     private val _uiEffect = MutableSharedFlow<RatingReviewUiEffect>()
     val uiEffect = _uiEffect.asSharedFlow()
 
     fun onEvent(event: RatingReviewEvent) {
         when (event) {
             is RatingReviewEvent.OnNavigateBack -> {
-                viewModelScope.launch {
-                    _uiEffect.emit(RatingReviewUiEffect.NavigateBack)
-                }
+                viewModelScope.launch { _uiEffect.emit(RatingReviewUiEffect.NavigateBack) }
             }
             is RatingReviewEvent.OnRatingChanged -> {
-                val safeRating = event.rating.coerceIn(0, 5)
-                _state.update { it.copy(rating = safeRating) }
+                _state.update { it.copy(rating = event.rating.coerceIn(0, 5)) }
             }
             is RatingReviewEvent.OnTagToggled -> {
                 _state.update {
-                    val newTags = if (it.selectedTags.contains(event.tag)) {
-                        it.selectedTags - event.tag
-                    } else {
-                        it.selectedTags + event.tag
-                    }
+                    val newTags = if (it.selectedTags.contains(event.tag)) it.selectedTags - event.tag else it.selectedTags + event.tag
                     it.copy(selectedTags = newTags)
                 }
             }
             is RatingReviewEvent.OnCommentChanged -> {
                 _state.update { it.copy(comment = event.comment) }
             }
-            RatingReviewEvent.OnSubmit -> {
-                submitReview()
-            }
+            RatingReviewEvent.OnSubmit -> submitReview()
         }
     }
+
     private fun submitReview() {
         if (_state.value.isSubmitting) return
-
         viewModelScope.launch {
-            _state.update { it.copy(isSubmitting = true) }
-            // call api here
-            delay(1000)
-
-            _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Thank you for your review!"))
-            _state.update { it.copy(isSubmitting = false) }
-            _uiEffect.emit(RatingReviewUiEffect.NavigateBack)
+            try {
+                _state.update { it.copy(isSubmitting = true) }
+                delay(1000)
+                _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Success!"))
+                _uiEffect.emit(RatingReviewUiEffect.NavigateBack)
+            } finally {
+                _state.update { it.copy(isSubmitting = false) }
+            }
         }
     }
 }

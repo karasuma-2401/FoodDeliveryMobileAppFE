@@ -11,13 +11,17 @@ import com.example.fooddelivery.ui.navigation.LoginRoute
 import com.example.fooddelivery.ui.navigation.OnboardingRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private  val dataStoreManager: DataStoreManager,
+    private val dataStoreManager: DataStoreManager,
     private val tokenManager: TokenManager
 ) : ViewModel() {
     private val _isLoading = mutableStateOf(true)
@@ -25,6 +29,9 @@ class MainViewModel @Inject constructor(
 
     private val _startDestination = mutableStateOf<Any>(OnboardingRoute)
     val startDestination: State<Any> = _startDestination
+
+    private val _isDarkMode = MutableStateFlow(false)
+    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -42,6 +49,16 @@ class MainViewModel @Inject constructor(
             }
             delay(3000)
             _isLoading.value = false
+        }
+
+        observeSettings()
+    }
+
+    private fun observeSettings() {
+        viewModelScope.launch {
+            dataStoreManager.readDarkModeState().collectLatest { isDark ->
+                _isDarkMode.value = isDark
+            }
         }
     }
 }

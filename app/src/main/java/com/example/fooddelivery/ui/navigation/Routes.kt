@@ -44,7 +44,14 @@ data class CheckoutRoute(
 
 @Serializable object MyOrdersRoute
 @Serializable data class TrackOrderRoute(val orderId: String = "")
-@Serializable data class RatingReviewRoute(val orderId: String, val restaurantName: String = "", val restaurantImage: String = "")
+@Serializable 
+data class RatingReviewRoute(
+    val orderId: String, 
+    val restaurantName: String = "", 
+    val restaurantImage: String = "",
+    val initialRating: Int = 0,
+    val initialComment: String = ""
+)
 
 @Serializable object ProfileRoute
 @Serializable object EditProfileRoute
@@ -52,6 +59,8 @@ data class CheckoutRoute(
 @Serializable data class AddAddressRoute(val addressId: String? = null)
 @Serializable object FavouriteRoute
 @Serializable object NotificationRoute
+@Serializable object PaymentMethodRoute
+@Serializable object UserReviewRoute
 @Serializable object ConversationRoute
 @Serializable data class ChatRoute(val conversationId: String, val restaurantName: String = "")
 

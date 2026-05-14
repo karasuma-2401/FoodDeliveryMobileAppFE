@@ -78,7 +78,7 @@ fun AllRestaurantsContent(
                     InputChip(
                         selected = true,
                         onClick = { onEvent.invoke(AllRestaurantsEvent.ToggleSortSheet(true)) },
-                        label = { Text("Sắp xếp: ${state.currentSortOption.title}") },
+                        label = { Text(" ${state.currentSortOption.title}") },
                         trailingIcon = { Icon(Icons.Default.KeyboardArrowDown, null) }
                     )
                 }

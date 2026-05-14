@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,6 +29,7 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.card.ProfileMenuCard
 import com.example.fooddelivery.ui.components.card.ProfileMenuItem
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable
 fun ProfileScreen(
@@ -37,6 +39,8 @@ fun ProfileScreen(
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
     onNavigateToNotification: () -> Unit,
+    onNavigateToPaymentMethod: () -> Unit,
+    onNavigateToReview: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -89,6 +93,8 @@ fun ProfileScreen(
         onNavigateToCart = onNavigateToCart,
         onNavigateToFavourite = onNavigateToFavourite,
         onNavigateToNotification = onNavigateToNotification,
+        onNavigateToPaymentMethod = onNavigateToPaymentMethod,
+        onNavigateToReview = onNavigateToReview,
         onShowLogoutDialog = { showLogoutDialog = true },
         snackBarHostState = snackBarHostState
     )
@@ -105,6 +111,8 @@ fun ProfileContent(
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
     onNavigateToNotification: () -> Unit,
+    onNavigateToPaymentMethod: () -> Unit,
+    onNavigateToReview: () -> Unit,
     onShowLogoutDialog: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
@@ -132,8 +140,8 @@ fun ProfileContent(
     ) { innerPadding ->
         PullToRefreshBox(
             state = refreshState,
-            isRefreshing = state.isLoading,
-            onRefresh = { onEvent(ProfileEvent.LoadUserProfile) },
+            isRefreshing = state.isRefreshing,
+            onRefresh = { onEvent(ProfileEvent.RefreshUserProfile) },
             modifier = Modifier.padding(innerPadding)
         ) {
             Column(
@@ -143,39 +151,41 @@ fun ProfileContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
+                state.user?.let { user ->
+                    Row(
                         modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        AsyncImage(
-                            model = state.user.profileImage,
-                            contentDescription = "User Avatar",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.food_bowl),
-                            error = painterResource(R.drawable.food_bowl)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(20.dp))
-                    Column {
-                        Text(
-                            text = state.user.fullName.ifEmpty { "Lê Minh" },
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Text(
-                            text = state.user.bio.ifEmpty { "Welcome to FoodDelivery" },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            AsyncImage(
+                                model = user.profileImage,
+                                contentDescription = "User Avatar",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(R.drawable.food_bowl),
+                                error = painterResource(R.drawable.food_bowl)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(20.dp))
+                        Column {
+                            Text(
+                                text = user.fullName.ifEmpty { "Lê Minh" },
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Text(
+                                text = user.bio.ifEmpty { "Welcome to FoodDelivery" },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(32.dp))
@@ -242,27 +252,59 @@ fun ProfileContent(
                         iconContainerColor = Color(0xFFF3E5F5),
                         iconTint = Color(0xFF9C27B0),
                         tittle = "Payment Method",
-                        onClick = {}
+                        onClick = onNavigateToPaymentMethod
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                    ProfileMenuItem(
+                        icon = Icons.Default.RateReview,
+                        iconContainerColor = Color(0xFFE0F7FA),
+                        iconTint = Color(0xFF00BCD4),
+                        tittle = "My Reviews",
+                        onClick = onNavigateToReview
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 ProfileMenuCard {
                     ProfileMenuItem(
-                        icon = Icons.Default.RateReview,
-                        iconContainerColor = Color(0xFFE0F7FA),
-                        iconTint = Color(0xFF00BCD4),
-                        tittle = "Review",
-                        onClick = {}
+                        icon = if (state.isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                        iconContainerColor = if (state.isDarkMode) Color(0xFF2D2D2D) else Color(0xFFFFF9C4),
+                        iconTint = if (state.isDarkMode) Color(0xFFBB86FC) else Color(0xFFFBC02D),
+                        tittle = "Dark Mode",
+                        onClick = { onEvent(ProfileEvent.ToggleDarkMode(!state.isDarkMode)) },
+                        trailing = {
+                            Switch(
+                                checked = state.isDarkMode,
+                                onCheckedChange = { onEvent(ProfileEvent.ToggleDarkMode(it)) },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color(0xFFFF7622)
+                                )
+                            )
+                        }
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     ProfileMenuItem(
-                        icon = Icons.Default.Settings,
-                        iconContainerColor = Color(0xFFECEFF1),
-                        iconTint = Color(0xFF607D8B),
-                        tittle = "Settings",
-                        onClick = {}
+                        icon = if (state.isNotificationsEnabled) Icons.Default.NotificationsActive else Icons.Default.NotificationsOff,
+                        iconContainerColor = Color(0xFFE8F5E9),
+                        iconTint = Color(0xFF4CAF50),
+                        tittle = "Push Notifications",
+                        onClick = { onEvent(ProfileEvent.ToggleNotifications(!state.isNotificationsEnabled)) },
+                        trailing = {
+                            Switch(
+                                checked = state.isNotificationsEnabled,
+                                onCheckedChange = { onEvent(ProfileEvent.ToggleNotifications(it)) },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+
+                                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    uncheckedBorderColor = MaterialTheme.colorScheme.outline
+                                )
+                            )
+                        }
                     )
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
                 ProfileMenuCard {
                     ProfileMenuItem(
@@ -277,5 +319,25 @@ fun ProfileContent(
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }
+    }
+}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun ProfileScreenPreview() {
+    DFoodTheme(darkTheme = false) {
+        ProfileContent(
+            state = ProfileState(),
+            onEvent = {},
+            onNavigateBack = {},
+            onEditProfile = {},
+            onManageAddress = {},
+            onNavigateToCart = {},
+            onNavigateToFavourite = {},
+            onNavigateToNotification = {},
+            onNavigateToPaymentMethod = {},
+            onNavigateToReview = {},
+            onShowLogoutDialog = {},
+            snackBarHostState = SnackbarHostState()
+        )
     }
 }
