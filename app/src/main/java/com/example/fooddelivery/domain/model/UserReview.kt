@@ -11,6 +11,9 @@ data class UserReview(
     val createdAt: Long,
     val orderId: String
 ) {
+    init {
+        require(rating in 0..5) { "Rating must be between 0 and 5, but was $rating" }
+    }
     val canEditOrDelete: Boolean
         get() {
             val currentTime = System.currentTimeMillis()

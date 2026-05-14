@@ -36,7 +36,8 @@ fun PaymentMethodScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     PaymentMethodContent(
         state = state,
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        viewModel = viewModel
     )
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +45,20 @@ fun PaymentMethodScreen(
 fun PaymentMethodContent(
     state: PaymentMethodState,
     onNavigateBack: () -> Unit,
-    viewModel: PaymentMethodViewModel = hiltViewModel()
+    viewModel: PaymentMethodViewModel
+) {
+    PaymentMethodContent(
+        state = state,
+        onNavigateBack = onNavigateBack,
+        onEvent = viewModel::onEvent
+    )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PaymentMethodContent(
+    state: PaymentMethodState,
+    onNavigateBack: () -> Unit,
+    onEvent: (PaymentMethodEvent) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -56,7 +70,7 @@ fun PaymentMethodContent(
         containerColor = Color.White,
         bottomBar = {
             Button(
-                onClick = { viewModel.onEvent(PaymentMethodEvent.LinkNewMoMo) },
+                onClick = { onEvent(PaymentMethodEvent.LinkNewMoMo) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(24.dp)
@@ -106,7 +120,18 @@ fun PaymentMethodContent(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                if (state.linkedMoMoMethods.isEmpty() && !state.isLoading) {
+                if (state.isLoading) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFFA50064))
+                        }
+                    }
+                } else if (state.linkedMoMoMethods.isEmpty()) {
                     item {
                         EmptyMoMoState()
                     }
@@ -114,7 +139,7 @@ fun PaymentMethodContent(
                     items(state.linkedMoMoMethods) { method ->
                         MoMoPaymentItem(
                             method = method,
-                            onUnlink = { viewModel.onEvent(PaymentMethodEvent.UnlinkMoMo(method.id)) }
+                            onUnlink = { onEvent(PaymentMethodEvent.UnlinkMoMo(method.id)) }
                         )
                     }
                 }
@@ -139,13 +164,15 @@ fun PaymentMethodContent(
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PaymentMethodScreenPreview() {
     DFoodTheme(darkTheme = false) {
         PaymentMethodContent(
             state = PaymentMethodState(),
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onEvent = {}
         )
     }
 }

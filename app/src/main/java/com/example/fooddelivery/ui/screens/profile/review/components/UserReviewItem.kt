@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,13 +48,13 @@ fun UserReviewItem(
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dateFormat = SimpleDateFormat("dd MM yyyy", Locale.getDefault())
+    val dateFormat = remember { SimpleDateFormat("dd MM yyyy", Locale.getDefault()) }
     val dateString = dateFormat.format(Date(review.createdAt))
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF6F6F6))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -71,12 +72,12 @@ fun UserReviewItem(
                         text = review.restaurantName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF32343E)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = dateString,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF646982)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -86,7 +87,7 @@ fun UserReviewItem(
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = "Edit",
-                                tint = Color(0xFFFF7622),
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -94,7 +95,7 @@ fun UserReviewItem(
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
                                 contentDescription = "Delete",
-                                tint = Color(0xFFF44336),
+                                tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -116,7 +117,7 @@ fun UserReviewItem(
                     text = "${review.rating}.0",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color(0xFF32343E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             if (review.comment.isNotEmpty()) {
@@ -124,7 +125,7 @@ fun UserReviewItem(
                 Text(
                     text = review.comment,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF646982),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -138,14 +139,14 @@ fun UserReviewItem(
                     review.tags.forEach { tag ->
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.surface,
                             border = null
                         ) {
                             Text(
                                 text = tag,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 fontSize = 10.sp,
-                                color = Color(0xFF32343E),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Medium
                             )
                         }

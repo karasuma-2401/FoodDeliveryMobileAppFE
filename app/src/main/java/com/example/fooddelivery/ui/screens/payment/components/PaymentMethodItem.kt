@@ -41,7 +41,7 @@ fun MoMoPaymentItem(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "MoMo",
+                    method.type,
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.ExtraBold

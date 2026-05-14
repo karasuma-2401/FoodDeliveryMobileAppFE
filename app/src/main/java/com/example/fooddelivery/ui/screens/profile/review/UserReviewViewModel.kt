@@ -155,7 +155,7 @@ class UserReviewViewModel @Inject constructor() : ViewModel() {
                 rating = 3,
                 comment = "Burger was okay, but the fries were a bit cold when they arrived.",
                 tags = listOf("Good Value"),
-                createdAt = now - (8 * oneDay),
+                createdAt = now - (6 * oneDay),
                 orderId = "order_456"
             )
         )

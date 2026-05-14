@@ -53,7 +53,13 @@ fun ProfileMenuItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .then(
+                if (trailing == null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                }
+            )
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

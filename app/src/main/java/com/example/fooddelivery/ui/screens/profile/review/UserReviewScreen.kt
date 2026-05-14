@@ -95,7 +95,7 @@ fun UserReviewContent(
                 onBackClick = onNavigateBack
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         PullToRefreshBox(
             state = pullToRefreshState,
@@ -130,7 +130,7 @@ fun UserReviewContent(
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = Color(0xFFFF7622))
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }

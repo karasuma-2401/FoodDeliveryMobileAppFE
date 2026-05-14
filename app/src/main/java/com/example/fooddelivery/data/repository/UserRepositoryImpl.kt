@@ -7,6 +7,8 @@ import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.local.room.AppDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class UserRepositoryImpl @Inject constructor(
     private val api: UserApi,
@@ -52,7 +54,9 @@ class UserRepositoryImpl @Inject constructor(
             // clear local data
             tokenManager.clearAuthData()
             // delete all data
-            database.clearAllTables()
+            withContext(Dispatchers.IO) {
+                database.clearAllTables()
+            }
 
             Result.success(Unit)
         } catch (e: Exception) {

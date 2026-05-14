@@ -86,10 +86,14 @@ class RatingReviewViewModel @Inject constructor(
     private fun submitReview() {
         if (_state.value.isSubmitting) return
         viewModelScope.launch {
-            _state.update { it.copy(isSubmitting = true) }
-            delay(1000)
-            _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Success!"))
-            _uiEffect.emit(RatingReviewUiEffect.NavigateBack)
+            try {
+                _state.update { it.copy(isSubmitting = true) }
+                delay(1000)
+                _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Success!"))
+                _uiEffect.emit(RatingReviewUiEffect.NavigateBack)
+            } finally {
+                _state.update { it.copy(isSubmitting = false) }
+            }
         }
     }
 }
