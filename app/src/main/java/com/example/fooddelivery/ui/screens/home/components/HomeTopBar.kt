@@ -133,13 +133,15 @@ fun HomeTopBar(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .offset(x = 2.dp, y = (-2).dp)
-                            .size(18.dp)
+                            .widthIn(min = 18.dp)
+                            .height(18.dp)
                             .background(MaterialTheme.colorScheme.primary, CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                            .padding(horizontal = 4.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = cartItemCount.toString(),
+                            text = if (cartItemCount > 99) "99+" else cartItemCount.toString(),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = Color.White,
                                 fontSize = 8.sp,

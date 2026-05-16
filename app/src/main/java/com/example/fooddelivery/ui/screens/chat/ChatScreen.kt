@@ -18,6 +18,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.chat.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
@@ -31,6 +34,7 @@ fun ChatScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(conversationId) {
         viewModel.onEvent(ChatEvent.InitChat(conversationId, restaurantName, restaurantImage))
@@ -40,13 +44,29 @@ fun ChatScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val file = File(context.cacheDir, "chat_image.jpg")
-            context.contentResolver.openInputStream(it)?.use { input ->
-                FileOutputStream(file).use { output ->
-                    input.copyTo(output)
+            scope.launch {
+                try {
+                    val filePath = withContext(Dispatchers.IO) {
+                        val file = File(context.cacheDir, "chat_image.jpg")
+                        val inputStream = context.contentResolver.openInputStream(it)
+                        if (inputStream != null) {
+                            inputStream.use { input ->
+                                FileOutputStream(file).use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            file.absolutePath
+                        } else {
+                            null
+                        }
+                    }
+                    filePath?.let { path ->
+                        viewModel.onEvent(ChatEvent.SendImage(path))
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
-            viewModel.onEvent(ChatEvent.SendImage(file.absolutePath))
         }
     }
 
@@ -75,7 +95,7 @@ fun ChatContent(
     }
 
     LaunchedEffect(shouldLoadMore.value) {
-        if (shouldLoadMore.value && !state.isLoadMore && !state.isLoading) {
+        if (shouldLoadMore.value && state.hasMore && !state.isLoadMore && !state.isLoading) {
             onEvent(ChatEvent.LoadMoreHistory)
         }
     }

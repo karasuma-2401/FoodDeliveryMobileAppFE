@@ -73,9 +73,12 @@ class ConversationViewModel @Inject constructor(
 
     private fun syncConversations() {
         viewModelScope.launch {
-            _isLoading.value = true
-            chatRepository.syncConversations()
-            _isLoading.value = false
+            try {
+                _isLoading.value = true
+                chatRepository.syncConversations()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 

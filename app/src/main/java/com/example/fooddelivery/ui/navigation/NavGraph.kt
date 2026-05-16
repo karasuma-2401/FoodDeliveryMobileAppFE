@@ -201,7 +201,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                     navController.navigate(FoodDetailRoute(foodId = foodId))
                 },
                 onNavigateToConversations = {
-                    navController.navigate(ConversationRoute)
+                    navController.navigate(ConversationRoute) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }

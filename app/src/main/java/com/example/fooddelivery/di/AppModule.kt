@@ -2,6 +2,8 @@ package com.example.fooddelivery.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.local.room.AppDatabase
 import com.example.fooddelivery.data.local.room.dao.NotificationDao
@@ -42,6 +44,49 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    private val MIGRATION_1_2 = object : Migration(1, 2) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Create notifications table if it doesn't exist
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    title TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL,
+                    type TEXT NOT NULL,
+                    isRead INTEGER NOT NULL,
+                    targetId TEXT
+                )
+            """.trimIndent())
+
+            // Create messages table if it doesn't exist
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS messages (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    conversationId TEXT NOT NULL,
+                    senderId TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    imageUrl TEXT,
+                    createdAt TEXT NOT NULL,
+                    isSending INTEGER NOT NULL,
+                    isFailed INTEGER NOT NULL
+                )
+            """.trimIndent())
+
+            // Create conversations table if it doesn't exist
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS conversations (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    restaurantName TEXT NOT NULL,
+                    restaurantImage TEXT NOT NULL,
+                    lastMessage TEXT NOT NULL,
+                    lastMessageTime TEXT NOT NULL,
+                    unreadCount INTEGER NOT NULL
+                )
+            """.trimIndent())
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -50,7 +95,7 @@ object AppModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_1_2)
             .build()
     }
 

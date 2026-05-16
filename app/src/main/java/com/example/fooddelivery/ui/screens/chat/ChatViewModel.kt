@@ -6,6 +6,7 @@ import com.example.fooddelivery.data.local.room.entity.MessageEntity
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,6 +24,7 @@ data class ChatState(
     val isOnline: Boolean = true,
     val orderStatus: String = "Order Delivering",
     val currentPage: Int = 0,
+    val hasMore: Boolean = true,
     val error: String? = null
 )
 
@@ -44,6 +46,8 @@ class ChatViewModel @Inject constructor(
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
     private var currentConversationId: String? = null
+    private var messageObserverJob: Job? = null
+
     init {
         getCurrentUser()
     }
@@ -55,7 +59,11 @@ class ChatViewModel @Inject constructor(
                 _state.update { it.copy(
                     conversationId = event.conversationId,
                     restaurantName = event.restaurantName,
-                    restaurantImage = event.restaurantImage
+                    restaurantImage = event.restaurantImage,
+                    currentPage = 0,
+                    isLoading = false,
+                    isLoadMore = false,
+                    hasMore = true
                 ) }
                 observeMessages(event.conversationId)
                 syncInitialMessages(event.conversationId)
@@ -88,7 +96,8 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun observeMessages(conversationId: String) {
-        viewModelScope.launch {
+        messageObserverJob?.cancel()
+        messageObserverJob = viewModelScope.launch {
             chatRepository.getMessages(conversationId).collectLatest { messages ->
                 _state.update { it.copy(messages = messages) }
             }
@@ -106,14 +115,17 @@ class ChatViewModel @Inject constructor(
     private fun loadMoreMessages() {
         val conversationId = currentConversationId ?: return
         if (_state.value.isLoadMore) return
-        
+
         viewModelScope.launch {
             _state.update { it.copy(isLoadMore = true) }
             val nextPage = _state.value.currentPage + 1
+            val messagesBefore = _state.value.messages.size
             chatRepository.syncMessages(conversationId, nextPage).onSuccess {
-                _state.update { it.copy(currentPage = nextPage, isLoadMore = false) }
+                val messagesAfter = _state.value.messages.size
+                val hasMore = messagesAfter > messagesBefore
+                _state.update { it.copy(currentPage = nextPage, isLoadMore = false, hasMore = hasMore) }
             }.onFailure {
-                _state.update { it.copy(isLoadMore = false) }
+                _state.update { it.copy(isLoadMore = false, hasMore = false) }
             }
         }
     }
@@ -124,6 +136,10 @@ class ChatViewModel @Inject constructor(
 
         viewModelScope.launch {
             val userId = _state.value.currentUserId
+            if (userId.isBlank()) {
+                _state.update { it.copy(error = "User not authenticated") }
+                return@launch
+            }
             _state.update { it.copy(inputText = "") }
             chatRepository.sendMessage(conversationId, userId, content, imageUrl)
         }
