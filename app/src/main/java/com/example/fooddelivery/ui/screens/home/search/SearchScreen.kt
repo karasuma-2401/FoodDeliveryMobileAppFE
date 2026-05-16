@@ -24,6 +24,7 @@ fun SearchScreen(
     onNavigateToOrders: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToCart: () -> Unit,
+    onNavigateToConversations: () -> Unit,
     onNavigateToRestaurant: (Restaurant) -> Unit,
     onNavigateToFoodDetail: (String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
@@ -50,8 +51,10 @@ fun SearchScreen(
                 availableLocations = state.availableLocations,
                 onLocationSelected = { viewModel.onEvent(SearchEvent.LocationSelected(it)) },
                 cartItemCount = state.cartItemCount,
+                unreadMessageCount = state.unreadMessageCount,
                 onCartClick = onNavigateToCart,
-                onBackClick = onNavigateToHome
+                onMessageClick = onNavigateToConversations,
+                onBackClick = onNavigateToHome,
             )
         },
         containerColor = MaterialTheme.colorScheme.background

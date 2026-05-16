@@ -7,6 +7,7 @@ import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -41,6 +42,7 @@ data class HomeState(
     val categories: List<Category> = emptyList(),
     val restaurants: List<Restaurant> = emptyList(),
     val cartItemCount: Int = 0,
+    val unreadMessageCount: Int = 0,
     val selectedLocation: String = "Home",
     val availableLocations: List<String> = listOf("Home", "Work", "Other"),
     val searchQuery: String = "",
@@ -51,6 +53,7 @@ data class HomeState(
 sealed interface HomeEvent {
     object LoadHomeData : HomeEvent
     object CartClicked : HomeEvent
+    object MessageClicked : HomeEvent
     data class LocationSelected(val location: String) : HomeEvent
     data class CategoryClicked(val categoryId: String) : HomeEvent
     data class RestaurantClicked(val restaurantId: String) : HomeEvent
@@ -61,6 +64,7 @@ sealed interface HomeEvent {
 
 sealed interface HomeUiEffect {
     object NavigateToCart : HomeUiEffect
+    object NavigateToConversations : HomeUiEffect
     object NavigateToAllCategories : HomeUiEffect
     object NavigateToAllRestaurants : HomeUiEffect
     data class NavigateToCategory(val categoryId: String) : HomeUiEffect
@@ -71,7 +75,8 @@ sealed interface HomeUiEffect {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -83,6 +88,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadData()
         observeCart()
+        observeUnreadMessages()
     }
 
     private fun observeCart() {
@@ -94,11 +100,21 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun observeUnreadMessages() {
+        viewModelScope.launch {
+            chatRepository.getConversations().collectLatest { conversations ->
+                val totalUnread = conversations.sumOf { it.unreadCount }
+                _state.update { it.copy(unreadMessageCount = totalUnread) }
+            }
+        }
+    }
+
     fun onEvent(event: HomeEvent) {
         viewModelScope.launch {
             when (event) {
                 HomeEvent.LoadHomeData -> loadData()
                 HomeEvent.CartClicked -> _effect.emit(HomeUiEffect.NavigateToCart)
+                HomeEvent.MessageClicked -> _effect.emit(HomeUiEffect.NavigateToConversations)
                 is HomeEvent.LocationSelected -> {
                     _state.update { it.copy(selectedLocation = event.location) }
                 }

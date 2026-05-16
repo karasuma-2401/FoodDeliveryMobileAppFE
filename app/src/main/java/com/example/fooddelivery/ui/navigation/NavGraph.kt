@@ -199,6 +199,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 },
                 onNavigateToFoodDetail = { foodId ->
                     navController.navigate(FoodDetailRoute(foodId = foodId))
+                },
+                onNavigateToConversations = {
+                    navController.navigate(ConversationRoute)
                 }
             )
         }
@@ -379,6 +382,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToOrders = { navController.navigate(MyOrdersRoute) },
                 onNavigateToProfile = { navController.navigate(ProfileRoute) },
                 onNavigateToCart = { navController.navigate(CartRoute) },
+                onNavigateToConversations = { navController.navigate(ConversationRoute) },
                 onNavigateToRestaurant = { restaurant ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = restaurant.id))
                 },
@@ -416,8 +420,12 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<ChatRoute> {
+        composable<ChatRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<ChatRoute>()
             ChatScreen(
+                conversationId = args.conversationId,
+                restaurantName = args.restaurantName,
+                restaurantImage = args.restaurantImage,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

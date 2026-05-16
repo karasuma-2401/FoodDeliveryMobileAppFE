@@ -2,217 +2,143 @@ package com.example.fooddelivery.ui.screens.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fooddelivery.BuildConfig
+import com.example.fooddelivery.data.local.room.entity.MessageEntity
+import com.example.fooddelivery.domain.repository.ChatRepository
+import com.example.fooddelivery.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.socket.client.Ack
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.TimeoutCancellationException
-import org.json.JSONObject
 import javax.inject.Inject
-import io.socket.client.IO
-import io.socket.client.Socket
-import kotlinx.coroutines.delay
-import java.util.UUID
-
-data class ChatMessage(
-    val id: String = UUID.randomUUID().toString(),
-    val senderId: Int = 0,
-    val content: String = "",
-    val createdAt: String = "12:00 PM",
-    val who: String = "other",
-    val isSending: Boolean = false,
-    val isFailed: Boolean = false
-)
 
 data class ChatState(
-    val messages: List<ChatMessage> = emptyList(),
+    val messages: List<MessageEntity> = emptyList(),
     val isLoading: Boolean = false,
+    val isLoadMore: Boolean = false,
+    val isUploadingImage: Boolean = false,
     val inputText: String = "",
     val conversationId: String? = null,
-    val restaurantName: String = "Rose Garden Restaurant",
-    val restaurantImage: String = "https://example.com/logo.jpg",
+    val currentUserId: String = "",
+    val restaurantName: String = "Restaurant",
+    val restaurantImage: String = "",
     val isOnline: Boolean = true,
     val orderStatus: String = "Order Delivering",
-    val estimatedDelivery: String = "20 min",
+    val currentPage: Int = 0,
     val error: String? = null
 )
 
 sealed interface ChatEvent {
-    data class InitChat(val orderId: String) : ChatEvent
+    data class InitChat(val conversationId: String, val restaurantName: String, val restaurantImage: String) : ChatEvent
     data class OnTextChanged(val text: String) : ChatEvent
     data object SendMessage : ChatEvent
+    data class SendImage(val imagePath: String) : ChatEvent
+    data object LoadMoreHistory : ChatEvent
     data class SelectSuggestedReply(val text: String) : ChatEvent
-    data class NewMessageReceived(val message: ChatMessage) : ChatEvent
 }
 
 @HiltViewModel
-class ChatViewModel @Inject constructor() : ViewModel() {
-    private var socket: Socket? = null
-    private var isSocketInitialized = false
+class ChatViewModel @Inject constructor(
+    private val chatRepository: ChatRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
+
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
+    private var currentConversationId: String? = null
+    init {
+        getCurrentUser()
+    }
 
     fun onEvent(event: ChatEvent) {
         when (event) {
-            is ChatEvent.InitChat -> loadHistoryAndConnectSocket(event.orderId)
-            is ChatEvent.OnTextChanged -> _state.update { it.copy(inputText = event.text) }
-            is ChatEvent.SendMessage -> sendMessage()
-            is ChatEvent.SelectSuggestedReply -> {
-                _state.update { it.copy(inputText = event.text) }
-                sendMessage()
+            is ChatEvent.InitChat -> {
+                currentConversationId = event.conversationId
+                _state.update { it.copy(
+                    conversationId = event.conversationId,
+                    restaurantName = event.restaurantName,
+                    restaurantImage = event.restaurantImage
+                ) }
+                observeMessages(event.conversationId)
+                syncInitialMessages(event.conversationId)
             }
-            is ChatEvent.NewMessageReceived -> {
-                viewModelScope.launch {
-                    _state.update { it.copy(messages = it.messages + event.message) }
-                }
+            is ChatEvent.OnTextChanged -> {
+                _state.update { it.copy(inputText = event.text) }
+            }
+            is ChatEvent.SendMessage -> {
+                sendMessage(_state.value.inputText)
+            }
+            is ChatEvent.SendImage -> {
+                uploadAndSendImage(event.imagePath)
+            }
+            is ChatEvent.LoadMoreHistory -> {
+                loadMoreMessages()
+            }
+            is ChatEvent.SelectSuggestedReply -> {
+                sendMessage(event.text)
+            }
+        }
+    }
+    private fun getCurrentUser() {
+        viewModelScope.launch {
+            userRepository.getUserProfile().onSuccess { user ->
+                _state.update { it.copy(currentUserId = user.id) }
+            }.onFailure { error ->
+                _state.update { it.copy(error = error.message) }
             }
         }
     }
 
-    private fun loadHistoryAndConnectSocket(orderId: String) {
+    private fun observeMessages(conversationId: String) {
+        viewModelScope.launch {
+            chatRepository.getMessages(conversationId).collectLatest { messages ->
+                _state.update { it.copy(messages = messages) }
+            }
+        }
+    }
+
+    private fun syncInitialMessages(conversationId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            delay(1000)
-
-            _state.update { it.copy(
-                isLoading = false,
-                conversationId = "conv_$orderId",
-                messages = listOf(
-                    ChatMessage(content = "Hello! Your orders are preparing.", who = "other", createdAt = "12:05 PM")
-                )
-            )}
-
-            if (isSocketInitialized && socket?.connected() == true) {
-                return@launch
-            }
-            teardownSocket()
-            setupSocket()
+            chatRepository.syncMessages(conversationId, 0)
+            _state.update { it.copy(isLoading = false) }
         }
     }
 
-    private fun setupSocket() {
-        if (isSocketInitialized && socket?.connected() == true) {
-            return
-        }
-
-        try {
-            val options = IO.Options().apply {
-                forceNew = true
-                reconnection = true
+    private fun loadMoreMessages() {
+        val conversationId = currentConversationId ?: return
+        if (_state.value.isLoadMore) return
+        
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadMore = true) }
+            val nextPage = _state.value.currentPage + 1
+            chatRepository.syncMessages(conversationId, nextPage).onSuccess {
+                _state.update { it.copy(currentPage = nextPage, isLoadMore = false) }
+            }.onFailure {
+                _state.update { it.copy(isLoadMore = false) }
             }
-            socket = IO.socket(BuildConfig.SOCKET_URL, options)
-
-            socket?.on(Socket.EVENT_CONNECT) {
-                val joinData = JSONObject().apply {
-                    put("conversationId", _state.value.conversationId)
-                }
-                socket?.emit("join-room", joinData)
-            }
-
-            socket?.on("text-chat") { args ->
-                try {
-                    if (args.isEmpty()) return@on
-                    val data = args.getOrNull(0) as? JSONObject ?: return@on
-                    val newMessage = ChatMessage(
-                        content = data.optString("content"),
-                        senderId = data.optInt("senderId"),
-                        who = "other",
-                        createdAt = "Just now"
-                    )
-                    onEvent(ChatEvent.NewMessageReceived(newMessage))
-                } catch (e: Exception) {
-                    // Ignore malformed payloads
-                }
-            }
-
-            socket?.connect()
-            isSocketInitialized = true
-        } catch (e: Exception) {
-            val errorMessage = "Cannot connect with chat server: ${e.message}"
-            android.util.Log.e("ChatViewModel", "Socket connection failed", e)
-            _state.update { it.copy(error = errorMessage) }
         }
     }
 
-    private fun teardownSocket() {
-        socket?.off()
-        socket?.disconnect()
-        socket = null
-        isSocketInitialized = false
-    }
-
-    private fun sendMessage() {
-        val text = _state.value.inputText
-        if (text.isBlank()) return
-
-        val tempMessage = ChatMessage(
-            content = text,
-            who = "me",
-            createdAt = "Just now",
-            isSending = true
-        )
-        _state.update { it.copy(
-            messages = it.messages + tempMessage,
-            inputText = ""
-        )}
-
-        // Check socket connectivity
-        if (socket == null || socket?.connected() != true) {
-            updateMessageStatus(tempMessage.id, success = false)
-            return
-        }
-
-        val payload = JSONObject().apply {
-            put("conversationId", _state.value.conversationId)
-            put("content", text)
-        }
+    private fun sendMessage(content: String, imageUrl: String? = null) {
+        val conversationId = currentConversationId ?: return
+        if (content.isBlank() && imageUrl == null) return
 
         viewModelScope.launch {
-            try {
-                var ackReceived = false
-                withTimeout(10000L) { // 10 second timeout
-                    socket?.emit(
-                        "text-chat",
-                        payload,
-                        Ack {
-                            ackReceived = true
-                            viewModelScope.launch {
-                                updateMessageStatus(tempMessage.id, success = true)
-                            }
-                        }
-                    )
-                    // Wait for ack
-                    while (!ackReceived) {
-                        delay(100)
-                    }
-                }
-            } catch (e: TimeoutCancellationException) {
-                updateMessageStatus(tempMessage.id, success = false)
-            }
+            val userId = _state.value.currentUserId
+            _state.update { it.copy(inputText = "") }
+            chatRepository.sendMessage(conversationId, userId, content, imageUrl)
         }
     }
 
-    private fun updateMessageStatus(tempId: String, success: Boolean) {
-        _state.update { currentState ->
-            val updatedMessages = currentState.messages.map {
-                if (it.id == tempId) {
-                    it.copy(isSending = false, isFailed = !success)
-                } else {
-                    it
-                }
+    private fun uploadAndSendImage(path: String) {
+        val conversationId = currentConversationId ?: return
+        viewModelScope.launch {
+            _state.update { it.copy(isUploadingImage = true) }
+            chatRepository.uploadImage(path).onSuccess { imageUrl ->
+                _state.update { it.copy(isUploadingImage = false) }
+                sendMessage("", imageUrl)
+            }.onFailure { error ->
+                _state.update { it.copy(isUploadingImage = false, error = "Failed to upload image") }
             }
-            currentState.copy(messages = updatedMessages)
         }
-    }
-
-    override fun onCleared() {
-        socket?.off()
-        socket?.disconnect()
-        super.onCleared()
     }
 }

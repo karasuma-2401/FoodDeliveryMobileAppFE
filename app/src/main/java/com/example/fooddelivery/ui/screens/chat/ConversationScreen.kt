@@ -56,7 +56,10 @@ fun ConversationScreen(
                     items(state.conversations) { conversation ->
                         ConversationItem(
                             conversation = conversation,
-                            onClick = { onNavigateToChat(conversation.id, conversation.restaurantName) }
+                            onClick = {
+                                viewModel.onEvent(ConversationEvent.MarkAsRead(conversation.id))
+                                onNavigateToChat(conversation.id, conversation.restaurantName)
+                            }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 24.dp),

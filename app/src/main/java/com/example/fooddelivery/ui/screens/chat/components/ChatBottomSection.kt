@@ -23,7 +23,9 @@ fun ChatBottomSection(
     inputText: String,
     orderStatus: String,
     onTextChange: (String) -> Unit,
-    onSend: () -> Unit
+    onSend: () -> Unit,
+    onAddClick: () -> Unit,
+    isUploading: Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -72,8 +74,15 @@ fun ChatBottomSection(
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { }) { 
-                Icon(Icons.Default.Add, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) 
+            IconButton(
+                onClick = onAddClick,
+                enabled = !isUploading
+            ) {
+                if (isUploading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.Default.Add, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) 
+                }
             }
             
             TextField(
@@ -92,17 +101,12 @@ fun ChatBottomSection(
                 modifier = Modifier.weight(1f),
                 textStyle = MaterialTheme.typography.bodyMedium
             )
-            
-            IconButton(onClick = { }) { 
-                Icon(Icons.Default.EmojiEmotions, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) 
-            }
-            
             IconButton(
                 onClick = onSend,
                 modifier = Modifier
                     .size(40.dp)
                     .background(MaterialTheme.colorScheme.primary, CircleShape),
-                enabled = inputText.isNotBlank()
+                enabled = (inputText.isNotBlank() || isUploading) && !isUploading
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
