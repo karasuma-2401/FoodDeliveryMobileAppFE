@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -12,16 +13,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.fooddelivery.ui.screens.chat.ChatMessage
+import com.example.fooddelivery.data.local.room.entity.MessageEntity
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
-fun ChatBubble(message: ChatMessage, restaurantImage: String, restaurantName: String = "Restaurant") {
-    val isMe = message.who == "me"
+fun ChatBubble(
+    message: MessageEntity,
+    currentUserId: String,
+    restaurantImage: String,
+    restaurantName: String = "Restaurant"
+) {
+    val isMe = message.senderId == currentUserId
+    
     val bubbleColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
     val textColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+
+    val timeStr = try {
+        val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        sdf.format(Date(message.createdAt.toLong()))
+    } catch (e: Exception) {
+        message.createdAt
+    }
 
     Column(
         modifier = Modifier
@@ -58,23 +75,51 @@ fun ChatBubble(message: ChatMessage, restaurantImage: String, restaurantName: St
                 tonalElevation = if (isMe) 0.dp else 2.dp,
                 modifier = Modifier.widthIn(max = 280.dp)
             ) {
-                Text(
-                    text = message.content,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = textColor
-                )
+                Column {
+                    if (message.imageUrl != null) {
+                        AsyncImage(
+                            model = message.imageUrl,
+                            contentDescription = "Image message",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .padding(4.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                    if (message.content.isNotBlank()) {
+                        Text(
+                            text = message.content,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = textColor
+                        )
+                    }
+                }
             }
         }
-        Text(
-            text = message.createdAt,
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(
                 top = 4.dp, 
                 start = if (isMe) 0.dp else 48.dp,
                 end = if (isMe) 12.dp else 0.dp
             )
-        )
+        ) {
+            Text(
+                text = timeStr,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+            if (isMe) {
+                Spacer(modifier = Modifier.width(4.dp))
+                if (message.isSending) {
+                    CircularProgressIndicator(modifier = Modifier.size(10.dp), strokeWidth = 1.dp)
+                } else if (message.isFailed) {
+                    Text("!", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
     }
 }

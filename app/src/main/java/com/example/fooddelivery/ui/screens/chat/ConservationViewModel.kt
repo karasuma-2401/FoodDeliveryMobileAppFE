@@ -2,63 +2,89 @@ package com.example.fooddelivery.ui.screens.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.data.local.room.entity.ConversationEntity
+import com.example.fooddelivery.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class Conversation(
-    val id: String = "",
-    val restaurantName: String = "",
-    val restaurantImage: String = "",
-    val lastMessage: String = "",
-    val lastMessageTime: String = "",
-    val unreadCount: Int = 0
-)
-
 data class ConversationListState(
-    val conversations: List<Conversation> = emptyList(),
+    val conversations: List<ConversationEntity> = emptyList(),
     val isLoading: Boolean = false,
     val searchQuery: String = ""
 )
 
 sealed interface ConversationEvent {
-    object LoadConversations : ConversationEvent
+    object SyncConversations : ConversationEvent
     data class OnSearchQueryChanged(val query: String) : ConversationEvent
+    data class MarkAsRead(val conversationId: String) : ConversationEvent
 }
 
 @HiltViewModel
-class ConversationViewModel @Inject constructor() : ViewModel() {
-    private val _state = MutableStateFlow(ConversationListState())
-    val state = _state.asStateFlow()
+class ConversationViewModel @Inject constructor(
+    private val chatRepository: ChatRepository
+) : ViewModel() {
+
+    private val _searchQuery = MutableStateFlow("")
+    private val _isLoading = MutableStateFlow(false)
+
+    val state: StateFlow<ConversationListState> = combine(
+        chatRepository.getConversations(),
+        _searchQuery,
+        _isLoading
+    ) { conversations, query, loading ->
+        val filteredConversations = if (query.isEmpty()) {
+            conversations
+        } else {
+            conversations.filter {
+                it.restaurantName.contains(query, ignoreCase = true)
+            }
+        }
+        ConversationListState(
+            conversations = filteredConversations,
+            searchQuery = query,
+            isLoading = loading
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ConversationListState()
+    )
 
     init {
-        onEvent(ConversationEvent.LoadConversations)
+        onEvent(ConversationEvent.SyncConversations)
     }
 
     fun onEvent(event: ConversationEvent) {
         when (event) {
-            is ConversationEvent.LoadConversations -> fetchConversations()
+            is ConversationEvent.SyncConversations -> syncConversations()
+            is ConversationEvent.MarkAsRead -> markAsRead(event.conversationId)
             is ConversationEvent.OnSearchQueryChanged -> {
-                _state.update { it.copy(searchQuery = event.query) }
+                _searchQuery.value = event.query
             }
         }
     }
 
-    private fun fetchConversations() {
+    private fun syncConversations() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-                // call api here
-            _state.update { it.copy(
-                conversations = listOf(
-                    Conversation("1", "Rose Garden Restaurant", "", "De quán đã note lại rùi e...", "12:46 PM", 0),
-                    Conversation("2", "Pizza Hut", "", "Đơn hàng của bạn đang được giao", "Yesterday", 2),
-                    Conversation("3", "Starbucks", "", "Chào bạn, mình có thể giúp gì?", "Monday", 0)
-                ),
-                isLoading = false
-            ) }
+            try {
+                _isLoading.value = true
+                chatRepository.syncConversations()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private fun markAsRead(id: String) {
+        viewModelScope.launch {
+            chatRepository.markAsRead(id)
         }
     }
 }

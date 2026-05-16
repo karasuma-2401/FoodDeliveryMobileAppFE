@@ -1,7 +1,9 @@
 package com.example.fooddelivery.di
 
+import com.example.fooddelivery.BuildConfig
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.api.ChatApi
 import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.UserApi
@@ -11,11 +13,14 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.socket.client.Socket
+import io.socket.client.IO
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import java.net.URISyntaxException
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -109,10 +114,26 @@ object NetworkModule {
     fun provideOrderApi(@Named("MainRetrofit") retrofit: Retrofit): OrderApi {
         return retrofit.create(OrderApi::class.java)
     }
+    @Provides
+    @Singleton
+    fun provideChatApi(@Named("MainRetrofit") retrofit: Retrofit): ChatApi {
+        return retrofit.create(ChatApi::class.java)
+    }
 
     @Provides
     @Singleton
     fun providePhotonService(@Named("PhotonRetrofit") retrofit: Retrofit): PhotonService {
         return retrofit.create(PhotonService::class.java)
+    }
+    @Provides
+    @Singleton
+    fun provideSocket(): Socket {
+        return try {
+            val options = IO.Options()
+            options.reconnection = true
+            IO.socket(BuildConfig.API_BASE_URL, options)
+        } catch (e: URISyntaxException) {
+            throw RuntimeException(e)
+        }
     }
 }

@@ -6,9 +6,9 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +24,7 @@ data class SearchState(
     val suggestedRestaurants: List<Restaurant> = emptyList(),
     val popularFood: List<FoodItem> = emptyList(),
     val cartItemCount: Int = 0,
+    val unreadMessageCount: Int = 0,
     val isLoading: Boolean = false,
     val selectedLocation: String = "Home",
     val availableLocations: List<String> = listOf("Home", "Work", "Other")
@@ -38,7 +39,8 @@ sealed interface SearchEvent {
 }
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(SearchState())
     val state: StateFlow<SearchState> = _state.asStateFlow()
@@ -51,12 +53,22 @@ class SearchViewModel @Inject constructor(
     init {
         onEvent(SearchEvent.LoadSearchData)
         observeCart()
+        observeUnreadMessages()
     }
     private fun observeCart() {
         viewModelScope.launch {
             cartRepository.getCartItems().collectLatest { items ->
                 val totalCount = items.sumOf { it.quantity }
                 _state.update { it.copy(cartItemCount = totalCount) }
+            }
+        }
+    }
+
+    private fun observeUnreadMessages() {
+        viewModelScope.launch {
+            chatRepository.getConversations().collectLatest { conversations ->
+                val totalUnread = conversations.sumOf { it.unreadCount }
+                _state.update { it.copy(unreadMessageCount = totalUnread) }
             }
         }
     }

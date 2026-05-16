@@ -35,6 +35,7 @@ import java.util.Calendar
 @Composable
 fun HomeScreen(
     onNavigateToCart: () -> Unit,
+    onNavigateToConversations: () -> Unit,
     onNavigateToRestaurant: (String) -> Unit,
     onNavigateToCategory: (String) -> Unit,
     onNavigateToAllCategories: () -> Unit,
@@ -51,6 +52,7 @@ fun HomeScreen(
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 is HomeUiEffect.NavigateToCart -> onNavigateToCart()
+                is HomeUiEffect.NavigateToConversations -> onNavigateToConversations()
                 is HomeUiEffect.NavigateToAllCategories -> onNavigateToAllCategories()
                 is HomeUiEffect.NavigateToAllRestaurants -> onNavigateToAllRestaurants()
                 is HomeUiEffect.NavigateToCategory -> onNavigateToCategory(effect.categoryId)
@@ -98,7 +100,9 @@ fun HomeContent(
                 availableLocations = state.availableLocations,
                 onLocationSelected = { onEvent(HomeEvent.LocationSelected(it)) },
                 cartItemCount = state.cartItemCount,
-                onCartClick = { onEvent(HomeEvent.CartClicked) }
+                unreadMessageCount = state.unreadMessageCount,
+                onCartClick = { onEvent(HomeEvent.CartClicked) },
+                onMessageClick = { onEvent(HomeEvent.MessageClicked) }
             )
         },
         bottomBar = {

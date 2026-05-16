@@ -26,4 +26,7 @@
     <string name="congratulations">Congratulations!</string>
     <string name="payment_success_message">You successfully made a payment,\nenjoy our service!</string>
     <string name="payment_success">Payment successful</string>
+
+    <!-- Chat -->
+    <string name="add_attachment">Add attachment</string>
 </resources>
