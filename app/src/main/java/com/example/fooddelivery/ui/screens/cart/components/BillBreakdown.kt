@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 
 @Composable
 fun BillBreakdown(
@@ -50,7 +51,7 @@ fun BillBreakdown(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "-$${String.format("%.2f", discount)}",
+                        text = "-$${String.format(Locale.US, "%.2f",discount)}",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -73,7 +74,7 @@ fun BillBreakdown(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "$${String.format("%.2f", total)}",
+                    text = "$${String.format(Locale.US, "%.2f",total)}",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary
@@ -96,7 +97,7 @@ private fun BillRow(label: String, value: Double) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = "$${String.format("%.2f", value)}",
+            text = "$${String.format(Locale.US, "%.2f",value)}",
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )

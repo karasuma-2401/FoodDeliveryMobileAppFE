@@ -119,7 +119,10 @@ fun OnboardingScreen(
                     }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                TextButton(onClick = onFinishOnboarding) {
+                TextButton(onClick = {
+                    viewModel.saveOnboardingState(completed = true)
+                    onFinishOnboarding()
+                }) {
                     Text(
                         text = "Skip",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),

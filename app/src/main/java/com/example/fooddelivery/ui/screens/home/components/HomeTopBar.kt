@@ -171,9 +171,10 @@ fun HomeTopBar(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .offset(x = 2.dp, y = (-2).dp)
-                            .size(18.dp)
+                            .sizeIn(minWidth = 18.dp, minHeight = 18.dp)
                             .background(MaterialTheme.colorScheme.error, CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.background, CircleShape),
+                            .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
+                            .padding(horizontal = 4.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(

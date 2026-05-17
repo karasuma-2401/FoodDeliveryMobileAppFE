@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 
 @Composable
 fun CheckoutBillBreakdown(
@@ -38,16 +39,16 @@ fun CheckoutBillBreakdown(
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Subtotal", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("$${String.format("%.2f", subtotal)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text("$${String.format(Locale.US, "%.2f",subtotal)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Delivery Fee", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("$${String.format("%.2f", deliveryFee)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text("$${String.format(Locale.US, "%.2f",deliveryFee)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
             if (discount > 0) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Discount", color = MaterialTheme.colorScheme.primary)
-                    Text("-$${String.format("%.2f", discount)}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Text("-$${String.format(Locale.US, "%.2f",discount)}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -66,7 +67,7 @@ fun CheckoutBillBreakdown(
                     )
                 )
                 Text(
-                    text = "$${String.format("%.2f", total)}",
+                    text = "$${String.format(Locale.US, "%.2f",total)}",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary

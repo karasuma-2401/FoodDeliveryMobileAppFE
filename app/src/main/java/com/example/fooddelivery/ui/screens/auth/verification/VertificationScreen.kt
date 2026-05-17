@@ -168,7 +168,10 @@ fun VerificationContent(
                         text = buildAnnotatedString {
                             append("Resend in  ")
                             withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                val timeString = if (state.timeLeft < 10) "0:0${state.timeLeft}" else "0:${state.timeLeft}"
+                                val minutes = state.timeLeft / 60
+                                val seconds = state.timeLeft % 60
+                                val secondsFormatted = if (seconds < 10) "0$seconds" else "$seconds"
+                                val timeString = "$minutes:$secondsFormatted"
                                 append(timeString)
                             }
                         },

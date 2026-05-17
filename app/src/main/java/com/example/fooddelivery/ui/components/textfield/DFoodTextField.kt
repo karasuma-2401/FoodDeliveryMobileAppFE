@@ -38,11 +38,10 @@ fun DFoodFTextField (
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { 
+        label = {
             Text(
-                text = label, 
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                text = label,
+                style = MaterialTheme.typography.bodyMedium
             )
         },
         modifier = modifier.fillMaxWidth(),

@@ -15,8 +15,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.defaultMinSize
 import coil.compose.AsyncImage
 import com.example.fooddelivery.data.local.room.entity.ConversationEntity
+
+private fun formatUnreadCount(unreadCount: Int): String = if (unreadCount > 99) "99+" else unreadCount.toString()
 
 @Composable
 fun ConversationItem(
@@ -80,11 +83,13 @@ fun ConversationItem(
                     Surface(
                         color = MaterialTheme.colorScheme.primary,
                         shape = CircleShape,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier
+                            .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+                            .padding(horizontal = 4.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
-                                text = conversation.unreadCount.toString(),
+                                text = formatUnreadCount(conversation.unreadCount),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onPrimary
                             )

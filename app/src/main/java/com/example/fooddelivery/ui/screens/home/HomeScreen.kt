@@ -218,17 +218,12 @@ fun HomeContent(
                                 onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
                             )
                         }
-                        val scope = rememberCoroutineScope()
                         with(pagerState) {
                             LaunchedEffect(key1 = currentPage) {
-                                launch {
-                                    delay(2500)
-                                    scope.launch {
-                                        animateScrollToPage(
-                                            page = (currentPage + 1).mod(pageCount)
-                                        )
-                                    }
-                                }
+                                delay(2500)
+                                animateScrollToPage(
+                                    page = (currentPage + 1).mod(pageCount)
+                                )
                             }
                         }
                     }
