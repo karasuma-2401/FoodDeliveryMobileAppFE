@@ -27,7 +27,8 @@ fun AddressCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 0.dp
+        shadowElevation = 2.dp,
+        tonalElevation = 1.dp
     ) {
         Row(
             modifier = Modifier
@@ -39,13 +40,13 @@ fun AddressCard(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFFF1E9)),
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
-                    tint = Color(0xFFFF7622),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -57,8 +58,8 @@ fun AddressCard(
                     text = address?.title ?: "No address selected",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = if (address != null) "${address.streetName}, ${address.city}" else "Please add a delivery address",
@@ -68,10 +69,14 @@ fun AddressCard(
                 )
             }
 
-            TextButton(onClick = onChangeClick) {
+            TextButton(
+                onClick = onChangeClick,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
                 Text(
                     text = "Change",
-                    color = Color(0xFF9C4400),
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }

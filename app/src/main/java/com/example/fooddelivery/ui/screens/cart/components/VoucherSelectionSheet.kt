@@ -46,7 +46,7 @@ fun VoucherSelectionSheet(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(0.9f)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Box(
             modifier = Modifier
@@ -55,17 +55,23 @@ fun VoucherSelectionSheet(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Select vouchers",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                text = "Select Vouchers",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
             )
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .size(36.dp)
-                    .background(Color(0xFFF3F3F3), CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
             ) {
-                Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = Icons.Default.Close, 
+                    contentDescription = null, 
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -80,21 +86,29 @@ fun VoucherSelectionSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(64.dp)
-                        .border(1.dp, Color(0xFFE8E8E8), RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                         .padding(start = 16.dp, end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextField(
                         value = promoCode,
                         onValueChange = onPromoCodeChange,
-                        placeholder = { Text("Enter the discounts code", color = Color.Gray, fontSize = 14.sp) },
+                        placeholder = { 
+                            Text(
+                                text = "Enter the discounts code", 
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), 
+                                fontSize = 14.sp
+                            ) 
+                        },
                         modifier = Modifier.weight(1f),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             disabledContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         singleLine = true
                     )
@@ -103,7 +117,10 @@ fun VoucherSelectionSheet(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxHeight(0.8f).width(90.dp),
                         contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF7622))
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         Text("Apply", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
@@ -113,9 +130,18 @@ fun VoucherSelectionSheet(
                         modifier = Modifier.padding(top = 8.dp, start = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.ErrorOutline, null, tint = Color.Red, modifier = Modifier.size(14.dp))
+                        Icon(
+                            imageVector = Icons.Default.ErrorOutline, 
+                            contentDescription = null, 
+                            tint = MaterialTheme.colorScheme.error, 
+                            modifier = Modifier.size(14.dp)
+                        )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(promoError, color = Color.Red, fontSize = 12.sp)
+                        Text(
+                            text = promoError, 
+                            color = MaterialTheme.colorScheme.error, 
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
@@ -123,7 +149,8 @@ fun VoucherSelectionSheet(
                 Spacer(modifier = Modifier.height(28.dp))
                 Text(
                     text = "Available Discounts",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -146,7 +173,8 @@ fun VoucherSelectionSheet(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shadowElevation = 16.dp,
-            color = Color.White
+            tonalElevation = 4.dp,
+            color = MaterialTheme.colorScheme.surface
         ) {
             Button(
                 onClick = { onConfirm(tempSelectedVoucher) },
@@ -157,14 +185,19 @@ fun VoucherSelectionSheet(
                 shape = RoundedCornerShape(16.dp),
                 enabled = tempSelectedId != null,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFF7622),
-                    disabledContainerColor = Color(0xFFFF7622).copy(alpha = 0.5f)
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                 )
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Using Discount", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(18.dp))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward, 
+                        contentDescription = null, 
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
         }
@@ -184,9 +217,13 @@ fun VoucherItemRow(
             .fillMaxWidth()
             .alpha(alpha),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
-        border = BorderStroke(1.dp, if (isSelected) Color(0xFFFF7622) else Color(0xFFF0F0F0)),
-        onClick = onSelect
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            width = 1.dp, 
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        ),
+        onClick = onSelect,
+        tonalElevation = if (isSelected) 2.dp else 0.dp
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -196,7 +233,10 @@ fun VoucherItemRow(
             Box(
                 modifier = Modifier
                     .size(100.dp)
-                    .background(if (voucher.type == VoucherType.DISCOUNT) Color(0xFFFF7622) else Color(0xFFF3F3F3)),
+                    .background(
+                        if (voucher.type == VoucherType.DISCOUNT) MaterialTheme.colorScheme.primary 
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
@@ -208,7 +248,7 @@ fun VoucherItemRow(
                     Icon(
                         imageVector = if (voucher.type == VoucherType.DISCOUNT) Icons.Default.Percent else Icons.Default.LocalShipping,
                         contentDescription = null,
-                        tint = if (voucher.type == VoucherType.DISCOUNT) Color.White else Color.Gray,
+                        tint = if (voucher.type == VoucherType.DISCOUNT) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -222,12 +262,12 @@ fun VoucherItemRow(
                     text = voucher.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = voucher.description,
                     fontSize = 12.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                     lineHeight = 16.sp
                 )
                 
@@ -235,26 +275,43 @@ fun VoucherItemRow(
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
                         modifier = Modifier
-                            .background(Color(0xFFFFF1E9), RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(4.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        Text(voucher.expiryText, color = Color(0xFFFF7622), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = voucher.expiryText, 
+                            color = MaterialTheme.colorScheme.onPrimaryContainer, 
+                            fontSize = 10.sp, 
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
                 
                 if (voucher.conditionMessage != null) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.ErrorOutline, null, tint = Color(0xFFFF7622), modifier = Modifier.size(12.dp))
+                        Icon(
+                            imageVector = Icons.Default.ErrorOutline, 
+                            contentDescription = null, 
+                            tint = MaterialTheme.colorScheme.primary, 
+                            modifier = Modifier.size(12.dp)
+                        )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(voucher.conditionMessage, color = Color.Gray, fontSize = 11.sp)
+                        Text(
+                            text = voucher.conditionMessage, 
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
+                            fontSize = 11.sp
+                        )
                     }
                 }
             }
             RadioButton(
                 selected = isSelected,
                 onClick = onSelect,
-                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFFF7622))
+                colors = RadioButtonDefaults.colors(
+                    selectedColor = MaterialTheme.colorScheme.primary,
+                    unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
             )
             Spacer(modifier = Modifier.width(8.dp))
         }

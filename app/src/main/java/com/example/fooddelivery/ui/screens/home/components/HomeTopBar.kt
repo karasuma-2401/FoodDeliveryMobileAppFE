@@ -52,7 +52,7 @@ fun HomeTopBar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -81,7 +81,7 @@ fun HomeTopBar(
                     Text(
                         text = selectedLocation,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                         maxLines = 1
                     )
                     Icon(
@@ -116,15 +116,14 @@ fun HomeTopBar(
                 modifier = Modifier
                     .size(45.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { onCartClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Outlined.ShoppingBag,
                     contentDescription = "Cart",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp)
                 )
 
@@ -136,14 +135,14 @@ fun HomeTopBar(
                             .widthIn(min = 18.dp)
                             .height(18.dp)
                             .background(MaterialTheme.colorScheme.primary, CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                            .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
                             .padding(horizontal = 4.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = if (cartItemCount > 99) "99+" else cartItemCount.toString(),
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 8.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -156,15 +155,14 @@ fun HomeTopBar(
                 modifier = Modifier
                     .size(45.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { onMessageClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.Message,
                     contentDescription = "Messages",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp)
                 )
 
@@ -174,14 +172,14 @@ fun HomeTopBar(
                             .align(Alignment.TopEnd)
                             .offset(x = 2.dp, y = (-2).dp)
                             .size(18.dp)
-                            .background(Color.Red, CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                            .background(MaterialTheme.colorScheme.error, CircleShape)
+                            .border(2.dp, MaterialTheme.colorScheme.background, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = if (unreadMessageCount > 99) "99+" else unreadMessageCount.toString(),
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onError,
                                 fontSize = 8.sp,
                                 fontWeight = FontWeight.Bold
                             )

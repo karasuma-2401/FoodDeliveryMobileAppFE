@@ -30,8 +30,9 @@ fun ChatBubble(
 ) {
     val isMe = message.senderId == currentUserId
     
-    val bubbleColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    val textColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    // Modern chat bubble colors
+    val bubbleColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
+    val textColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
 
     val timeStr = try {
         val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
@@ -71,8 +72,8 @@ fun ChatBubble(
                     bottomStart = if (isMe) 20.dp else 4.dp,
                     bottomEnd = if (isMe) 4.dp else 20.dp
                 ),
-                shadowElevation = if (isMe) 0.dp else 2.dp,
-                tonalElevation = if (isMe) 0.dp else 2.dp,
+                shadowElevation = if (isMe) 2.dp else 1.dp,
+                tonalElevation = 2.dp,
                 modifier = Modifier.widthIn(max = 280.dp)
             ) {
                 Column {
@@ -83,7 +84,7 @@ fun ChatBubble(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(max = 200.dp)
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(12.dp))
                                 .padding(4.dp),
                             contentScale = ContentScale.Fit
                         )
@@ -115,7 +116,11 @@ fun ChatBubble(
             if (isMe) {
                 Spacer(modifier = Modifier.width(4.dp))
                 if (message.isSending) {
-                    CircularProgressIndicator(modifier = Modifier.size(10.dp), strokeWidth = 1.dp)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(10.dp), 
+                        strokeWidth = 1.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 } else if (message.isFailed) {
                     Text("!", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }

@@ -85,7 +85,6 @@ fun OrderContent(
                     .padding(innerPadding)
             ) {
 
-
                 TabRow(
                     selectedTabIndex = pagerState.currentPage,
                     containerColor = Color.Transparent,
@@ -99,7 +98,7 @@ fun OrderContent(
                         }
                     },
                     divider = {
-                        HorizontalDivider(color = Color(0xFFF0F0F0))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     }
                 ) {
                     val tabs = listOf("Ongoing", "History")
@@ -112,8 +111,9 @@ fun OrderContent(
                                     text = title,
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary else Color.LightGray
-                                    )
+                                    ),
+                                    color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary 
+                                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             }
                         )
@@ -141,7 +141,7 @@ fun OrderContent(
             if (state.isLoading) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.Black.copy(alpha = 0.3f)
+                    color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
@@ -158,19 +158,30 @@ fun OrderList(
     onPrimaryAction: (String) -> Unit,
     onSecondaryAction: (String, String) -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
-        contentPadding = PaddingValues(vertical = 16.dp)
-    ) {
-        items(orders) { order ->
-            OrderItemCard(
-                order = order,
-                onPrimaryAction = { onPrimaryAction(order.id) },
-                onSecondaryAction = { onSecondaryAction(order.id, order.restaurantName) }
+    if (orders.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = "No orders found", 
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
+        ) {
+            items(orders) { order ->
+                OrderItemCard(
+                    order = order,
+                    onPrimaryAction = { onPrimaryAction(order.id) },
+                    onSecondaryAction = { onSecondaryAction(order.id, order.restaurantName) }
+                )
+            }
         }
     }
 }
+
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun OrdersScreenPreview() {

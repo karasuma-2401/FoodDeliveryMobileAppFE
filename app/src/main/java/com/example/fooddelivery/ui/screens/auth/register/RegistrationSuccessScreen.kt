@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -100,7 +99,7 @@ fun RegistrationSuccessScreen(
                             spotColor = Color.Black.copy(alpha = 0.1f)
                         )
                         .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                             shape = RoundedCornerShape(16.dp),
                         )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -109,7 +108,7 @@ fun RegistrationSuccessScreen(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_gift),
                         contentDescription = null,
-                        tint = Color.Unspecified,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -127,7 +126,7 @@ fun RegistrationSuccessScreen(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(64.dp))
 
             Text(
                 text = "Welcome to DFood!",
@@ -146,7 +145,7 @@ fun RegistrationSuccessScreen(
                 lineHeight = 24.sp
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
             Button(
                 onClick = onStartOrdering,
@@ -155,11 +154,15 @@ fun RegistrationSuccessScreen(
                     .padding(horizontal = 24.dp)
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Text(
                     text = "START ORDERING",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.25.sp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
@@ -179,25 +182,29 @@ fun RegistrationSuccessScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
             ) {
                 Text(
                     text = "View My Profile",
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun RegistrationSuccessScreenPreview() {
-//    DFoodTheme{
-//        RegistrationSuccessScreen(
-//            onStartOrdering = {},
-//            onViewProfile = {},
-//            onClose = {}
-//        )
-//    }
-//}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun RegistrationSuccessScreenPreview() {
+    DFoodTheme {
+        RegistrationSuccessScreen(
+            onStartOrdering = {},
+            onViewProfile = {},
+            onClose = {}
+        )
+    }
+}

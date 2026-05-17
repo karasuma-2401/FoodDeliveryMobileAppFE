@@ -75,7 +75,7 @@ fun LocationContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 32.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -92,12 +92,12 @@ fun LocationContent(
                 Surface(
                     modifier = Modifier.size(32.dp),
                     shape = CircleShape,
-                    color = Color.White.copy(alpha = 0.25f)
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.25f)
                 ) {
                     Icon(
                         imageVector = Icons.Default.MyLocation,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.padding(6.dp)
                     )
                 }
@@ -113,12 +113,13 @@ fun LocationContent(
                 letterSpacing = 1.sp,
                 lineHeight = 24.sp
             ),
-            color = Color(0xFF9EA1B1),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
     }
 }
+
 @Preview (showSystemUi = true, showBackground = true)
 @Composable
 fun LocationScreenPreview() {
@@ -129,4 +130,3 @@ fun LocationScreenPreview() {
         )
     }
 }
-

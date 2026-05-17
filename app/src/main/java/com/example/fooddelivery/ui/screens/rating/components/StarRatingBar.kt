@@ -23,7 +23,9 @@ fun StarRatingBar(
     onRRatingChanged: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-   val starColor = if (rating >= 4) Color(0xFFFFB800) else MaterialTheme.colorScheme.primary
+    // Modern star rating uses secondary color for "active" states
+    val starColor = MaterialTheme.colorScheme.secondary
+    
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -32,9 +34,9 @@ fun StarRatingBar(
         for (i in 1..5) {
             val isChecked = i <= rating
             Icon(
-                imageVector = if (isChecked) Icons.Filled.Star else Icons.Filled.Star,
+                imageVector = Icons.Filled.Star,
                 contentDescription = "Rate $i star${if (i > 1) "s" else ""}",
-                tint = if (isChecked) starColor else MaterialTheme.colorScheme.outlineVariant,
+                tint = if (isChecked) starColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                 modifier = Modifier
                     .size(48.dp)
                     .clickable(

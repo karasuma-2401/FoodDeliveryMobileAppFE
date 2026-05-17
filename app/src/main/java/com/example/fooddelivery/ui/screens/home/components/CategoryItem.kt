@@ -34,7 +34,10 @@ fun CategoryItem(
             .padding(vertical = 4.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -57,7 +60,7 @@ fun CategoryItem(
                 
                 category.promoText?.let { promo ->
                     val badgeColor = if (promo.contains("PROMO", ignoreCase = true)) 
-                        Color(0xFFF58D1F) else Color(0xFFF15A5A)
+                        MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error
                     
                     Box(
                         modifier = Modifier
@@ -69,7 +72,8 @@ fun CategoryItem(
                     ) {
                         Text(
                             text = promo,
-                            color = Color.White,
+                            color = if (promo.contains("PROMO", ignoreCase = true)) 
+                                MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onError,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -81,7 +85,7 @@ fun CategoryItem(
             Text(
                 text = category.name,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
         }

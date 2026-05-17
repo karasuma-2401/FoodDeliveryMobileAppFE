@@ -25,10 +25,15 @@ fun SearchInputField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp),
-        placeholder = { Text("Pizza", color = Color.LightGray) },
+        placeholder = { 
+            Text(
+                text = "Pizza", 
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            ) 
+        },
         leadingIcon = { 
             Icon(
-                Icons.Default.Search, 
+                imageVector = Icons.Default.Search, 
                 contentDescription = null, 
                 tint = MaterialTheme.colorScheme.primary
             ) 
@@ -36,9 +41,10 @@ fun SearchInputField(
         trailingIcon = {
             if (query.isNotEmpty()) {
                 Icon(
-                    Icons.Default.Close,
+                    imageVector = Icons.Default.Close,
                     contentDescription = "Clear",
-                    modifier = Modifier.clickable { onClear() }
+                    modifier = Modifier.clickable { onClear() },
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -46,8 +52,8 @@ fun SearchInputField(
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent,
-            focusedContainerColor = Color(0xFFF6F6F6),
-            unfocusedContainerColor = Color(0xFFF6F6F6)
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
         singleLine = true
     )

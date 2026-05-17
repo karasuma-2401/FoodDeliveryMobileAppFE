@@ -105,7 +105,11 @@ fun UserReviewContent(
         ) {
             if (state.reviews.isEmpty() && !state.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("You haven't written any reviews yet.", color = Color.Gray)
+                    Text(
+                        text = "You haven't written any reviews yet.", 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             } else {
                 LazyColumn(

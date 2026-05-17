@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 @Composable
 fun BillBreakdown(
     subtotal: Double,
@@ -32,31 +33,34 @@ fun BillBreakdown(
                 text = "Order Summary",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
             BillRow(label = "Subtotal", value = subtotal)
             BillRow(label = "Delivery Fee", value = deliveryFee)
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Discount",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFF4CAF50)
-                )
-                Text(
-                    text = "-$${String.format("%.2f", discount)}",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color(0xFF4CAF50)
-                )
+            if (discount > 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Discount",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "-$${String.format("%.2f", discount)}",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
+            
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 4.dp),
                 thickness = 1.dp,
-                color = Color.LightGray.copy(alpha = 0.3f)
+                color = MaterialTheme.colorScheme.outlineVariant
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -66,19 +70,20 @@ fun BillBreakdown(
                 Text(
                     text = "Total",
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "$${String.format("%.2f", total)}",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF9C4400)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
             }
         }
     }
 }
+
 @Composable
 private fun BillRow(label: String, value: Double) {
     Row(
@@ -93,7 +98,7 @@ private fun BillRow(label: String, value: Double) {
         Text(
             text = "$${String.format("%.2f", value)}",
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

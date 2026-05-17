@@ -3,6 +3,7 @@ package com.example.fooddelivery.ui.screens.checkout
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -82,8 +83,9 @@ fun CheckoutScreen(
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.background,
-                shadowElevation = 8.dp
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 16.dp,
+                tonalElevation = 4.dp
             ) {
                 Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(24.dp)) {
                     val buttonText = if (state.paymentMethod is PaymentMethod.MoMo) {
@@ -95,14 +97,20 @@ fun CheckoutScreen(
                         text = buttonText,
                         onClick = { viewModel.onEvent(CheckoutEvent.PlaceOrder) },
                         isLoading = state.isLoading || state.isPolling,
-                        containerColor = if (state.paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) else Color(0xFFFF7622),
+                        containerColor = if (state.paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) else MaterialTheme.colorScheme.primary,
                         trailingIcon = {
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward, 
+                                contentDescription = null, 
+                                tint = MaterialTheme.colorScheme.onPrimary, 
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     )
                 }
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -152,7 +160,7 @@ fun CheckoutScreen(
             if (state.isLoading || state.isPolling) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.Black.copy(alpha = 0.4f)
+                    color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f)
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -162,7 +170,12 @@ fun CheckoutScreen(
                         CircularProgressIndicator(color = Color.White)
                         if (state.isPolling) {
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Checking payment status...", color = Color.White, fontWeight = FontWeight.Medium)
+                            Text(
+                                text = "Checking payment status...", 
+                                color = Color.White, 
+                                fontWeight = FontWeight.Medium,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                         }
                     }
                 }

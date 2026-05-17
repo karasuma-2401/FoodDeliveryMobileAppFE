@@ -43,7 +43,7 @@ fun DFoodBottomBar(
     )
 
     NavigationBar(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp,
     ) {
         items.forEach { item ->
@@ -58,8 +58,8 @@ fun DFoodBottomBar(
                         text = item.title,
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontSize = 12.sp,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray
-                        )
+                        ),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 },
                 icon = {
@@ -67,11 +67,15 @@ fun DFoodBottomBar(
                         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
                         contentDescription = item.title,
                         modifier = Modifier.size(24.dp),
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
             )
         }

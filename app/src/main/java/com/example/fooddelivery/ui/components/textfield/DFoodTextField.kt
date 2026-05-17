@@ -38,7 +38,13 @@ fun DFoodFTextField (
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(text = label , style = MaterialTheme.typography.bodyMedium)},
+        label = { 
+            Text(
+                text = label, 
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         keyboardOptions = keyboardOptions,
@@ -51,6 +57,7 @@ fun DFoodFTextField (
                 Text(
                     text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         },
@@ -68,7 +75,11 @@ fun DFoodFTextField (
                         R.drawable.ic_eye_close
                 }
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(painter = painterResource(id = image), contentDescription = "Toggle Password")
+                    Icon(
+                        painter = painterResource(id = image), 
+                        contentDescription = "Toggle Password",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         },
@@ -81,13 +92,17 @@ fun DFoodFTextField (
             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
             errorBorderColor = MaterialTheme.colorScheme.error,
 
-            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
             cursorColor = MaterialTheme.colorScheme.primary,
 
             focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
             unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             errorLeadingIconColor = MaterialTheme.colorScheme.error,
+            
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            errorLabelColor = MaterialTheme.colorScheme.error,
         )
     )
 }

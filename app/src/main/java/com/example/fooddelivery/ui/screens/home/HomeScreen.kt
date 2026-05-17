@@ -88,7 +88,7 @@ fun HomeContent(
     
     if (state.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
@@ -140,15 +140,23 @@ fun HomeContent(
                         .clip(RoundedCornerShape(12.dp))
                         .clickable { onNavigateToSearch() },
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFF6F6F6)
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Search, null, tint = Color.Gray)
+                        Icon(
+                            Icons.Default.Search, 
+                            contentDescription = null, 
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Search dishes, restaurants", color = Color.Gray)
+                        Text(
+                            text = "Search dishes, restaurants", 
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))

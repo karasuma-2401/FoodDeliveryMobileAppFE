@@ -37,22 +37,10 @@ fun PaymentMethodScreen(
     PaymentMethodContent(
         state = state,
         onNavigateBack = onNavigateBack,
-        viewModel = viewModel
-    )
-}
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PaymentMethodContent(
-    state: PaymentMethodState,
-    onNavigateBack: () -> Unit,
-    viewModel: PaymentMethodViewModel
-) {
-    PaymentMethodContent(
-        state = state,
-        onNavigateBack = onNavigateBack,
         onEvent = viewModel::onEvent
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentMethodContent(
@@ -67,30 +55,41 @@ fun PaymentMethodContent(
                 onBackClick = onNavigateBack
             )
         },
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            Button(
-                onClick = { onEvent(PaymentMethodEvent.LinkNewMoMo) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .height(60.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFA50064)
-                ),
-                enabled = !state.isLoading
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 16.dp,
+                tonalElevation = 4.dp
             ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                } else {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        "LINK NEW MOMO WALLET",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+                Button(
+                    onClick = { onEvent(PaymentMethodEvent.LinkNewMoMo) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFA50064), // MoMo Brand Color
+                        contentColor = Color.White
+                    ),
+                    enabled = !state.isLoading,
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "LINK NEW MOMO WALLET",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.25.sp
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -110,12 +109,12 @@ fun PaymentMethodContent(
                         text = "Linked Wallets",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF32343E)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Manage your MoMo accounts for 1-touch payment",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF646982)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -128,7 +127,7 @@ fun PaymentMethodContent(
                                 .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = Color(0xFFA50064))
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 } else if (state.linkedMoMoMethods.isEmpty()) {
@@ -150,7 +149,7 @@ fun PaymentMethodContent(
                         text = "Other Methods",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF32343E)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     CodMethodInfo()
@@ -176,5 +175,3 @@ fun PaymentMethodScreenPreview() {
         )
     }
 }
-
-

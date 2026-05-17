@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,11 +24,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.home.components.RestaurantItem
 
@@ -45,6 +46,7 @@ fun AllRestaurantScreen(
         onNavigateToRestaurantDetail = onNavigateToRestaurantDetail,
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllRestaurantsContent(
@@ -63,8 +65,8 @@ fun AllRestaurantsContent(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        if(state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        if(state.isLoading && state.restaurants.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
@@ -78,11 +80,35 @@ fun AllRestaurantsContent(
                     InputChip(
                         selected = true,
                         onClick = { onEvent.invoke(AllRestaurantsEvent.ToggleSortSheet(true)) },
-                        label = { Text(" ${state.currentSortOption.title}") },
-                        trailingIcon = { Icon(Icons.Default.KeyboardArrowDown, null) }
+                        label = { 
+                            Text(
+                                text = " ${state.currentSortOption.title}",
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                            ) 
+                        },
+                        trailingIcon = { 
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown, 
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            ) 
+                        },
+                        colors = InputChipDefaults.inputChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        border = InputChipDefaults.inputChipBorder(
+                            enabled = true,
+                            selected = true,
+                            borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                        )
                     )
                 }
-                LazyColumn(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(bottom = 24.dp)
+                ) {
                     items(
                         count = state.restaurants.size,
                         key = { index -> state.restaurants[index].id }
@@ -118,7 +144,7 @@ fun AllRestaurantsContent(
                         item {
                             Text(
                                 text = "You've reached the end of the list!",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier
                                     .fillMaxWidth()

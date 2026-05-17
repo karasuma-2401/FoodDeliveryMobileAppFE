@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.food.components
 
-import androidx.appcompat.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -41,7 +39,7 @@ fun FoodImageHeader(
                .fillMaxSize()
                .padding(bottom = 30.dp)
                .clip(RoundedCornerShape(32.dp))
-               .background(MaterialTheme.colorScheme.primaryContainer)
+               .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
        )
        Image(
            painter = painterResource(id = imageRes),
@@ -57,13 +55,14 @@ fun FoodImageHeader(
                .clickable { onFavoriteToggle() },
            shape = CircleShape,
            color = MaterialTheme.colorScheme.surface,
-           shadowElevation = 4.dp
+           shadowElevation = 6.dp,
+           tonalElevation = 2.dp
        ) {
            Box(contentAlignment = Alignment.Center) {
                Icon(
                    imageVector =  if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                    contentDescription = null,
-                   tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.primary,
+                   tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                    modifier = Modifier.size(24.dp)
                )
            }

@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 @Composable
 fun BottomCartBar(
     price: String,
@@ -25,13 +26,13 @@ fun BottomCartBar(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.background,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-        shadowElevation = 16.dp
+        shadowElevation = 16.dp,
+        tonalElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
                 .padding(24.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -42,49 +43,69 @@ fun BottomCartBar(
                     text = "$$price",
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
                 Text(
-                    text = "PRICE",
+                    text = "TOTAL PRICE",
                     style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 1.sp
                     )
                 )
             }
+            
+            // Quantity Selector
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .clip(RoundedCornerShape(32.dp))
-                    .background(Color(0xFF1A1D26))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
                     .padding(horizontal = 4.dp, vertical = 4.dp)
             ) {
-                IconButton(onClick = { onUpdateQuantity(-1) }, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Default.Remove, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                IconButton(
+                    onClick = { onUpdateQuantity(-1) }, 
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Remove, 
+                        contentDescription = null, 
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer, 
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
                 Text(
                     text = "$quantity",
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
-                IconButton(onClick = { onUpdateQuantity(1) }, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                IconButton(
+                    onClick = { onUpdateQuantity(1) }, 
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Add, 
+                        contentDescription = null, 
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer, 
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
+
             Button(
                 onClick = onAddToCart,
-                modifier = Modifier.height(60.dp).width(160.dp),
+                modifier = Modifier.height(56.dp).width(140.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Text(
                     text = "Add to Cart",
                     style = MaterialTheme.typography.titleMedium.copy(
-                        color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 )

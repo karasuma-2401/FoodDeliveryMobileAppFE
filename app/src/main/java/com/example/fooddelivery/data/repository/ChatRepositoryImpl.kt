@@ -5,6 +5,8 @@ import com.example.fooddelivery.data.local.room.dao.MessageDao
 import com.example.fooddelivery.data.local.room.entity.ConversationEntity
 import com.example.fooddelivery.data.local.room.entity.MessageEntity
 import com.example.fooddelivery.data.remote.api.ChatApi
+import com.example.fooddelivery.data.remote.dto.ConversationDto
+import com.example.fooddelivery.data.remote.dto.MessageDto
 import com.example.fooddelivery.domain.repository.ChatRepository
 import io.socket.client.Ack
 import io.socket.client.Socket
@@ -55,16 +57,19 @@ class ChatRepositoryImpl @Inject constructor(
             conversationDao.markConversationAsRead(conversationId)
             val ackResult = withTimeoutOrNull(5000L) {
                 suspendCancellableCoroutine { continuation ->
-                    socket.emit("mark_read", JSONObject().put("conversationId", conversationId)) { args ->
-                        val response = args.getOrNull(0) as? JSONObject
-                        val success = response?.optBoolean("success", false) ?: false
-                        if (success) {
-                            continuation.resume(Result.success(Unit))
-                        } else {
-                            val error = response?.optString("error", "Mark read failed")
-                            continuation.resume(Result.failure(Exception(error)))
+                    val data = JSONObject().put("conversationId", conversationId)
+                    socket.emit("mark_read", arrayOf(data), object : Ack {
+                        override fun call(vararg args: Any?) {
+                            val response = args.getOrNull(0) as? JSONObject
+                            val success = response?.optBoolean("success", false) ?: false
+                            if (success) {
+                                continuation.resume(Result.success(Unit))
+                            } else {
+                                val error = response?.optString("error", "Mark read failed")
+                                continuation.resume(Result.failure(Exception(error)))
+                            }
                         }
-                    }
+                    })
                 }
             }
             ackResult ?: Result.failure(Exception("Mark read timeout"))
@@ -124,16 +129,18 @@ class ChatRepositoryImpl @Inject constructor(
             }
             val ackResult = withTimeoutOrNull(5000L) {
                 suspendCancellableCoroutine { continuation ->
-                    socket.emit("send_message", json) { args ->
-                        val response = args.getOrNull(0) as? JSONObject
-                        val success = response?.optBoolean("success", false) ?: false
-                        if (success) {
-                            continuation.resume(Result.success(Unit))
-                        } else {
-                            val error = response?.optString("error", "Send message failed")
-                            continuation.resume(Result.failure(Exception(error)))
+                    socket.emit("send_message", arrayOf(json), object : Ack {
+                        override fun call(vararg args: Any?) {
+                            val response = args.getOrNull(0) as? JSONObject
+                            val success = response?.optBoolean("success", false) ?: false
+                            if (success) {
+                                continuation.resume(Result.success(Unit))
+                            } else {
+                                val error = response?.optString("error", "Send message failed")
+                                continuation.resume(Result.failure(Exception(error)))
+                            }
                         }
-                    }
+                    })
                 }
             }
             if (ackResult != null && ackResult.isSuccess) {

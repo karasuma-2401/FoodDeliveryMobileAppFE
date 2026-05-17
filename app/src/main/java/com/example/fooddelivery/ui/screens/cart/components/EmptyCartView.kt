@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -30,7 +29,7 @@ fun EmptyCartView(modifier: Modifier = Modifier) {
             imageVector = Icons.Default.ShoppingCart,
             contentDescription = null,
             modifier = Modifier.size(120.dp),
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
@@ -41,7 +40,7 @@ fun EmptyCartView(modifier: Modifier = Modifier) {
         Text(
             text = "Looks like you haven't added anything yet",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             modifier = Modifier.padding(top = 8.dp)
         )
     }

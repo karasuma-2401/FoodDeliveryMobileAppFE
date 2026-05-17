@@ -41,8 +41,8 @@ fun CheckoutSuccessScreen(
                 text = stringResource(R.string.congratulations),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
                 ),
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
             )
 
@@ -51,9 +51,9 @@ fun CheckoutSuccessScreen(
             Text(
                 text = stringResource(R.string.payment_success_message),
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    color = Color(0xFF646982),
                     lineHeight = 24.sp
                 ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 

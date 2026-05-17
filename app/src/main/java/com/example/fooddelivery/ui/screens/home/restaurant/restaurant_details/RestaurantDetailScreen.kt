@@ -92,17 +92,17 @@ fun RestaurantDetailScreen(
             SnackbarHost(hostState = snackBarHostState) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFF323232).copy(alpha = 0.9f),
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
                     shape = MaterialTheme.shapes.medium
                 )
             }
         },
-        containerColor = Color(0xFFFBFBFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             state.restaurant?.let { restaurant ->
@@ -122,7 +122,7 @@ fun RestaurantDetailScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFFBFBFB))
+                                .background(MaterialTheme.colorScheme.background)
                                 .padding(horizontal = 24.dp)
                         ) {
                             CategoryTabs(

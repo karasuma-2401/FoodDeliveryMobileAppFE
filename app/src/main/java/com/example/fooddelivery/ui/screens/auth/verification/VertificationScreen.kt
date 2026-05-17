@@ -34,14 +34,17 @@ fun VerificationScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
+    
     LaunchedEffect(Unit) {
         viewModel.onEvent(VerificationEvent.Init(email))
     }
+    
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onNavigateToResetPassword(state.email, state.otpCode)
         }
     }
+    
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let { message ->
             if (message.isNotEmpty()) {
@@ -50,6 +53,7 @@ fun VerificationScreen(
             }
         }
     }
+    
     VerificationContent(
         state = state,
         onEvent = viewModel::onEvent,
@@ -57,6 +61,7 @@ fun VerificationScreen(
         snackBarHostState = snackBarHostState
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerificationContent(
@@ -133,7 +138,7 @@ fun VerificationContent(
                                     .weight(1f)
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(MaterialTheme.colorScheme.surface)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                     .border(
                                         width = if (isFocused) 2.dp else 1.dp,
                                         color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
@@ -144,7 +149,7 @@ fun VerificationContent(
                                 Text(
                                     text = char,
                                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onBackground
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -163,7 +168,7 @@ fun VerificationContent(
                         text = buildAnnotatedString {
                             append("Resend in  ")
                             withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                val timeString = if (state.timeLeft < 10) ".0${state.timeLeft}sec" else ".${state.timeLeft}sec"
+                                val timeString = if (state.timeLeft < 10) "0:0${state.timeLeft}" else "0:${state.timeLeft}"
                                 append(timeString)
                             }
                         },

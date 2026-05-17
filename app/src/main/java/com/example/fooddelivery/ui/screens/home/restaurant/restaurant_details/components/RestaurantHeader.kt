@@ -50,12 +50,13 @@ fun RestaurantHeader(restaurant: Restaurant) {
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp
-            )
+            ),
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = restaurant.description,
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp)
         )
         Row (
@@ -63,16 +64,31 @@ fun RestaurantHeader(restaurant: Restaurant) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            InfoItem(icon = Icons.Default.Star, text = "${restaurant.rating}", iconColor = Color(0xFFFF9800))
+            InfoItem(
+                icon = Icons.Default.Star, 
+                text = "${restaurant.rating}", 
+                iconColor = MaterialTheme.colorScheme.secondary // Replaced hardcoded orange
+            )
             val deliveryFeeText = if (restaurant.deliveryFee == 0.0) "Free" else "$${restaurant.deliveryFee}"
-            InfoItem(icon = Icons.Outlined.DirectionsRun, text = deliveryFeeText, iconColor = MaterialTheme.colorScheme.primary)
+            InfoItem(
+                icon = Icons.Outlined.DirectionsRun, 
+                text = deliveryFeeText, 
+                iconColor = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
-@Composable fun InfoItem(icon: ImageVector, text: String, iconColor: Color) {
+
+@Composable 
+fun InfoItem(icon: ImageVector, text: String, iconColor: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+        Text(
+            text = text, 
+            style = MaterialTheme.typography.bodyMedium, 
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.home.search.components
 
-import android.R
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,16 +23,17 @@ fun EmptySearchView(query: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 64.dp),
+            .padding(top = 64.dp)
+            .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             imageVector = Icons.Default.SearchOff,
             contentDescription = null,
             modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.primary.copy(0.3f)
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "No results found",
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -41,11 +41,11 @@ fun EmptySearchView(query: String) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "We could't find anything matching \"$query\".\nPlease check your spelling or try different keywords.",
+            text = "We couldn't find anything matching \"$query\".\nPlease check your spelling or try different keywords.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            textAlign = TextAlign.Center,
+            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2
         )
     }
-
 }

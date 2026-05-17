@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.home.search.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,12 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
 
 @Composable
@@ -48,18 +45,28 @@ fun SearchRestaurantItem(
                 contentScale = ContentScale.Crop
             )
             Column(modifier = Modifier.padding(start = 16.dp)) {
-                Text(restaurant.name, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Text(
+                    text = restaurant.name, 
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.Star, 
+                        imageVector = Icons.Default.Star, 
                         contentDescription = null, 
-                        tint = Color(0xFFFF9800), 
+                        tint = MaterialTheme.colorScheme.secondary, 
                         modifier = Modifier.size(16.dp)
                     )
-                    Text(" ${restaurant.rating}", color = Color.Gray, fontSize = 14.sp)
+                    Text(
+                        text = " ${restaurant.rating}", 
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
-        HorizontalDivider(color = Color(0xFFF0F0F0))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     }
 }

@@ -33,7 +33,6 @@ fun RestaurantItem(
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 12.dp)
             .clip(RoundedCornerShape(24.dp))
-            .padding(bottom = 8.dp)
             .clickable { onClick() }
     ) {
         Box(
@@ -57,7 +56,7 @@ fun RestaurantItem(
             ) {
                 restaurant.promoTags.firstOrNull { !it.contains("Freeship", ignoreCase = true) }?.let { promo ->
                     val badgeColor = if (promo.contains("PROMO", ignoreCase = true)) 
-                        Color(0xFFF58D1F) else Color(0xFFF15A5A)
+                        MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error
                     
                     Box(
                         modifier = Modifier
@@ -67,7 +66,8 @@ fun RestaurantItem(
                     ) {
                         Text(
                             text = promo,
-                            color = Color.White,
+                            color = if (promo.contains("PROMO", ignoreCase = true)) 
+                                MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onError,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -77,12 +77,12 @@ fun RestaurantItem(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFFF15A5A))
+                            .background(MaterialTheme.colorScheme.tertiary)
                             .padding(horizontal = 10.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = freeship,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onTertiary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -105,7 +105,7 @@ fun RestaurantItem(
         Text(
             text = restaurant.tags.joinToString(" - "),
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -126,7 +126,8 @@ fun RestaurantItem(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = restaurant.rating.toString(),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -140,7 +141,7 @@ fun RestaurantItem(
                 Text(
                     text = (if (restaurant.deliveryFee == 0.0) "Free" else "$${String.format(java.util.Locale.US, "%.2f", restaurant.deliveryFee)}"),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

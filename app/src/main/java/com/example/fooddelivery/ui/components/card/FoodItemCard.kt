@@ -58,6 +58,7 @@ fun FoodItemCard(
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
 
@@ -67,12 +68,12 @@ fun FoodItemCard(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = item.category,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontWeight = FontWeight.SemiBold
                     )
@@ -86,7 +87,7 @@ fun FoodItemCard(
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(16.dp)
                 )
 
@@ -94,7 +95,7 @@ fun FoodItemCard(
 
                 Text(
                     text = item.rating.toString(),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.Bold
                     )
@@ -104,7 +105,7 @@ fun FoodItemCard(
 
                 Text(
                     text = "(${item.reviewCount} Review)",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.labelMedium
                 )
             }
@@ -121,7 +122,8 @@ fun FoodItemCard(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_more_horiz),
                         contentDescription = "More",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 DropdownMenu(
@@ -136,7 +138,12 @@ fun FoodItemCard(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Delete", color = Color.Red) },
+                        text = { 
+                            Text(
+                                text = "Delete", 
+                                color = MaterialTheme.colorScheme.error
+                            ) 
+                        },
                         onClick = {
                             showMenu = false
                             onDeleteClick()
@@ -148,7 +155,8 @@ fun FoodItemCard(
             Text(
                 text = "$${item.price.toInt()}",
                 style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.ExtraBold
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             )
         }

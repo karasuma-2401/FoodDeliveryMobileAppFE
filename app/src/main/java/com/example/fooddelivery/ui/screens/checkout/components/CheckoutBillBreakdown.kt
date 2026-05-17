@@ -21,8 +21,8 @@ fun CheckoutBillBreakdown(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFF6F6F6),
-        shadowElevation = 0.dp
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        tonalElevation = 1.dp
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -32,24 +32,26 @@ fun CheckoutBillBreakdown(
                 text = "Bill Summary",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Subtotal", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("$${String.format("%.2f", subtotal)}", fontWeight = FontWeight.Bold)
+                Text("$${String.format("%.2f", subtotal)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Delivery Fee", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("$${String.format("%.2f", deliveryFee)}", fontWeight = FontWeight.Bold)
+                Text("$${String.format("%.2f", deliveryFee)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Discount", color = Color(0xFF4CAF50))
-                Text("-$${String.format("%.2f", discount)}", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
+            if (discount > 0) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Discount", color = MaterialTheme.colorScheme.primary)
+                    Text("-$${String.format("%.2f", discount)}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                }
             }
 
-            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.2f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -58,13 +60,16 @@ fun CheckoutBillBreakdown(
             ) {
                 Text(
                     text = "Total",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold)
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 )
                 Text(
                     text = "$${String.format("%.2f", total)}",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF9C4400)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
             }

@@ -64,6 +64,7 @@ fun ForgotPasswordScreen(
         focusManager = focusManager
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordContent (
@@ -97,7 +98,7 @@ fun ForgotPasswordContent (
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -161,9 +162,6 @@ fun ForgotPasswordContent (
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            val primaryColor = MaterialTheme.colorScheme.primary
-            val contentColor = contentColorFor(primaryColor)
-
             Button(
                 onClick = {
                     focusManager.clearFocus()
@@ -175,17 +173,17 @@ fun ForgotPasswordContent (
                     .height(56.dp),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryColor,
-                    disabledContainerColor = primaryColor.copy(alpha = 0.6f),
-                    contentColor = contentColor,
-                    disabledContentColor = contentColor.copy(alpha = 0.6f)
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
                 ),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = LocalContentColor.current,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 3.dp
                     )
                 } else {
