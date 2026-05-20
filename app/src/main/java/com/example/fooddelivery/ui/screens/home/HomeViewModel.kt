@@ -144,7 +144,7 @@ class HomeViewModel @Inject constructor(
                 // Fallback or error handling
             }
 
-            delay(1000)
+            delay(5000)
 
             val mockBanners = listOf(
                 HomeBanner("1", "Flash Sale 50%", "Pizza Hut Special Deal", R.drawable.food_bowl, BannerTarget.RESTAURANT, "3", 0xFFFF8142),

@@ -23,10 +23,13 @@ import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.screens.home.HomeBanner
 
 @Composable
-fun PromoBanner(    banner: HomeBanner,
+fun PromoBanner(
+    banner: HomeBanner,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
+    val bannerBaseColor = Color(banner.backgroundColor)
+    
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -35,13 +38,14 @@ fun PromoBanner(    banner: HomeBanner,
             .background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        Color(banner.backgroundColor),
-                        Color(banner.backgroundColor).copy(alpha = 0.7f)
+                        bannerBaseColor,
+                        bannerBaseColor.copy(alpha = 0.8f)
                     )
                 )
             )
             .clickable { onClick() }
     ) {
+        // Decorative circle
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
@@ -77,14 +81,16 @@ fun PromoBanner(    banner: HomeBanner,
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = onClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = bannerBaseColor
+                    ),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.height(36.dp)
                 ) {
                     Text(
                         text = "Check Now",
-                        color = Color(banner.backgroundColor),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )

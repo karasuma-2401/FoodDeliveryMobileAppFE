@@ -11,10 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.defaultMinSize
+import coil.compose.AsyncImage
 import com.example.fooddelivery.data.local.room.entity.ConversationEntity
+
+private fun formatUnreadCount(unreadCount: Int): String = if (unreadCount > 99) "99+" else unreadCount.toString()
 
 @Composable
 fun ConversationItem(
@@ -28,11 +33,14 @@ fun ConversationItem(
             .padding(horizontal = 24.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        AsyncImage(
+            model = conversation.restaurantImage,
+            contentDescription = "${conversation.restaurantName} image",
             modifier = Modifier
                 .size(55.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentScale = ContentScale.Crop
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -45,13 +53,13 @@ fun ConversationItem(
             ) {
                 Text(
                     text = conversation.restaurantName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = conversation.lastMessageTime,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
 
@@ -62,7 +70,7 @@ fun ConversationItem(
                     text = conversation.lastMessage,
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (conversation.unreadCount > 0)
-                        MaterialTheme.colorScheme.onBackground
+                        MaterialTheme.colorScheme.onSurface
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -75,12 +83,14 @@ fun ConversationItem(
                     Surface(
                         color = MaterialTheme.colorScheme.primary,
                         shape = CircleShape,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier
+                            .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+                            .padding(horizontal = 4.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
-                                text = conversation.unreadCount.toString(),
-                                style = MaterialTheme.typography.labelSmall,
+                                text = formatUnreadCount(conversation.unreadCount),
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         }

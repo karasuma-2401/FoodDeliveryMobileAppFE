@@ -1,6 +1,7 @@
 package com.example.fooddelivery.ui.screens.checkout.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,9 +31,12 @@ fun PaymentOptionItem(
             .fillMaxWidth()
             .clickable { onSelect() },
         shape = RoundedCornerShape(20.dp),
-        border = if (isSelected) BorderStroke(2.dp, Color(0xFFFF7622)) else BorderStroke(1.dp, Color(0xFFF0F0F0)),
-        color = if (isSelected) Color(0xFFFFF8F5) else Color(0xFFF6F6F6),
-        tonalElevation = 0.dp
+        border = BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface,
+        tonalElevation = if (isSelected) 2.dp else 0.dp
     ) {
         Row(
             modifier = Modifier
@@ -43,7 +47,8 @@ fun PaymentOptionItem(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 icon()
@@ -56,14 +61,13 @@ fun PaymentOptionItem(
                     text = title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = Color(0xFF32343E)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = Color(0xFF646982)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
             }
@@ -72,13 +76,15 @@ fun PaymentOptionItem(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Selected",
-                    tint = Color(0xFFFF7622)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             } else {
                 RadioButton(
                     selected = false,
                     onClick = null,
-                    colors = RadioButtonDefaults.colors(unselectedColor = Color(0xFFBDBDBD))
+                    colors = RadioButtonDefaults.colors(
+                        unselectedColor = MaterialTheme.colorScheme.outline
+                    )
                 )
             }
         }

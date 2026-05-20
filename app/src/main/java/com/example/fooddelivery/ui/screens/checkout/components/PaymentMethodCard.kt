@@ -29,9 +29,11 @@ fun PaymentMethodCard(
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = Color(0xFFF6F6F6),
-        shadowElevation = 0.dp
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+        )
     ) {
         Row(
             modifier = Modifier
@@ -41,21 +43,26 @@ fun PaymentMethodCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(45.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(
                         if (paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) 
-                        else Color(0xFFFF7622).copy(alpha = 0.1f)
+                        else MaterialTheme.colorScheme.primaryContainer
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 if (paymentMethod is PaymentMethod.MoMo) {
-                    Text("MoMo", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "MoMo", 
+                        color = Color.White, 
+                        fontSize = 10.sp, 
+                        fontWeight = FontWeight.ExtraBold
+                    )
                 } else {
                     Icon(
                         imageVector = Icons.Default.Payments,
                         contentDescription = null,
-                        tint = Color(0xFFFF7622),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -68,20 +75,20 @@ fun PaymentMethodCard(
                     text = stringResource(paymentMethod.titleRes),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF32343E)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Text(
                     text = stringResource(if (paymentMethod is PaymentMethod.MoMo) R.string.linked_ewallet else R.string.pay_with_cash),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF646982)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color(0xFFA0A5BA)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
         }
     }

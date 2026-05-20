@@ -50,21 +50,23 @@ private fun DeliveryOptionItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (isSelected) Color(0xFFFF7622) else Color.Transparent
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
     
     Surface(
         onClick = onClick,
         modifier = modifier.height(110.dp),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(2.dp, borderColor)
+        border = BorderStroke(2.dp, borderColor),
+        shadowElevation = 2.dp,
+        tonalElevation = 1.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = Color(0xFFFF7622),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
@@ -81,20 +83,21 @@ private fun DeliveryOptionItem(
                 Icon(
                     imageVector = if (option == DeliveryOption.STANDARD) Icons.Outlined.DirectionsRun else Icons.Default.ElectricBolt,
                     contentDescription = null,
-                    tint = if (isSelected) Color(0xFFFF7622) else Color.Gray,
+                    tint = if (isSelected) MaterialTheme.colorScheme.primary 
+                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.size(24.dp)
                 )
                 
                 Text(
                     text = option.title,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Text(
                     text = "$${String.format(Locale.US, "%.2f", option.fee)}",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                 )
             }
         }

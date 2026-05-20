@@ -96,17 +96,24 @@ fun EditProfileContent(
             )
         },
         bottomBar = {
-            DFoodButton(
-                text = "SAVE",
-                onClick = {
-                    focusManager.clearFocus()
-                    onEvent(EditProfileEvent.SaveClicked)
-                },
-                isLoading = state.isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-            )
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 16.dp,
+                tonalElevation = 4.dp
+            ) {
+                DFoodButton(
+                    text = "SAVE",
+                    onClick = {
+                        focusManager.clearFocus()
+                        onEvent(EditProfileEvent.SaveClicked)
+                    },
+                    isLoading = state.isLoading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
@@ -125,7 +132,7 @@ fun EditProfileContent(
                         .size(130.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surface)
-                        .border(4.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                        .border(4.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
                 ) {
                     if (!state.user.profileImage.isNullOrEmpty()) {
                         AsyncImage(
@@ -152,7 +159,8 @@ fun EditProfileContent(
                         .offset(x = (-4).dp, y = (-4).dp),
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.primary,
-                    shadowElevation = 4.dp
+                    shadowElevation = 6.dp,
+                    tonalElevation = 2.dp
                 ) {
                     IconButton(onClick = { imagePickerLauncher.launch("image/*") }) {
                         Icon(
@@ -169,7 +177,7 @@ fun EditProfileContent(
 
             Text(
                 text = state.user.fullName.ifEmpty { "User Name" },
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
@@ -257,19 +265,19 @@ fun ProfileInputField(
     Column {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         DFoodFTextField(
             value = value,
             onValueChange = onValueChange,
-            label = "",
+            label = "Enter your $label",
             leadingIcon = {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.primary
                 )
             },
             keyboardOptions = keyboardOptions,

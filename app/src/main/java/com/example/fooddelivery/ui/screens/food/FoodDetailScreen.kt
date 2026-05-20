@@ -19,6 +19,7 @@ import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.food.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.flow.collectLatest
+import java.util.Locale
 
 @Composable
 fun FoodDetailScreen(
@@ -65,7 +66,7 @@ fun FoodDetailContent(
         bottomBar = {
             state.food?.let { food ->
                 BottomCartBar(
-                    price = String.format("%.0f", state.totalPrice),
+                    price = String.format(Locale.US,"%.0f", state.totalPrice),
                     quantity = state.quantity,
                     onUpdateQuantity = { onEvent(FoodDetailEvent.UpdateQuantity(it)) },
                     onAddToCart = { onEvent(FoodDetailEvent.AddToCart) }
@@ -75,11 +76,21 @@ fun FoodDetailContent(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                contentPadding = PaddingValues(24.dp, 8.dp),
+                userScrollEnabled = false
             ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                item { FoodImageHeaderSkeleton() }
+                item { Spacer(modifier = Modifier.height(24.dp)) }
+                item { RestaurantChipSkeleton() }
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+                item { FoodTitleAndDescSkeleton() }
+                item { Spacer(modifier = Modifier.height(16.dp))}
+                item { FoodInfoRowSkeleton() }
+                item { Spacer(modifier = Modifier.height(24.dp)) }
+                item { SizeSelectionSkeleton() }
+                item { Spacer(modifier = Modifier.height(24.dp)) }
             }
         } else {
             LazyColumn(

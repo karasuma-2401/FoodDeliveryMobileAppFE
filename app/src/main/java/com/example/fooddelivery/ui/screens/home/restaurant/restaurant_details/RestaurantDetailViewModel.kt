@@ -63,7 +63,6 @@ class RestaurantDetailViewModel @Inject constructor(
 
     private fun addToCart(foodItem: FoodItem) {
         viewModelScope.launch {
-            // logic add to cart (repository/ usecase)
             _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar("${foodItem.name} added to cart"))
         }
     }
@@ -71,9 +70,8 @@ class RestaurantDetailViewModel @Inject constructor(
     private fun loadRestaurantDetails () {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            delay(1000)
+            delay(5000)
 
-            // Vary restaurant data based on restaurantId
             val (mockRestaurant, mockFoodItems) = when (restaurantId) {
                 "1" -> {
                     val restaurant = Restaurant(

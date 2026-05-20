@@ -1,4 +1,5 @@
 package com.example.fooddelivery.ui.screens.cart.components
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.CartItem
+import java.util.Locale
 
 @Composable
 fun CartItemCard(
@@ -31,7 +33,7 @@ fun CartItemCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 0.dp
+        shadowElevation = 2.dp // Added slight elevation for modern look
     ) {
         Row(
             modifier = Modifier
@@ -61,7 +63,7 @@ fun CartItemCard(
                             text = item.food.name,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                         Text(
@@ -71,10 +73,10 @@ fun CartItemCard(
                         )
                     }
                     Text(
-                        text = String.format("$%.2f", item.totalPrice),
+                        text = String.format(Locale.US, "$%.2f", item.totalPrice),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = MaterialTheme.colorScheme.primary // Use primary color for price
                         )
                     )
                 }
@@ -87,19 +89,20 @@ fun CartItemCard(
                         onClick = onDecrease,
                         modifier = Modifier
                             .size(32.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                            .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Remove,
                             contentDescription = "Decrease quantity",
                             modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                     Text(
                         text = "${item.quantity}",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     IconButton(

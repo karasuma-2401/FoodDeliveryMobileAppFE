@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -90,6 +91,7 @@ fun RegisterScreen(
         snackBarHostState = snackBarHostState
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterContent(
@@ -107,13 +109,14 @@ fun RegisterContent(
                 title = "",
                 onBackClick = onNavigateBack,
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp)
-                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(32.dp))
@@ -127,7 +130,8 @@ fun RegisterContent(
                     append("Food")
                 },
                 style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp),
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -140,61 +144,115 @@ fun RegisterContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text("Full Name", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(
+                text = "Full Name", 
+                style = MaterialTheme.typography.labelMedium, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             DFoodFTextField(
                 value = state.fullName,
                 onValueChange = { onEvent(RegisterEvent.FullNameChanged(it))},
-                label = "",
-                leadingIcon = { Icon(Icons.Outlined.Person, null)},
+                label = "Enter your full name",
+                leadingIcon = { 
+                    Icon(
+                        imageVector = Icons.Outlined.Person, 
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 isError = state.fullNameError?.isNotEmpty() == true,
                 errorMessage = state.fullNameError
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Email", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(
+                text = "Email", 
+                style = MaterialTheme.typography.labelMedium, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             DFoodFTextField(
                 value = state.email,
                 onValueChange = { onEvent(RegisterEvent.EmailChanged(it))},
-                label = "",
-                leadingIcon = { Icon(Icons.Outlined.Email, null)},
+                label = "Enter your email",
+                leadingIcon = { 
+                    Icon(
+                        imageVector = Icons.Outlined.Email, 
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 isError = state.emailError?.isNotEmpty() == true,
                 errorMessage = state.emailError
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Phone Number", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(
+                text = "Phone Number", 
+                style = MaterialTheme.typography.labelMedium, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             DFoodFTextField(
                 value = state.phone,
                 onValueChange = { onEvent(RegisterEvent.PhoneChanged(it))},
-                label = "",
-                leadingIcon = { Icon(Icons.Outlined.Phone, null)},
+                label = "Enter your phone",
+                leadingIcon = { 
+                    Icon(
+                        imageVector = Icons.Outlined.Phone, 
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 isError = state.phoneError?.isNotEmpty() == true,
                 errorMessage = state.phoneError
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Password", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(
+                text = "Password", 
+                style = MaterialTheme.typography.labelMedium, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             DFoodFTextField(
                 value = state.password,
                 onValueChange = { onEvent(RegisterEvent.PasswordChanged(it))},
-                label = "",
+                label = "Enter your password",
                 isPassword = true,
-                leadingIcon = { Icon(Icons.Outlined.Lock, null)},
+                leadingIcon = { 
+                    Icon(
+                        imageVector = Icons.Outlined.Lock, 
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-
                 isError = state.passwordError?.isNotEmpty() == true,
                 errorMessage = state.passwordError
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Confirm Password", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(
+                text = "Confirm Password", 
+                style = MaterialTheme.typography.labelMedium, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             DFoodFTextField(
                 value = state.confirmPassword,
                 onValueChange = { onEvent(RegisterEvent.ConfirmPasswordChanged(it))},
-                label = "",
-                leadingIcon = { Icon(painterResource(id = R.drawable.ic_lock_reset), null)},
+                label = "Confirm your password",
+                leadingIcon = { 
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_lock_reset), 
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 isPassword = true,
                 isError = state.confirmPasswordError?.isNotEmpty() == true,
@@ -210,16 +268,19 @@ fun RegisterContent(
                 Checkbox(
                     checked = state.agreeToTerms,
                     onCheckedChange = { onEvent(RegisterEvent.AgreeToTermsChanged(it))},
-                    colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        uncheckedColor = MaterialTheme.colorScheme.outline
+                    )
                 )
                 Text(
                     text = buildAnnotatedString {
                         append("I agree to the ")
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
                             append("Term of Service")
                         }
                         append(" and ")
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
                             append("Privacy Policy")
                         }
                     },
@@ -233,13 +294,19 @@ fun RegisterContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f), 
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
                 Text(
                     text = " OR REGISTER WITH ",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f), 
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -253,7 +320,7 @@ fun RegisterContent(
                     contentDescription = "Log in with facebook",
                     onClick = triggerFacebookLogin
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(20.dp))
                 SocialButton(
                     iconRes = R.drawable.ic_x_twitter,
                     contentDescription = "Log in with twitter",
@@ -274,11 +341,16 @@ fun RegisterContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text("Already a member? ", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = "Already a member? ", 
+                    style = MaterialTheme.typography.bodyMedium, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Text(
                     text = "Log In",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onNavigateToLogin() }
                 )
             }

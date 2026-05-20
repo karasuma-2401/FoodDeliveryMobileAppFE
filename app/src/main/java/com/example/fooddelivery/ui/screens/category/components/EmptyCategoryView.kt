@@ -26,7 +26,7 @@ fun EmptyCategoryView(modifier: Modifier = Modifier) {
             imageVector = Icons.Default.SearchOff,
             contentDescription = null,
             modifier = Modifier.size(100.dp),
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -42,8 +42,9 @@ fun EmptyCategoryView(modifier: Modifier = Modifier) {
         Text(
             text = "We couldn't find any items in this category. Please try selecting another one or check back later!",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2
         )
     }
 }

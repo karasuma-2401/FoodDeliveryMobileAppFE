@@ -15,8 +15,8 @@ fun SectionTitle(
         text = title,
         style = MaterialTheme.typography.titleMedium.copy(
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
         ),
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = modifier
     )
 }

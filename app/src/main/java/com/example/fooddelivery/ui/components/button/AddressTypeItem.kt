@@ -26,19 +26,23 @@ fun AddressTypeItem(
     modifier: Modifier = Modifier,
     selectedColor: Color = MaterialTheme.colorScheme.primary
 ) {
-    val borderColor = if (isSelected) selectedColor else Color(0xFFE8E9F1)
+    val borderColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     val contentColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f) else Color.Transparent
 
     Box(
         modifier = modifier
             .height(50.dp)
             .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
             .border(1.dp, borderColor, RoundedCornerShape(12.dp))
-            .background(if (isSelected) Color.White else Color.Transparent)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
@@ -49,7 +53,7 @@ fun AddressTypeItem(
             Text(
                 text = label,
                 color = contentColor,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
             )
         }
     }

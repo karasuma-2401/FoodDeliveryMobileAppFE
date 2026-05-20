@@ -41,7 +41,7 @@ fun OrderItemCard(
             Text(
                 text = if (order.type == OrderType.FOOD) "Food" else "Drink",
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color(0xFF32343E),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium
                 )
             )
@@ -50,7 +50,7 @@ fun OrderItemCard(
                 Text(
                     text = order.status.name.lowercase().replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = if (order.status == OrderStatus.COMPLETED) Color(0xFF059C6A) else Color(0xFFE53935),
+                        color = if (order.status == OrderStatus.COMPLETED) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -68,7 +68,7 @@ fun OrderItemCard(
                 modifier = Modifier
                     .size(70.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF6F6F6)),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop
             )
 
@@ -83,13 +83,13 @@ fun OrderItemCard(
                         text = order.restaurantName,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF32343E)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     Text(
                         text = "#${order.id}",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = Color(0xFFA0A5BA),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             textDecoration = TextDecoration.Underline
                         )
                     )
@@ -102,18 +102,18 @@ fun OrderItemCard(
                         text = "$${String.format(Locale.getDefault(), "%.2f", order.price)}",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF32343E)
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "|  ${order.itemCount.toString().padStart(2, '0')} Items",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF646982))
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                     if (order.date != null) {
                         Text(
                             text = "  |  ${order.date}",
-                            style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF646982))
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                     }
                 }
@@ -130,39 +130,45 @@ fun OrderItemCard(
                     onClick = onPrimaryAction,
                     modifier = Modifier.weight(1f).height(45.dp),
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF7622))
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
-                    Text("Track Order", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Track Order", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
                 OutlinedButton(
                     onClick = onSecondaryAction,
                     modifier = Modifier.weight(1f).height(45.dp),
                     shape = RoundedCornerShape(10.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF7622))
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Cancel", color = Color(0xFFFF7622), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Cancel", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             } else {
                 OutlinedButton(
                     onClick = onSecondaryAction,
                     modifier = Modifier.weight(1f).height(45.dp),
                     shape = RoundedCornerShape(10.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF7622))
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Rate", color = Color(0xFFFF7622), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Rate", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
                 Button(
                     onClick = onPrimaryAction,
                     modifier = Modifier.weight(1f).height(45.dp),
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF7622))
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
-                    Text("Re-Order", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Re-Order", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
         }
         
         Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider(color = Color(0xFFF0F0F0))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     }
 }

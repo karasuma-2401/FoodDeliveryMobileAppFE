@@ -85,13 +85,6 @@ fun HomeContent(
         in 16..20 -> "Good Evening"
         else -> "Good Night"
     }
-    
-    if (state.isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        return
-    }
 
     Scaffold(
         topBar = {
@@ -121,7 +114,9 @@ fun HomeContent(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item {
@@ -134,94 +129,143 @@ fun HomeContent(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
-            item {
-                Surface(
-                    modifier = Modifier.padding(horizontal = 24.dp).fillMaxWidth().height(56.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { onNavigateToSearch() },
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFF6F6F6)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Search, null, tint = Color.Gray)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Search dishes, restaurants", color = Color.Gray)
-                    }
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-            item {
-                if (state.banners.isNotEmpty()) {
-                    val pagerState = rememberPagerState(pageCount = { state.banners.size})
 
-                    HorizontalPager(
-                        state = pagerState,
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        pageSpacing = 16.dp,
-                        modifier = Modifier.fillMaxWidth()
-                    ) { pagerIndex ->
-                        val banner = state.banners[pagerIndex]
-                        PromoBanner(
-                            banner = banner,
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
-                        )
+            if (state.isLoading) {
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        SearchBarSkeleton()
                     }
-                    val scope = rememberCoroutineScope()
-                    with(pagerState) {
-                        LaunchedEffect(key1 = currentPage) {
-                            launch {
-                                delay(2500)
-                                scope.launch {
-                                    animateScrollToPage(
-                                        page = (currentPage + 1).mod(pageCount)
-                                    )
-                                }
-                            }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        PromoBannerSkeleton()
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+                item {
+                    SectionHeader(
+                        title = "All Categories",
+                        onSeeAllClick = { }
+                    )
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.padding(top = 16.dp, bottom = 32.dp),
+                        userScrollEnabled = false
+                    ) {
+                        items(5) {
+                            CategoryItemSkeleton()
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(32.dp))
-            }
+                item {
+                    SectionHeader(
+                        title = "Open Restaurants",
+                        onSeeAllClick = { }
+                    )
+                }
+                items(3) {
+                    RestaurantItemSkeleton()
+                }
+            } else {
+                item {
+                    Surface(
+                        modifier = Modifier
+                            .padding(horizontal = 24.dp)
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { onNavigateToSearch() },
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Search dishes, restaurants",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                item {
+                    if (state.banners.isNotEmpty()) {
+                        val pagerState = rememberPagerState(pageCount = { state.banners.size })
 
-            item {
-                SectionHeader(
-                    title = "All Categories",
-                    onSeeAllClick = { onEvent(HomeEvent.SeeAllCategoriesClicked) }
-                )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(top = 16.dp, bottom = 32.dp)
-                ) {
-                    items(state.categories) { category ->
-                        CategoryItem(
-                            category = category,
-                            onClick = { onEvent(HomeEvent.CategoryClicked(category.id)) }
-                        )
+                        HorizontalPager(
+                            state = pagerState,
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            pageSpacing = 16.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { pagerIndex ->
+                            val banner = state.banners[pagerIndex]
+                            PromoBanner(
+                                banner = banner,
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
+                            )
+                        }
+                        with(pagerState) {
+                            LaunchedEffect(key1 = currentPage) {
+                                delay(2500)
+                                animateScrollToPage(
+                                    page = (currentPage + 1).mod(pageCount)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+
+                item {
+                    SectionHeader(
+                        title = "All Categories",
+                        onSeeAllClick = { onEvent(HomeEvent.SeeAllCategoriesClicked) }
+                    )
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.padding(top = 16.dp, bottom = 32.dp)
+                    ) {
+                        items(state.categories) { category ->
+                            CategoryItem(
+                                category = category,
+                                onClick = { onEvent(HomeEvent.CategoryClicked(category.id)) }
+                            )
+                        }
                     }
                 }
-            }
-            item {
-                SectionHeader(
-                    title = "Open Restaurants",
-                    onSeeAllClick = { onEvent(HomeEvent.SeeAllRestaurantsClicked) }
-                )
-            }
-            items(state.restaurants) { restaurant ->
-                RestaurantItem(
-                    restaurant = restaurant,
-                    onClick = { onEvent(HomeEvent.RestaurantClicked(restaurant.id)) }
-                )
+                item {
+                    SectionHeader(
+                        title = "Open Restaurants",
+                        onSeeAllClick = { onEvent(HomeEvent.SeeAllRestaurantsClicked) }
+                    )
+                }
+                items(state.restaurants) { restaurant ->
+                    RestaurantItem(
+                        restaurant = restaurant,
+                        onClick = { onEvent(HomeEvent.RestaurantClicked(restaurant.id)) }
+                    )
+                }
             }
         }
     }
 }
 
-@Preview (showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
     DFoodTheme {

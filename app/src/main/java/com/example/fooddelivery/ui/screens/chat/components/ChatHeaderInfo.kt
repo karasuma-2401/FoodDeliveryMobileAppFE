@@ -46,7 +46,7 @@ fun ChatHeaderInfo(
                     modifier = Modifier
                         .size(14.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF059C6A))
+                        .background(Color(0xFF059C6A)) // Keep green for online status but could use a custom semantic color
                         .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                         .align(Alignment.BottomEnd)
                 )
@@ -64,7 +64,7 @@ fun ChatHeaderInfo(
             Text(
                 text = if (isOnline) "Online | Typically replies in 2 mins" else "Offline",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
         }
     }

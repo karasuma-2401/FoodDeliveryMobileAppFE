@@ -40,9 +40,9 @@ fun FoodItemCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(Color.White)
-            .padding(12.dp)
+            .background(MaterialTheme.colorScheme.surface)
             .clickable { onItemClick() }
+            .padding(12.dp)
     ) {
         Column {
             Box(
@@ -61,9 +61,14 @@ fun FoodItemCard(
                 )
                 foodItem.promoTag?.let { tag ->
                     val badgeColor = when {
-                        tag.contains("HOT", true) -> Color(0xFFF15A5A)
-                        tag.contains("FREESHIP", true) -> Color(0xFF4CAF50)
-                        else -> Color(0xFFF15A5A)
+                        tag.contains("HOT", true) -> MaterialTheme.colorScheme.error
+                        tag.contains("FREESHIP", true) -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.secondary
+                    }
+                    val onBadgeColor = when {
+                        tag.contains("HOT", true) -> MaterialTheme.colorScheme.onError
+                        tag.contains("FREESHIP", true) -> MaterialTheme.colorScheme.onTertiary
+                        else -> MaterialTheme.colorScheme.onSecondary
                     }
                     Box(
                         modifier = Modifier
@@ -74,8 +79,8 @@ fun FoodItemCard(
                     ) {
                         Text(
                             text = tag,
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodySmall
+                            color = onBadgeColor,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                         )
                     }
                 }
@@ -84,12 +89,13 @@ fun FoodItemCard(
             Text(
                 text = foodItem.name,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
             Text(
                 text = foodItem.restaurantName,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
 
@@ -97,7 +103,7 @@ fun FoodItemCard(
             Text(
                 text = "$${foodItem.price}",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.primary
             )
         }
         Box(
@@ -114,7 +120,7 @@ fun FoodItemCard(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add ${foodItem.name} to cart",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }

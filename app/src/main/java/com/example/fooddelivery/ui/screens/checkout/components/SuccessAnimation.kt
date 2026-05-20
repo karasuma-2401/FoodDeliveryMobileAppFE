@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.R
@@ -41,23 +40,23 @@ fun SuccessAnimation(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFF7622).copy(alpha = 0.1f), CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
         )
         Box(
             modifier = Modifier
                 .size(120.dp)
-                .background(Color(0xFFFF7622).copy(alpha = 0.2f), CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), CircleShape)
         )
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .background(Color(0xFFFF7622), CircleShape),
+                .background(MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(R.string.payment_success),
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(40.dp)
             )
         }

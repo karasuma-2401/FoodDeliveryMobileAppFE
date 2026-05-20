@@ -57,6 +57,7 @@ fun ResetPasswordScreen(
         snackBarHostState = snackBarHostState
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResetPasswordContent (
@@ -72,6 +73,7 @@ fun ResetPasswordContent (
                 onBackClick = onNavigateBack,
             )
         },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -104,12 +106,12 @@ fun ResetPasswordContent (
                 text = "New Password",
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
                 value = state.newPassword,
                 onValueChange = { onEvent(ResetPasswordEvent.NewPasswordChanged(it))},
-                label = "",
+                label = "Enter new password",
                 isPassword = true,
                 isError = state.passwordError != null,
                 errorMessage = state.passwordError,
@@ -122,12 +124,12 @@ fun ResetPasswordContent (
                 text = "Confirm New Password",
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
                 value = state.confirmPassword,
                 onValueChange = { onEvent(ResetPasswordEvent.ConfirmPasswordChanged(it))},
-                label = "",
+                label = "Confirm your password",
                 isPassword = true,
                 isError = state.passwordError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -142,13 +144,20 @@ fun ResetPasswordContent (
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = MaterialTheme.shapes.medium,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Text(
                     text = if (state.isLoading) "RESETTING..." else "RESET PASSWORD",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold, 
+                        letterSpacing = 1.25.sp
+                    )
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Icon(
                     painter = painterResource(id = R.drawable.ic_lock_reset),
@@ -161,5 +170,3 @@ fun ResetPasswordContent (
         }
     }
 }
-
-

@@ -68,7 +68,7 @@ fun CartScreen(
                 selectedVoucher = null
                 showVoucherSheet = false
             },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
             VoucherSelectionSheet(
@@ -115,7 +115,7 @@ fun CartContent(
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
                                 contentDescription = "Clear Cart",
-                                tint = Color.Red.copy(alpha = 0.7f)
+                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
                             )
                         }
                     }
@@ -137,7 +137,7 @@ fun CartContent(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -185,7 +185,7 @@ fun CartContent(
                         Spacer(modifier = Modifier.height(8.dp))
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 24.dp),
-                            color = Color.LightGray.copy(alpha = 0.3f)
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -219,6 +219,7 @@ fun CartContent(
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun CartScreenPreview() {

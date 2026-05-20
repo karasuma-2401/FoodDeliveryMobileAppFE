@@ -42,6 +42,7 @@ fun FavouriteScreen(
         snackbarHostState = snackbarHostState
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavouriteContent(
@@ -80,12 +81,12 @@ fun FavouriteContent(
                     Text(
                         text = "No favourites yet",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Your liked restaurants will appear here",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.LightGray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
@@ -107,10 +108,16 @@ fun FavouriteContent(
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun FavouriteScreenPreview() {
     DFoodTheme(darkTheme = false) {
-        FavouriteScreen(onNavigateBack = {}, onNavigateToRestaurant = {})
+        FavouriteContent(
+            state = FavouriteState(),
+            onNavigateBack = {},
+            onNavigateToRestaurant = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
     }
 }

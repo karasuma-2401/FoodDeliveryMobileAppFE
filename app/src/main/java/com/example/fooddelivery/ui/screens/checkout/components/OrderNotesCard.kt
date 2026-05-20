@@ -28,18 +28,21 @@ fun OrderNotesCard(
             .height(110.dp),
         placeholder = {
             Text(
-                "Add a note for the restaurant (e.g. No onions)",
-                color = Color.Gray,
-                fontSize = 14.sp
+                text = "Add a note for the restaurant (e.g. No onions)",
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                style = MaterialTheme.typography.bodyMedium
             )
         },
         shape = RoundedCornerShape(20.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFF6F6F6),
-            unfocusedContainerColor = Color(0xFFF6F6F6),
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent,
-            cursorColor = MaterialTheme.colorScheme.primary
-        )
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+        ),
+        textStyle = MaterialTheme.typography.bodyMedium
     )
 }

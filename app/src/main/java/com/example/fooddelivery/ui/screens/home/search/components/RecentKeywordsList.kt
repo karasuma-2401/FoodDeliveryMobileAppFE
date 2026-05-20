@@ -25,7 +25,8 @@ fun RecentKeywordsList(
         Text(
             text = "Recent Keywords", 
             style = MaterialTheme.typography.titleMedium, 
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
         )
         LazyRow(
             modifier = Modifier.padding(vertical = 12.dp),
@@ -35,13 +36,15 @@ fun RecentKeywordsList(
                 Surface(
                     onClick = { onKeywordClick(keyword) },
                     shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f)),
-                    color = Color.White
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 1.dp
                 ) {
                     Text(
                         text = keyword,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }

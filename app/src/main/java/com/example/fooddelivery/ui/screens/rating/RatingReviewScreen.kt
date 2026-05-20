@@ -70,6 +70,7 @@ fun RatingReviewScreen(
         modifier = Modifier
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RatingReviewContent(
@@ -98,13 +99,16 @@ fun RatingReviewContent(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                shape = MaterialTheme.shapes.large,
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -123,14 +127,13 @@ fun RatingReviewContent(
                         text = state.restaurantName,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "How was your meal?",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     StarRatingBar(
@@ -152,25 +155,27 @@ fun RatingReviewContent(
                             .height(150.dp),
                         placeholder = {
                             Text(
-                                "Write your detailed experience here...",
+                                text = "Write your detailed experience here...",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         },
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedContainerColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent
+                            focusedContainerColor = Color.Transparent,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         shape = MaterialTheme.shapes.medium,
                         textStyle = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             DFoodButton(
-                text = "Submit",
+                text = "Submit Review",
                 onClick = { onEvent(RatingReviewEvent.OnSubmit) },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -178,6 +183,7 @@ fun RatingReviewContent(
 
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RatingReviewScreenPreview() {

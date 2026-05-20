@@ -34,7 +34,8 @@ fun ProfileMenuCard(content: @Composable ColumnScope.() -> Unit) {
             .padding(horizontal = 24.dp),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 1.dp
+        shadowElevation = 2.dp, // Modernized elevation
+        tonalElevation = 1.dp
     ) {
         Column(content = content)
     }
@@ -46,7 +47,7 @@ fun ProfileMenuItem(
     iconContainerColor: Color,
     iconTint: Color,
     tittle: String,
-    tittleColor: Color = MaterialTheme.colorScheme.onBackground,
+    tittleColor: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit,
     trailing: @Composable (() -> Unit)? = null
 ) {
@@ -91,7 +92,7 @@ fun ProfileMenuItem(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
-            tint = Color.LightGray,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
             modifier = Modifier.size(20.dp)
         )
     }

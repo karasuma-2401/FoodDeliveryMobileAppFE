@@ -46,7 +46,7 @@ fun SizeSelection(
                         .clip(CircleShape)
                         .background(
                             if (isSelected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         )
                         .clickable { onSizeSelected(size) },
                     contentAlignment = Alignment.Center
@@ -60,7 +60,7 @@ fun SizeSelection(
                         },
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                else MaterialTheme.colorScheme.onBackground,
+                                    else MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )

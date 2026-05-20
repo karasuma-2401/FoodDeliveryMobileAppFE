@@ -36,7 +36,7 @@ fun CategoryTabs(
                     .clip(RoundedCornerShape(24.dp))
                     .background(
                         if (isSelected) MaterialTheme.colorScheme.primary
-                        else Color.White
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
                     .clickable { onCategorySelected(category) }
                     .padding(horizontal = 24.dp, vertical = 12.dp),
@@ -44,7 +44,8 @@ fun CategoryTabs(
             ) {
                 Text(
                     text = category,
-                    color = if (isSelected) Color.White else Color.Gray,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary 
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = 14.sp
                 )

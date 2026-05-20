@@ -17,13 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import kotlinx.coroutines.launch
 
-data class  OnboardingPage (
+data class OnboardingPage(
     @DrawableRes val imageRes: Int,
     val title: String,
     val description: String,
@@ -73,23 +75,25 @@ fun OnboardingScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 32.dp),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(onboardingPages.size) { iteration ->
                 val color = if (pagerState.currentPage == iteration)
                     MaterialTheme.colorScheme.primary
                 else
-                    MaterialTheme.colorScheme.primaryContainer
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
 
                 Box(
                     modifier = Modifier
                         .padding(4.dp)
-                        .size(if (pagerState.currentPage == iteration) 10.dp else 8.dp)
+                        .size(if (pagerState.currentPage == iteration) 12.dp else 8.dp)
                         .clip(CircleShape)
                         .background(color)
                 )
             }
         }
+        
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -115,10 +119,13 @@ fun OnboardingScreen(
                     }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                TextButton(onClick = onFinishOnboarding) {
+                TextButton(onClick = {
+                    viewModel.saveOnboardingState(completed = true)
+                    onFinishOnboarding()
+                }) {
                     Text(
                         text = "Skip",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -138,24 +145,30 @@ fun PagerScreen(page: OnboardingPage) {
             painter = painterResource(id = page.imageRes),
             contentDescription = page.title,
             modifier = Modifier
-                .fillMaxWidth(0.8f)
+                .fillMaxWidth(0.85f)
                 .fillMaxHeight(0.6f)
         )
 
         Text(
             text = page.title,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 28.sp
+            ),
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 24.dp)
+            modifier = Modifier
+                .padding(top = 32.dp)
+                .padding(horizontal = 24.dp)
         )
 
         Text(
             text = page.description,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
+            modifier = Modifier.padding(horizontal = 40.dp, vertical = 16.dp),
+            lineHeight = 24.sp
         )
     }
 }

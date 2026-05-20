@@ -30,16 +30,16 @@ fun FoodInfoRow(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         InfoIconText(
             icon = Icons.Default.Star,
             text = "$rating",
-            iconColor = MaterialTheme.colorScheme.primary,
+            iconColor = MaterialTheme.colorScheme.secondary,
         )
         InfoIconText(
             icon = Icons.Outlined.DirectionsRun,
-            text = String.format(Locale.US,"%.0f", deliveryFee),
+            text = if (deliveryFee <= 0.0) "Free" else String.format(Locale.US, "%.2f", deliveryFee),
             iconColor = MaterialTheme.colorScheme.primary
         )
     }
@@ -64,7 +64,7 @@ private fun InfoIconText (
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onSurface
             )
         )
     }

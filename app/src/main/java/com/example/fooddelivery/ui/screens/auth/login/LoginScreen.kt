@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.R
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,8 +64,6 @@ fun LoginScreen(
         onError = { viewModel.onEvent(LoginEvent.ErrorMessageSet("Facebook error: $it")) }
     )
 
-
-
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             if (it.isNotEmpty()) {
@@ -87,6 +86,7 @@ fun LoginScreen(
         snackBarHostState = snackBarHostState,
     )
 }
+
 @OptIn (ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreenContent(
@@ -106,12 +106,12 @@ fun LoginScreenContent(
                 onBackClick = onNavigateBack,
                 scrollBehavior = null
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
@@ -123,6 +123,7 @@ fun LoginScreenContent(
                     text = "Log In",
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -149,16 +150,17 @@ fun LoginScreenContent(
                 text = "Phone number",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
                 value = state.phone,
                 onValueChange = { onEvent(LoginEvent.PhoneChanged(it))},
-                label = "",
+                label = "Enter your phone",
                 leadingIcon = {
                     Icon (
                         imageVector = Icons.Outlined.Phone,
                         contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -166,23 +168,24 @@ fun LoginScreenContent(
                 errorMessage = state.phoneError
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "Password",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
                 value = state.password,
                 onValueChange = { onEvent(LoginEvent.PasswordChanged(it))},
-                label = "",
+                label = "Enter your password",
                 isPassword = true,
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.Lock,
                         contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -203,7 +206,10 @@ fun LoginScreenContent(
                     Checkbox(
                         checked = state.rememberMe,
                         onCheckedChange = { onEvent(LoginEvent.RememberMeChanged(it))},
-                        colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = MaterialTheme.colorScheme.primary,
+                            uncheckedColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     Text (
                         text = "Remember Me",
@@ -219,7 +225,7 @@ fun LoginScreenContent(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             DFoodButton(
                 text = if (state.isLoading) "LOGGING IN..." else "LOG IN",
@@ -233,17 +239,23 @@ fun LoginScreenContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceVariant)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f), 
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
 
                 Text(
-                    text = "SOCIAL CONNECT",
+                    text = " SOCIAL CONNECT ",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceVariant)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f), 
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -254,7 +266,7 @@ fun LoginScreenContent(
                     contentDescription = "Log in with facebook",
                     onClick = triggerFacebookLogin
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(20.dp))
                 SocialButton(
                     iconRes = R.drawable.ic_x_twitter,
                     contentDescription = "Log in with twitter",
@@ -278,6 +290,7 @@ fun LoginScreenContent(
                     text = "SIGN UP",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onNavigateToSignUp() }
                 )
             }

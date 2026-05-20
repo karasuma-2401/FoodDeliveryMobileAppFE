@@ -31,7 +31,7 @@ fun TimelineItem(
     
     val iconColor = if (isActive || isCompleted) MaterialTheme.colorScheme.onPrimary else inactiveColor
     val circleColor = if (isActive || isCompleted) activeColor else MaterialTheme.colorScheme.surfaceVariant
-    val titleColor = if (isActive) activeColor else if (isCompleted) MaterialTheme.colorScheme.onBackground else inactiveColor
+    val titleColor = if (isActive) activeColor else if (isCompleted) MaterialTheme.colorScheme.onSurface else inactiveColor
 
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -59,7 +59,7 @@ fun TimelineItem(
                     modifier = Modifier
                         .width(2.dp)
                         .height(40.dp)
-                        .background(if (isCompleted) activeColor else MaterialTheme.colorScheme.outlineVariant)
+                        .background(if (isCompleted) activeColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 )
             }
         }

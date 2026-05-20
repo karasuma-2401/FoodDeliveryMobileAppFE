@@ -39,7 +39,7 @@ fun NotificationItem(
     notification: Notification,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (notification.isRead) Color.Transparent else MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+    val backgroundColor = if (notification.isRead) Color.Transparent else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
 
     Row(
         modifier = Modifier
@@ -55,7 +55,7 @@ fun NotificationItem(
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(color.copy(alpha = 0.1f)),
+                .background(color.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -80,12 +80,12 @@ fun NotificationItem(
                         fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.Bold,
                         fontSize = 16.sp
                     ),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = DateUtils.getRelativeTimeSpanString(notification.timestamp).toString(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
 
@@ -94,18 +94,20 @@ fun NotificationItem(
             Text(
                 text = notification.message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (notification.isRead) Color.Gray else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                color = if (notification.isRead) MaterialTheme.colorScheme.onSurfaceVariant 
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }
     }
 }
+
 @Composable
 private fun getNotificationIcon(type: NotificationType): Pair<ImageVector, Color> {
     return when (type) {
-        NotificationType.ORDER -> Icons.Default.LocalShipping to Color(0xFF4285F4)
-        NotificationType.PROMOTION -> Icons.Default.Percent to Color(0xFFF44336)
-        NotificationType.SYSTEM -> Icons.Default.Settings to Color(0xFF607D8B)
+        NotificationType.ORDER -> Icons.Default.LocalShipping to MaterialTheme.colorScheme.primary
+        NotificationType.PROMOTION -> Icons.Default.Percent to MaterialTheme.colorScheme.secondary
+        NotificationType.SYSTEM -> Icons.Default.Settings to MaterialTheme.colorScheme.tertiary
     }
 }

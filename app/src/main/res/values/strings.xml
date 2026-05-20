@@ -29,4 +29,8 @@
 
     <!-- Chat -->
     <string name="add_attachment">Add attachment</string>
+    <string name="write_something">Write something...</string>
+
+    <!-- Orders -->
+    <string name="no_orders_found">No orders found</string>
 </resources>

@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -36,7 +35,7 @@ fun ChatBottomSection(
             .navigationBarsPadding()
     ) {
         Surface(
-            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
             shape = MaterialTheme.shapes.medium,
             modifier = Modifier
                 .fillMaxWidth()
@@ -81,10 +80,14 @@ fun ChatBottomSection(
                 enabled = !isUploading
             ) {
                 if (isUploading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp), 
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 } else {
                     Icon(
-                        Icons.Default.Add,
+                        imageVector = Icons.Default.Add,
                         contentDescription = stringResource(R.string.add_attachment),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -94,15 +97,21 @@ fun ChatBottomSection(
             TextField(
                 value = inputText,
                 onValueChange = onTextChange,
-                placeholder = { 
-                    Text("Write something...", style = MaterialTheme.typography.bodyMedium) 
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.write_something),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
                 },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                 ),
                 modifier = Modifier.weight(1f),
                 textStyle = MaterialTheme.typography.bodyMedium
