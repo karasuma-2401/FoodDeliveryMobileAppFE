@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.CartItem
+import java.util.Locale
 
 @Composable
 fun CartItemCard(
@@ -72,7 +73,7 @@ fun CartItemCard(
                         )
                     }
                     Text(
-                        text = String.format("$%.2f", item.totalPrice),
+                        text = String.format(Locale.US, "$%.2f", item.totalPrice),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary // Use primary color for price

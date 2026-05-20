@@ -39,7 +39,7 @@ fun FoodInfoRow(
         )
         InfoIconText(
             icon = Icons.Outlined.DirectionsRun,
-            text = if (deliveryFee == 0.0) "Free" else String.format(Locale.US, "%.2f", deliveryFee),
+            text = if (deliveryFee <= 0.0) "Free" else String.format(Locale.US, "%.2f", deliveryFee),
             iconColor = MaterialTheme.colorScheme.primary
         )
     }

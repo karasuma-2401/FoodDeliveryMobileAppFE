@@ -14,12 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Order
 import com.example.fooddelivery.ui.components.shimmerEffect // Import hiệu ứng shimmer đã viết
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
@@ -157,6 +159,7 @@ fun OrderContent(
                     }
                 }
             }
+
             if (state.isLoading) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

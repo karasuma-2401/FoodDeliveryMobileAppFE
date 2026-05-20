@@ -97,12 +97,12 @@ fun ChatBottomSection(
             TextField(
                 value = inputText,
                 onValueChange = onTextChange,
-                placeholder = { 
+                placeholder = {
                     Text(
-                        text = "Write something...", 
+                        text = stringResource(R.string.write_something),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    ) 
+                    )
                 },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,

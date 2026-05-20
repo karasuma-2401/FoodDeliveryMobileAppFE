@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -34,7 +35,7 @@ fun StarRatingBar(
         for (i in 1..5) {
             val isChecked = i <= rating
             Icon(
-                imageVector = Icons.Filled.Star,
+                imageVector = if (isChecked) Icons.Filled.Star else Icons.Outlined.Star,
                 contentDescription = "Rate $i star${if (i > 1) "s" else ""}",
                 tint = if (isChecked) starColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                 modifier = Modifier

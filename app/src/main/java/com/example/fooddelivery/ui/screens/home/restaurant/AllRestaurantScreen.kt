@@ -80,11 +80,11 @@ fun AllRestaurantsContent(
                     InputChip(
                         selected = true,
                         onClick = { onEvent.invoke(AllRestaurantsEvent.ToggleSortSheet(true)) },
-                        label = { 
+                        label = {
                             Text(
-                                text = " ${state.currentSortOption.title}",
+                                text = state.currentSortOption.title,
                                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                            ) 
+                            )
                         },
                         trailingIcon = { 
                             Icon(
