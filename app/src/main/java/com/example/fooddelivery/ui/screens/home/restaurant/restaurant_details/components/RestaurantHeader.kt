@@ -67,7 +67,7 @@ fun RestaurantHeader(restaurant: Restaurant) {
             InfoItem(
                 icon = Icons.Default.Star, 
                 text = "${restaurant.rating}", 
-                iconColor = MaterialTheme.colorScheme.secondary // Replaced hardcoded orange
+                iconColor = MaterialTheme.colorScheme.secondary
             )
             val deliveryFeeText = if (restaurant.deliveryFee == 0.0) "Free" else "$${restaurant.deliveryFee}"
             InfoItem(

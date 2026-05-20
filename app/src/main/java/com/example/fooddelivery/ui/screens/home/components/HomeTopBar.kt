@@ -42,19 +42,11 @@ fun HomeTopBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (onBackClick != null) {
-            IconButton(
+            TopBarIconButton(
                 onClick = onBackClick,
-                modifier = Modifier
-                    .size(45.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back"
+            )
         } else {
             Spacer(modifier = Modifier.size(45.dp))
         }
@@ -81,7 +73,7 @@ fun HomeTopBar(
                     Text(
                         text = selectedLocation,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1
                     )
                     Icon(
@@ -96,7 +88,7 @@ fun HomeTopBar(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
                 availableLocations.forEach { location ->
                     DropdownMenuItem(
@@ -111,81 +103,71 @@ fun HomeTopBar(
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-
-            Box(
-                modifier = Modifier
-                    .size(45.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable { onCartClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ShoppingBag,
-                    contentDescription = "Cart",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
-                )
-
-                if (cartItemCount > 0) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = 2.dp, y = (-2).dp)
-                            .widthIn(min = 18.dp)
-                            .height(18.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
-                            .padding(horizontal = 4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (cartItemCount > 99) "99+" else cartItemCount.toString(),
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                }
-            }
+            TopBarIconButton(
+                onClick = onCartClick,
+                icon = Icons.Outlined.ShoppingBag,
+                contentDescription = "Cart",
+                badgeCount = cartItemCount,
+                badgeColor = MaterialTheme.colorScheme.primary,
+                onBadgeColor = MaterialTheme.colorScheme.onPrimary
+            )
+            
             Spacer(modifier = Modifier.width(12.dp))
+            
+            TopBarIconButton(
+                onClick = onMessageClick,
+                icon = Icons.AutoMirrored.Outlined.Message,
+                contentDescription = "Messages",
+                badgeCount = unreadMessageCount,
+                badgeColor = MaterialTheme.colorScheme.error,
+                onBadgeColor = MaterialTheme.colorScheme.onError
+            )
+        }
+    }
+}
+
+@Composable
+private fun TopBarIconButton(
+    onClick: () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    badgeCount: Int = 0,
+    badgeColor: Color = MaterialTheme.colorScheme.primary,
+    onBadgeColor: Color = MaterialTheme.colorScheme.onPrimary
+) {
+    Box(
+        modifier = Modifier
+            .size(45.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(22.dp)
+        )
+
+        if (badgeCount > 0) {
             Box(
                 modifier = Modifier
-                    .size(45.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable { onMessageClick() },
+                    .align(Alignment.TopEnd)
+                    .offset(x = 2.dp, y = (-2).dp)
+                    .size(18.dp)
+                    .background(badgeColor, CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.background, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.Message,
-                    contentDescription = "Messages",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
+                Text(
+                    text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = onBadgeColor,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
-
-                if (unreadMessageCount > 0) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = 2.dp, y = (-2).dp)
-                            .size(18.dp)
-                            .background(MaterialTheme.colorScheme.error, CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.background, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (unreadMessageCount > 99) "99+" else unreadMessageCount.toString(),
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onError,
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                }
             }
         }
     }

@@ -26,30 +26,40 @@ fun AddressTypeItem(
     modifier: Modifier = Modifier,
     selectedColor: Color = MaterialTheme.colorScheme.primary
 ) {
-    val borderColor = if (isSelected) selectedColor else Color(0xFFE8E9F1)
+    val borderColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     val contentColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant
+    val containerColor = if (isSelected) selectedColor.copy(alpha = 0.1f) else Color.Transparent
 
     Box(
         modifier = modifier
-            .height(50.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
-            .background(if (isSelected) Color.White else Color.Transparent)
+            .height(54.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(containerColor)
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(16.dp)
+            )
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
                 modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = label,
                 color = contentColor,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                )
             )
         }
     }

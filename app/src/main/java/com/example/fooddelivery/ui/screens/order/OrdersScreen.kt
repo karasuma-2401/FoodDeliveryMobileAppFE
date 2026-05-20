@@ -6,20 +6,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Order
+import com.example.fooddelivery.ui.components.shimmerEffect // Import hiệu ứng shimmer đã viết
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.order.components.OrderItemCard
+import com.example.fooddelivery.ui.screens.order.components.OrderItemCardSkeleton
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -112,32 +117,46 @@ fun OrderContent(
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Normal,
                                     ),
-                                    color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary 
-                                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             }
                         )
                     }
                 }
+
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize(),
                     beyondViewportPageCount = 1
                 ) { page ->
-                    val orders = if (page == 0) state.ongoingOrders else state.historyOrders
-                    
-                    OrderList(
-                        orders = orders,
-                        onPrimaryAction = { id ->
-                            if (page == 0) onTrackOrder(id) else onReOrder(id)
-                        },
-                        onSecondaryAction = { id, restaurantName ->
-                            if (page == 0) onCancelOrder(id) else onRate(id, restaurantName)
+
+                    if (state.isInitLoading) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 24.dp),
+                            contentPadding = PaddingValues(vertical = 16.dp),
+                            userScrollEnabled = false
+                        ) {
+                            items(3) {
+                                OrderItemCardSkeleton()
+                            }
                         }
-                    )
+                    } else {
+                        val orders = if (page == 0) state.ongoingOrders else state.historyOrders
+                        OrderList(
+                            orders = orders,
+                            onPrimaryAction = { id ->
+                                if (page == 0) onTrackOrder(id) else onReOrder(id)
+                            },
+                            onSecondaryAction = { id, restaurantName ->
+                                if (page == 0) onCancelOrder(id) else onRate(id, restaurantName)
+                            }
+                        )
+                    }
                 }
             }
-
             if (state.isLoading) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -161,14 +180,16 @@ fun OrderList(
     if (orders.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
-                text = "No orders found", 
+                text = "No orders found",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     } else {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
             items(orders) { order ->
@@ -181,12 +202,11 @@ fun OrderList(
         }
     }
 }
-
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun OrdersScreenPreview() {
     DFoodTheme(darkTheme = false) {
-        OrderContent (
+        OrderContent(
             state = OrderState(),
             pagerState = rememberPagerState(pageCount = { 2 }),
             scope = rememberCoroutineScope(),

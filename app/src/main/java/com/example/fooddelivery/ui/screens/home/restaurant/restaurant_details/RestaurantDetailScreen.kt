@@ -17,8 +17,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.home.search.components.SectionHeader
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.CategoryTabs
+import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.CategoryTabsSkeleton
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.FoodItemCard
+import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.FoodItemCardSkeleton
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.RestaurantHeader
+import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.RestaurantHeaderSkeleton
+import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.SectionHeaderSkeleton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -101,8 +105,38 @@ fun RestaurantDetailScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                contentPadding = PaddingValues(bottom = 24.dp),
+                userScrollEnabled = false
+            ) {
+                item {
+                    Box(modifier = Modifier.padding(24.dp)) {
+                        RestaurantHeaderSkeleton()
+                    }
+                }
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        CategoryTabsSkeleton()
+                    }
+                }
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
+                        SectionHeaderSkeleton()
+                    }
+                }
+                items(2) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        FoodItemCardSkeleton(modifier = Modifier.weight(1f))
+                        FoodItemCardSkeleton(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         } else {
             state.restaurant?.let { restaurant ->
