@@ -111,7 +111,7 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             cartRepository.cartItems.collectLatest { items ->
                 val subtotal = items
-                    .filter { it.restaurantName == checkoutArgs.restaurantName }
+                    .filter { it.restaurantId == checkoutArgs.restaurantId }
                     .sumOf { it.totalPrice }
                 _state.update { it.copy(subtotal = subtotal) }
             }
@@ -158,9 +158,9 @@ class CheckoutViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            
+
             val cartItems = cartRepository.cartItems.first()
-                .filter { it.restaurantName == currentState.restaurantName }
+                .filter { it.restaurantId == checkoutArgs.restaurantId }
 
             if (cartItems.isEmpty()) {
                 _state.update { it.copy(isLoading = false) }
@@ -239,9 +239,8 @@ class CheckoutViewModel @Inject constructor(
             _state.update { it.copy(isPolling = false) }
 
             if (isPaid) {
-                val currentState = _state.value
                 val cartItems = cartRepository.cartItems.first()
-                    .filter { it.restaurantName == currentState.restaurantName }
+                    .filter { it.restaurantId == checkoutArgs.restaurantId }
                 cartItems.forEach { item ->
                     cartRepository.removeItem(
                         foodId = item.food.id,

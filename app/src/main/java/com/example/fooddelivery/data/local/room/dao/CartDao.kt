@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.fooddelivery.data.local.room.entity.CartEntity
 import kotlinx.coroutines.flow.Flow
@@ -28,4 +29,28 @@ interface CartDao {
 
     @Query("DELETE FROM cart_items")
     suspend fun clearCart()
+
+    @Transaction
+    suspend fun addToCartAtomic(cartItem: CartEntity) {
+        val existingItem = getCartItem(cartItem.foodId, cartItem.size, cartItem.restaurantId)
+        if (existingItem != null) {
+            val updatedQuantity = existingItem.quantity + cartItem.quantity
+            updateCartItem(existingItem.copy(quantity = updatedQuantity))
+        } else {
+            insertCartItem(cartItem)
+        }
+    }
+
+    @Transaction
+    suspend fun updateQuantityAtomic(foodId: String, size: String, restaurantId: String, delta: Int) {
+        val existingItem = getCartItem(foodId, size, restaurantId)
+        if (existingItem != null) {
+            val newQuantity = existingItem.quantity + delta
+            if (newQuantity > 0) {
+                updateCartItem(existingItem.copy(quantity = newQuantity))
+            } else {
+                deleteCartItem(existingItem)
+            }
+        }
+    }
 }

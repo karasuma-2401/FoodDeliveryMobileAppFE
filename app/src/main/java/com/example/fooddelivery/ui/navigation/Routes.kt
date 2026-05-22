@@ -30,6 +30,7 @@ data class ResetPasswordRoute (
 @Serializable object CartRoute
 @Serializable
 data class CheckoutRoute(
+    val restaurantId: String,
     val restaurantName: String,
     val discount: Double = 0.0
 )

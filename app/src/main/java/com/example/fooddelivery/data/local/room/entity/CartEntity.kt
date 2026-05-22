@@ -18,7 +18,12 @@ data class CartEntity(
     val foodName: String,
     val foodPrice: Double,
     val foodImageUrl: String?,
-    val foodImageRes: Int?
+    val foodImageRes: Int?,
+    val categoryId: String,
+    val rating: Float,
+    val reviewCount: Int,
+    val soldCount: Int,
+    val promoTag: String?
 )
 
 fun CartEntity.toDomain(): CartItem {
@@ -28,14 +33,14 @@ fun CartEntity.toDomain(): CartItem {
             name = foodName,
             restaurantId = restaurantId,
             restaurantName = restaurantName,
-            categoryId = "",
+            categoryId = categoryId,
             price = foodPrice,
-            rating = 0f,
-            reviewCount = 0,
-            soldCount = 0,
+            rating = rating,
+            reviewCount = reviewCount,
+            soldCount = soldCount,
             imageUrl = foodImageUrl,
             imageRes = foodImageRes,
-            promoTag = null
+            promoTag = promoTag
         ),
         size = size,
         quantity = quantity,
@@ -56,6 +61,11 @@ fun CartItem.toEntity(): CartEntity {
         foodName = food.name,
         foodPrice = food.price,
         foodImageUrl = food.imageUrl,
-        foodImageRes = food.imageRes
+        foodImageRes = food.imageRes,
+        categoryId = food.categoryId,
+        rating = food.rating,
+        reviewCount = food.reviewCount,
+        soldCount = food.soldCount,
+        promoTag = food.promoTag
     )
 }

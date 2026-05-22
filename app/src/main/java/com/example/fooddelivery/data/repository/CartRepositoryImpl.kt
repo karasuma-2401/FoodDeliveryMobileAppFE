@@ -19,31 +19,11 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addToCart(cartItem: CartItem) {
-        val existingItem = cartDao.getCartItem(
-            foodId = cartItem.food.id,
-            size = cartItem.size,
-            restaurantId = cartItem.restaurantId
-        )
-
-        if (existingItem != null) {
-            val updatedQuantity = existingItem.quantity + cartItem.quantity
-            cartDao.updateCartItem(existingItem.copy(quantity = updatedQuantity))
-        } else {
-            cartDao.insertCartItem(cartItem.toEntity())
-        }
+        cartDao.addToCartAtomic(cartItem.toEntity())
     }
 
     override suspend fun updateQuantity(foodId: String, size: String, restaurantId: String, delta: Int) {
-        val existingItem = cartDao.getCartItem(foodId, size, restaurantId)
-
-        if (existingItem != null) {
-            val newQuantity = existingItem.quantity + delta
-            if (newQuantity > 0) {
-                cartDao.updateCartItem(existingItem.copy(quantity = newQuantity))
-            } else {
-                cartDao.deleteCartItem(existingItem)
-            }
-        }
+        cartDao.updateQuantityAtomic(foodId, size, restaurantId, delta)
     }
 
     override suspend fun removeItem(foodId: String, size: String, restaurantId: String) {

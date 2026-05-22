@@ -48,7 +48,7 @@ sealed interface CartEvent {
 }
 
 sealed interface CartUiEffect {
-    data class NavigateToCheckout(val restaurantName: String, val discount: Double) : CartUiEffect
+    data class NavigateToCheckout(val restaurantId: String, val restaurantName: String, val discount: Double) : CartUiEffect
     data class ShowError(val message: String) : CartUiEffect
 }
 
@@ -160,12 +160,18 @@ class CartViewModel @Inject constructor(
         val currentState = _state.value
         viewModelScope.launch {
             if (currentState.canCheckout && currentState.selectedRestaurantName != null) {
-                _uiEffect.emit(
-                    CartUiEffect.NavigateToCheckout(
-                        restaurantName = currentState.selectedRestaurantName,
-                        discount = currentState.discount
+                val restaurantId = currentState.selectedItems.firstOrNull()?.restaurantId
+                if (restaurantId != null) {
+                    _uiEffect.emit(
+                        CartUiEffect.NavigateToCheckout(
+                            restaurantId = restaurantId,
+                            restaurantName = currentState.selectedRestaurantName,
+                            discount = currentState.discount
+                        )
                     )
-                )
+                } else {
+                    _uiEffect.emit(CartUiEffect.ShowError("Unable to proceed to checkout"))
+                }
             } else {
                 val errorMsg = if (currentState.isCartEmpty) {
                     "Your cart is empty"
