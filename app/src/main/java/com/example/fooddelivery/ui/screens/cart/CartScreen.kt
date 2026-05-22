@@ -171,12 +171,12 @@ fun CartContent(
                         key = { "${it.food.id}::${it.size}" }
                     ) { item ->
                         SwipeToDeleteContainer(
-                            onDelete = { onEvent(CartEvent.RemoveItem(item.food.id, item.size)) }
+                            onDelete = { onEvent(CartEvent.RemoveItem(item.food.id, item.size, item.restaurantId)) }
                         ) {
                             CartItemCard(
                                 item = item,
-                                onIncrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, 1)) },
-                                onDecrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, -1)) },
+                                onIncrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, item.restaurantId, 1)) },
+                                onDecrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, item.restaurantId, -1)) },
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                             )
                         }

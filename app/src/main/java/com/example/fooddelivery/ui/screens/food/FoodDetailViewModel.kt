@@ -100,8 +100,8 @@ class FoodDetailViewModel @Inject constructor(
                         restaurantId = restaurant.id,
                         restaurantName = restaurant.name
                     )
-                    cartRepository.addToCart(cartItem)
                     viewModelScope.launch {
+                        cartRepository.addToCart(cartItem)
                         snackbarManager.showSnackbar("Added ${food.name} to cart")
                         _uiEffect.emit(FoodDetailUiEffect.NavigateBack)
                     }

@@ -37,8 +37,8 @@ data class CartState(
 }
 
 sealed interface CartEvent {
-    data class UpdateQuantity(val foodId: String, val size: String, val delta: Int) : CartEvent
-    data class RemoveItem(val foodId: String, val size: String): CartEvent
+    data class UpdateQuantity(val foodId: String, val size: String, val restaurantId: String, val delta: Int) : CartEvent
+    data class RemoveItem(val foodId: String, val size: String, val restaurantId: String): CartEvent
     data object ClearCart: CartEvent
     data class ApplyVoucher(val voucher: Voucher): CartEvent
     data class PromoCodeChanged(val code: String): CartEvent
@@ -70,7 +70,7 @@ class CartViewModel @Inject constructor(
 
     private fun observeCart() {
         viewModelScope.launch {
-            cartRepository.getCartItems().collectLatest { items ->
+            cartRepository.cartItems.collectLatest { items ->
                 _state.update { currentState ->
                     val newSelectedName = if (items.any { it.restaurantName == currentState.selectedRestaurantName}) {
                         currentState.selectedRestaurantName
@@ -116,9 +116,21 @@ class CartViewModel @Inject constructor(
 
     fun onEvent(event: CartEvent) {
         when (event) {
-            is CartEvent.UpdateQuantity -> cartRepository.updateQuantity(event.foodId, event.size, event.delta)
-            is CartEvent.RemoveItem -> cartRepository.removeItem(event.foodId, event.size)
-            is CartEvent.ClearCart -> cartRepository.clearCart()
+            is CartEvent.UpdateQuantity -> {
+                viewModelScope.launch {
+                    cartRepository.updateQuantity(event.foodId, event.size, event.restaurantId, event.delta)
+                }
+            }
+            is CartEvent.RemoveItem -> {
+                viewModelScope.launch {
+                    cartRepository.removeItem(event.foodId, event.size, event.restaurantId)
+                }
+            }
+            is CartEvent.ClearCart -> {
+                viewModelScope.launch {
+                    cartRepository.clearCart()
+                }
+            }
             is CartEvent.ApplyVoucher -> _state.update { it.copy(selectedVoucher = event.voucher) }
             is CartEvent.PromoCodeChanged -> _state.update { it.copy(promoCode = event.code, promoError = null) }
             is CartEvent.ApplyPromoCode -> {
@@ -134,7 +146,6 @@ class CartViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             selectedRestaurantName = event.restaurantName,
-                            // delete voucher now to calculate new total
                             selectedVoucher = null,
                             promoCode = "",
                             promoError = null
