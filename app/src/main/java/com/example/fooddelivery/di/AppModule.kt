@@ -6,6 +6,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.local.room.AppDatabase
+import com.example.fooddelivery.data.local.room.dao.CartDao
 import com.example.fooddelivery.data.local.room.dao.NotificationDao
 import com.example.fooddelivery.data.local.room.dao.ConversationDao
 import com.example.fooddelivery.data.local.room.dao.MessageDao
@@ -109,6 +110,9 @@ object AppModule {
     fun provideMessageDao(db: AppDatabase): MessageDao = db.messageDao
 
     @Provides
+    fun provideCartDao(db: AppDatabase): CartDao = db.cartDao
+
+    @Provides
     @Singleton
     fun provideAuthRepository(
         api: AuthApi,
@@ -137,8 +141,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCartRepository() : CartRepository {
-        return CartRepositoryImpl()
+    fun provideCartRepository(
+        dao: CartDao
+    ) : CartRepository {
+        return CartRepositoryImpl(dao)
     }
 
     @Provides

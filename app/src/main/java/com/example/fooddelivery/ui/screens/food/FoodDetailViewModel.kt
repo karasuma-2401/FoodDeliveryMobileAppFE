@@ -91,7 +91,7 @@ class FoodDetailViewModel @Inject constructor(
                 if (food != null && restaurant != null) {
                     val basePrice = food.price
                     val unitPrice = calculateUnitPrice(basePrice, currentState.selectedSize)
-                    
+
                     val cartItem = CartItem(
                         food = food,
                         size = currentState.selectedSize,
@@ -100,10 +100,14 @@ class FoodDetailViewModel @Inject constructor(
                         restaurantId = restaurant.id,
                         restaurantName = restaurant.name
                     )
-                    cartRepository.addToCart(cartItem)
                     viewModelScope.launch {
-                        snackbarManager.showSnackbar("Added ${food.name} to cart")
-                        _uiEffect.emit(FoodDetailUiEffect.NavigateBack)
+                        try {
+                            cartRepository.addToCart(cartItem)
+                            snackbarManager.showSnackbar("Added ${food.name} to cart")
+                            _uiEffect.emit(FoodDetailUiEffect.NavigateBack)
+                        } catch (error: Exception) {
+                            snackbarManager.showSnackbar(error.message ?: "Failed to add to cart")
+                        }
                     }
                 }
             }

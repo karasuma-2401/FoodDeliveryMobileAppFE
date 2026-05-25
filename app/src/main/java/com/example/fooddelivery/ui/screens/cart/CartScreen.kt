@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun CartScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToCheckout: (String, Double) -> Unit,
+    onNavigateToCheckout: (String, String, Double) -> Unit,
     viewModel: CartViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -45,7 +45,7 @@ fun CartScreen(
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
                 is CartUiEffect.NavigateToCheckout -> {
-                    onNavigateToCheckout(effect.restaurantName, effect.discount)
+                    onNavigateToCheckout(effect.restaurantId, effect.restaurantName, effect.discount)
                 }
                 is CartUiEffect.ShowError -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
@@ -171,12 +171,12 @@ fun CartContent(
                         key = { "${it.food.id}::${it.size}" }
                     ) { item ->
                         SwipeToDeleteContainer(
-                            onDelete = { onEvent(CartEvent.RemoveItem(item.food.id, item.size)) }
+                            onDelete = { onEvent(CartEvent.RemoveItem(item.food.id, item.size, item.restaurantId)) }
                         ) {
                             CartItemCard(
                                 item = item,
-                                onIncrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, 1)) },
-                                onDecrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, -1)) },
+                                onIncrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, item.restaurantId, 1)) },
+                                onDecrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, item.restaurantId, -1)) },
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                             )
                         }

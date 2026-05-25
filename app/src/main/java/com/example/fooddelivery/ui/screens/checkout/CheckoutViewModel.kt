@@ -109,9 +109,9 @@ class CheckoutViewModel @Inject constructor(
 
     private fun observeCart() {
         viewModelScope.launch {
-            cartRepository.getCartItems().collectLatest { items ->
+            cartRepository.cartItems.collectLatest { items ->
                 val subtotal = items
-                    .filter { it.restaurantName == checkoutArgs.restaurantName }
+                    .filter { it.restaurantId == checkoutArgs.restaurantId }
                     .sumOf { it.totalPrice }
                 _state.update { it.copy(subtotal = subtotal) }
             }
@@ -158,9 +158,9 @@ class CheckoutViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            
-            val cartItems = cartRepository.getCartItems().first()
-                .filter { it.restaurantName == currentState.restaurantName }
+
+            val cartItems = cartRepository.cartItems.first()
+                .filter { it.restaurantId == checkoutArgs.restaurantId }
 
             if (cartItems.isEmpty()) {
                 _state.update { it.copy(isLoading = false) }
@@ -190,7 +190,13 @@ class CheckoutViewModel @Inject constructor(
             result.onSuccess { response ->
                 if (currentState.paymentMethod is PaymentMethod.Cash) {
                     // Clear only items from this restaurant
-                    cartItems.forEach { cartRepository.removeItem(it.food.id, it.size) }
+                    cartItems.forEach { item ->
+                        cartRepository.removeItem(
+                            foodId = item.food.id,
+                            size = item.size,
+                            restaurantId = item.restaurantId
+                        )
+                    }
                     _state.update { it.copy(isLoading = false) }
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
                 } else {
@@ -233,11 +239,15 @@ class CheckoutViewModel @Inject constructor(
             _state.update { it.copy(isPolling = false) }
 
             if (isPaid) {
-                // Clear items for this restaurant
-                val currentState = _state.value
-                val cartItems = cartRepository.getCartItems().first()
-                    .filter { it.restaurantName == currentState.restaurantName }
-                cartItems.forEach { cartRepository.removeItem(it.food.id, it.size) }
+                val cartItems = cartRepository.cartItems.first()
+                    .filter { it.restaurantId == checkoutArgs.restaurantId }
+                cartItems.forEach { item ->
+                    cartRepository.removeItem(
+                        foodId = item.food.id,
+                        size = item.size,
+                        restaurantId = item.restaurantId
+                    )
+                }
 
                 pendingOrderId = null
                 _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)

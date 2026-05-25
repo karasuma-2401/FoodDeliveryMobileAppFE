@@ -70,7 +70,7 @@ class ProfileViewModel @Inject constructor(
 
     private fun observeCart() {
         viewModelScope.launch {
-            cartRepository.getCartItems().collectLatest { items ->
+            cartRepository.cartItems.collectLatest { items ->
                 val totalCount = items.sumOf { it.quantity }
                 _state.update { it.copy(cartItemCount = totalCount) }
             }
