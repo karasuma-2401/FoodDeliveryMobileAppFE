@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.food.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -12,9 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
 fun BottomCartBar(
@@ -24,6 +28,8 @@ fun BottomCartBar(
     onAddToCart: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
@@ -54,8 +60,6 @@ fun BottomCartBar(
                     )
                 )
             }
-            
-            // Quantity Selector
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -63,50 +67,58 @@ fun BottomCartBar(
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     .padding(horizontal = 4.dp, vertical = 4.dp)
             ) {
-                IconButton(
-                    onClick = { onUpdateQuantity(-1) }, 
-                    modifier = Modifier.size(36.dp)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(36.dp).clip(CircleShape).bounceClick {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onUpdateQuantity(-1)
+                    }
                 ) {
                     Icon(
-                        Icons.Default.Remove, 
-                        contentDescription = null, 
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer, 
+                        Icons.Default.Remove,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.size(16.dp)
                     )
                 }
+
                 Text(
                     text = "$quantity",
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.padding(horizontal = 8.dp),
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
-                IconButton(
-                    onClick = { onUpdateQuantity(1) }, 
-                    modifier = Modifier.size(36.dp)
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(36.dp).clip(CircleShape).bounceClick {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onUpdateQuantity(1)
+                    }
                 ) {
                     Icon(
-                        Icons.Default.Add, 
-                        contentDescription = null, 
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer, 
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
-            Button(
-                onClick = onAddToCart,
-                modifier = Modifier.height(56.dp).width(140.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+            Box(
+                modifier = Modifier
+                    .height(56.dp)
+                    .width(140.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .bounceClick { onAddToCart() },
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Add to Cart",
                     style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 )
             }

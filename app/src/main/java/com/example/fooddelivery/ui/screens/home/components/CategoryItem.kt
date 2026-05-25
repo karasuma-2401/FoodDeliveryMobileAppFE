@@ -1,8 +1,6 @@
 package com.example.fooddelivery.ui.screens.home.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -13,14 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Category
+import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
 fun CategoryItem(
@@ -30,9 +26,9 @@ fun CategoryItem(
 ) {
     Card(
         modifier = modifier
-            .width(120.dp)
+            .width(100.dp)
             .padding(vertical = 4.dp)
-            .clickable { onClick() },
+            .bounceClick { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -41,47 +37,20 @@ fun CategoryItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
+            Image(
+                painter = painterResource(id = category.imageRes ?: com.example.fooddelivery.R.drawable.food_bowl),
+                contentDescription = category.name,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = category.imageRes ?: R.drawable.food_bowl),
-                    contentDescription = category.name,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                
-                category.promoText?.let { promo ->
-                    val badgeColor = if (promo.contains("PROMO", ignoreCase = true)) 
-                        MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error
-                    
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(badgeColor)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = promo,
-                            color = if (promo.contains("PROMO", ignoreCase = true)) 
-                                MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onError,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
+                    .size(70.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Text(
                 text = category.name,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),

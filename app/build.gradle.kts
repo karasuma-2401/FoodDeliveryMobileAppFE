@@ -37,6 +37,10 @@ android {
         resValue("string", "fb_login_protocol_scheme", fbProtocolScheme)
 
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/\"")
+
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
     }
 
     buildTypes {

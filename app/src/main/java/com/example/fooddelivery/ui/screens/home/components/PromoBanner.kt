@@ -2,7 +2,6 @@ package com.example.fooddelivery.ui.screens.home.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -20,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.ui.components.bounceClick
 import com.example.fooddelivery.ui.screens.home.HomeBanner
 
 @Composable
@@ -29,11 +29,12 @@ fun PromoBanner(
     onClick: () -> Unit = {}
 ) {
     val bannerBaseColor = Color(banner.backgroundColor)
-    
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(160.dp)
+            .bounceClick { onClick() }
             .clip(RoundedCornerShape(28.dp))
             .background(
                 brush = Brush.horizontalGradient(
@@ -43,9 +44,7 @@ fun PromoBanner(
                     )
                 )
             )
-            .clickable { onClick() }
     ) {
-        // Decorative circle
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)

@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.home
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -14,22 +13,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar
 import com.example.fooddelivery.ui.components.bottombar.BottomNavItem
 import com.example.fooddelivery.ui.screens.home.components.*
-import com.example.fooddelivery.ui.theme.DFoodTheme
+import com.example.fooddelivery.ui.components.bounceClick
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import java.util.Calendar
 
 @Composable
@@ -131,43 +125,14 @@ fun HomeContent(
             }
 
             if (state.isLoading) {
+                item { Box(modifier = Modifier.padding(horizontal = 24.dp)) { SearchBarSkeleton() }; Spacer(modifier = Modifier.height(24.dp)) }
+                item { Box(modifier = Modifier.padding(horizontal = 24.dp)) { PromoBannerSkeleton() }; Spacer(modifier = Modifier.height(32.dp)) }
                 item {
-                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
-                        SearchBarSkeleton()
-                    }
-                    Spacer(modifier = Modifier.height(24.dp))
+                    SectionHeader(title = "All Categories", onSeeAllClick = { })
+                    LazyRow(contentPadding = PaddingValues(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp, bottom = 32.dp), userScrollEnabled = false) { items(5) { CategoryItemSkeleton() } }
                 }
-                item {
-                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
-                        PromoBannerSkeleton()
-                    }
-                    Spacer(modifier = Modifier.height(32.dp))
-                }
-                item {
-                    SectionHeader(
-                        title = "All Categories",
-                        onSeeAllClick = { }
-                    )
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.padding(top = 16.dp, bottom = 32.dp),
-                        userScrollEnabled = false
-                    ) {
-                        items(5) {
-                            CategoryItemSkeleton()
-                        }
-                    }
-                }
-                item {
-                    SectionHeader(
-                        title = "Open Restaurants",
-                        onSeeAllClick = { }
-                    )
-                }
-                items(3) {
-                    RestaurantItemSkeleton()
-                }
+                item { SectionHeader(title = "Open Restaurants", onSeeAllClick = { }) }
+                items(3) { RestaurantItemSkeleton() }
             } else {
                 item {
                     Surface(
@@ -175,22 +140,15 @@ fun HomeContent(
                             .padding(horizontal = 24.dp)
                             .fillMaxWidth()
                             .height(56.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { onNavigateToSearch() },
+                            .bounceClick { onNavigateToSearch() },
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 text = "Search dishes, restaurants",
@@ -262,19 +220,5 @@ fun HomeContent(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun HomeScreenPreview() {
-    DFoodTheme {
-        HomeContent(
-            state = HomeState(),
-            onEvent = {},
-            onNavigateToProfile = {},
-            onNavigateToOrders = {},
-            onNavigateToSearch = {}
-        )
     }
 }

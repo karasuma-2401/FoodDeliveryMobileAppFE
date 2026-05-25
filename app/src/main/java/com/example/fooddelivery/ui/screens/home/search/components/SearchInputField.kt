@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.home.search.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
 fun SearchInputField(
@@ -25,35 +25,35 @@ fun SearchInputField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp),
-        placeholder = { 
+        placeholder = {
             Text(
-                text = "Pizza", 
+                text = "Search dishes,...",
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            ) 
+            )
         },
-        leadingIcon = { 
+        leadingIcon = {
             Icon(
-                imageVector = Icons.Default.Search, 
-                contentDescription = null, 
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
-            ) 
+            )
         },
         trailingIcon = {
             if (query.isNotEmpty()) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Clear",
-                    modifier = Modifier.clickable { onClear() },
+                    modifier = Modifier.bounceClick { onClear() },
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent,
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
         ),
         singleLine = true
     )

@@ -98,7 +98,7 @@ fun SearchContent(
                 }
             }
             item {
-                SectionHeader(title = "Suggested Restaurants")
+                SectionHeader(title = "Suggested Restaurants", modifier = Modifier.padding(top = 16.dp))
             }
 
             items(state.suggestedRestaurants) { restaurant ->
@@ -128,7 +128,7 @@ fun SearchContent(
                 item { EmptySearchView(query = state.searchQuery) }
             } else {
                 if (state.suggestedRestaurants.isNotEmpty()) {
-                    item { SectionHeader("Restaurants R Found") }
+                    item { SectionHeader("Restaurants Found", modifier = Modifier.padding(top = 8.dp)) }
                     items(state.suggestedRestaurants) { restaurant ->
                         SearchRestaurantItem(
                             restaurant = restaurant,
@@ -137,7 +137,7 @@ fun SearchContent(
                     }
                 }
                 if (state.popularFood.isNotEmpty()) {
-                    item { SectionHeader(title = "Dishes Found", modifier = Modifier.padding(top = 16.dp)) }
+                    item { SectionHeader(title = "Dishes Found", modifier = Modifier.padding(top = 24.dp)) }
                     item {
                         PopularFoodRow(
                             popularFood = state.popularFood,
@@ -147,7 +147,7 @@ fun SearchContent(
                 }
             }
         }
-        item { Spacer(modifier = Modifier.height(32.dp)) }
+        item { Spacer(modifier = Modifier.height(40.dp)) }
     }
 }
 @Preview (showBackground = true, showSystemUi = true)

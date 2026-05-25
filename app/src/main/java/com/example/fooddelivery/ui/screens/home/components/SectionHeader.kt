@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.home.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -10,12 +9,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
 fun SectionHeader(
@@ -40,11 +39,13 @@ fun SectionHeader(
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { onSeeAllClick() }
+            modifier = Modifier
+                .bounceClick { onSeeAllClick() }
+                .padding(vertical = 4.dp, horizontal = 8.dp)
         ) {
             Text(
                 text = stringResource(R.string.see_all),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary
             )
             Icon(
