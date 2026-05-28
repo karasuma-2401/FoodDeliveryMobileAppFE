@@ -68,11 +68,14 @@ fun SearchRestaurantItem(
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Text(
-                    text = " • ${restaurant.tags.firstOrNull() ?: ""}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                val tag = restaurant.tags.firstOrNull()
+                if (!tag.isNullOrBlank()) {
+                    Text(
+                        text = " • $tag",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
 

@@ -34,7 +34,6 @@ fun PromoBanner(
         modifier = modifier
             .fillMaxWidth()
             .height(160.dp)
-            .bounceClick { onClick() }
             .clip(RoundedCornerShape(28.dp))
             .background(
                 brush = Brush.horizontalGradient(
@@ -44,6 +43,7 @@ fun PromoBanner(
                     )
                 )
             )
+            .bounceClick { onClick() }
     ) {
         Box(
             modifier = Modifier
@@ -79,7 +79,7 @@ fun PromoBanner(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
-                    onClick = onClick,
+                    onClick = {},
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                         contentColor = bannerBaseColor

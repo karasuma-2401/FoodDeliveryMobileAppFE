@@ -52,7 +52,6 @@ object AppModule {
             AppDatabase.DATABASE_NAME
         )
             .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_4)
-            .fallbackToDestructiveMigration()
             .build()
     }
 

@@ -15,6 +15,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,10 +73,17 @@ fun BottomCartBar(
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(36.dp).clip(CircleShape).bounceClick {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onUpdateQuantity(-1)
-                    }
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "Decrease quantity"
+                        }
+                        .bounceClick {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onUpdateQuantity(-1)
+                        }
                 ) {
                     Icon(
                         Icons.Default.Remove,
@@ -91,10 +102,17 @@ fun BottomCartBar(
 
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(36.dp).clip(CircleShape).bounceClick {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onUpdateQuantity(1)
-                    }
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "Increase quantity"
+                        }
+                        .bounceClick {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onUpdateQuantity(1)
+                        }
                 ) {
                     Icon(
                         Icons.Default.Add,

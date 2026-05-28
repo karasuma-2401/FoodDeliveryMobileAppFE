@@ -13,24 +13,33 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 
-fun Modifier.bounceClick(onClick: () -> Unit): Modifier = composed {
+fun Modifier.bounceClick(
+    scale: Float = 0.95f,
+    enableHaptic: Boolean = false,
+    hapticFeedbackType: HapticFeedbackType = HapticFeedbackType.TextHandleMove,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+): Modifier = composed {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isPressed) scale else 1f,
         label = "scale_animation"
     )
-    val haptic = LocalHapticFeedback.current
+    val haptic = if (enableHaptic) LocalHapticFeedback.current else null
     this
         .graphicsLayer {
-            scaleX = scale
-            scaleY = scale
+            scaleX = animatedScale
+            scaleY = animatedScale
         }
         .clickable(
             interactionSource = interactionSource,
             indication = LocalIndication.current,
+            enabled = enabled,
             onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                if (enableHaptic) {
+                    haptic?.performHapticFeedback(hapticFeedbackType)
+                }
                 onClick()
             }
         )

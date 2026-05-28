@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
@@ -24,7 +26,7 @@ fun RecentKeywordsList(
 ) {
     Column {
         Text(
-            text = "Recent Keywords",
+            text = stringResource(R.string.recent_keywords),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground

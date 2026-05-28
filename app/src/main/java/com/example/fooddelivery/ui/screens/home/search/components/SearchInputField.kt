@@ -1,16 +1,21 @@
 package com.example.fooddelivery.ui.screens.home.search.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
@@ -27,7 +32,7 @@ fun SearchInputField(
             .padding(vertical = 16.dp),
         placeholder = {
             Text(
-                text = "Search dishes,...",
+                text = stringResource(R.string.search_placeholder),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
         },
@@ -40,12 +45,18 @@ fun SearchInputField(
         },
         trailingIcon = {
             if (query.isNotEmpty()) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Clear",
-                    modifier = Modifier.bounceClick { onClear() },
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .bounceClick { onClear() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Clear",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         },
         shape = RoundedCornerShape(16.dp),
