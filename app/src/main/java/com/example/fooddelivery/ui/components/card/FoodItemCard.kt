@@ -35,7 +35,6 @@ fun FoodItemCard(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Image
         AsyncImage(
             model = item.imageUrl,
             contentDescription = null,
@@ -48,8 +47,6 @@ fun FoodItemCard(
         )
 
         Spacer(modifier = Modifier.width(16.dp))
-
-        // Middle Content
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -63,8 +60,6 @@ fun FoodItemCard(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Category badge
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
@@ -81,8 +76,6 @@ fun FoodItemCard(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Rating
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Star,
@@ -110,8 +103,6 @@ fun FoodItemCard(
                 )
             }
         }
-
-        // Right side
         Column(
             horizontalAlignment = Alignment.End,
             modifier = Modifier.height(88.dp),

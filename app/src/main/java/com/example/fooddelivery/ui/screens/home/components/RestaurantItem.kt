@@ -2,7 +2,6 @@ package com.example.fooddelivery.ui.screens.home.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,9 +17,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
 fun RestaurantItem(
@@ -31,12 +30,13 @@ fun RestaurantItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp),
+            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .bounceClick { onClick() },
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        onClick = onClick
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp, pressedElevation = 0.dp)
     ) {
-        Column {
+        Column(modifier = Modifier.padding(bottom = 12.dp)) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -64,7 +64,7 @@ fun RestaurantItem(
                             contentColor = if (isPromo) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError
                         )
                     }
-                    
+
                     restaurant.promoTags.firstOrNull { it.contains("Freeship", ignoreCase = true) }?.let { freeship ->
                         BadgeContainer(
                             text = freeship,
@@ -74,26 +74,29 @@ fun RestaurantItem(
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             Text(
                 text = restaurant.name,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
-            
+
             Text(
                 text = restaurant.tags.joinToString(" • "),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 InfoItem(icon = Icons.Default.Star, text = restaurant.rating.toString(), color = MaterialTheme.colorScheme.primary)
                 val deliveryFeeText = if (restaurant.deliveryFee == 0.0) "Free" else "$${String.format("%.2f", restaurant.deliveryFee)}"
@@ -108,7 +111,8 @@ private fun BadgeContainer(text: String, containerColor: Color, contentColor: Co
     Surface(
         color = containerColor,
         contentColor = contentColor,
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 2.dp
     ) {
         Text(
             text = text,

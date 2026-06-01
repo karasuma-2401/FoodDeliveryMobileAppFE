@@ -38,12 +38,14 @@ import com.example.fooddelivery.R
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.components.button.SocialButton
+import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 
 
@@ -266,12 +268,6 @@ fun LoginScreenContent(
                     contentDescription = "Log in with facebook",
                     onClick = triggerFacebookLogin
                 )
-                Spacer(modifier = Modifier.width(20.dp))
-                SocialButton(
-                    iconRes = R.drawable.ic_x_twitter,
-                    contentDescription = "Log in with twitter",
-                    enabled = false
-                )
             }
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -296,5 +292,21 @@ fun LoginScreenContent(
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun LoginScreenPreview() {
+    DFoodTheme(darkTheme = false
+    ) {
+        LoginScreenContent(
+            state = LoginState(),
+            onEvent = {},
+            onNavigateBack = {},
+            onNavigateToSignUp = {},
+            onNavigateToForgotPassword = {},
+            triggerFacebookLogin = {},
+            snackBarHostState = remember { SnackbarHostState() }
+        )
     }
 }

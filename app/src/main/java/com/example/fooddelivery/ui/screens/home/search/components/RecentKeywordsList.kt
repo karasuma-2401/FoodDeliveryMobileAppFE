@@ -1,20 +1,23 @@
 package com.example.fooddelivery.ui.screens.home.search.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
 fun RecentKeywordsList(
@@ -23,27 +26,26 @@ fun RecentKeywordsList(
 ) {
     Column {
         Text(
-            text = "Recent Keywords", 
-            style = MaterialTheme.typography.titleMedium, 
+            text = stringResource(R.string.recent_keywords),
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
         LazyRow(
-            modifier = Modifier.padding(vertical = 12.dp),
+            modifier = Modifier.padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(keywords) { keyword ->
-                Surface(
-                    onClick = { onKeywordClick(keyword) },
-                    shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 1.dp
+                Box(
+                    modifier = Modifier
+                        .bounceClick { onKeywordClick(keyword) }
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     Text(
                         text = keyword,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
