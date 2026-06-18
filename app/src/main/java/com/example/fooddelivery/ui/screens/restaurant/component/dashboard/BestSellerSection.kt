@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant.component
+package com.example.fooddelivery.ui.screens.restaurant.component.dashboard
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.fooddelivery.domain.model.BestSellerItem
+import com.example.fooddelivery.ui.screens.restaurant.component.BestSellerItemCard
 
 
 @Composable
