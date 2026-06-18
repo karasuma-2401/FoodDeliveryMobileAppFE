@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant.component.dashboard
+package com.example.fooddelivery.ui.screens.restaurant.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

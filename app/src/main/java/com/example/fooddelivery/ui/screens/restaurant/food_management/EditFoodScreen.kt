@@ -17,7 +17,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodActionTopBar
-import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.DFoodBottomBar
+import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodSectionLabel
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodTextArea
 import com.example.fooddelivery.ui.theme.DFoodTheme

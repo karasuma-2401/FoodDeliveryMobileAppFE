@@ -15,7 +15,7 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.BestSellerItem
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ActiveVouchersPreviewCard
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.BestSellerSection
-import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.DFoodBottomBar
+import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.HeaderSection
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.RevenueSection
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ReviewSection
