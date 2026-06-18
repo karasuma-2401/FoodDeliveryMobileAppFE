@@ -16,7 +16,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import com.example.fooddelivery.R
-import com.example.fooddelivery.ui.screens.restaurant.component.CouponBadge
 
 @Composable
 fun ActiveRestaurantCoupon(
