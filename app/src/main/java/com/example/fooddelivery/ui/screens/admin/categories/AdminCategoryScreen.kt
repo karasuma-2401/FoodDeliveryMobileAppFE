@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.admin
+package com.example.fooddelivery.ui.screens.admin.categories
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
