@@ -2,10 +2,7 @@ package com.example.fooddelivery.ui.screens.restaurant.dashboard
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,7 +13,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.BestSellerItem
-import com.example.fooddelivery.ui.screens.restaurant.component.*
+import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ActiveVouchersPreviewCard
+import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.BestSellerSection
+import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
+import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.HeaderSection
+import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.RevenueSection
+import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ReviewSection
+import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.StatCard
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable
@@ -98,10 +101,14 @@ fun DashboardContent(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                ReviewSection(state.rating, state.totalReviews, onSeeAllClicked = onSeeAllReviewsClick)
+                ReviewSection(
+                    state.rating,
+                    state.totalReviews,
+                    onSeeAllClicked = onSeeAllReviewsClick
+                )
                 
                 Spacer(modifier = Modifier.height(20.dp))
-                
+
                 BestSellerSection(
                     items = listOf(
                         BestSellerItem(
@@ -111,8 +118,20 @@ fun DashboardContent(
                             120,
                             R.drawable.ic_launcher_background
                         ),
-                        BestSellerItem("Pizza", "$8.99", 4.8f, 200, R.drawable.ic_launcher_background),
-                        BestSellerItem("Chicken", "$6.49", 4.6f, 150, R.drawable.ic_launcher_background)
+                        BestSellerItem(
+                            "Pizza",
+                            "$8.99",
+                            4.8f,
+                            200,
+                            R.drawable.ic_launcher_background
+                        ),
+                        BestSellerItem(
+                            "Chicken",
+                            "$6.49",
+                            4.6f,
+                            150,
+                            R.drawable.ic_launcher_background
+                        )
                     ),
                     onSeeAllClick = onSeeAllClick
                 )

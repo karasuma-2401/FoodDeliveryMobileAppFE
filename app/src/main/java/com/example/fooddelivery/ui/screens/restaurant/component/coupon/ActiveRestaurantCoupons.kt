@@ -1,21 +1,16 @@
-package com.example.fooddelivery.ui.screens.restaurant.component
+package com.example.fooddelivery.ui.screens.restaurant.component.coupon
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -47,7 +42,10 @@ fun ActiveRestaurantCoupon(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(code, fontWeight = FontWeight.ExtraBold)
                     Spacer(modifier = Modifier.width(8.dp))
-                    CouponBadge(text = if(isActive) "ACTIVE" else "INACTIVE", isPositive = isActive)
+                    CouponBadge(
+                        text = if (isActive) "ACTIVE" else "INACTIVE",
+                        isPositive = isActive
+                    )
                 }
                 Text(desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 LinearProgressIndicator(

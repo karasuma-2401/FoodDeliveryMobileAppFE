@@ -1,37 +1,26 @@
 package com.example.fooddelivery.ui.screens.restaurant.coupon
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 
 import com.example.fooddelivery.ui.theme.DFoodTheme
-import com.example.fooddelivery.R
-import com.example.fooddelivery.ui.screens.restaurant.component.ActiveRestaurantCoupon
-import com.example.fooddelivery.ui.screens.restaurant.component.CouponTabs
-import com.example.fooddelivery.ui.screens.restaurant.component.CreateCouponCard
-import com.example.fooddelivery.ui.screens.restaurant.component.SystemCouponItem
-import com.example.fooddelivery.ui.screens.restaurant.component.SystemWideSection
-import com.example.fooddelivery.ui.screens.restaurant.dashboard.DashboardContent
-import com.example.fooddelivery.ui.screens.restaurant.dashboard.DashboardState
-import com.example.fooddelivery.ui.screens.restaurant.food_management.AddFoodState
+import com.example.fooddelivery.ui.screens.restaurant.component.coupon.ActiveRestaurantCoupon
+import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponTabs
+import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CreateCouponCard
+import com.example.fooddelivery.ui.screens.restaurant.component.coupon.SystemCouponItem
+import com.example.fooddelivery.ui.screens.restaurant.component.coupon.SystemWideSection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

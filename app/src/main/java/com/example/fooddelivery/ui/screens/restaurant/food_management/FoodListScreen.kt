@@ -10,10 +10,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.data.remote.dto.FoodResponse
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.screens.restaurant.component.CategoryTabRow
+import com.example.fooddelivery.ui.screens.restaurant.component.food_management.CategoryTabRow
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
-import com.example.fooddelivery.ui.screens.restaurant.component.FoodList
-import com.example.fooddelivery.ui.screens.restaurant.component.ItemCountText
+import com.example.fooddelivery.ui.screens.restaurant.component.food_management.FoodList
+import com.example.fooddelivery.ui.screens.restaurant.component.food_management.ItemCountText
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable

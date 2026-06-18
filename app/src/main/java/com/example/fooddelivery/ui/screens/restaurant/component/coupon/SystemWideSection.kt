@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant.component
+package com.example.fooddelivery.ui.screens.restaurant.component.coupon
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
