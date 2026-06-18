@@ -1,17 +1,11 @@
-package com.example.fooddelivery.ui.screens.admin
-import androidx.compose.runtime.State
+package com.example.fooddelivery.ui.screens.admin.dashboard
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fooddelivery.data.remote.dto.FoodResponse
-import com.example.fooddelivery.domain.repository.RestaurantRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
+
 data class RestaurantFormState(
     val name: String = "",
     val phone: String = "",

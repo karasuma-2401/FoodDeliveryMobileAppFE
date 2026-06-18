@@ -32,7 +32,7 @@ import com.example.fooddelivery.ui.screens.restaurant.food_management.AddFoodScr
 import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
-import com.example.fooddelivery.ui.screens.admin.AdminRestaurantScreen
+import com.example.fooddelivery.ui.screens.admin.dashboard.AdminRestaurantScreen
 import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen

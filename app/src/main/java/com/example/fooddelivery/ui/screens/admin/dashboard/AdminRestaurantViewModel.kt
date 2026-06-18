@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.admin
+package com.example.fooddelivery.ui.screens.admin.dashboard
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
