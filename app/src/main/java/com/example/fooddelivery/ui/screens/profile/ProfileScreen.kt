@@ -40,6 +40,7 @@ fun ProfileScreen(
     onNavigateToNotification: () -> Unit,
     onNavigateToPaymentMethod: () -> Unit,
     onNavigateToReview: () -> Unit,
+    onChangePassword: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -94,6 +95,7 @@ fun ProfileScreen(
         onNavigateToNotification = onNavigateToNotification,
         onNavigateToPaymentMethod = onNavigateToPaymentMethod,
         onNavigateToReview = onNavigateToReview,
+        onChangePassword = onChangePassword,
         onShowLogoutDialog = { showLogoutDialog = true },
         snackBarHostState = snackBarHostState
     )
@@ -112,6 +114,7 @@ fun ProfileContent(
     onNavigateToNotification: () -> Unit,
     onNavigateToPaymentMethod: () -> Unit,
     onNavigateToReview: () -> Unit,
+    onChangePassword: () -> Unit,
     onShowLogoutDialog: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
@@ -194,6 +197,13 @@ fun ProfileContent(
                     iconTint = Color(0xFF4285F4),
                     tittle = "Personal Info",
                     onClick = onEditProfile
+                )
+                ProfileMenuCard(
+                    icon = Icons.Default.Lock,
+                    iconContainerColor = Color(0xFFF3E5F5),
+                    iconTint = Color(0xFF9C27B0),
+                    tittle = "Change Password",
+                    onClick = onChangePassword
                 )
                 ProfileMenuCard(
                     icon = Icons.Default.LocationOn,
@@ -321,6 +331,7 @@ fun ProfileScreenPreview() {
             onNavigateToNotification = {},
             onNavigateToPaymentMethod = {},
             onNavigateToReview = {},
+            onChangePassword = {},
             onShowLogoutDialog = {},
             snackBarHostState = SnackbarHostState()
         )

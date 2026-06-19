@@ -1,6 +1,7 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.dto.ChangePasswordRequest
 import com.example.fooddelivery.data.remote.dto.FacebookLoginRequest
 import com.example.fooddelivery.data.remote.dto.GoogleLoginRequest
 import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
@@ -157,6 +158,26 @@ class AuthRepositoryImpl @Inject constructor(
                 Result.success(Unit)
             } else {
                 Result.failure(Exception(response.body()?.message ?: "Failed to reset password"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun changePassword(
+        email: String?,
+        phone: String?,
+        currentPass: String,
+        newPass: String
+    ): Result<Unit> {
+        return try {
+            val request = ChangePasswordRequest(email, phone, currentPass, newPass)
+            val response = api.changePassword(request)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Change password failed"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

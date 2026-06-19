@@ -72,4 +72,12 @@ class TokenManager @Inject constructor (
     val getUserName: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
         preferences[USER_NAME_KEY]
     }
+
+    val getUserEmail: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
+        preferences[USER_EMAIL_KEY]
+    }
+    
+    val getPhone: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
+        preferences[PHONE_KEY]
+    }
 }

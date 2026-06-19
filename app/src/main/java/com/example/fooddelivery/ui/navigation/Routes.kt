@@ -57,6 +57,7 @@ data class RatingReviewRoute(
 
 @Serializable object ProfileRoute
 @Serializable object EditProfileRoute
+@Serializable object ChangePasswordRoute
 @Serializable object MyAddressRoute
 @Serializable data class AddAddressRoute(val addressId: String? = null)
 @Serializable object FavouriteRoute

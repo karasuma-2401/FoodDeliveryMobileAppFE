@@ -33,6 +33,7 @@ import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodSc
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminRestaurantScreen
+import com.example.fooddelivery.ui.screens.profile.changePassword.ChangePasswordScreen
 import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
@@ -327,6 +328,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToNotification = { navController.navigate(NotificationRoute) },
                 onNavigateToPaymentMethod = { navController.navigate(PaymentMethodRoute) },
                 onNavigateToReview = { navController.navigate(UserReviewRoute) },
+                onChangePassword = { navController.navigate(ChangePasswordRoute) },
                 onLogout = {
                     // delete all backstack
                     navController.navigate(AuthGraph) {
@@ -338,6 +340,12 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         
         composable<EditProfileRoute> {
             EditProfileScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<ChangePasswordRoute> {
+            ChangePasswordScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
