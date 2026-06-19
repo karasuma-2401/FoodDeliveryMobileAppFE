@@ -19,10 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fooddelivery.ui.screens.restaurant.component.BalanceHeader
-import com.example.fooddelivery.ui.screens.restaurant.component.ProfileMenuGroup
-import com.example.fooddelivery.ui.screens.restaurant.component.ProfileMenuItem
-import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
+import com.example.fooddelivery.ui.screens.restaurant.component.profile.BalanceHeader
+import com.example.fooddelivery.ui.screens.restaurant.component.profile.ProfileMenuGroup
+import com.example.fooddelivery.ui.screens.restaurant.component.profile.ProfileMenuItem
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable
