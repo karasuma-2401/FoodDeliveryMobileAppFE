@@ -52,6 +52,7 @@ import com.example.fooddelivery.ui.screens.category.AllCategoriesScreen
 import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
+import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -116,9 +117,21 @@ fun NavGraphBuilder.authNavGraph(
                     navController.navigate(VerificationRoute(email = email, isFromRegistration = true)) {
                         popUpTo<RegisterRoute> { inclusive = true }
                     }
+                },
+                onNavigateToPolicy = { type ->
+                    navController.navigate(PolicyRoute(type = type))
                 }
             )
         }
+
+        composable<PolicyRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<PolicyRoute>()
+            PolicyScreen(
+                type = args.type,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable<RegistrationSuccessRoute> {
             RegistrationSuccessScreen(
                 onStartOrdering = {

@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.auth.register
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,8 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -59,6 +60,7 @@ fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin:() -> Unit,
     onNavigateToRegistrationSuccess: (String) -> Unit,
+    onNavigateToPolicy: (String) -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -69,6 +71,12 @@ fun RegisterScreen(
         onCancel = { viewModel.onEvent(RegisterEvent.ErrorMessageSet("Facebook Login Cancelled")) },
         onError = { viewModel.onEvent(RegisterEvent.ErrorMessageSet("Facebook error: $it")) }
     )
+
+    // Placeholder cho Google Login
+    val triggerGoogleLogin = {
+        viewModel.onEvent(RegisterEvent.ErrorMessageSet("Google Login integration in progress"))
+    }
+
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let { message ->
             if (message.isNotEmpty()) {
@@ -82,8 +90,6 @@ fun RegisterScreen(
         if (state.isSuccess) {
             onNavigateToRegistrationSuccess(state.email)
         } else if (state.isFacebookAuthSuccess) {
-            // Facebook login usually goes straight to home if it provides token, 
-            // but for now keeping it simple as per register flow
             onNavigateToRegistrationSuccess(state.email)
         }
     }
@@ -91,8 +97,10 @@ fun RegisterScreen(
         state = state,
         onEvent =  viewModel::onEvent,
         triggerFacebookLogin = triggerFacebookLogin,
+        triggerGoogleLogin = triggerGoogleLogin,
         onNavigateBack = onNavigateBack,
         onNavigateToLogin = onNavigateToLogin,
+        onNavigateToPolicy = onNavigateToPolicy,
         snackBarHostState = snackBarHostState
     )
 }
@@ -100,13 +108,15 @@ fun RegisterScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterContent(
-        state: RegisterState,
-        onEvent: (RegisterEvent) -> Unit,
-        triggerFacebookLogin: () -> Unit,
-        onNavigateBack: () -> Unit,
-        onNavigateToLogin: () -> Unit,
-        snackBarHostState: SnackbarHostState
-    ) {
+    state: RegisterState,
+    onEvent: (RegisterEvent) -> Unit,
+    triggerFacebookLogin: () -> Unit,
+    triggerGoogleLogin: () -> Unit,
+    onNavigateBack: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    onNavigateToPolicy: (String) -> Unit,
+    snackBarHostState: SnackbarHostState
+) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
@@ -150,18 +160,18 @@ fun RegisterContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Full Name", 
-                style = MaterialTheme.typography.labelMedium, 
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                text = "Full Name",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
                 value = state.fullName,
                 onValueChange = { onEvent(RegisterEvent.FullNameChanged(it))},
                 label = "Enter your full name",
-                leadingIcon = { 
+                leadingIcon = {
                     Icon(
-                        imageVector = Icons.Outlined.Person, 
+                        imageVector = Icons.Outlined.Person,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -172,18 +182,18 @@ fun RegisterContent(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Email", 
-                style = MaterialTheme.typography.labelMedium, 
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                text = "Email",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
                 value = state.email,
                 onValueChange = { onEvent(RegisterEvent.EmailChanged(it))},
                 label = "Enter your email",
-                leadingIcon = { 
+                leadingIcon = {
                     Icon(
-                        imageVector = Icons.Outlined.Email, 
+                        imageVector = Icons.Outlined.Email,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -195,18 +205,18 @@ fun RegisterContent(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Phone Number", 
-                style = MaterialTheme.typography.labelMedium, 
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                text = "Phone Number",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
                 value = state.phone,
                 onValueChange = { onEvent(RegisterEvent.PhoneChanged(it))},
                 label = "Enter your phone",
-                leadingIcon = { 
+                leadingIcon = {
                     Icon(
-                        imageVector = Icons.Outlined.Phone, 
+                        imageVector = Icons.Outlined.Phone,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -218,9 +228,9 @@ fun RegisterContent(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Password", 
-                style = MaterialTheme.typography.labelMedium, 
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                text = "Password",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
@@ -228,9 +238,9 @@ fun RegisterContent(
                 onValueChange = { onEvent(RegisterEvent.PasswordChanged(it))},
                 label = "Enter your password",
                 isPassword = true,
-                leadingIcon = { 
+                leadingIcon = {
                     Icon(
-                        imageVector = Icons.Outlined.Lock, 
+                        imageVector = Icons.Outlined.Lock,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -242,18 +252,18 @@ fun RegisterContent(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Confirm Password", 
-                style = MaterialTheme.typography.labelMedium, 
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                text = "Confirm Password",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             DFoodFTextField(
                 value = state.confirmPassword,
                 onValueChange = { onEvent(RegisterEvent.ConfirmPasswordChanged(it))},
                 label = "Confirm your password",
-                leadingIcon = { 
+                leadingIcon = {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_lock_reset), 
+                        painter = painterResource(id = R.drawable.ic_lock_reset),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -278,62 +288,43 @@ fun RegisterContent(
                         uncheckedColor = MaterialTheme.colorScheme.outline
                     )
                 )
-                Text(
-                    text = buildAnnotatedString {
-                        append("I agree to the ")
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                            append("Term of Service")
-                        }
-                        append(" and ")
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                            append("Privacy Policy")
-                        }
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 12.dp)
+
+                val annotatedString = buildAnnotatedString {
+                    append("I agree to the ")
+
+                    pushStringAnnotation(tag = "terms", annotation = "terms")
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                        append("Term of Service")
+                    }
+                    pop()
+
+                    append(" and ")
+
+                    pushStringAnnotation(tag = "privacy", annotation = "privacy")
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                        append("Privacy Policy")
+                    }
+                    pop()
+                }
+
+                ClickableText(
+                    text = annotatedString,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                    modifier = Modifier.padding(top = 12.dp),
+                    onClick = { offset ->
+                        annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                onNavigateToPolicy("terms")
+                            }
+                        annotatedString.getStringAnnotations(tag = "privacy", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                onNavigateToPolicy("privacy")
+                            }
+                    }
                 )
             }
+
             Spacer(modifier = Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f), 
-                    color = MaterialTheme.colorScheme.outlineVariant
-                )
-                Text(
-                    text = " OR REGISTER WITH ",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f), 
-                    color = MaterialTheme.colorScheme.outlineVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                SocialButton(
-                    iconRes = R.drawable.ic_facebook,
-                    contentDescription = "Log in with facebook",
-                    onClick = triggerFacebookLogin,
-                    modifier = Modifier.weight(1f)
-                )
-                SocialButton(
-                    iconRes = R.drawable.ic_x_twitter,
-                    contentDescription = "Log in with twitter",
-                    enabled = false,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            Spacer(modifier = Modifier.height(48.dp))
 
             DFoodButton(
                 text = if (state.isLoading) "CREATING ACCOUNT..." else "SIGN UP",
@@ -341,15 +332,57 @@ fun RegisterContent(
                 enabled = !state.isLoading && state.agreeToTerms
             )
 
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+                Text(
+                    text = " SOCIAL CONNECT ",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SocialButton(
+                    iconRes = R.drawable.ic_facebook,
+                    contentDescription = "Sign up with facebook",
+                    onClick = triggerFacebookLogin,
+                    modifier = Modifier.size(56.dp)
+                )
+                Spacer(modifier = Modifier.width(24.dp))
+                SocialButton(
+                    iconRes = R.drawable.ic_google,
+                    contentDescription = "Sign up with google",
+                    onClick = triggerGoogleLogin,
+                    modifier = Modifier.size(56.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(48.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Already a member? ", 
-                    style = MaterialTheme.typography.bodyMedium, 
+                    text = "Already a member? ",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
@@ -364,7 +397,8 @@ fun RegisterContent(
         }
     }
 }
-@Preview(showBackground = true, showSystemUi = true) 
+
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RegisterScreenPreview() {
     DFoodTheme(darkTheme = false) {
@@ -372,8 +406,10 @@ fun RegisterScreenPreview() {
             state = RegisterState(),
             onEvent = {},
             triggerFacebookLogin = {},
+            triggerGoogleLogin = {},
             onNavigateBack = {},
             onNavigateToLogin = {},
+            onNavigateToPolicy = {},
             snackBarHostState = remember { SnackbarHostState() }
         )
     }

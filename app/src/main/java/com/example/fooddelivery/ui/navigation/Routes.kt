@@ -24,6 +24,10 @@ data class ResetPasswordRoute (
     val email: String = "",
     val resetCode: String = ""
 )
+
+@Serializable
+data class PolicyRoute(val type: String)
+
 // customer
 @Serializable object HomeRoute
 @Serializable object SearchRoute
