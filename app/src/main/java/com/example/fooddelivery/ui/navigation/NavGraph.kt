@@ -53,6 +53,8 @@ import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
 import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
+// Import màn hình ReviewScreen mới
+import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -213,10 +215,10 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
                 },
-                onNavigateToAllRestaurants = { 
+                onNavigateToAllRestaurants = {
                     navController.navigate(AllRestaurantsRoute)
                 },
-                onNavigateToAllCategories = { 
+                onNavigateToAllCategories = {
                     navController.navigate(AllCategoriesRoute)
                 },
                 onNavigateToFoodDetail = { foodId ->
@@ -229,7 +231,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        
+
         composable<LocationRoute> {
             LocationScreen(
                 onPermissionGranted = {
@@ -266,7 +268,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        
+
         composable<RestaurantDetailRoute> { backStackEntry ->
             RestaurantDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -275,7 +277,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        
+
         composable<FoodDetailRoute> {
             FoodDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -315,7 +317,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        
+
         composable<MyOrdersRoute> {
             OrdersScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -325,7 +327,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        
+
         composable<RatingReviewRoute> {
             RatingReviewScreen(
                 onNavigateBack = { navController.popBackStack() }
@@ -413,7 +415,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-        
+
         composable<SearchRoute> {
             SearchScreen(
                 onNavigateToHome = { navController.popBackStack() },
@@ -521,7 +523,14 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
         }
         composable<RestaurantWalletRoute> { Text("Wallet") }
         composable<RestaurantWithdrawRoute> { Text("Withdraw") }
-        composable<RestaurantReviewsRoute> { Text("Reviews") }
+
+        // ĐÃ SỬA: Chuyển từ Text("Reviews") sang gọi màn hình ReviewScreen
+        composable<RestaurantReviewsRoute> {
+            ReviewScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable<RestaurantNotificationsRoute> { Text("Notifications") }
         composable<RestaurantMessagesRoute> { Text("Messages")  }
         composable<RestaurantProfileRoute> { Text("Profile") }
