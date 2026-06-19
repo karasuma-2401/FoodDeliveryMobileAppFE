@@ -12,12 +12,14 @@ class LoginUseCase @Inject constructor(
         val result = authRepository.login(phone, password)
         
         return result.mapCatching { response ->
+            val user = response.getFinalUser() ?: throw Exception("User data missing in response")
+            
             tokenManager.saveAuthData(
-                accessToken = response.accessToken,
-                refreshToken = response.refreshToken,
+                accessToken = response.getFinalAccessToken(),
+                refreshToken = response.getFinalRefreshToken(),
                 phone = phone,
-                name = response.user.name,
-                email = response.user.email,
+                name = user.name,
+                email = user.email,
                 rememberMe = rememberMe
             )
         }

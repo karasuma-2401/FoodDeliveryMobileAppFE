@@ -169,7 +169,7 @@ fun RegisterContent(
                 isError = state.fullNameError?.isNotEmpty() == true,
                 errorMessage = state.fullNameError
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Email", 
@@ -192,7 +192,7 @@ fun RegisterContent(
                 isError = state.emailError?.isNotEmpty() == true,
                 errorMessage = state.emailError
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Phone Number", 
@@ -215,7 +215,7 @@ fun RegisterContent(
                 isError = state.phoneError?.isNotEmpty() == true,
                 errorMessage = state.phoneError
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Password", 
@@ -239,7 +239,7 @@ fun RegisterContent(
                 isError = state.passwordError?.isNotEmpty() == true,
                 errorMessage = state.passwordError
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Confirm Password", 
@@ -318,18 +318,19 @@ fun RegisterContent(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 SocialButton(
                     iconRes = R.drawable.ic_facebook,
                     contentDescription = "Log in with facebook",
-                    onClick = triggerFacebookLogin
+                    onClick = triggerFacebookLogin,
+                    modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(20.dp))
                 SocialButton(
                     iconRes = R.drawable.ic_x_twitter,
                     contentDescription = "Log in with twitter",
-                    enabled = false
+                    enabled = false,
+                    modifier = Modifier.weight(1f)
                 )
             }
             Spacer(modifier = Modifier.height(48.dp))
@@ -361,5 +362,19 @@ fun RegisterContent(
             }
             Spacer(modifier = Modifier.height(48.dp))
         }
+    }
+}
+@Preview(showBackground = true, showSystemUi = true) 
+@Composable
+fun RegisterScreenPreview() {
+    DFoodTheme(darkTheme = false) {
+        RegisterContent(
+            state = RegisterState(),
+            onEvent = {},
+            triggerFacebookLogin = {},
+            onNavigateBack = {},
+            onNavigateToLogin = {},
+            snackBarHostState = remember { SnackbarHostState() }
+        )
     }
 }

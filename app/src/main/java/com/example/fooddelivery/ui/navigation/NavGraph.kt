@@ -51,6 +51,7 @@ import com.example.fooddelivery.ui.screens.category.CategoryFilterScreen
 import com.example.fooddelivery.ui.screens.category.AllCategoriesScreen
 import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
+import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -329,6 +330,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToPaymentMethod = { navController.navigate(PaymentMethodRoute) },
                 onNavigateToReview = { navController.navigate(UserReviewRoute) },
                 onChangePassword = { navController.navigate(ChangePasswordRoute) },
+                onResetEmail = { navController.navigate(ResetEmailRoute) },
                 onLogout = {
                     // delete all backstack
                     navController.navigate(AuthGraph) {
@@ -346,6 +348,12 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
         composable<ChangePasswordRoute> {
             ChangePasswordScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<ResetEmailRoute> {
+            ResetEmailScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

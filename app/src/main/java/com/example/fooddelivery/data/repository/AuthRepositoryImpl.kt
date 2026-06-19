@@ -10,6 +10,7 @@ import com.example.fooddelivery.data.remote.dto.LoginResponse
 import com.example.fooddelivery.data.remote.dto.RefreshRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.RegisterResponse
+import com.example.fooddelivery.data.remote.dto.ResetEmailRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
 import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import com.example.fooddelivery.domain.repository.AuthRepository
@@ -182,6 +183,34 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun requestResetEmail(phone: String, password: String): Result<String?> {
+        return try {
+            val response = api.requestResetEmail(ResetEmailRequest(phone, password))
+            if (response.isSuccessful) {
+                Result.success(response.body()?.otp)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Request failed"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun verifyResetEmail(newEmail: String, otp: String): Result<Unit> {
+        return try {
+            val response = api.verifyResetEmail(newEmail, otp)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Verification failed"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
         }
     }
 }

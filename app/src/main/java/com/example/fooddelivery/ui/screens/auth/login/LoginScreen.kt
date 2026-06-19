@@ -163,7 +163,7 @@ fun LoginScreenContent(
             DFoodFTextField(
                 value = state.phone,
                 onValueChange = { onEvent(LoginEvent.PhoneChanged(it))},
-                label = "Enter your phone",
+                label = "Phone",
                 leadingIcon = {
                     Icon (
                         imageVector = Icons.Outlined.Phone,
@@ -187,7 +187,7 @@ fun LoginScreenContent(
             DFoodFTextField(
                 value = state.password,
                 onValueChange = { onEvent(LoginEvent.PasswordChanged(it))},
-                label = "Enter your password",
+                label = "Password",
                 isPassword = true,
                 leadingIcon = {
                     Icon(
@@ -267,18 +267,21 @@ fun LoginScreenContent(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 SocialButton(
                     iconRes = R.drawable.ic_facebook,
                     contentDescription = "Log in with facebook",
-                    onClick = triggerFacebookLogin
+                    onClick = triggerFacebookLogin,
+                    modifier = Modifier.size(56.dp)
                 )
-                Spacer(modifier = Modifier.width(20.dp))
+                Spacer(modifier = Modifier.width(24.dp))
                 SocialButton(
                     iconRes = R.drawable.ic_google,
                     contentDescription = "Log in with google",
-                    onClick = triggerGoogleLogin
+                    onClick = triggerGoogleLogin,
+                    modifier = Modifier.size(56.dp)
                 )
             }
 

@@ -10,6 +10,7 @@ import com.example.fooddelivery.data.remote.dto.LoginResponse
 import com.example.fooddelivery.data.remote.dto.RefreshRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.RegisterResponse
+import com.example.fooddelivery.data.remote.dto.ResetEmailRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
 import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import retrofit2.Response
@@ -36,6 +37,15 @@ interface AuthApi {
 
     @GET("auth/verify")
     suspend fun verifyAccount(@Query("otp") otp: String): Response<AuthResponse>
+
+    @POST("auth/reset-email")
+    suspend fun requestResetEmail(@Body request: ResetEmailRequest): Response<AuthResponse>
+
+    @GET("auth/reset-email/verify")
+    suspend fun verifyResetEmail(
+        @Query("email") newEmail: String,
+        @Query("otp") otp: String
+    ): Response<AuthResponse>
 
     @POST("auth/reset-email/verify")
     suspend fun verifyCode(@Body request: VerifyCodeRequest): Response<AuthResponse>

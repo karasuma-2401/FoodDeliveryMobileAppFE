@@ -59,7 +59,10 @@ fun DFoodButton (
                 disabledContainerColor = containerColor.copy(alpha = 0.6f),
                 disabledContentColor = effectiveContentColor.copy(alpha = 0.6f),
             ),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 8.dp,
+                pressedElevation = 2.dp
+            ),
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             if (isLoading) {

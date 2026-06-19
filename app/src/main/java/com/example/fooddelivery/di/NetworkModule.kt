@@ -131,7 +131,8 @@ object NetworkModule {
         return try {
             val options = IO.Options()
             options.reconnection = true
-            IO.socket(BuildConfig.API_BASE_URL, options)
+            // Use SOCKET_URL instead of API_BASE_URL (which has /api/ suffix)
+            IO.socket(BuildConfig.SOCKET_URL, options)
         } catch (e: URISyntaxException) {
             throw RuntimeException(e)
         }

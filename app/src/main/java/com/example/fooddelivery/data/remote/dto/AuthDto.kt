@@ -1,6 +1,7 @@
 package com.example.fooddelivery.data.remote.dto
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class LoginRequest (
@@ -34,6 +35,12 @@ data class ChangePasswordRequest(
 )
 
 @Serializable
+data class ResetEmailRequest(
+    val phone: String,
+    val password: String
+)
+
+@Serializable
 data class RegisterRequest (
     val name: String,
     val email: String,
@@ -62,6 +69,7 @@ data class ResetPasswordRequest(
 @Serializable
 data class AuthResponse (
     val token: String? = null,
+    val otp: String? = null,
     val message: String? = null,
     val isSuccess: Boolean = false,
 )
@@ -79,20 +87,49 @@ data class UserDto(
     val id: Int,
     val name: String,
     val email: String,
-    val phone: String?,
+    val phone: String? = null,
     val birthday: String? = null,
     val avatar: String? = null,
-    val active: Boolean,
-    val roles: List<String>
+    val active: Boolean = true,
+    val roles: List<String> = emptyList()
 )
 
 @Serializable
 data class LoginResponse(
-    val accessToken: String,
-    val refreshToken: String,
-    val user: UserDto
+    @SerialName("accessToken")
+    val accessToken: String? = null,
+    @SerialName("refreshToken")
+    val refreshToken: String? = null,
+    @SerialName("user")
+    val user: UserDto? = null,
+    
+    // Hỗ trợ nếu BE trả về snake_case
+    @SerialName("access_token")
+    val accessTokenSnake: String? = null,
+    @SerialName("refresh_token")
+    val refreshTokenSnake: String? = null,
+
+    // Hỗ trợ nếu BE bọc trong object "data"
+    val data: LoginData? = null
+) {
+    // Helper để lấy token dù BE trả về kiểu gì
+    fun getFinalAccessToken(): String = accessToken ?: accessTokenSnake ?: data?.accessToken ?: ""
+    fun getFinalRefreshToken(): String = refreshToken ?: refreshTokenSnake ?: data?.refreshToken ?: ""
+    fun getFinalUser(): UserDto? = user ?: data?.user
+}
+
+@Serializable
+data class LoginData(
+    val accessToken: String? = null,
+    val refreshToken: String? = null,
+    @SerialName("access_token")
+    val accessTokenSnake: String? = null,
+    @SerialName("refresh_token")
+    val refreshTokenSnake: String? = null,
+    val user: UserDto? = null
 )
 
 typealias ForgotPasswordResponse = AuthResponse
 typealias ResetPasswordResponse = AuthResponse
 typealias ChangePasswordResponse = AuthResponse
+typealias ResetEmailResponse = AuthResponse

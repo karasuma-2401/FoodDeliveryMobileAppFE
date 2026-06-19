@@ -36,7 +36,8 @@ android {
         resValue("string", "facebook_client_token", fbClientToken)
         resValue("string", "fb_login_protocol_scheme", fbProtocolScheme)
 
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/\"")
+        // Mặc định dùng localhost cho adb reverse
+        buildConfigField("String", "API_BASE_URL", "\"http://localhost:4000/api/\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -45,8 +46,8 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/\"")
-            buildConfigField("String", "SOCKET_URL", "\"http://10.0.2.2:4000\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://localhost:4000/api/\"")
+            buildConfigField("String", "SOCKET_URL", "\"http://localhost:4000\"")
         }
         release {
             isMinifyEnabled = false
@@ -54,7 +55,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://api.yourapp.com/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://api.yourapp.com/api/\"")
             buildConfigField("String", "SOCKET_URL", "\"https://api.yourapp.com\"")
         }
     }
