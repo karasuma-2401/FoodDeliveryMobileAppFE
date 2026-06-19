@@ -40,7 +40,11 @@ fun ReviewScreen(
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            items(state.reviews) { review ->
+            // Đã tối ưu bằng cách thêm key độc nhất cho từng bài review
+            items(
+                items = state.reviews,
+                key = { it.id }
+            ) { review ->
                 ReviewItemRow(
                     review = review,
                     onMoreClick = {
