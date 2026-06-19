@@ -12,12 +12,16 @@ import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.domain.model.ReviewItem
 
 @Composable
-fun ReviewItemRow(review: ReviewItem) {
+fun ReviewItemRow(
+    review: ReviewItem,
+    onMoreClick: () -> Unit // Tiếp tục nhận callback tại đây
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
+        // User Avatar Placholder
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -30,6 +34,7 @@ fun ReviewItemRow(review: ReviewItem) {
 
         ReviewContentCard(
             review = review,
+            onMoreClick = onMoreClick,
             modifier = Modifier.weight(1f)
         )
     }

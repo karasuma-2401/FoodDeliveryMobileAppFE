@@ -17,6 +17,7 @@ import com.example.fooddelivery.domain.model.ReviewItem
 @Composable
 fun ReviewContentCard(
     review: ReviewItem,
+    onMoreClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -47,7 +48,7 @@ fun ReviewContentCard(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .size(18.dp)
-                        .clickable { /* Action */ }
+                        .clickable { onMoreClick() } // 2. Gọi callback khi click
                 )
             }
 

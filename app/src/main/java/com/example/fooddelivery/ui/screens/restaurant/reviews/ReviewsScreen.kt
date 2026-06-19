@@ -1,4 +1,5 @@
 package com.example.fooddelivery.ui.screens.restaurant.reviews
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,7 +41,11 @@ fun ReviewScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             items(state.reviews) { review ->
-                ReviewItemRow(review = review)
+                ReviewItemRow(
+                    review = review,
+                    onMoreClick = {
+                    }
+                )
             }
         }
     }
