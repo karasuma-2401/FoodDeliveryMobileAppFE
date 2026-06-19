@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant.component
+package com.example.fooddelivery.ui.screens.restaurant.component.review
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

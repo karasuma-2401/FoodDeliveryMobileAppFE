@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant.component
+package com.example.fooddelivery.ui.screens.restaurant.component.review
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.ReviewItem
-import com.example.fooddelivery.ui.screens.restaurant.component.StarRatingBar
 
 @Composable
 fun ReviewContentCard(
