@@ -7,4 +7,8 @@ data class ReviewItem(
     val rating: Int,
     val description: String,
     val userAvatar: Int? = null
-)
+) {
+    init {
+        require(rating in 1..5) { "Rating must be between 1 and 5" }
+    }
+}
