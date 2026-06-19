@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.auth.login
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -66,6 +65,12 @@ fun LoginScreen(
         onError = { viewModel.onEvent(LoginEvent.ErrorMessageSet("Facebook error: $it")) }
     )
 
+    // Placeholder for Google Login trigger - you should implement this based on your Google Auth setup
+    val triggerGoogleLogin = {
+        // TODO: Implement actual Google Sign-In integration with Google Auth library
+        viewModel.onEvent(LoginEvent.GoogleLoginClicked(""))
+    }
+
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             if (it.isNotEmpty()) {
@@ -85,6 +90,7 @@ fun LoginScreen(
         onNavigateToSignUp = onNavigateToSignUp,
         onNavigateToForgotPassword = onNavigateToForgotPassword,
         triggerFacebookLogin = triggerFacebookLogin,
+        triggerGoogleLogin = triggerGoogleLogin,
         snackBarHostState = snackBarHostState,
     )
 }
@@ -98,6 +104,7 @@ fun LoginScreenContent(
     onNavigateToSignUp: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     triggerFacebookLogin: () -> Unit,
+    triggerGoogleLogin: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
     Scaffold(
@@ -157,7 +164,7 @@ fun LoginScreenContent(
             DFoodFTextField(
                 value = state.phone,
                 onValueChange = { onEvent(LoginEvent.PhoneChanged(it))},
-                label = "Enter your phone",
+                label = "Phone",
                 leadingIcon = {
                     Icon (
                         imageVector = Icons.Outlined.Phone,
@@ -181,7 +188,7 @@ fun LoginScreenContent(
             DFoodFTextField(
                 value = state.password,
                 onValueChange = { onEvent(LoginEvent.PasswordChanged(it))},
-                label = "Enter your password",
+                label = "Password",
                 isPassword = true,
                 leadingIcon = {
                     Icon(
@@ -261,12 +268,21 @@ fun LoginScreenContent(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 SocialButton(
                     iconRes = R.drawable.ic_facebook,
                     contentDescription = "Log in with facebook",
-                    onClick = triggerFacebookLogin
+                    onClick = triggerFacebookLogin,
+                    modifier = Modifier.size(56.dp)
+                )
+                Spacer(modifier = Modifier.width(24.dp))
+                SocialButton(
+                    iconRes = R.drawable.ic_google,
+                    contentDescription = "Log in with google",
+                    onClick = triggerGoogleLogin,
+                    modifier = Modifier.size(56.dp)
                 )
             }
 
@@ -306,6 +322,7 @@ fun LoginScreenPreview() {
             onNavigateToSignUp = {},
             onNavigateToForgotPassword = {},
             triggerFacebookLogin = {},
+            triggerGoogleLogin = {},
             snackBarHostState = remember { SnackbarHostState() }
         )
     }

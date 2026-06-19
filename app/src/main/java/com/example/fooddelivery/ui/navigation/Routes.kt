@@ -16,13 +16,18 @@ import kotlinx.serialization.Serializable
 @Serializable object ForgotPasswordRoute
 @Serializable
 data class VerificationRoute(
-    val email: String = ""
+    val email: String = "",
+    val isFromRegistration: Boolean = false
 )
 @Serializable
 data class ResetPasswordRoute (
     val email: String = "",
     val resetCode: String = ""
 )
+
+@Serializable
+data class PolicyRoute(val type: String)
+
 // customer
 @Serializable object HomeRoute
 @Serializable object SearchRoute
@@ -56,6 +61,8 @@ data class RatingReviewRoute(
 
 @Serializable object ProfileRoute
 @Serializable object EditProfileRoute
+@Serializable object ChangePasswordRoute
+@Serializable object ResetEmailRoute
 @Serializable object MyAddressRoute
 @Serializable data class AddAddressRoute(val addressId: String? = null)
 @Serializable object FavouriteRoute

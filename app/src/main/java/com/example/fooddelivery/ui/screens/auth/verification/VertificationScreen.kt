@@ -28,20 +28,21 @@ import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 @Composable
 fun VerificationScreen(
     email: String,
+    isFromRegistration: Boolean,
     onNavigateBack: () -> Unit,
-    onNavigateToResetPassword: (String, String) -> Unit,
+    onVerificationSuccess: (String, String) -> Unit, // email, otp
     viewModel: VerificationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     
     LaunchedEffect(Unit) {
-        viewModel.onEvent(VerificationEvent.Init(email))
+        viewModel.onEvent(VerificationEvent.Init(email, isFromRegistration))
     }
     
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            onNavigateToResetPassword(state.email, state.otpCode)
+            onVerificationSuccess(state.email, state.otpCode)
         }
     }
     
@@ -99,8 +100,13 @@ fun VerificationContent(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "We have sent a code to your email",
+                text = if (state.isFromRegistration) "Verify your account" else "Reset your password",
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "We have sent a code to your email",
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
@@ -115,18 +121,19 @@ fun VerificationContent(
             BasicTextField(
                 value = state.otpCode,
                 onValueChange = {
-                    if (it.length <= 4) {
-                        onEvent(VerificationEvent.OtpChanged(it))
+                    val digitsOnly = it.filter { char -> char.isDigit() }
+                    if (digitsOnly.length <= 6) {
+                        onEvent(VerificationEvent.OtpChanged(digitsOnly))
                     }
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 decorationBox = {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        repeat(4) { index ->
+                        repeat(6) { index ->
                             val isFocused = state.otpCode.length == index
                             val char = when {
                                 index >= state.otpCode.length -> ""
@@ -136,7 +143,7 @@ fun VerificationContent(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .aspectRatio(1f)
+                                    .aspectRatio(0.8f)
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                     .border(
@@ -193,7 +200,7 @@ fun VerificationContent(
             DFoodButton(
                 text = if (state.isLoading) "VERIFYING..." else "VERIFY",
                 onClick = { onEvent(VerificationEvent.VerifyClicked) },
-                enabled = state.otpCode.length == 4 && !state.isLoading
+                enabled = state.otpCode.length == 6 && !state.isLoading
             )
         }
     }

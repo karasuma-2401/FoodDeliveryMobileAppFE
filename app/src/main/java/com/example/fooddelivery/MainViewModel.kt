@@ -36,7 +36,7 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val hasCompletedOnboarding = dataStoreManager.readOnboardingState().first()
-            val token = tokenManager.getToken.first()
+            val token = tokenManager.getAccessToken.first()
 
             if (!hasCompletedOnboarding) {
                 _startDestination.value = OnboardingRoute

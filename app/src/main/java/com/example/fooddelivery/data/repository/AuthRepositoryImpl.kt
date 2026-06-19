@@ -1,10 +1,16 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.dto.ChangePasswordRequest
 import com.example.fooddelivery.data.remote.dto.FacebookLoginRequest
+import com.example.fooddelivery.data.remote.dto.GoogleLoginRequest
 import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
 import com.example.fooddelivery.data.remote.dto.LoginRequest
+import com.example.fooddelivery.data.remote.dto.LoginResponse
+import com.example.fooddelivery.data.remote.dto.RefreshRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
+import com.example.fooddelivery.data.remote.dto.RegisterResponse
+import com.example.fooddelivery.data.remote.dto.ResetEmailRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
 import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import com.example.fooddelivery.domain.repository.AuthRepository
@@ -14,20 +20,17 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val api: AuthApi
 ) : AuthRepository {
-    override suspend fun login(phone: String, password: String): Result<String> {
+    override suspend fun login(phone: String, password: String): Result<LoginResponse> {
         return try {
             val request = LoginRequest(phone, password)
             val response = api.login(request)
 
             if (response.isSuccessful) {
-                val body = response.body()
-                if (body?.isSuccess == true && body.token != null) {
-                    Result.success(body.token)
-                } else {
-                    Result.failure(Exception(body?.message ?: "Login failed from server"))
-                }
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception("Server error: ${response.code()}"))
+                Result.failure(Exception("Login failed: ${response.code()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -35,18 +38,15 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun loginFacebook(facebookToken: String): Result<String> {
+    override suspend fun loginFacebook(facebookToken: String): Result<LoginResponse> {
         return try {
-            val response = api.loginFacebook(FacebookLoginRequest(facebookToken))
-            if (response.isSuccessful && response.body()?.isSuccess == true) {
-                val token = response.body()?.token
-                if (token != null) {
-                    Result.success(token)
-                } else {
-                    Result.failure(Exception("Server response success without token"))
-                }
+            val response = api.loginFacebook(FacebookLoginRequest(accessToken = facebookToken))
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception(response.body()?.message ?: "Login with facebook failed"))
+                Result.failure(Exception("Login with facebook failed: ${response.code()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -54,19 +54,62 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun register(fullName: String, email: String, phone: String, password: String): Result<String> {
+    override suspend fun loginGoogle(googleToken: String): Result<LoginResponse> {
         return try {
-            val request = RegisterRequest(fullName, email, phone, password)
+            val response = api.loginGoogle(GoogleLoginRequest(accessToken = googleToken))
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                Result.failure(Exception("Login with google failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun refreshToken(refreshToken: String): Result<LoginResponse> {
+        return try {
+            val response = api.refreshToken(RefreshRequest(refreshToken))
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                Result.failure(Exception("Refresh token failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun register(name: String, email: String, phone: String, password: String): Result<RegisterResponse> {
+        return try {
+            val request = RegisterRequest(name, email, phone, password)
             val response = api.register(request)
             if (response.isSuccessful) {
-                val body = response.body()
-                if (body?.isSuccess == true && body.token != null) {
-                    Result.success(body.token)
-                } else {
-                    Result.failure(Exception(body?.message ?: "Register failed from server"))
-                }
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception("Server error: ${response.code()}"))
+                Result.failure(Exception("Registration failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun verifyAccount(otp: String): Result<Unit> {
+        return try {
+            val response = api.verifyAccount(otp)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Verification failed: ${response.code()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -120,6 +163,54 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun changePassword(
+        email: String?,
+        phone: String?,
+        currentPass: String,
+        newPass: String
+    ): Result<Unit> {
+        return try {
+            val request = ChangePasswordRequest(email, phone, currentPass, newPass)
+            val response = api.changePassword(request)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Change password failed"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun requestResetEmail(phone: String, password: String): Result<String?> {
+        return try {
+            val response = api.requestResetEmail(ResetEmailRequest(phone, password))
+            if (response.isSuccessful) {
+                Result.success(response.body()?.otp)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Request failed"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun verifyResetEmail(newEmail: String, otp: String): Result<Unit> {
+        return try {
+            val response = api.verifyResetEmail(newEmail, otp)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Verification failed"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
         }
     }
 }

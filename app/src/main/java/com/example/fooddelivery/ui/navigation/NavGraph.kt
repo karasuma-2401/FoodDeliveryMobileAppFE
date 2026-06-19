@@ -33,6 +33,7 @@ import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodSc
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminRestaurantScreen
+import com.example.fooddelivery.ui.screens.profile.changePassword.ChangePasswordScreen
 import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
@@ -50,6 +51,8 @@ import com.example.fooddelivery.ui.screens.category.CategoryFilterScreen
 import com.example.fooddelivery.ui.screens.category.AllCategoriesScreen
 import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
+import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
+import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
 // Import màn hình ReviewScreen mới
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 
@@ -112,13 +115,25 @@ fun NavGraphBuilder.authNavGraph(
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack()},
                 onNavigateToLogin = { navController.popBackStack() },
-                onNavigateToRegistrationSuccess = {
-                    navController.navigate(RegistrationSuccessRoute) {
+                onNavigateToRegistrationSuccess = { email ->
+                    navController.navigate(VerificationRoute(email = email, isFromRegistration = true)) {
                         popUpTo<RegisterRoute> { inclusive = true }
                     }
+                },
+                onNavigateToPolicy = { type ->
+                    navController.navigate(PolicyRoute(type = type))
                 }
             )
         }
+
+        composable<PolicyRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<PolicyRoute>()
+            PolicyScreen(
+                type = args.type,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable<RegistrationSuccessRoute> {
             RegistrationSuccessScreen(
                 onStartOrdering = {
@@ -143,20 +158,27 @@ fun NavGraphBuilder.authNavGraph(
             ForgotPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToVerify = { emailInput ->
-                    navController.navigate(VerificationRoute(email = emailInput))
+                    navController.navigate(VerificationRoute(email = emailInput, isFromRegistration = false))
                 }
             )
         }
 
         composable<VerificationRoute> { backStackEntry ->
-            val userEmail = backStackEntry.toRoute<VerificationRoute>().email
+            val route = backStackEntry.toRoute<VerificationRoute>()
             VerificationScreen(
-                email = userEmail,
+                email = route.email,
+                isFromRegistration = route.isFromRegistration,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onNavigateToResetPassword = { email, resetCode ->
-                    navController.navigate(ResetPasswordRoute(email = email, resetCode = resetCode))
+                onVerificationSuccess = { email, otp ->
+                    if (route.isFromRegistration) {
+                        navController.navigate(RegistrationSuccessRoute) {
+                            popUpTo<VerificationRoute> { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(ResetPasswordRoute(email = email, resetCode = otp))
+                    }
                 }
             )
         }
@@ -322,6 +344,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToNotification = { navController.navigate(NotificationRoute) },
                 onNavigateToPaymentMethod = { navController.navigate(PaymentMethodRoute) },
                 onNavigateToReview = { navController.navigate(UserReviewRoute) },
+                onChangePassword = { navController.navigate(ChangePasswordRoute) },
+                onResetEmail = { navController.navigate(ResetEmailRoute) },
                 onLogout = {
                     // delete all backstack
                     navController.navigate(AuthGraph) {
@@ -330,9 +354,21 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 }
             )
         }
-
+        
         composable<EditProfileRoute> {
             EditProfileScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<ChangePasswordRoute> {
+            ChangePasswordScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<ResetEmailRoute> {
+            ResetEmailScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
