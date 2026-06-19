@@ -121,8 +121,9 @@ fun VerificationContent(
             BasicTextField(
                 value = state.otpCode,
                 onValueChange = {
-                    if (it.length <= 6) {
-                        onEvent(VerificationEvent.OtpChanged(it))
+                    val digitsOnly = it.filter { char -> char.isDigit() }
+                    if (digitsOnly.length <= 6) {
+                        onEvent(VerificationEvent.OtpChanged(digitsOnly))
                     }
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),

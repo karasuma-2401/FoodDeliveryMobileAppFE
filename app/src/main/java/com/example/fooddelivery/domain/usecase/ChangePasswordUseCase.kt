@@ -12,7 +12,11 @@ class ChangePasswordUseCase @Inject constructor(
     suspend operator fun invoke(currentPass: String, newPass: String): Result<Unit> {
         val userEmail = tokenManager.getUserEmail.first()
         val userPhone = tokenManager.getPhone.first()
-        
+
+        if (userEmail.isNullOrBlank() && userPhone.isNullOrBlank()) {
+            return Result.failure(Exception("User email or phone is required to change password"))
+        }
+
         return authRepository.changePassword(
             email = userEmail,
             phone = userPhone,

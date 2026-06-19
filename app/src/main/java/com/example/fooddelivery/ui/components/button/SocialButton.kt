@@ -43,10 +43,10 @@ fun SocialButton (
             ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
         ),
         elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = 6.dp,
+            defaultElevation = if (enabled) 6.dp else 2.dp,
             pressedElevation = 2.dp
         )
     ) {
@@ -57,8 +57,11 @@ fun SocialButton (
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = contentDescription,
-                modifier = Modifier.size(28.dp),
-                tint = Color.Unspecified
+                modifier = Modifier
+                    .size(28.dp)
+                    .then(if (!enabled) Modifier else Modifier),
+                tint = Color.Unspecified,
+                alpha = if (enabled) 1f else 0.4f
             )
         }
     }

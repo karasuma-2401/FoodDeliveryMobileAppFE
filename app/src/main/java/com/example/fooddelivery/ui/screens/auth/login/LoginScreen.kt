@@ -67,7 +67,8 @@ fun LoginScreen(
 
     // Placeholder for Google Login trigger - you should implement this based on your Google Auth setup
     val triggerGoogleLogin = {
-        viewModel.onEvent(LoginEvent.ErrorMessageSet("Google Login integration in progress"))
+        // TODO: Implement actual Google Sign-In integration with Google Auth library
+        viewModel.onEvent(LoginEvent.GoogleLoginClicked(""))
     }
 
     LaunchedEffect(state.errorMessage) {

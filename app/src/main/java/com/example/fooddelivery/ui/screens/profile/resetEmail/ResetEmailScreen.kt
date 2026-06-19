@@ -197,7 +197,7 @@ fun ResetEmailScreen(
                     )
                     
                     TextButton(
-                        onClick = { /* Handle Resend */ },
+                        onClick = { viewModel.onEvent(ResetEmailEvent.RequestOtpClicked) },
                         modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp)
                     ) {
                         Text("Didn't receive code? Resend", color = MaterialTheme.colorScheme.primary)

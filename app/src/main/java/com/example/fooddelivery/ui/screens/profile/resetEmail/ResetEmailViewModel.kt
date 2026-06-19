@@ -77,14 +77,18 @@ class ResetEmailViewModel @Inject constructor(
             result.onSuccess {
                 _state.update { it.copy(isLoading = false, isOtpSent = true) }
             }.onFailure { e ->
-                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _state.update { it.copy(isLoading = false, errorMessage = e.message ?: "Failed to send OTP") }
             }
         }
     }
 
     private fun verifyOtp() {
         val emailError = validateInputUseCase.validateEmail(_state.value.newEmail)
-        val otpError = if (_state.value.otpCode.length < 6) "Enter 6-digit OTP" else null
+        val otpError = when {
+            _state.value.otpCode.length != 6 -> "Enter 6-digit OTP"
+            !_state.value.otpCode.all { it.isDigit() } -> "OTP must contain only digits"
+            else -> null
+        }
 
         if (emailError != null || otpError != null) {
             _state.update { it.copy(newEmailError = emailError, otpError = otpError) }
@@ -97,7 +101,7 @@ class ResetEmailViewModel @Inject constructor(
             result.onSuccess {
                 _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { e ->
-                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _state.update { it.copy(isLoading = false, errorMessage = e.message ?: "Failed to verify OTP") }
             }
         }
     }

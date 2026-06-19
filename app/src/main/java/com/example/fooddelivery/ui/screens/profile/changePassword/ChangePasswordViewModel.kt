@@ -62,7 +62,10 @@ class ChangePasswordViewModel @Inject constructor(
     private fun validateInput(): Boolean {
         val currentState = _state.value
         val currentPassError = if (currentState.currentPassword.isBlank()) "Current password is required" else null
-        val newPassError = validateInputUseCase.validatePassword(currentState.newPassword)
+        val newPassError = when {
+            currentState.newPassword == currentState.currentPassword -> "New password must be different from current password"
+            else -> validateInputUseCase.validatePassword(currentState.newPassword)
+        }
         val confirmPassError = validateInputUseCase.validateConfirmPassword(currentState.newPassword, currentState.confirmPassword)
 
         val hasError = listOf(currentPassError, newPassError, confirmPassError).any { it != null }
@@ -91,7 +94,7 @@ class ChangePasswordViewModel @Inject constructor(
             result.onSuccess {
                 _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { e ->
-                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _state.update { it.copy(isLoading = false, errorMessage = e.message ?: "Failed to change password") }
             }
         }
     }

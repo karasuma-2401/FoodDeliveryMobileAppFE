@@ -13,10 +13,12 @@ class LoginWithGoogleUseCase @Inject constructor(
 
         return result.mapCatching { response ->
             val user = response.getFinalUser() ?: throw Exception("User data missing in response")
+            val accessToken = response.getFinalAccessToken() ?: throw Exception("Access token missing in response")
+            val refreshToken = response.getFinalRefreshToken() ?: throw Exception("Refresh token missing in response")
 
             tokenManager.saveAuthData(
-                accessToken = response.getFinalAccessToken(),
-                refreshToken = response.getFinalRefreshToken(),
+                accessToken = accessToken,
+                refreshToken = refreshToken,
                 phone = user.phone ?: "",
                 name = user.name,
                 email = user.email,

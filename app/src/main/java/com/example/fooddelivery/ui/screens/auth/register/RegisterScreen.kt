@@ -74,6 +74,8 @@ fun RegisterScreen(
 
     // Placeholder cho Google Login
     val triggerGoogleLogin = {
+        // TODO: Implement actual Google Sign-In integration with Google Auth library
+        // TODO: Add GoogleLoginClicked event to RegisterEvent similar to FacebookLoginClicked
         viewModel.onEvent(RegisterEvent.ErrorMessageSet("Google Login integration in progress"))
     }
 
@@ -294,7 +296,7 @@ fun RegisterContent(
 
                     pushStringAnnotation(tag = "terms", annotation = "terms")
                     withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                        append("Term of Service")
+                        append("Terms of Service")
                     }
                     pop()
 

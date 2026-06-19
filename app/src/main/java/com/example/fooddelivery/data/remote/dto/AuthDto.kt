@@ -113,8 +113,8 @@ data class LoginResponse(
     val data: LoginData? = null
 ) {
     // Helper để lấy token dù BE trả về kiểu gì
-    fun getFinalAccessToken(): String = accessToken ?: accessTokenSnake ?: data?.accessToken ?: ""
-    fun getFinalRefreshToken(): String = refreshToken ?: refreshTokenSnake ?: data?.refreshToken ?: ""
+    fun getFinalAccessToken(): String? = accessToken ?: accessTokenSnake ?: data?.accessToken ?: data?.accessTokenSnake
+    fun getFinalRefreshToken(): String? = refreshToken ?: refreshTokenSnake ?: data?.refreshToken ?: data?.refreshTokenSnake
     fun getFinalUser(): UserDto? = user ?: data?.user
 }
 

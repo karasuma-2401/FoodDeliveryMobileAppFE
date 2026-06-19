@@ -61,7 +61,10 @@ class VerificationViewModel @Inject constructor(
             VerificationEvent.ResendCodeClicked -> {
                 if (_state.value.timeLeft == 0) {
                     startTimer()
-                    // Add logic to resend code here if needed
+                    // TODO: Call appropriate use case to resend OTP
+                    // For registration flow: create ResendVerificationCodeUseCase
+                    // For password reset flow: call SendResetPasswordCodeUseCase again
+                    // Need to determine flow based on _state.value.isFromRegistration
                 }
             }
             VerificationEvent.VerifyClicked -> {

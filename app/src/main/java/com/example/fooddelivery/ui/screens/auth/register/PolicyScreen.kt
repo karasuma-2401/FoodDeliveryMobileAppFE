@@ -17,8 +17,13 @@ fun PolicyScreen(
     type: String,
     onNavigateBack: () -> Unit
 ) {
-    val title = if (type == "terms") "Terms of Service" else "Privacy Policy"
-    val content = if (type == "terms") {
+    val title = when (type) {
+        "terms" -> "Terms of Service"
+        "privacy" -> "Privacy Policy"
+        else -> error("Unknown policy type: $type. Expected 'terms' or 'privacy'")
+    }
+    val content = when (type) {
+        "terms" -> {
         """
         1. Acceptance of Terms
         By accessing and using DFood, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.
@@ -38,7 +43,8 @@ fun PolicyScreen(
         6. Limitation of Liability
         DFood is not liable for any indirect, incidental, or consequential damages arising from your use of the service.
         """.trimIndent()
-    } else {
+        }
+        "privacy" -> {
         """
         1. Information Collection
         We collect information you provide directly to us, such as your name, email address, phone number, and delivery address when you create an account.
@@ -58,6 +64,8 @@ fun PolicyScreen(
         6. Cookies
         We use cookies and similar technologies to enhance your experience and analyze app usage.
         """.trimIndent()
+        }
+        else -> error("Unknown policy type: $type. Expected 'terms' or 'privacy'")
     }
 
     Scaffold(
