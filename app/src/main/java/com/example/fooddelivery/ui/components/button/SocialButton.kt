@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.components.button
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -13,13 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.ui.components.bounceClick
-
 @Composable
 fun SocialButton (
     iconRes: Int,
@@ -57,11 +54,8 @@ fun SocialButton (
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = contentDescription,
-                modifier = Modifier
-                    .size(28.dp)
-                    .then(if (!enabled) Modifier else Modifier),
-                tint = Color.Unspecified,
-                alpha = if (enabled) 1f else 0.4f
+                modifier = Modifier.size(28.dp),
+                tint = Color.Unspecified
             )
         }
     }
