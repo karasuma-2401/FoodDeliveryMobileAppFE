@@ -65,18 +65,15 @@ fun RestaurantProfileScreen(
                     title = "Withdrawal History",
                     onClick = onNavigateToWithdrawalHistory
                 )
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    thickness = 1.dp,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+            }
+            ProfileMenuGroup {
                 ProfileMenuItem(
                     icon = Icons.Default.List,
                     iconTint = MaterialTheme.colorScheme.secondary,
                     title = "Number of Orders",
                     trailingContent = {
                         Text(
-                            text = "29K",
+                            text = "",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium

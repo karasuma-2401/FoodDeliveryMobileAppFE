@@ -57,11 +57,8 @@ fun SocialButton (
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = contentDescription,
-                modifier = Modifier
-                    .size(28.dp)
-                    .then(if (!enabled) Modifier else Modifier),
-                tint = Color.Unspecified,
-                alpha = if (enabled) 1f else 0.4f
+                modifier = Modifier.size(28.dp),
+                tint = Color.Unspecified
             )
         }
     }
