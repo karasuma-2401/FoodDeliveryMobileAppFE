@@ -16,7 +16,8 @@ import kotlinx.serialization.Serializable
 @Serializable object ForgotPasswordRoute
 @Serializable
 data class VerificationRoute(
-    val email: String = ""
+    val email: String = "",
+    val isFromRegistration: Boolean = false
 )
 @Serializable
 data class ResetPasswordRoute (

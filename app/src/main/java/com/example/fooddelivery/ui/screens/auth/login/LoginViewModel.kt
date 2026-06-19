@@ -1,13 +1,11 @@
 package com.example.fooddelivery.ui.screens.auth.login
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.usecase.LoginUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
+import com.example.fooddelivery.domain.usecase.LoginWithGoogleUseCase
 import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
-import com.facebook.login.Login
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +28,7 @@ sealed interface LoginEvent {
     data class PasswordChanged(val password: String): LoginEvent
     data class RememberMeChanged(val checked: Boolean): LoginEvent
     data class FacebookLoginClicked(val token: String): LoginEvent
+    data class GoogleLoginClicked(val token: String): LoginEvent
     data class ErrorMessageSet(val message: String): LoginEvent
     object LoginClicked: LoginEvent
 }
@@ -38,7 +37,8 @@ sealed interface LoginEvent {
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val validateInputUseCase: ValidateAuthInputUseCase,
-    private val loginWithFacebookUseCase: LoginWithFacebookUseCase
+    private val loginWithFacebookUseCase: LoginWithFacebookUseCase,
+    private val loginWithGoogleUseCase: LoginWithGoogleUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(LoginState())
     val state =  _state.asStateFlow()
@@ -57,6 +57,7 @@ class LoginViewModel @Inject constructor(
                 _state.update { it.copy(rememberMe = event.checked) }
             }
             is LoginEvent.FacebookLoginClicked -> loginWithFacebook(event.token)
+            is LoginEvent.GoogleLoginClicked -> loginWithGoogle(event.token)
             is LoginEvent.ErrorMessageSet -> _state.update { it.copy(errorMessage = event.message) }
             LoginEvent.LoginClicked -> login()
         }
@@ -78,10 +79,6 @@ class LoginViewModel @Inject constructor(
         return !hasError
     }
 
-    private fun setErrorMessage (message: String) {
-        _state.update { it.copy(errorMessage = message) }
-    }
-
     private fun loginWithFacebook(facebookToken: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
@@ -93,6 +90,23 @@ class LoginViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         errorMessage = exception.message ?: "Login with Facebook failed"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loginWithGoogle(googleToken: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            val result = loginWithGoogleUseCase(googleToken)
+            result.onSuccess {
+                _state.update { it.copy(isLoading = false, isSuccess = true) }
+            }.onFailure { exception ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Login with Google failed"
                     )
                 }
             }

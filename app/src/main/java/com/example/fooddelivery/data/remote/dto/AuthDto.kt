@@ -10,12 +10,32 @@ data class LoginRequest (
 
 @Serializable
 data class FacebookLoginRequest (
-    val accessToken: String
+    val accessToken: String? = null,
+    val code: String? = null
+)
+
+@Serializable
+data class GoogleLoginRequest (
+    val accessToken: String? = null,
+    val code: String? = null
+)
+
+@Serializable
+data class RefreshRequest (
+    val refreshToken: String
+)
+
+@Serializable
+data class ChangePasswordRequest(
+    val email: String? = null,
+    val phone: String? = null,
+    val currentPassword: String,
+    val newPassword: String
 )
 
 @Serializable
 data class RegisterRequest (
-    val fullName: String,
+    val name: String,
     val email: String,
     val phone: String,
     val password: String
@@ -43,10 +63,36 @@ data class ResetPasswordRequest(
 data class AuthResponse (
     val token: String? = null,
     val message: String? = null,
-    val isSuccess: Boolean,
+    val isSuccess: Boolean = false,
 )
 
-typealias LoginResponse = AuthResponse
-typealias RegisterResponse = AuthResponse
+@Serializable
+data class RegisterResponse(
+    val id: Int,
+    val name: String,
+    val phone: String,
+    val email: String
+)
+
+@Serializable
+data class UserDto(
+    val id: Int,
+    val name: String,
+    val email: String,
+    val phone: String?,
+    val birthday: String? = null,
+    val avatar: String? = null,
+    val active: Boolean,
+    val roles: List<String>
+)
+
+@Serializable
+data class LoginResponse(
+    val accessToken: String,
+    val refreshToken: String,
+    val user: UserDto
+)
+
 typealias ForgotPasswordResponse = AuthResponse
 typealias ResetPasswordResponse = AuthResponse
+typealias ChangePasswordResponse = AuthResponse

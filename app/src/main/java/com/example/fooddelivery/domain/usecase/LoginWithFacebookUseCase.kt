@@ -11,11 +11,14 @@ class LoginWithFacebookUseCase @Inject constructor(
     suspend operator fun invoke(facebookToken: String): Result<Unit> {
         val result = authRepository.loginFacebook(facebookToken)
 
-        return result.mapCatching { token ->
+        return result.mapCatching { response ->
             tokenManager.saveAuthData(
-                token = token,
-                phone = "",
-                rememberMe = false
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken,
+                phone = response.user.phone ?: "",
+                name = response.user.name,
+                email = response.user.email,
+                rememberMe = true
             )
         }
     }

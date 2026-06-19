@@ -4,21 +4,21 @@ import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.domain.repository.AuthRepository
 import javax.inject.Inject
 
-class LoginUseCase @Inject constructor(
+class LoginWithGoogleUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val tokenManager: TokenManager
 ) {
-    suspend operator fun invoke(phone: String, password: String, rememberMe: Boolean): Result<Unit> {
-        val result = authRepository.login(phone, password)
-        
+    suspend operator fun invoke(googleToken: String): Result<Unit> {
+        val result = authRepository.loginGoogle(googleToken)
+
         return result.mapCatching { response ->
             tokenManager.saveAuthData(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
-                phone = phone,
+                phone = response.user.phone ?: "",
                 name = response.user.name,
                 email = response.user.email,
-                rememberMe = rememberMe
+                rememberMe = true
             )
         }
     }

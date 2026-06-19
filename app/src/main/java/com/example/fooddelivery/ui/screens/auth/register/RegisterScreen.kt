@@ -58,7 +58,7 @@ import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin:() -> Unit,
-    onNavigateToRegistrationSuccess: () -> Unit,
+    onNavigateToRegistrationSuccess: (String) -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -79,8 +79,13 @@ fun RegisterScreen(
     }
 
     LaunchedEffect(state.isSuccess, state.isFacebookAuthSuccess) {
-        if (state.isSuccess || state.isFacebookAuthSuccess)
-            onNavigateToRegistrationSuccess()
+        if (state.isSuccess) {
+            onNavigateToRegistrationSuccess(state.email)
+        } else if (state.isFacebookAuthSuccess) {
+            // Facebook login usually goes straight to home if it provides token, 
+            // but for now keeping it simple as per register flow
+            onNavigateToRegistrationSuccess(state.email)
+        }
     }
     RegisterContent(
         state = state,

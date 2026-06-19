@@ -2,6 +2,8 @@ package com.example.fooddelivery.ui.screens.auth.verification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.usecase.VerifyAccountUseCase
+import com.example.fooddelivery.domain.usecase.VerifyCodeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -11,18 +13,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.fooddelivery.domain.usecase.VerifyCodeUseCase
 
 data class VerificationState(
     val email: String = "",
     val otpCode: String = "",
-    val timeLeft: Int = 50,
+    val timeLeft: Int = 60,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    val isFromRegistration: Boolean = false,
     val errorMessage: String? = null
 )
+
 sealed interface VerificationEvent {
-    data class Init(val email: String): VerificationEvent
+    data class Init(val email: String, val isFromRegistration: Boolean): VerificationEvent
     data class OtpChanged(val code: String): VerificationEvent
     object ResendCodeClicked: VerificationEvent
     object VerifyClicked: VerificationEvent
@@ -31,17 +34,24 @@ sealed interface VerificationEvent {
 
 @HiltViewModel
 class VerificationViewModel @Inject constructor(
-    private val verifyCodeUseCase: VerifyCodeUseCase
+    private val verifyCodeUseCase: VerifyCodeUseCase,
+    private val verifyAccountUseCase: VerifyAccountUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(VerificationState())
     val state: StateFlow<VerificationState> = _state.asStateFlow()
 
     private var timerJob: Job? = null
+
     fun onEvent(event: VerificationEvent) {
         when (event) {
             is VerificationEvent.Init -> {
                 if (_state.value.email.isBlank()) {
-                    _state.update { it.copy(email = event.email) }
+                    _state.update { 
+                        it.copy(
+                            email = event.email, 
+                            isFromRegistration = event.isFromRegistration 
+                        ) 
+                    }
                     startTimer()
                 }
             }
@@ -51,6 +61,7 @@ class VerificationViewModel @Inject constructor(
             VerificationEvent.ResendCodeClicked -> {
                 if (_state.value.timeLeft == 0) {
                     startTimer()
+                    // Add logic to resend code here if needed
                 }
             }
             VerificationEvent.VerifyClicked -> {
@@ -68,27 +79,34 @@ class VerificationViewModel @Inject constructor(
         timerJob = viewModelScope.launch {
             while (_state.value.timeLeft > 0) {
                 delay(1000L)
-                _state.update { it.copy(timeLeft = _state.value.timeLeft - 1) }
+                _state.update { it.copy(timeLeft = it.timeLeft - 1) }
             }
         }
     }
+
     private fun verifyCode() {
-        val currenState = _state.value
-        if (_state.value.otpCode.length < 4) return
+        val currentState = _state.value
+        if (currentState.otpCode.length < 6) return
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = verifyCodeUseCase(
-                email = currenState.email,
-                code = currenState.otpCode
-            )
+            
+            val result = if (currentState.isFromRegistration) {
+                verifyAccountUseCase(currentState.otpCode)
+            } else {
+                verifyCodeUseCase(
+                    email = currentState.email,
+                    code = currentState.otpCode
+                )
+            }
+
             result.onSuccess {
                 _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { exception ->
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = exception.message ?: "Invalid otp"
+                        errorMessage = exception.message ?: "Invalid OTP"
                     )
                 }
             }

@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.auth.login
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -66,6 +65,11 @@ fun LoginScreen(
         onError = { viewModel.onEvent(LoginEvent.ErrorMessageSet("Facebook error: $it")) }
     )
 
+    // Placeholder for Google Login trigger - you should implement this based on your Google Auth setup
+    val triggerGoogleLogin = {
+        viewModel.onEvent(LoginEvent.ErrorMessageSet("Google Login integration in progress"))
+    }
+
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             if (it.isNotEmpty()) {
@@ -85,6 +89,7 @@ fun LoginScreen(
         onNavigateToSignUp = onNavigateToSignUp,
         onNavigateToForgotPassword = onNavigateToForgotPassword,
         triggerFacebookLogin = triggerFacebookLogin,
+        triggerGoogleLogin = triggerGoogleLogin,
         snackBarHostState = snackBarHostState,
     )
 }
@@ -98,6 +103,7 @@ fun LoginScreenContent(
     onNavigateToSignUp: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     triggerFacebookLogin: () -> Unit,
+    triggerGoogleLogin: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
     Scaffold(
@@ -268,6 +274,12 @@ fun LoginScreenContent(
                     contentDescription = "Log in with facebook",
                     onClick = triggerFacebookLogin
                 )
+                Spacer(modifier = Modifier.width(20.dp))
+                SocialButton(
+                    iconRes = R.drawable.ic_google,
+                    contentDescription = "Log in with google",
+                    onClick = triggerGoogleLogin
+                )
             }
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -306,6 +318,7 @@ fun LoginScreenPreview() {
             onNavigateToSignUp = {},
             onNavigateToForgotPassword = {},
             triggerFacebookLogin = {},
+            triggerGoogleLogin = {},
             snackBarHostState = remember { SnackbarHostState() }
         )
     }
