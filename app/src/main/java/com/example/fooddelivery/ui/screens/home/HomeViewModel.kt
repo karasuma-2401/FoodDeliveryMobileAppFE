@@ -9,6 +9,7 @@ import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
+import com.example.fooddelivery.domain.usecase.GetCategoriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -75,6 +76,7 @@ sealed interface HomeUiEffect {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val getCategoriesUseCase: GetCategoriesUseCase,
     private val cartRepository: CartRepository,
     private val chatRepository: ChatRepository
 ) : ViewModel() {
@@ -138,13 +140,20 @@ class HomeViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
 
             // Fetch user profile
-            getUserProfileUseCase().onSuccess { user ->
-                _state.update { it.copy(user = user) }
-            }.onFailure {
-                // Fallback or error handling
+            launch {
+                getUserProfileUseCase().onSuccess { user ->
+                    _state.update { it.copy(user = user) }
+                }
             }
 
-            delay(5000)
+            // Fetch categories
+            launch {
+                getCategoriesUseCase(limit = 10).onSuccess { categories ->
+                    _state.update { it.copy(categories = categories) }
+                }
+            }
+
+            delay(2000) // Reduced delay for better UX after real data integration
 
             val mockBanners = listOf(
                 HomeBanner("1", "Flash Sale 50%", "Pizza Hut Special Deal", R.drawable.food_bowl, BannerTarget.RESTAURANT, "3", 0xFFFF8142),
@@ -157,14 +166,6 @@ class HomeViewModel @Inject constructor(
                 HomeBanner("8", "KFC Special", "Crunchy Fried Chicken Bucket", R.drawable.food_bowl, BannerTarget.RESTAURANT, "2", 0xFF795548),
                 HomeBanner("9", "Dessert Night", "20% off on all Sweet Cakes", R.drawable.food_bowl, BannerTarget.FOOD, "11", 0xFFE91E63),
                 HomeBanner("10", "Seafood Fest", "New Seafood Menu Available", R.drawable.food_bowl, BannerTarget.RESTAURANT, "1", 0xFF607D8B)
-            )
-
-            val mockCategories = listOf(
-                Category(id = "1", name = "Pizza", imageRes = R.drawable.food_bowl, startingPrice = 70.0, promoText = "Discount 20%"),
-                Category(id = "2", name = "Burger", imageRes = R.drawable.food_bowl, startingPrice = 50.0, promoText = "PROMO"),
-                Category(id = "3", name = "Pasta", imageRes = R.drawable.food_bowl, startingPrice = 60.0),
-                Category(id = "4", name = "Drink", imageRes = R.drawable.food_bowl, startingPrice = 20.0),
-                Category(id = "5", name = "Chicken", imageRes = R.drawable.food_bowl, startingPrice = 45.0)
             )
             
             val mockRestaurants = listOf(
@@ -198,7 +199,6 @@ class HomeViewModel @Inject constructor(
 
             _state.update { it.copy(
                 banners = mockBanners,
-                categories = mockCategories,
                 restaurants = mockRestaurants,
                 isLoading = false
             ) }
