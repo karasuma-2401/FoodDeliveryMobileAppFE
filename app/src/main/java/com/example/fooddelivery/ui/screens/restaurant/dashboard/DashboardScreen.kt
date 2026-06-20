@@ -113,7 +113,7 @@ fun DashboardContent(
 
                 ActiveVouchersPreviewCard(
                     onSeeDetailClick = {
-                        onNavigate("coupon") 
+                        onNavigate("coupon")
                     }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
