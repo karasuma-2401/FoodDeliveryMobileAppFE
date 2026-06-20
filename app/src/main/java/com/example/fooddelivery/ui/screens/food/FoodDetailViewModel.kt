@@ -4,15 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.example.fooddelivery.R
-import com.example.fooddelivery.domain.model.CartItem
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.ui.navigation.FoodDetailRoute
 import com.example.fooddelivery.ui.utils.GlobalSnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,7 +54,7 @@ class FoodDetailViewModel @Inject constructor(
     val uiEffect = _uiEffect.asSharedFlow()
 
     init {
-        loadFoodDetail()
+        // loadFoodDetail() should be implemented to fetch from API
     }
 
     fun onEvent(event: FoodDetailEvent) {
@@ -68,18 +65,12 @@ class FoodDetailViewModel @Inject constructor(
                     val basePrice = it.food?.price ?: 0.0
                     it.copy(
                         quantity = newQuantity,
-                        totalPrice = calculatePrice(basePrice, it.selectedSize, newQuantity)
+                        totalPrice = basePrice * newQuantity
                     )
                 }
             }
             is FoodDetailEvent.SelectSize -> {
-                _state.update {
-                    val basePrice = it.food?.price ?: 0.0
-                    it.copy(
-                        selectedSize = event.size,
-                        totalPrice = calculatePrice(basePrice, event.size, it.quantity)
-                    )
-                }
+                _state.update { it.copy(selectedSize = event.size) }
             }
             is FoodDetailEvent.ToggleFavorite -> {
                 _state.update { it.copy(isFavorite = !it.isFavorite) }
@@ -87,84 +78,26 @@ class FoodDetailViewModel @Inject constructor(
             is FoodDetailEvent.AddToCart -> {
                 val currentState = _state.value
                 val food = currentState.food
-                val restaurant = currentState.restaurant
-                if (food != null && restaurant != null) {
-                    val basePrice = food.price
-                    val unitPrice = calculateUnitPrice(basePrice, currentState.selectedSize)
-
-                    val cartItem = CartItem(
-                        food = food,
-                        size = currentState.selectedSize,
-                        quantity = currentState.quantity,
-                        unitPrice = unitPrice,
-                        restaurantId = restaurant.id,
-                        restaurantName = restaurant.name
-                    )
+                if (food != null) {
+                    _state.update { it.copy(isLoading = true) }
                     viewModelScope.launch {
-                        try {
-                            cartRepository.addToCart(cartItem)
-                            snackbarManager.showSnackbar("Added ${food.name} to cart")
+                        // Logic: Truyền size vào giỏ hàng
+                        val result = cartRepository.addToCart(
+                            foodId = food.id.toIntOrNull() ?: 0,
+                            quantity = currentState.quantity,
+                            size = currentState.selectedSize
+                        )
+                        
+                        result.onSuccess {
+                            _state.update { it.copy(isLoading = false) }
+                            snackbarManager.showSnackbar("Added ${food.name} (${currentState.selectedSize}) to cart")
                             _uiEffect.emit(FoodDetailUiEffect.NavigateBack)
-                        } catch (error: Exception) {
+                        }.onFailure { error ->
+                            _state.update { it.copy(isLoading = false) }
                             snackbarManager.showSnackbar(error.message ?: "Failed to add to cart")
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private fun calculateUnitPrice(basePrice: Double, size: String): Double {
-        val sizeMultiplier = when (size) {
-            "Small" -> 0.8
-            "Large" -> 1.2
-            else -> 1.0
-        }
-        return basePrice * sizeMultiplier
-    }
-
-    private fun calculatePrice(basePrice: Double, size: String, quantity: Int): Double {
-        return calculateUnitPrice(basePrice, size) * quantity
-    }
-
-    private fun loadFoodDetail() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            delay(5000)
-
-            if (foodId.isBlank()) {
-                _state.update { it.copy(isLoading = false) }
-                return@launch
-            }
-
-            val mockFood = FoodItem(
-                id = foodId,
-                name = "Pizza Calzone European",
-                restaurantName = "Uttora Coffe House",
-                categoryId = "Pizza",
-                price = 32.0,
-                imageRes = R.drawable.food_bowl
-            )
-
-            val mockRestaurant = Restaurant(
-                id = "res1",
-                name = "Uttora Coffe House",
-                description = "Prosciutto e funghi is a pizza variety that is topped with tomato sauce.",
-                tags = listOf("Pizza", "Italian"),
-                rating = 4.7f,
-                deliveryFee = 0.0,
-                imageRes = R.drawable.food_bowl
-            )
-            
-            val basePrice = mockFood.price
-            
-            _state.update {
-                it.copy(
-                    food = mockFood,
-                    restaurant = mockRestaurant,
-                    totalPrice = calculatePrice(basePrice, it.selectedSize, it.quantity),
-                    isLoading = false
-                )
             }
         }
     }

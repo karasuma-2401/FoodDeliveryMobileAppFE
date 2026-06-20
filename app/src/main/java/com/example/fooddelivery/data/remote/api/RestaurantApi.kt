@@ -4,10 +4,19 @@ import com.example.fooddelivery.data.remote.dto.BaseResponse
 import com.example.fooddelivery.data.remote.dto.DashboardResponse
 import com.example.fooddelivery.data.remote.dto.FoodRequest
 import com.example.fooddelivery.data.remote.dto.FoodResponse
+import com.example.fooddelivery.data.remote.dto.RestaurantResponse
 import retrofit2.Response
 import retrofit2.http.*
 
 interface RestaurantApi {
+    @GET("restaurant")
+    suspend fun getRestaurants(
+        @Query("limit") limit: Int? = 20,
+        @Query("offset") offset: Int? = 0,
+        @Query("keyword") keyword: String? = null,
+        @Query("categoryId") categoryId: Int? = null
+    ): Response<List<RestaurantResponse>>
+
     @GET("restaurant/dashboard")
     suspend fun getDashboard(): Response<DashboardResponse>
 

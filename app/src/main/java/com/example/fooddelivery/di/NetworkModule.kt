@@ -1,8 +1,11 @@
 package com.example.fooddelivery.di
 
 import com.example.fooddelivery.BuildConfig
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.api.CartApi
+import com.example.fooddelivery.data.remote.api.CategoryApi
 import com.example.fooddelivery.data.remote.api.ChatApi
 import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.api.PhotonService
@@ -15,7 +18,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.socket.client.Socket
 import io.socket.client.IO
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -39,7 +45,7 @@ object NetworkModule {
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor {
         return HttpLoggingInterceptor().apply {
-            level = if (com.example.fooddelivery.BuildConfig.DEBUG) {
+            level = if (BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BODY
             } else {
                 HttpLoggingInterceptor.Level.NONE
@@ -52,9 +58,28 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+    fun provideAuthInterceptor(tokenManager: TokenManager): Interceptor {
+        return Interceptor { chain ->
+            val token = runBlocking {
+                tokenManager.getAccessToken.first()
+            }
+            val request = chain.request().newBuilder()
+            if (!token.isNullOrEmpty()) {
+                request.addHeader("Authorization", "Bearer $token")
+            }
+            chain.proceed(request.build())
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authInterceptor: Interceptor
+    ): OkHttpClient {
         return OkHttpClient.Builder().apply {
-            if (com.example.fooddelivery.BuildConfig.DEBUG) {
+            addInterceptor(authInterceptor)
+            if (BuildConfig.DEBUG) {
                 addInterceptor(loggingInterceptor)
             }
         }.build()
@@ -67,7 +92,7 @@ object NetworkModule {
         val contentType = "application/json".toMediaType()
 
         return Retrofit.Builder()
-            .baseUrl(com.example.fooddelivery.BuildConfig.API_BASE_URL)
+            .baseUrl(BuildConfig.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
@@ -93,6 +118,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideCategoryApi(@Named("MainRetrofit") retrofit: Retrofit): CategoryApi {
+        return retrofit.create(CategoryApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideRestaurantApi(@Named("MainRetrofit") retrofit: Retrofit): RestaurantApi {
         return retrofit.create(RestaurantApi::class.java)
     }
@@ -114,6 +145,13 @@ object NetworkModule {
     fun provideOrderApi(@Named("MainRetrofit") retrofit: Retrofit): OrderApi {
         return retrofit.create(OrderApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideCartApi(@Named("MainRetrofit") retrofit: Retrofit): CartApi {
+        return retrofit.create(CartApi::class.java)
+    }
+
     @Provides
     @Singleton
     fun provideChatApi(@Named("MainRetrofit") retrofit: Retrofit): ChatApi {
@@ -131,7 +169,6 @@ object NetworkModule {
         return try {
             val options = IO.Options()
             options.reconnection = true
-            // Use SOCKET_URL instead of API_BASE_URL (which has /api/ suffix)
             IO.socket(BuildConfig.SOCKET_URL, options)
         } catch (e: URISyntaxException) {
             throw RuntimeException(e)

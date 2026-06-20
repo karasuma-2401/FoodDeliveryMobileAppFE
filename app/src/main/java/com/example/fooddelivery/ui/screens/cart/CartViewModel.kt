@@ -37,14 +37,15 @@ data class CartState(
 }
 
 sealed interface CartEvent {
-    data class UpdateQuantity(val foodId: String, val size: String, val restaurantId: String, val delta: Int) : CartEvent
-    data class RemoveItem(val foodId: String, val size: String, val restaurantId: String): CartEvent
+    data class UpdateQuantity(val cartItemId: Int, val newQuantity: Int) : CartEvent
+    data class RemoveItem(val cartItemId: Int): CartEvent
     data object ClearCart: CartEvent
     data class ApplyVoucher(val voucher: Voucher): CartEvent
     data class PromoCodeChanged(val code: String): CartEvent
     data object ApplyPromoCode: CartEvent
     data object ProceedToCheckout: CartEvent
     data class SelectRestaurant(val restaurantName: String): CartEvent
+    data object SyncCart : CartEvent
 }
 
 sealed interface CartUiEffect {
@@ -66,6 +67,7 @@ class CartViewModel @Inject constructor(
     init {
         observeCart()
         loadMockVouchers()
+        onEvent(CartEvent.SyncCart)
     }
 
     private fun observeCart() {
@@ -118,17 +120,30 @@ class CartViewModel @Inject constructor(
         when (event) {
             is CartEvent.UpdateQuantity -> {
                 viewModelScope.launch {
-                    cartRepository.updateQuantity(event.foodId, event.size, event.restaurantId, event.delta)
+                    _state.update { it.copy(isLoading = true) }
+                    cartRepository.updateQuantity(event.cartItemId, event.newQuantity)
+                    _state.update { it.copy(isLoading = false) }
                 }
             }
             is CartEvent.RemoveItem -> {
                 viewModelScope.launch {
-                    cartRepository.removeItem(event.foodId, event.size, event.restaurantId)
+                    _state.update { it.copy(isLoading = true) }
+                    cartRepository.removeItem(event.cartItemId)
+                    _state.update { it.copy(isLoading = false) }
                 }
             }
             is CartEvent.ClearCart -> {
                 viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
                     cartRepository.clearCart()
+                    _state.update { it.copy(isLoading = false) }
+                }
+            }
+            is CartEvent.SyncCart -> {
+                viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
+                    cartRepository.syncCart()
+                    _state.update { it.copy(isLoading = false) }
                 }
             }
             is CartEvent.ApplyVoucher -> _state.update { it.copy(selectedVoucher = event.voucher) }

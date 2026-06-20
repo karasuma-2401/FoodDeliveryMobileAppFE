@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -19,13 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.screens.cart.components.BillBreakdown
-import com.example.fooddelivery.ui.screens.cart.components.CartItemCard
-import com.example.fooddelivery.ui.screens.cart.components.EmptyCartView
-import com.example.fooddelivery.ui.screens.cart.components.RestaurantHeader
-import com.example.fooddelivery.ui.screens.cart.components.SwipeToDeleteContainer
-import com.example.fooddelivery.ui.screens.cart.components.VoucherSection
-import com.example.fooddelivery.ui.screens.cart.components.VoucherSelectionSheet
+import com.example.fooddelivery.ui.screens.cart.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.flow.collectLatest
 
@@ -38,7 +31,6 @@ fun CartScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showVoucherSheet by remember { mutableStateOf(false) }
-    var selectedVoucher by remember { mutableStateOf<Voucher?>(null) }
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -64,10 +56,7 @@ fun CartScreen(
 
     if (showVoucherSheet) {
         ModalBottomSheet(
-            onDismissRequest = {
-                selectedVoucher = null
-                showVoucherSheet = false
-            },
+            onDismissRequest = { showVoucherSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
@@ -78,18 +67,9 @@ fun CartScreen(
                 promoError = state.promoError,
                 onPromoCodeChange = { viewModel.onEvent(CartEvent.PromoCodeChanged(it)) },
                 onApplyPromoCode = { viewModel.onEvent(CartEvent.ApplyPromoCode) },
-                onVoucherSelected = { selectedVoucher = it },
-                onConfirm = { voucher ->
-                    if (voucher != null) {
-                        viewModel.onEvent(CartEvent.ApplyVoucher(voucher))
-                    }
-                    selectedVoucher = null
-                    showVoucherSheet = false
-                },
-                onDismiss = {
-                    selectedVoucher = null
-                    showVoucherSheet = false
-                }
+                onVoucherSelected = { viewModel.onEvent(CartEvent.ApplyVoucher(it)) },
+                onConfirm = { showVoucherSheet = false },
+                onDismiss = { showVoucherSheet = false }
             )
         }
     }
@@ -130,9 +110,9 @@ fun CartContent(
                         .padding(24.dp)
                 ) {
                     DFoodButton(
-                        text = "Proceed to Checkout",
+                        text = if (state.isLoading) "Processing..." else "Proceed to Checkout",
                         onClick = onCheckoutClick,
-                        enabled = state.canCheckout,
+                        enabled = state.canCheckout && !state.isLoading,
                         trailingIcon = {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -154,7 +134,7 @@ fun CartContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-                contentPadding = PaddingValues(bottom = 24.dp)
+                contentPadding = PaddingValues(bottom = 120.dp)
             ) {
                 state.itemsByRestaurant.forEach { (restaurantName, groupedItems) ->
                     item {
@@ -168,15 +148,27 @@ fun CartContent(
 
                     items(
                         items = groupedItems,
-                        key = { "${it.food.id}::${it.size}" }
+                        key = { it.cartItemId ?: it.food.id }
                     ) { item ->
                         SwipeToDeleteContainer(
-                            onDelete = { onEvent(CartEvent.RemoveItem(item.food.id, item.size, item.restaurantId)) }
+                            onDelete = { 
+                                item.cartItemId?.let { onEvent(CartEvent.RemoveItem(it)) }
+                            }
                         ) {
                             CartItemCard(
                                 item = item,
-                                onIncrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, item.restaurantId, 1)) },
-                                onDecrease = { onEvent(CartEvent.UpdateQuantity(item.food.id, item.size, item.restaurantId, -1)) },
+                                onIncrease = { 
+                                    item.cartItemId?.let { onEvent(CartEvent.UpdateQuantity(it, item.quantity + 1)) }
+                                },
+                                onDecrease = { 
+                                    item.cartItemId?.let { 
+                                        if (item.quantity > 1) {
+                                            onEvent(CartEvent.UpdateQuantity(it, item.quantity - 1))
+                                        } else {
+                                            onEvent(CartEvent.RemoveItem(it))
+                                        }
+                                    }
+                                },
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                             )
                         }
@@ -211,25 +203,7 @@ fun CartContent(
                         )
                     }
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(120.dp))
-                }
             }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun CartScreenPreview() {
-    DFoodTheme(darkTheme = false) {
-        CartContent(
-            state = CartState(),
-            onEvent = {},
-            onBackClick = {},
-            onCheckoutClick = {},
-            onShowVoucherSheet = {}
-        )
     }
 }
