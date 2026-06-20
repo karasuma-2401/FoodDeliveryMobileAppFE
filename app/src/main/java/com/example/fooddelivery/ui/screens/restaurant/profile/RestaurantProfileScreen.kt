@@ -66,15 +66,6 @@ fun RestaurantProfileScreen(
 
             ProfileMenuGroup {
                 ProfileMenuItem(
-                    icon = Icons.Default.DateRange,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = "Withdrawal History",
-                    onClick = onNavigateToWithdrawalHistory
-                )
-            }
-
-            ProfileMenuGroup {
-                ProfileMenuItem(
                     icon = Icons.Default.List,
                     iconTint = MaterialTheme.colorScheme.secondary,
                     title = "Number of Orders",
