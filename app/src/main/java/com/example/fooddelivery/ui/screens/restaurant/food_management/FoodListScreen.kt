@@ -1,5 +1,4 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -11,7 +10,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.data.remote.dto.FoodResponse
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.food_management.CategoryTabRow
-import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.restaurant.component.food_management.FoodList
 import com.example.fooddelivery.ui.screens.restaurant.component.food_management.ItemCountText
 import com.example.fooddelivery.ui.theme.DFoodTheme
@@ -25,7 +23,7 @@ fun MyFoodListScreen(
     viewModel: MyFoodListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
-    
+
     MyFoodListScreenContent(
         state = state,
         onNavigateBack = onNavigateBack,
@@ -55,13 +53,7 @@ fun MyFoodListScreenContent(
                 onBackClick = onNavigateBack,
             )
         },
-        bottomBar = {
-            DFoodBottomBar(
-                currentRoute = "menu",
-                onNavigate = onNavigate,
-                onAddClick = onAddFoodClick
-            )
-        },
+        // ĐÃ XÓA KHỐI bottomBar TẠI ĐÂY - Giúp thanh điều hướng không bị lặp lại
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
@@ -74,9 +66,7 @@ fun MyFoodListScreenContent(
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
+                Column(modifier = Modifier.fillMaxSize()) {
                     CategoryTabRow(
                         categories = state.categories,
                         selectedIndex = state.selectedCategoryIndex,
@@ -84,9 +74,7 @@ fun MyFoodListScreenContent(
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
-
                     ItemCountText(state.totalItems)
-
                     Spacer(modifier = Modifier.height(16.dp))
 
                     FoodList(
