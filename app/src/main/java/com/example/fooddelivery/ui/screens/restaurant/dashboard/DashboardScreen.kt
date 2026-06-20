@@ -1,5 +1,5 @@
 package com.example.fooddelivery.ui.screens.restaurant.dashboard
-
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,7 +15,6 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.BestSellerItem
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ActiveVouchersPreviewCard
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.BestSellerSection
-import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.HeaderSection
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.RevenueSection
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ReviewSection
@@ -49,29 +48,23 @@ fun DashboardContent(
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
 ) {
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            DFoodBottomBar(
-                currentRoute = "dashboard",
-                onNavigate = onNavigate,
-                onAddClick = onAddFoodClick
-            )
-        },
-    ) { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else if (state.error != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.error, color = MaterialTheme.colorScheme.error)
-            }
+            Text(
+                text = state.error,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.align(Alignment.Center)
+            )
         } else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
@@ -106,38 +99,21 @@ fun DashboardContent(
                     state.totalReviews,
                     onSeeAllClicked = onSeeAllReviewsClick
                 )
-                
+
                 Spacer(modifier = Modifier.height(20.dp))
 
                 BestSellerSection(
                     items = listOf(
-                        BestSellerItem(
-                            "Burger",
-                            "$5.99",
-                            4.5f,
-                            120,
-                            R.drawable.ic_launcher_background
-                        ),
-                        BestSellerItem(
-                            "Pizza",
-                            "$8.99",
-                            4.8f,
-                            200,
-                            R.drawable.ic_launcher_background
-                        ),
-                        BestSellerItem(
-                            "Chicken",
-                            "$6.49",
-                            4.6f,
-                            150,
-                            R.drawable.ic_launcher_background
-                        )
+                        BestSellerItem("Burger", "$5.99", 4.5f, 120, R.drawable.ic_launcher_background),
+                        BestSellerItem("Pizza", "$8.99", 4.8f, 200, R.drawable.ic_launcher_background),
+                        BestSellerItem("Chicken", "$6.49", 4.6f, 150, R.drawable.ic_launcher_background)
                     ),
                     onSeeAllClick = onSeeAllClick
                 )
+
                 ActiveVouchersPreviewCard(
                     onSeeDetailClick = {
-                        onNavigate("coupons")
+                        onNavigate("coupon") 
                     }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -145,7 +121,6 @@ fun DashboardContent(
         }
     }
 }
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun DashboardPreview() {

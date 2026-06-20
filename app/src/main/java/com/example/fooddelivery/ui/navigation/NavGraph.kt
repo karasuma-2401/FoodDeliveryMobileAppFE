@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.navigation
 
+import androidx.compose.ui.Modifier
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -11,7 +12,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -64,7 +64,9 @@ import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
 import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
+// Import màn hình ReviewScreen mới
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
+import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 
 @Composable
 fun RootNavigationGraph(
@@ -116,7 +118,7 @@ fun RootNavigationGraph(
         NavHost(
             navController = navController,
             startDestination = CustomerGraph,
-            modifier = Modifier,
+            modifier = Modifier.padding(innerPadding),
             enterTransition = {
                 fadeIn(animationSpec = tween(300)) +
                         scaleIn(initialScale = 0.98f, animationSpec = tween(300))
@@ -539,70 +541,118 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
 // vendor graph
 fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
-    val onVendorNavigate: (String) -> Unit = { route ->
-        when (route) {
-            "dashboard" -> navController.navigate(RestaurantDashboardRoute)
-            "menu" -> navController.navigate(RestaurantFoodListRoute)
-            "notifications" -> navController.navigate(RestaurantNotificationsRoute)
-            "profile" -> navController.navigate(RestaurantProfileRoute)
-            "coupons" -> navController.navigate(RestaurantCouponRoute)
-        }
-    }
-    val onAddFood: () -> Unit = {
-        navController.navigate(RestaurantAddFoodRoute())
-    }
 
-    navigation<RestaurantGraph>(startDestination = RestaurantDashboardRoute) {
+    composable<RestaurantGraph> {
+        val vendorNavController = androidx.navigation.compose.rememberNavController()
 
-        composable<RestaurantDashboardRoute> {
-            DashboardScreen(
-                onSeeAllClick = { navController.navigate(RestaurantFoodListRoute) },
-                onSeeAllReviewsClick = { navController.navigate(RestaurantReviewsRoute) },
-                onAddFoodClick = onAddFood,
-                onNavigate = onVendorNavigate
-            )
+        val navBackStackEntry by vendorNavController.currentBackStackEntryAsState()
+        val currentRouteStr = navBackStackEntry?.destination?.route ?: ""
+
+        val isDashboard = currentRouteStr.contains("RestaurantDashboardRoute")
+        val isMenu = currentRouteStr.contains("RestaurantFoodListRoute")
+        val isNotifications = currentRouteStr.contains("RestaurantNotificationsRoute")
+        val isProfile = currentRouteStr.contains("RestaurantProfileRoute")
+
+        val showBottomBar = isDashboard || isMenu || isNotifications || isProfile
+
+        val vendorCurrentRoute = when {
+            isDashboard -> "dashboard"
+            isMenu -> "menu"
+            isNotifications -> "notifications"
+            isProfile -> "profile"
+            else -> "dashboard"
         }
 
-        composable<RestaurantFoodListRoute> {
-            MyFoodListScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onEditFood = { foodId ->
-                    navController.navigate(RestaurantAddFoodRoute(foodId = foodId))
-                },
-                onAddFoodClick = onAddFood,
-                onNavigate = onVendorNavigate
-            )
-        }
-
-        composable<RestaurantAddFoodRoute> { backStackEntry ->
-            val args = backStackEntry.toRoute<RestaurantAddFoodRoute>()
-            if (args.foodId == null) {
-                AddFoodScreen(
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            } else {
-                EditFoodScreen(
-                    onNavigateBack = { navController.popBackStack() }
-                )
+        val onVendorNavigate: (String) -> Unit = { route ->
+            when (route) {
+                "dashboard" -> vendorNavController.navigate(RestaurantDashboardRoute)
+                "menu" -> vendorNavController.navigate(RestaurantFoodListRoute)
+                "notifications" -> vendorNavController.navigate(RestaurantNotificationsRoute)
+                "profile" -> vendorNavController.navigate(RestaurantProfileRoute)
+                "coupons" -> vendorNavController.navigate(RestaurantCouponRoute)
             }
         }
-        composable<RestaurantWalletRoute> { Text("Wallet") }
-        composable<RestaurantWithdrawRoute> { Text("Withdraw") }
 
-        composable<RestaurantReviewsRoute> {
-            ReviewScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
+        val onAddFood: () -> Unit = {
+            vendorNavController.navigate(RestaurantAddFoodRoute())
         }
 
-        composable<RestaurantNotificationsRoute> { Text("Notifications") }
-        composable<RestaurantMessagesRoute> { Text("Messages")  }
-        composable<RestaurantProfileRoute> { Text("Profile") }
+        androidx.compose.material3.Scaffold(
+            bottomBar = {
+                if (showBottomBar) {
+                    DFoodBottomBar(
+                        currentRoute = vendorCurrentRoute,
+                        onNavigate = { tab ->
+                            val targetRoute = when (tab) {
+                                "dashboard" -> RestaurantDashboardRoute
+                                "menu" -> RestaurantFoodListRoute
+                                "notifications" -> RestaurantNotificationsRoute
+                                "profile" -> RestaurantProfileRoute
+                                else -> RestaurantDashboardRoute
+                            }
+                            vendorNavController.navigate(targetRoute) {
+                                popUpTo(vendorNavController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onAddClick = onAddFood
+                    )
+                }
+            }
+        ) { paddingValues ->
 
-        composable<RestaurantCouponRoute> {
-            RestaurantCouponScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
+            NavHost(
+                navController = vendorNavController,
+                startDestination = RestaurantDashboardRoute,
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable<RestaurantDashboardRoute> {
+                    DashboardScreen(
+                        onSeeAllClick = { vendorNavController.navigate(RestaurantFoodListRoute) },
+                        onSeeAllReviewsClick = { vendorNavController.navigate(RestaurantReviewsRoute) },
+                        onAddFoodClick = onAddFood,
+                        onNavigate = onVendorNavigate
+                    )
+                }
+
+                composable<RestaurantFoodListRoute> {
+                    MyFoodListScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onEditFood = { foodId ->
+                            vendorNavController.navigate(RestaurantAddFoodRoute(foodId = foodId))
+                        },
+                        onAddFoodClick = onAddFood,
+                        onNavigate = onVendorNavigate
+                    )
+                }
+
+                composable<RestaurantAddFoodRoute> { backStackEntry ->
+                    val args = backStackEntry.toRoute<RestaurantAddFoodRoute>()
+                    if (args.foodId == null) {
+                        AddFoodScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                    } else {
+                        EditFoodScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                    }
+                }
+
+                composable<RestaurantWalletRoute> { Text("Wallet") }
+                composable<RestaurantWithdrawRoute> { Text("Withdraw") }
+
+                composable<RestaurantReviewsRoute> {
+                    ReviewScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                }
+
+                composable<RestaurantNotificationsRoute> { Text("Notifications") }
+                composable<RestaurantMessagesRoute> { Text("Messages")  }
+                composable<RestaurantProfileRoute> { Text("Profile") }
+
+                composable<RestaurantCouponRoute> {
+                    RestaurantCouponScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                }
+            }
         }
     }
 }
