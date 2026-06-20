@@ -4,6 +4,7 @@ import com.example.fooddelivery.BuildConfig
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.api.CartApi
 import com.example.fooddelivery.data.remote.api.CategoryApi
 import com.example.fooddelivery.data.remote.api.ChatApi
 import com.example.fooddelivery.data.remote.api.OrderApi
@@ -144,6 +145,13 @@ object NetworkModule {
     fun provideOrderApi(@Named("MainRetrofit") retrofit: Retrofit): OrderApi {
         return retrofit.create(OrderApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideCartApi(@Named("MainRetrofit") retrofit: Retrofit): CartApi {
+        return retrofit.create(CartApi::class.java)
+    }
+
     @Provides
     @Singleton
     fun provideChatApi(@Named("MainRetrofit") retrofit: Retrofit): ChatApi {

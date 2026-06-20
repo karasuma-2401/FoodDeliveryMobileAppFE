@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "bad6c31948f1171fc53d3163ec169451",
+    "identityHash": "ddba27582fbcd5a0d61e986bddb6d38d",
     "entities": [
       {
         "tableName": "notifications",
@@ -174,17 +174,11 @@
       },
       {
         "tableName": "cart_items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`foodId` TEXT NOT NULL, `size` TEXT NOT NULL, `restaurantId` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `unitPrice` REAL NOT NULL, `restaurantName` TEXT NOT NULL, `foodName` TEXT NOT NULL, `foodPrice` REAL NOT NULL, `foodImageUrl` TEXT, `foodImageRes` INTEGER, `categoryId` TEXT NOT NULL, `rating` REAL NOT NULL, `reviewCount` INTEGER NOT NULL, `soldCount` INTEGER NOT NULL, `promoTag` TEXT, PRIMARY KEY(`foodId`, `size`, `restaurantId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`foodId` TEXT NOT NULL, `restaurantId` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `unitPrice` REAL NOT NULL, `restaurantName` TEXT NOT NULL, `foodName` TEXT NOT NULL, `foodPrice` REAL NOT NULL, `foodImageUrl` TEXT, `foodImageRes` INTEGER, `categoryId` TEXT NOT NULL, `rating` REAL NOT NULL, `reviewCount` INTEGER NOT NULL, `soldCount` INTEGER NOT NULL, `promoTag` TEXT, `foodSize` TEXT NOT NULL, `cartItemId` INTEGER, PRIMARY KEY(`foodId`, `restaurantId`, `foodSize`))",
         "fields": [
           {
             "fieldPath": "foodId",
             "columnName": "foodId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "size",
-            "columnName": "size",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -265,14 +259,26 @@
             "columnName": "promoTag",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "foodSize",
+            "columnName": "foodSize",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cartItemId",
+            "columnName": "cartItemId",
+            "affinity": "INTEGER",
+            "notNull": false
           }
         ],
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
             "foodId",
-            "size",
-            "restaurantId"
+            "restaurantId",
+            "foodSize"
           ]
         },
         "indices": [],
@@ -282,7 +288,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bad6c31948f1171fc53d3163ec169451')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ddba27582fbcd5a0d61e986bddb6d38d')"
     ]
   }
 }

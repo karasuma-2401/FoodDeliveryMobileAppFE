@@ -10,6 +10,7 @@ import com.example.fooddelivery.data.local.room.dao.ConversationDao
 import com.example.fooddelivery.data.local.room.dao.MessageDao
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.api.CartApi
 import com.example.fooddelivery.data.remote.api.CategoryApi
 import com.example.fooddelivery.data.remote.api.ChatApi
 import com.example.fooddelivery.data.remote.api.OrderApi
@@ -100,9 +101,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCartRepository(
-        dao: CartDao
+        dao: CartDao,
+        api: CartApi
     ) : CartRepository {
-        return CartRepositoryImpl(dao)
+        return CartRepositoryImpl(dao, api)
     }
 
     @Provides

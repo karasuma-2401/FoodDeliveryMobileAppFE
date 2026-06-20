@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.R
+import com.example.fooddelivery.data.remote.dto.OrderFoodRequest
 import com.example.fooddelivery.data.remote.dto.OrderItemRequest
 import com.example.fooddelivery.data.remote.dto.OrderRequest
 import com.example.fooddelivery.domain.model.Address
@@ -169,16 +170,18 @@ class CheckoutViewModel @Inject constructor(
             }
 
             val orderRequest = OrderRequest(
-                restaurantId = cartItems.first().restaurantId,
-                items = cartItems.map { 
+                restaurantId = cartItems.first().restaurantId.toIntOrNull() ?: 0,
+                items = cartItems.map { item ->
                     OrderItemRequest(
-                        foodId = it.food.id,
-                        quantity = it.quantity,
-                        price = it.unitPrice,
-                        size = it.size
+                        quantity = item.quantity,
+                        price = item.unitPrice,
+                        food = OrderFoodRequest(
+                            id = item.food.id.toIntOrNull() ?: 0,
+                            size = item.food.size
+                        )
                     )
                 },
-                addressId = currentState.address.id,
+                addressId = currentState.address.id.toIntOrNull() ?: 0,
                 deliveryOption = currentState.selectedDeliveryOption.name,
                 paymentMethod = currentState.paymentMethod.value,
                 note = currentState.orderNote,
@@ -191,16 +194,12 @@ class CheckoutViewModel @Inject constructor(
                 if (currentState.paymentMethod is PaymentMethod.Cash) {
                     // Clear only items from this restaurant
                     cartItems.forEach { item ->
-                        cartRepository.removeItem(
-                            foodId = item.food.id,
-                            size = item.size,
-                            restaurantId = item.restaurantId
-                        )
+                        item.cartItemId?.let { cartRepository.removeItem(it) }
                     }
                     _state.update { it.copy(isLoading = false) }
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
                 } else {
-                    pendingOrderId = response.orderId
+                    pendingOrderId = response.id.toString()
                     _state.update { it.copy(isLoading = false) }
                     response.deeplink?.let {
                         _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(it, currentState.total))
@@ -242,11 +241,7 @@ class CheckoutViewModel @Inject constructor(
                 val cartItems = cartRepository.cartItems.first()
                     .filter { it.restaurantId == checkoutArgs.restaurantId }
                 cartItems.forEach { item ->
-                    cartRepository.removeItem(
-                        foodId = item.food.id,
-                        size = item.size,
-                        restaurantId = item.restaurantId
-                    )
+                    item.cartItemId?.let { cartRepository.removeItem(it) }
                 }
 
                 pendingOrderId = null

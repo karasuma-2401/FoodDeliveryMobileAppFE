@@ -15,8 +15,8 @@ interface CartDao {
     @Query("SELECT * FROM cart_items")
     fun getAllCartItems(): Flow<List<CartEntity>>
 
-    @Query("SELECT * FROM cart_items WHERE foodId = :foodId AND size = :size AND restaurantId = :restaurantId LIMIT 1")
-    suspend fun getCartItem(foodId: String, size: String, restaurantId: String): CartEntity?
+    @Query("SELECT * FROM cart_items WHERE foodId = :foodId AND restaurantId = :restaurantId LIMIT 1")
+    suspend fun getCartItem(foodId: String, restaurantId: String): CartEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCartItem(cartItem: CartEntity)
@@ -32,7 +32,7 @@ interface CartDao {
 
     @Transaction
     suspend fun addToCartAtomic(cartItem: CartEntity) {
-        val existingItem = getCartItem(cartItem.foodId, cartItem.size, cartItem.restaurantId)
+        val existingItem = getCartItem(cartItem.foodId, cartItem.restaurantId)
         if (existingItem != null) {
             val updatedQuantity = existingItem.quantity + cartItem.quantity
             updateCartItem(existingItem.copy(quantity = updatedQuantity))
@@ -42,8 +42,8 @@ interface CartDao {
     }
 
     @Transaction
-    suspend fun updateQuantityAtomic(foodId: String, size: String, restaurantId: String, delta: Int) {
-        val existingItem = getCartItem(foodId, size, restaurantId)
+    suspend fun updateQuantityAtomic(foodId: String, restaurantId: String, delta: Int) {
+        val existingItem = getCartItem(foodId, restaurantId)
         if (existingItem != null) {
             val newQuantity = existingItem.quantity + delta
             if (newQuantity > 0) {

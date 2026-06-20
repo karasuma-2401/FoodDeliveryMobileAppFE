@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.cart.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -17,7 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.CartItem
 import java.util.Locale
@@ -33,7 +32,7 @@ fun CartItemCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp // Added slight elevation for modern look
+        shadowElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
@@ -41,13 +40,15 @@ fun CartItemCard(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = item.food.imageRes ?: R.drawable.food_bowl),
-                contentDescription = null,
+            AsyncImage(
+                model = item.food.imageUrl,
+                contentDescription = item.food.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(100.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(20.dp)),
+                placeholder = painterResource(id = R.drawable.food_bowl),
+                error = painterResource(id = R.drawable.food_bowl)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(
@@ -66,17 +67,19 @@ fun CartItemCard(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         )
-                        Text(
-                            text = "Size: ${item.size}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        item.food.size?.let { size ->
+                            Text(
+                                text = "Size: $size",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                     Text(
                         text = String.format(Locale.US, "$%.2f", item.totalPrice),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary // Use primary color for price
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 }

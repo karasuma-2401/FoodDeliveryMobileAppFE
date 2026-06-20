@@ -12,7 +12,8 @@ data class FoodItem(
     val soldCount: Int = 0,
     val imageUrl: String? = null,
     val imageRes: Int? = null,
-    val promoTag: String? = null
+    val promoTag: String? = null,
+    val size: String? = null // Logic: Size nằm trong định nghĩa món ăn được chọn
 ) {
     init {
         require(id.isNotEmpty()) { "FoodItem id must not be empty" }
