@@ -113,7 +113,7 @@ fun DashboardContent(
 
                 ActiveVouchersPreviewCard(
                     onSeeDetailClick = {
-                        onNavigate("coupon_management") // Điều hướng sang màn hình quản lý Coupon chung
+                        onNavigate("coupon") 
                     }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
