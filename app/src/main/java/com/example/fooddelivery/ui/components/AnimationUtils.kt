@@ -34,7 +34,7 @@ fun Modifier.bounceClick(
         }
         .clickable(
             interactionSource = interactionSource,
-            indication = LocalIndication.current,
+            indication = null,
             enabled = enabled,
             onClick = {
                 if (enableHaptic) {
