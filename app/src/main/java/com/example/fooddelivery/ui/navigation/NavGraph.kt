@@ -118,7 +118,7 @@ fun RootNavigationGraph(
         NavHost(
             navController = navController,
             startDestination = CustomerGraph,
-            modifier = Modifier,
+            modifier = Modifier.padding(innerPadding),
             enterTransition = {
                 fadeIn(animationSpec = tween(300)) +
                         scaleIn(initialScale = 0.98f, animationSpec = tween(300))
