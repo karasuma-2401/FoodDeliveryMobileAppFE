@@ -4,11 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.domain.model.Voucher
@@ -18,11 +21,14 @@ import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponTab
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponSearchBarAndFilters
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponPaginationBar
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponItemCard
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SystemCouponsScreen(
+    onNavigateBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var selectedTabIndex by remember { mutableStateOf(1) }
+    var selectedTabIndex by remember { mutableIntStateOf(1) }
     var searchQuery by remember { mutableStateOf("") }
 
     val dummyVouchers = remember {
@@ -51,52 +57,77 @@ fun SystemCouponsScreen(
         )
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        CouponTabs(
-            selectedTabIndex = selectedTabIndex,
-            onTabSelected = { selectedTabIndex = it }
-        )
-
-        if (selectedTabIndex == 1) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                CouponSearchBarAndFilters(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(dummyVouchers) { voucher ->
-                        CouponItemCard(voucher = voucher)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Coupon Management", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = null)
                     }
-                }
+                },
+                actions = {
+                    IconButton(onClick = { /* Help */ }) {
+                        Icon(Icons.Default.HelpOutline, contentDescription = null)
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = modifier
+    ) { paddingValues ->
 
-                CouponPaginationBar(
-                    startItem = 1,
-                    endItem = 2,
-                    totalItems = 24,
-                    currentPage = 1,
-                    onPageClick = {}
-                )
-            }
-        } else {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Restaurant Coupons Area",
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            CouponTabs(
+                selectedTabIndex = selectedTabIndex,
+                onTabSelected = { selectedTabIndex = it }
+            )
+
+            if (selectedTabIndex == 1) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    CouponSearchBarAndFilters(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(dummyVouchers) { voucher ->
+                            CouponItemCard(voucher = voucher)
+                        }
+                    }
+
+                    CouponPaginationBar(
+                        startItem = 1,
+                        endItem = dummyVouchers.size,
+                        totalItems = 24,
+                        currentPage = 1,
+                        onPageClick = {}
+                    )
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "Restaurant Coupons Area",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }
