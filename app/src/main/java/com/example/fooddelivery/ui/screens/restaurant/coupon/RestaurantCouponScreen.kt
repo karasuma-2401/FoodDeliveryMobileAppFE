@@ -21,8 +21,6 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.ActiveRestaurantCoupon
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponTabs
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CreateCouponCard
-import com.example.fooddelivery.ui.screens.restaurant.component.coupon.SystemCouponItem
-import com.example.fooddelivery.ui.screens.restaurant.component.coupon.SystemWideSection
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponSearchBarAndFilters
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponPaginationBar
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponItemCard
