@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.screens.admin.coupons
 
+import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -73,12 +74,12 @@ fun AdminCouponScreen(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(uiState.systemVouchers) { voucher ->
+                    items(uiState.systemVouchers) { itemVoucher ->
                         AdminCouponItemCard(
-                            voucher = voucher,
-                            onEditClick = { onNavigateToEditCoupon(voucher.id) },
+                            voucher = itemVoucher,
+                            onEditClick = { onNavigateToEditCoupon(itemVoucher.id) },
                             onToggleActive = { isActive ->
-                                viewModel.toggleSystemCoupon(voucher.id, isActive)
+                                viewModel.toggleSystemCoupon(itemVoucher.id, isActive)
                             }
                         )
                     }

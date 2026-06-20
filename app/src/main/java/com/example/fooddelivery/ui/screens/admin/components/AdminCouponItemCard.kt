@@ -15,9 +15,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
+import com.example.fooddelivery.ui.screens.admin.coupons.SystemVoucher
+
 @Composable
 fun AdminCouponItemCard(
-    voucher: Voucher,
+    voucher: SystemVoucher,
     onEditClick: () -> Unit,
     onToggleActive: (Boolean) -> Unit
 ) {
