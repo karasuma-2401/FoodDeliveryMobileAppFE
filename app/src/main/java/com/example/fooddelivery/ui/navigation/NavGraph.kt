@@ -2,17 +2,28 @@ package com.example.fooddelivery.ui.navigation
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import com.example.fooddelivery.ui.components.bottombar.BottomNavItem
+import com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.auth.forgot_password.ForgotPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
@@ -53,7 +64,6 @@ import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
 import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
-// Import màn hình ReviewScreen mới
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 
 @Composable
@@ -61,19 +71,74 @@ fun RootNavigationGraph(
     navController: NavHostController,
     startDestination: Any
 ) {
-    val initialGraph = CustomerGraph
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
-    NavHost(
-        navController = navController,
-        startDestination = initialGraph,
-    ) {
-        authNavGraph(
+    val customerBottomBarRoutes = listOf(
+        HomeRoute::class,
+        SearchRoute::class,
+        MyOrdersRoute::class,
+        ProfileRoute::class
+    )
+
+    val showCustomerBottomBar = customerBottomBarRoutes.any { currentDestination?.hasRoute(it) == true }
+
+    Scaffold(
+        bottomBar = {
+            if (showCustomerBottomBar) {
+                DFoodBottomBar(
+                    currentRoute = when {
+                        currentDestination?.hasRoute(HomeRoute::class) == true -> "home"
+                        currentDestination?.hasRoute(SearchRoute::class) == true -> "search"
+                        currentDestination?.hasRoute(MyOrdersRoute::class) == true -> "orders"
+                        currentDestination?.hasRoute(ProfileRoute::class) == true -> "profile"
+                        else -> ""
+                    },
+                    onItemClick = { item ->
+                        val route = when (item) {
+                            BottomNavItem.Home -> HomeRoute
+                            BottomNavItem.Search -> SearchRoute
+                            BottomNavItem.Orders -> MyOrdersRoute
+                            BottomNavItem.Profile -> ProfileRoute
+                        }
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
             navController = navController,
-            startDestination = if (startDestination is HomeRoute) LoginRoute else startDestination
-        )
-        userNavGraph(navController = navController)
-        vendorNavGraph(navController = navController)
-        adminNavGraph(navController = navController)
+            startDestination = CustomerGraph,
+            modifier = Modifier,
+            enterTransition = {
+                fadeIn(animationSpec = tween(300)) +
+                        scaleIn(initialScale = 0.98f, animationSpec = tween(300))
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(250))
+            },
+            popEnterTransition = {
+                fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(250))
+            }
+        ) {
+            authNavGraph(
+                navController = navController,
+                startDestination = if (startDestination is HomeRoute) LoginRoute else startDestination
+            )
+            userNavGraph(navController = navController)
+            vendorNavGraph(navController = navController)
+            adminNavGraph(navController = navController)
+        }
     }
 }
 
@@ -524,7 +589,6 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
         composable<RestaurantWalletRoute> { Text("Wallet") }
         composable<RestaurantWithdrawRoute> { Text("Withdraw") }
 
-        // ĐÃ SỬA: Chuyển từ Text("Reviews") sang gọi màn hình ReviewScreen
         composable<RestaurantReviewsRoute> {
             ReviewScreen(
                 onNavigateBack = { navController.popBackStack() }

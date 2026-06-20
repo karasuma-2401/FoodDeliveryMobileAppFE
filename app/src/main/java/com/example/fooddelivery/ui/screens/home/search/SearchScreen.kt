@@ -12,8 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Restaurant
-import com.example.fooddelivery.ui.components.bottombar.BottomNavItem
-import com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.home.components.HomeTopBar
 import com.example.fooddelivery.ui.screens.home.search.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
@@ -32,19 +30,6 @@ fun SearchScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
-        bottomBar = {
-            DFoodBottomBar(
-                currentRoute = "search",
-                onItemClick = { item ->
-                    when (item) {
-                        BottomNavItem.Home -> onNavigateToHome()
-                        BottomNavItem.Search -> { }
-                        BottomNavItem.Orders -> onNavigateToOrders()
-                        BottomNavItem.Profile -> onNavigateToProfile()
-                    }
-                }
-            )
-        },
         topBar = {
             HomeTopBar(
                 selectedLocation = state.selectedLocation,

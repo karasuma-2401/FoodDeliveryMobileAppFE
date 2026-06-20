@@ -15,13 +15,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar
-import com.example.fooddelivery.ui.components.bottombar.BottomNavItem
 import com.example.fooddelivery.ui.screens.home.components.*
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import java.util.Calendar
@@ -92,26 +92,13 @@ fun HomeContent(
                 onMessageClick = { onEvent(HomeEvent.MessageClicked) }
             )
         },
-        bottomBar = {
-            DFoodBottomBar(
-                currentRoute = "home",
-                onItemClick = { item ->
-                    when(item) {
-                        BottomNavItem.Home -> { }
-                        BottomNavItem.Search -> onNavigateToSearch()
-                        BottomNavItem.Orders -> onNavigateToOrders()
-                        BottomNavItem.Profile -> onNavigateToProfile()
-                    }
-                }
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(bottom = 32.dp)
+            contentPadding = PaddingValues(bottom = 0.dp)
         ) {
             item {
                 Column(modifier = Modifier.padding(horizontal = 24.dp)) {
@@ -220,5 +207,19 @@ fun HomeContent(
                 }
             }
         }
+    }
+}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun HomeScreenPreview() {
+    DFoodTheme(darkTheme = false) {
+        HomeContent(
+            state = HomeState(),
+            onEvent = {},
+            onNavigateToProfile = {},
+            onNavigateToOrders = {},
+            onNavigateToSearch = {},
+
+        )
     }
 }
