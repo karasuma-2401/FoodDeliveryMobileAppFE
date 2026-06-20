@@ -10,6 +10,8 @@ import com.example.fooddelivery.data.local.room.dao.ConversationDao
 import com.example.fooddelivery.data.local.room.dao.MessageDao
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.api.CartApi
+import com.example.fooddelivery.data.remote.api.CategoryApi
 import com.example.fooddelivery.data.remote.api.ChatApi
 import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.api.PhotonService
@@ -18,6 +20,7 @@ import com.example.fooddelivery.data.remote.api.RestaurantApi
 import com.example.fooddelivery.data.repository.AddressRepositoryImpl
 import com.example.fooddelivery.data.repository.AuthRepositoryImpl
 import com.example.fooddelivery.data.repository.CartRepositoryImpl
+import com.example.fooddelivery.data.repository.CategoryRepositoryImpl
 import com.example.fooddelivery.data.repository.ChatRepositoryImpl
 import com.example.fooddelivery.data.repository.NotificationRepositoryImpl
 import com.example.fooddelivery.data.repository.OrderRepositoryImpl
@@ -26,6 +29,7 @@ import com.example.fooddelivery.data.repository.UserRepositoryImpl
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.AuthRepository
 import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.CategoryRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.repository.NotificationRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
@@ -52,6 +56,7 @@ object AppModule {
             AppDatabase.DATABASE_NAME
         )
             .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_4)
+            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -97,9 +102,18 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCartRepository(
-        dao: CartDao
+        dao: CartDao,
+        api: CartApi
     ) : CartRepository {
-        return CartRepositoryImpl(dao)
+        return CartRepositoryImpl(dao, api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryRepository(
+        api: CategoryApi
+    ): CategoryRepository {
+        return CategoryRepositoryImpl(api)
     }
 
     @Provides

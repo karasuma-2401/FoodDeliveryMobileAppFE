@@ -38,3 +38,34 @@ data class BaseResponse<T>(
     val message: String? = null,
     val isSuccess: Boolean
 )
+
+@Serializable
+data class RestaurantResponse(
+    val id: Int,
+    val name: String,
+    val image: String,
+    val coverImage: String? = null,
+    val description: String? = null,
+    val phone: String? = null,
+    val deliveryFee: Double? = null,
+    val minimumOrder: Double? = null,
+    val estimatedDeliveryTime: Int? = null,
+    val address: RestaurantAddressDto? = null,
+    val averageRating: Double? = null,
+    val ratingCount: Int? = null,
+    val categories: List<RestaurantCategoryDto>? = null,
+    val startingPrice: Double? = null
+)
+
+@Serializable
+data class RestaurantAddressDto(
+    val id: Int,
+    val title: String,
+    val fullText: String
+)
+
+@Serializable
+data class RestaurantCategoryDto(
+    val id: Int,
+    val name: String
+)

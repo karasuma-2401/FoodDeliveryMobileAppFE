@@ -19,7 +19,16 @@ class UserRepositoryImpl @Inject constructor(
         return try {
             val response = api.getUserProfile()
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val dto = response.body()!!
+                Result.success(
+                    User(
+                        fullName = dto.name,
+                        email = dto.email,
+                        phone = dto.phone,
+                        birthday = dto.birthday ?: "",
+                        profileImage = dto.avatar
+                    )
+                )
             }
             else {
                 Result.failure(Exception("Failed to load profile: ${response.message()}"))

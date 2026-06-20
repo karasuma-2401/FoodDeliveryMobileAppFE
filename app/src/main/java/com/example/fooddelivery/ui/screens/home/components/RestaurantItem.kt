@@ -1,7 +1,5 @@
 package com.example.fooddelivery.ui.screens.home.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,6 +15,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.ui.components.bounceClick
@@ -42,13 +41,15 @@ fun RestaurantItem(
                     .fillMaxWidth()
                     .height(180.dp)
             ) {
-                Image(
-                    painter = painterResource(id = restaurant.imageRes ?: R.drawable.food_bowl),
+                AsyncImage(
+                    model = restaurant.imageUrl,
                     contentDescription = restaurant.name,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(24.dp)),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.food_bowl),
+                    error = painterResource(id = R.drawable.food_bowl)
                 )
                 Row(
                     modifier = Modifier
@@ -65,9 +66,9 @@ fun RestaurantItem(
                         )
                     }
 
-                    restaurant.promoTags.firstOrNull { it.contains("Freeship", ignoreCase = true) }?.let { freeship ->
+                    if (restaurant.deliveryFee == 0.0) {
                         BadgeContainer(
-                            text = freeship,
+                            text = "Free Delivery",
                             containerColor = MaterialTheme.colorScheme.tertiary,
                             contentColor = MaterialTheme.colorScheme.onTertiary
                         )
@@ -84,12 +85,14 @@ fun RestaurantItem(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
-            Text(
-                text = restaurant.tags.joinToString(" • "),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
+            if (restaurant.tags.isNotEmpty()) {
+                Text(
+                    text = restaurant.tags.joinToString(" • "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -98,9 +101,17 @@ fun RestaurantItem(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                InfoItem(icon = Icons.Default.Star, text = restaurant.rating.toString(), color = MaterialTheme.colorScheme.primary)
+                InfoItem(
+                    icon = Icons.Default.Star, 
+                    text = if (restaurant.rating > 0) String.format("%.1f", restaurant.rating) else "New", 
+                    color = MaterialTheme.colorScheme.primary
+                )
                 val deliveryFeeText = if (restaurant.deliveryFee == 0.0) "Free" else "$${String.format("%.2f", restaurant.deliveryFee)}"
-                InfoItem(icon = Icons.Outlined.DirectionsRun, text = deliveryFeeText, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                InfoItem(
+                    icon = Icons.Outlined.DirectionsRun, 
+                    text = deliveryFeeText, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

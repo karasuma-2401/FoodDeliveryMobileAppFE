@@ -1,9 +1,8 @@
 package com.example.fooddelivery.ui.components.bottombar
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -18,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -50,100 +50,91 @@ fun DFoodBottomBar(
         BottomNavItem.Orders,
         BottomNavItem.Profile
     )
-    val smoothSpring = spring<Float>(
-        dampingRatio = Spring.DampingRatioNoBouncy,
-        stiffness = Spring.StiffnessLow
-    )
 
-    Surface(
+    Box(
         modifier = modifier
-            .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 12.dp)
-            .shadow(
-                elevation = 16.dp,
-                shape = RoundedCornerShape(32.dp),
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-            ),
-        shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-        tonalElevation = 8.dp
+            .padding(bottom = 8.dp)
     ) {
-        Row(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+                .height(56.dp)
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(28.dp),
+            shadowElevation = 15.dp,
+            color = MaterialTheme.colorScheme.surface
         ) {
-            items.forEach { item ->
-                val isSelected = currentRoute == item.route
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items.forEach { item ->
+                    val isSelected = currentRoute == item.route
 
-                val backgroundColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    label = "backgroundColor"
-                )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val contentColor by animateColorAsState(
+                            targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                alpha = 0.5f
+                            ),
+                            animationSpec = tween(durationMillis = 250),
+                            label = "color"
+                        )
 
-                val contentColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    label = "contentColor"
-                )
+                        val backgroundColor by animateColorAsState(
+                            targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.12f
+                            ) else Color.Transparent,
+                            animationSpec = tween(durationMillis = 250),
+                            label = "bg"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessLow))
+                                .clip(CircleShape)
+                                .background(backgroundColor)
+                                .bounceClick(
+                                    scale = 0.95f,
+                                    onClick = { if (!isSelected) onItemClick(item) }
+                                )
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                                    contentDescription = item.title,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = contentColor
+                                )
 
-                Box(
-                    modifier = Modifier
-                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                        .clip(CircleShape)
-                        .background(backgroundColor)
-                        .bounceClick(
-                            enableHaptic = true,
-                            hapticFeedbackType = HapticFeedbackType.TextHandleMove,
-                            enabled = !isSelected,
-                            onClick = {
-                                if (!isSelected) {
-                                    onItemClick(item)
+                                AnimatedVisibility(
+                                    visible = isSelected,
+                                    enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                                    exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start)
+                                ) {
+                                    Text(
+                                        text = item.title,
+                                        modifier = Modifier.padding(start = 6.dp),
+                                        style = MaterialTheme.typography.labelLarge.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp
+                                        ),
+                                        color = contentColor,
+                                        maxLines = 1
+                                    )
                                 }
                             }
-                        )
-                        .padding(horizontal = 14.dp, vertical = 10.dp)
-                        .animateContentSize(
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                                stiffness = Spring.StiffnessMediumLow
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = item.title,
-                            modifier = Modifier.size(22.dp),
-                            tint = contentColor
-                        )
-
-                        AnimatedVisibility(
-                            visible = isSelected,
-                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) + 
-                                    expandHorizontally(spring(stiffness = Spring.StiffnessLow), expandFrom = Alignment.Start),
-                            exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) + 
-                                   shrinkHorizontally(spring(stiffness = Spring.StiffnessMedium), shrinkTowards = Alignment.Start)
-                        ) {
-                            Text(
-                                text = item.title,
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 12.sp
-                                ),
-                                color = contentColor,
-                                modifier = Modifier.padding(start = 8.dp),
-                                maxLines = 1
-                            )
                         }
                     }
                 }

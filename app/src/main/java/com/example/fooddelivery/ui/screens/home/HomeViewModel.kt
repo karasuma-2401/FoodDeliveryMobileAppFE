@@ -9,6 +9,8 @@ import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
+import com.example.fooddelivery.domain.usecase.GetCategoriesUseCase
+import com.example.fooddelivery.domain.usecase.GetRestaurantsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -75,6 +77,8 @@ sealed interface HomeUiEffect {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val getRestaurantsUseCase: GetRestaurantsUseCase,
     private val cartRepository: CartRepository,
     private val chatRepository: ChatRepository
 ) : ViewModel() {
@@ -135,16 +139,32 @@ class HomeViewModel @Inject constructor(
 
     private fun loadData() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
 
             // Fetch user profile
-            getUserProfileUseCase().onSuccess { user ->
-                _state.update { it.copy(user = user) }
-            }.onFailure {
-                // Fallback or error handling
+            launch {
+                getUserProfileUseCase().onSuccess { user ->
+                    _state.update { it.copy(user = user) }
+                }
             }
 
-            delay(5000)
+            // Fetch categories
+            launch {
+                getCategoriesUseCase(limit = 10).onSuccess { categories ->
+                    _state.update { it.copy(categories = categories) }
+                }
+            }
+
+            // Fetch restaurants
+            launch {
+                getRestaurantsUseCase(limit = 10).onSuccess { restaurants ->
+                    _state.update { it.copy(restaurants = restaurants) }
+                }.onFailure { e ->
+                    _state.update { it.copy(errorMessage = e.message) }
+                }
+            }
+
+            delay(1500) // Reduced delay for better UX after real data integration
 
             val mockBanners = listOf(
                 HomeBanner("1", "Flash Sale 50%", "Pizza Hut Special Deal", R.drawable.food_bowl, BannerTarget.RESTAURANT, "3", 0xFFFF8142),
@@ -159,47 +179,8 @@ class HomeViewModel @Inject constructor(
                 HomeBanner("10", "Seafood Fest", "New Seafood Menu Available", R.drawable.food_bowl, BannerTarget.RESTAURANT, "1", 0xFF607D8B)
             )
 
-            val mockCategories = listOf(
-                Category(id = "1", name = "Pizza", imageRes = R.drawable.food_bowl, startingPrice = 70.0, promoText = "Discount 20%"),
-                Category(id = "2", name = "Burger", imageRes = R.drawable.food_bowl, startingPrice = 50.0, promoText = "PROMO"),
-                Category(id = "3", name = "Pasta", imageRes = R.drawable.food_bowl, startingPrice = 60.0),
-                Category(id = "4", name = "Drink", imageRes = R.drawable.food_bowl, startingPrice = 20.0),
-                Category(id = "5", name = "Chicken", imageRes = R.drawable.food_bowl, startingPrice = 45.0)
-            )
-            
-            val mockRestaurants = listOf(
-                Restaurant(
-                    id = "1",
-                    name = "Rose Garden Restaurant",
-                    tags = listOf("Burger", "Chicken", "Rice", "Wings"),
-                    rating = 4.7f,
-                    deliveryFee = 0.0,
-                    imageRes = R.drawable.food_bowl,
-                    promoTags = listOf("PROMO", "Freeship")
-                ),
-                Restaurant(
-                    id = "2",
-                    name = "KFC - Ho Chi Minh",
-                    tags = listOf("Fast Food", "Fried Chicken"),
-                    rating = 4.5f,
-                    deliveryFee = 1.5,
-                    imageRes = R.drawable.food_bowl,
-                    promoTags = listOf("Giảm 50%")
-                ),
-                Restaurant(
-                    id = "3",
-                    name = "Pizza Hut Deli",
-                    tags = listOf("Pizza", "Italian", "Pasta"),
-                    rating = 4.8f,
-                    deliveryFee = 0.0,
-                    imageRes = R.drawable.food_bowl
-                )
-            )
-
             _state.update { it.copy(
                 banners = mockBanners,
-                categories = mockCategories,
-                restaurants = mockRestaurants,
                 isLoading = false
             ) }
         }

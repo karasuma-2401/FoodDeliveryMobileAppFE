@@ -6,11 +6,10 @@ import com.example.fooddelivery.domain.model.FoodItem
 
 @Entity(
     tableName = "cart_items",
-    primaryKeys = ["foodId", "size", "restaurantId"]
+    primaryKeys = ["foodId", "restaurantId", "foodSize"]
 )
 data class CartEntity(
     val foodId: String,
-    val size: String,
     val restaurantId: String,
     val quantity: Int,
     val unitPrice: Double,
@@ -23,7 +22,9 @@ data class CartEntity(
     val rating: Float,
     val reviewCount: Int,
     val soldCount: Int,
-    val promoTag: String?
+    val promoTag: String?,
+    val foodSize: String,
+    val cartItemId: Int? = null 
 )
 
 fun CartEntity.toDomain(): CartItem {
@@ -40,20 +41,20 @@ fun CartEntity.toDomain(): CartItem {
             soldCount = soldCount,
             imageUrl = foodImageUrl,
             imageRes = foodImageRes,
-            promoTag = promoTag
+            promoTag = promoTag,
+            size = if (foodSize.isEmpty()) null else foodSize
         ),
-        size = size,
         quantity = quantity,
         unitPrice = unitPrice,
         restaurantId = restaurantId,
-        restaurantName = restaurantName
+        restaurantName = restaurantName,
+        cartItemId = cartItemId
     )
 }
 
 fun CartItem.toEntity(): CartEntity {
     return CartEntity(
         foodId = food.id,
-        size = size,
         restaurantId = restaurantId,
         quantity = quantity,
         unitPrice = unitPrice,
@@ -66,6 +67,8 @@ fun CartItem.toEntity(): CartEntity {
         rating = food.rating,
         reviewCount = food.reviewCount,
         soldCount = food.soldCount,
-        promoTag = food.promoTag
+        promoTag = food.promoTag,
+        foodSize = food.size ?: "",
+        cartItemId = cartItemId
     )
 }
