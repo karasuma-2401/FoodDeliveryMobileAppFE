@@ -48,8 +48,15 @@ class NotificationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteNotification(id: String) {
-        // TODO: Call API delete if available (wait BE)
-        dao.deleteNotification(id)
+        try {
+            val numericId = id.toIntOrNull()
+            if (numericId != null) {
+                api.deleteNotification(numericId)
+            }
+            dao.deleteNotification(id)
+        } catch (e: Exception) {
+            dao.deleteNotification(id)
+        }
     }
 
     override suspend fun getNotificationsPaged(page: Int, pageSize: Int): Result<List<Notification>> {

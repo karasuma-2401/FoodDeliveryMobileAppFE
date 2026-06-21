@@ -19,7 +19,8 @@ data class NotificationState(
     val isPaginating: Boolean = false,
     val isEndReached: Boolean = false,
     val page: Int = 1,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val successMessage: String? = null
 )
 
 sealed interface NotificationEvent {
@@ -27,9 +28,12 @@ sealed interface NotificationEvent {
     object LoadMore: NotificationEvent
     data class MarkAsRead(val id: String): NotificationEvent
     object MarkAllRead : NotificationEvent
+    data class DeleteNotification(val id: String) : NotificationEvent
     object ErrorDismissed : NotificationEvent
+    object SuccessDismissed : NotificationEvent
     object RefreshUnreadCount : NotificationEvent
 }
+
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
     private val repository: NotificationRepository
@@ -42,16 +46,20 @@ class NotificationViewModel @Inject constructor(
         onEvent(NotificationEvent.LoadNotifications)
         onEvent(NotificationEvent.RefreshUnreadCount)
     }
+    
     fun onEvent(event: NotificationEvent) {
         when(event) {
             NotificationEvent.LoadNotifications -> loadInitialNotification()
             NotificationEvent.LoadMore -> loadMoreNotifications()
             is NotificationEvent.MarkAsRead -> markAsRead(event.id)
             NotificationEvent.MarkAllRead -> markAllRead()
+            is NotificationEvent.DeleteNotification -> deleteNotification(event.id)
             NotificationEvent.ErrorDismissed -> _state.update { it.copy(errorMessage = null) }
+            NotificationEvent.SuccessDismissed -> _state.update { it.copy(successMessage = null) }
             NotificationEvent.RefreshUnreadCount -> loadUnreadCount()
         }
     }
+    
     private fun loadInitialNotification() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, page = 1, isEndReached = false) }
@@ -67,6 +75,7 @@ class NotificationViewModel @Inject constructor(
             }
         }
     }
+    
     private fun loadMoreNotifications() {
         val currentState = _state.value
         if (currentState.isPaginating || currentState.isEndReached) return
@@ -85,6 +94,7 @@ class NotificationViewModel @Inject constructor(
             }
         }
     }
+    
     private fun markAsRead(id: String) {
         viewModelScope.launch {
             repository.markAsRead(id)
@@ -98,6 +108,7 @@ class NotificationViewModel @Inject constructor(
             }
         }
     }
+    
     private fun markAllRead() {
         viewModelScope.launch {
             repository.markAllRead()
@@ -109,6 +120,20 @@ class NotificationViewModel @Inject constructor(
             }
         }
     }
+
+    private fun deleteNotification(id: String) {
+        viewModelScope.launch {
+            val wasUnread = _state.value.notifications.find { it.id == id }?.isRead == false
+            repository.deleteNotification(id)
+            _state.update { state ->
+                state.copy(
+                    notifications = state.notifications.filter { it.id != id },
+                    unreadCount = if (wasUnread) (state.unreadCount - 1).coerceAtLeast(0) else state.unreadCount
+                )
+            }
+        }
+    }
+    
     private fun loadUnreadCount() {
         viewModelScope.launch {
             repository.getUnreadCount().onSuccess { count ->

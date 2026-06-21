@@ -1,16 +1,14 @@
 package com.example.fooddelivery.data.remote.api
 
+import com.example.fooddelivery.data.remote.dto.MessageResponse
 import com.example.fooddelivery.data.remote.dto.NotificationDto
 import com.example.fooddelivery.data.remote.dto.NotificationResponse
 import com.example.fooddelivery.data.remote.dto.UnreadCountResponse
-import kotlinx.serialization.Serializable
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.Path
 import retrofit2.http.Query
-
-@Serializable
-data class MessageResponse(val message: String)
 
 interface NotificationApi {
     @GET("notification/me")
@@ -29,4 +27,7 @@ interface NotificationApi {
 
     @PATCH("notification/read-all")
     suspend fun markAllRead(): MessageResponse
+
+    @DELETE("notification/{notificationId}")
+    suspend fun deleteNotification(@Path("notificationId") notificationId: Int): MessageResponse
 }

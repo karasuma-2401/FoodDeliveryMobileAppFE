@@ -45,6 +45,13 @@ data class NotificationChannelDto(
     val providerResult: String? = null
 )
 
+@Serializable
+data class CreateNotificationRequest(
+    val title: String,
+    val body: String,
+    val type: String = "SYSTEM"
+)
+
 fun NotificationDto.toDomain(): Notification {
     val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
     sdf.timeZone = TimeZone.getTimeZone("UTC")

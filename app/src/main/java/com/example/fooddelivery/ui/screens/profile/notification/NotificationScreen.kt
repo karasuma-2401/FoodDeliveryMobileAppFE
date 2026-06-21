@@ -1,36 +1,20 @@
 package com.example.fooddelivery.ui.screens.profile.notification
 
-import android.text.format.DateUtils
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Percent
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.fooddelivery.domain.model.Notification
 import com.example.fooddelivery.domain.model.NotificationType
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.profile.notification.components.EmptyNotificationsView
@@ -46,6 +30,8 @@ fun NotificationScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    
     val shouldLoadMore = remember {
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
@@ -59,27 +45,43 @@ fun NotificationScreen(
             viewModel.onEvent(NotificationEvent.LoadMore)
         }
     }
+
+    LaunchedEffect(state.successMessage) {
+        state.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onEvent(NotificationEvent.SuccessDismissed)
+        }
+    }
+
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onEvent(NotificationEvent.ErrorDismissed)
+        }
+    }
+
     NotificationContent(
         state = state,
         onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
         onNavigateToOrder = onNavigateToOrder,
-        viewModel = viewModel,
-        listState = listState
-
+        listState = listState,
+        snackbarHostState = snackbarHostState
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationContent(
-    state: NotificationState = viewModel.state.collectAsState().value,
+    state: NotificationState,
     onEvent: (NotificationEvent) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToOrder: (String) -> Unit,
-    viewModel: NotificationViewModel = viewModel(),
-    listState: LazyListState
+    listState: LazyListState,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             DFoodTopBar(
                 title = "Notification",
@@ -118,7 +120,7 @@ fun NotificationContent(
                         NotificationItem(
                             notification = notification,
                             onClick = {
-                                viewModel.onEvent(NotificationEvent.MarkAsRead(notification.id))
+                                onEvent(NotificationEvent.MarkAsRead(notification.id))
                                 if (notification.type == NotificationType.ORDER && notification.targetId != null) {
                                     onNavigateToOrder(notification.targetId)
                                 }
@@ -147,6 +149,7 @@ fun NotificationContent(
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun NotificationScreenPreview() {
@@ -156,7 +159,6 @@ fun NotificationScreenPreview() {
             onEvent = {},
             onNavigateBack = {},
             onNavigateToOrder = {},
-            viewModel = hiltViewModel(),
             listState = rememberLazyListState()
         )
     }
