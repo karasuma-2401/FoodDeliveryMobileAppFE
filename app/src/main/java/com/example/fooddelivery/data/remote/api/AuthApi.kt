@@ -12,6 +12,7 @@ import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.RegisterResponse
 import com.example.fooddelivery.data.remote.dto.ResetEmailRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
+import com.example.fooddelivery.data.remote.dto.SocialLoginRequest
 import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import retrofit2.Response
 import retrofit2.http.Body
@@ -28,6 +29,9 @@ interface AuthApi {
 
     @POST("auth/login-google")
     suspend fun loginGoogle(@Body request: GoogleLoginRequest): Response<LoginResponse>
+
+    @POST("auth/login-social")
+    suspend fun loginSocial(@Body request: SocialLoginRequest): Response<LoginResponse>
 
     @POST("auth/refresh")
     suspend fun refreshToken(@Body request: RefreshRequest): Response<LoginResponse>

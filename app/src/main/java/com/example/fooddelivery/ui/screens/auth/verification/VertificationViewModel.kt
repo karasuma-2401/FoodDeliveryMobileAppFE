@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.auth.verification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.usecase.SendResetPasswordCodeUseCase
 import com.example.fooddelivery.domain.usecase.VerifyAccountUseCase
 import com.example.fooddelivery.domain.usecase.VerifyCodeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,8 @@ data class VerificationState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val isFromRegistration: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val resendMessage: String? = null
 )
 
 sealed interface VerificationEvent {
@@ -35,7 +37,8 @@ sealed interface VerificationEvent {
 @HiltViewModel
 class VerificationViewModel @Inject constructor(
     private val verifyCodeUseCase: VerifyCodeUseCase,
-    private val verifyAccountUseCase: VerifyAccountUseCase
+    private val verifyAccountUseCase: VerifyAccountUseCase,
+    private val sendResetPasswordCodeUseCase: SendResetPasswordCodeUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(VerificationState())
     val state: StateFlow<VerificationState> = _state.asStateFlow()
@@ -56,22 +59,20 @@ class VerificationViewModel @Inject constructor(
                 }
             }
             is VerificationEvent.OtpChanged -> {
-                _state.update { it.copy(otpCode = event.code, errorMessage = null) }
+                if (event.code.length <= 6) {
+                    _state.update { it.copy(otpCode = event.code, errorMessage = null) }
+                }
             }
             VerificationEvent.ResendCodeClicked -> {
                 if (_state.value.timeLeft == 0) {
-                    startTimer()
-                    // TODO: Call appropriate use case to resend OTP
-                    // For registration flow: create ResendVerificationCodeUseCase
-                    // For password reset flow: call SendResetPasswordCodeUseCase again
-                    // Need to determine flow based on _state.value.isFromRegistration
+                    resendCode()
                 }
             }
             VerificationEvent.VerifyClicked -> {
                 verifyCode()
             }
             VerificationEvent.ErrorDismissed -> {
-                _state.update { it.copy(errorMessage = null) }
+                _state.update { it.copy(errorMessage = null, resendMessage = null) }
             }
         }
     }
@@ -87,9 +88,34 @@ class VerificationViewModel @Inject constructor(
         }
     }
 
+    private fun resendCode() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            
+            // Hiện tại chúng ta dùng chung API gửi mã cho Forgot Password.
+            // Nếu có API resend riêng cho Registration, hãy cập nhật tại đây.
+            val result = sendResetPasswordCodeUseCase(_state.value.email)
+            
+            result.onSuccess {
+                _state.update { it.copy(isLoading = false, resendMessage = "Code resent successfully!") }
+                startTimer()
+            }.onFailure { exception ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Failed to resend code"
+                    )
+                }
+            }
+        }
+    }
+
     private fun verifyCode() {
         val currentState = _state.value
-        if (currentState.otpCode.length < 6) return
+        if (currentState.otpCode.length < 6) {
+            _state.update { it.copy(errorMessage = "Please enter 6-digit code") }
+            return
+        }
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }

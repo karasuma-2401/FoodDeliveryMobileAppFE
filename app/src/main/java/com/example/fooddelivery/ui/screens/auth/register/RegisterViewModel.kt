@@ -1,10 +1,9 @@
 package com.example.fooddelivery.ui.screens.auth.register
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
+import com.example.fooddelivery.domain.usecase.LoginWithGoogleUseCase
 import com.example.fooddelivery.domain.usecase.RegisterUseCase
 import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +29,7 @@ data class RegisterState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSuccess: Boolean = false,
-    val isFacebookAuthSuccess: Boolean = false
+    val isSocialAuthSuccess: Boolean = false
 )
 sealed interface RegisterEvent {
     data class FullNameChanged(val fullName: String): RegisterEvent
@@ -40,6 +39,7 @@ sealed interface RegisterEvent {
     data class ConfirmPasswordChanged(val confirmPassword: String): RegisterEvent
     data class AgreeToTermsChanged(val agreeToTerms: Boolean): RegisterEvent
     data class FacebookLoginClicked(val token: String): RegisterEvent
+    data class GoogleLoginClicked(val token: String): RegisterEvent
     data class ErrorMessageSet(val message: String): RegisterEvent
     object RegisterClicked: RegisterEvent
 }
@@ -48,10 +48,12 @@ sealed interface RegisterEvent {
 class RegisterViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
     private val loginWithFacebookUseCase: LoginWithFacebookUseCase,
+    private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val validateInputUseCase: ValidateAuthInputUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
+
     fun onEvent(event: RegisterEvent) {
         when (event) {
             is RegisterEvent.FullNameChanged -> {
@@ -72,30 +74,22 @@ class RegisterViewModel @Inject constructor(
             is RegisterEvent.AgreeToTermsChanged -> {
                 _state.update { it.copy(agreeToTerms = event.agreeToTerms, errorMessage = null) }
             }
-            is RegisterEvent.FacebookLoginClicked -> {
-                loginWithFacebook(event.token)
-            }
-            is RegisterEvent.ErrorMessageSet -> {
-                setErrorMessage(event.message)
-            }
-            RegisterEvent.RegisterClicked -> {
-                register()
-            }
+            is RegisterEvent.FacebookLoginClicked -> loginWithFacebook(event.token)
+            is RegisterEvent.GoogleLoginClicked -> loginWithGoogle(event.token)
+            is RegisterEvent.ErrorMessageSet -> _state.update { it.copy(errorMessage = event.message) }
+            RegisterEvent.RegisterClicked -> register()
         }
     }
 
     private fun validateInput(): Boolean {
         val state = _state.value
-
         val fullNameError = validateInputUseCase.validateFullName(state.fullName)
         val emailError = validateInputUseCase.validateEmail(state.email)
         val phoneError = validateInputUseCase.validatePhone(state.phone)
         val passwordError = validateInputUseCase.validatePassword(state.password)
         val confirmPasswordError = validateInputUseCase.validateConfirmPassword(state.password, state.confirmPassword)
 
-        val hasError = listOf(
-            fullNameError, emailError, phoneError, passwordError, confirmPasswordError
-        ).any { it != null }
+        val hasError = listOf(fullNameError, emailError, phoneError, passwordError, confirmPasswordError).any { it != null }
 
         if (hasError) {
             _state.update {
@@ -111,23 +105,26 @@ class RegisterViewModel @Inject constructor(
         return !hasError
     }
 
-    private fun setErrorMessage (message: String) {
-        _state.update { it.copy(errorMessage = message) }
-    }
-
     private fun loginWithFacebook(facebookToken: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = loginWithFacebookUseCase(facebookToken)
+            val result = loginWithFacebookUseCase(accessToken = facebookToken)
             result.onSuccess {
-                _state.update { it.copy(isLoading = false, isFacebookAuthSuccess = true) }
+                _state.update { it.copy(isLoading = false, isSocialAuthSuccess = true) }
             }.onFailure { exception ->
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = exception.message ?: "Login with Facebook failed"
-                    )
-                }
+                _state.update { it.copy(isLoading = false, errorMessage = exception.message) }
+            }
+        }
+    }
+
+    private fun loginWithGoogle(googleToken: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            val result = loginWithGoogleUseCase(accessToken = googleToken)
+            result.onSuccess {
+                _state.update { it.copy(isLoading = false, isSocialAuthSuccess = true) }
+            }.onFailure { exception ->
+                _state.update { it.copy(isLoading = false, errorMessage = exception.message) }
             }
         }
     }
@@ -136,18 +133,8 @@ class RegisterViewModel @Inject constructor(
         if (!validateInput()) return
         val currentState = _state.value
 
-        if (!currentState.agreeToTerms) {
-            _state.update { it.copy(errorMessage = "You must accept the Terms of Service and Privacy Policy.") }
-            return
-        }
-
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoading = true,
-                    errorMessage = null,
-                )
-            }
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = registerUseCase(
                 fullName = currentState.fullName,
                 email = currentState.email,
@@ -157,12 +144,12 @@ class RegisterViewModel @Inject constructor(
             )
             
             result.onSuccess {
-                _state.update { it.copy(isLoading =  false, isSuccess =  true) }
+                _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { exception ->
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = exception.message ?: "Registration failed. Please try again."
+                        errorMessage = exception.message ?: "Registration failed."
                     )
                 }
             }
