@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -85,6 +86,15 @@ fun RestaurantProfileScreen(
                     icon = Icons.Default.Star,
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     title = "User Reviews",
+                    onClick = onNavigateToReviews
+                )
+            }
+
+            ProfileMenuGroup {
+                ProfileMenuItem(
+                    icon = Icons.Default.Settings,
+                    iconTint = MaterialTheme.colorScheme.tertiary,
+                    title = "Reset Password",
                     onClick = onNavigateToReviews
                 )
             }

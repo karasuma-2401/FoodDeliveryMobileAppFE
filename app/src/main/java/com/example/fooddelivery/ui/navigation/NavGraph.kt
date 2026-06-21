@@ -64,7 +64,7 @@ import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
 import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
-// Import màn hình ReviewScreen mới
+import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 
@@ -703,12 +703,16 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
 
         composable<AdminSettingsRoute> {
-            Column {
-                Text("Admin Settings")
-                Button(onClick = { navController.popBackStack() }) {
-                    Text("Back")
+            AdminSettingScreen(
+                onNavigateToResetPassword = {
+                    navController.navigate(ChangePasswordRoute)
+                },
+                onLogoutSuccess = {
+                    navController.navigate(AuthGraph) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
-            }
+            )
         }
     }
 }

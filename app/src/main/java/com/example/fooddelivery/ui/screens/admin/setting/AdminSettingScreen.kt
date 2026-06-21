@@ -98,6 +98,6 @@ fun AdminProfilePreview() {
         AdminSettingScreen(
             onNavigateToResetPassword = {},
             onLogoutSuccess = {}
-        ) 
+        )
     }
 }
