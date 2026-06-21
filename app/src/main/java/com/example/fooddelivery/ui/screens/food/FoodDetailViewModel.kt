@@ -81,7 +81,6 @@ class FoodDetailViewModel @Inject constructor(
                 if (food != null) {
                     _state.update { it.copy(isLoading = true) }
                     viewModelScope.launch {
-                        // Logic: Truyền size vào giỏ hàng
                         val result = cartRepository.addToCart(
                             foodId = food.id.toIntOrNull() ?: 0,
                             quantity = currentState.quantity,

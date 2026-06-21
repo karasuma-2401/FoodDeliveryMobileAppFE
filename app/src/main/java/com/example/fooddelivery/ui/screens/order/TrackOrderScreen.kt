@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.order
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +9,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -108,10 +108,10 @@ fun TrackOrderContent(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                val statuses = TrackingStatus.values()
+                val statuses = TrackingStatus.entries
                 statuses.forEachIndexed { index, status ->
-                    val isCompleted = state.status.step >= status.step
-                    val isActive = state.status == status
+                    val isCompleted = state.trackingStatus.step > status.step || (state.trackingStatus == status && state.trackingStatus == TrackingStatus.COMPLETED)
+                    val isActive = state.trackingStatus == status
 
                     TimelineItem(
                         title = status.title,
@@ -147,15 +147,18 @@ fun TrackOrderContent(
         }
     }
 }
+
 @Composable
 private fun getTrackingIcon(status: TrackingStatus): ImageVector {
     return when (status) {
-        TrackingStatus.RECEIVED -> Icons.Default.Receipt
+        TrackingStatus.PENDING -> Icons.Default.Receipt
+        TrackingStatus.CONFIRMED -> Icons.Default.ThumbUp
         TrackingStatus.PREPARING -> Icons.Default.RestaurantMenu
-        TrackingStatus.ON_THE_WAY -> Icons.Default.DirectionsBike
-        TrackingStatus.DELIVERED -> Icons.Default.CheckCircle
+        TrackingStatus.DELIVERING -> Icons.Default.DirectionsBike
+        TrackingStatus.COMPLETED -> Icons.Default.CheckCircle
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun TrackOrderContentPreview() {
@@ -164,7 +167,7 @@ fun TrackOrderContentPreview() {
             state = TrackOrderState(
                 orderId = "162432",
                 expectedArrival = "12:45 PM",
-                status = TrackingStatus.PREPARING,
+                trackingStatus = TrackingStatus.PREPARING,
                 restaurantName = "Rose Garden Restaurant",
                 restaurantPhone = "0987654321",
                 items = listOf(

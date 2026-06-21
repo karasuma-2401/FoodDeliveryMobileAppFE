@@ -1,34 +1,31 @@
 package com.example.fooddelivery.ui.screens.order
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Order
-import com.example.fooddelivery.ui.components.shimmerEffect // Import hiệu ứng shimmer đã viết
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.order.components.OrderItemCard
 import com.example.fooddelivery.ui.screens.order.components.OrderItemCardSkeleton
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
@@ -36,11 +33,27 @@ fun OrdersScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTrackOrder: (String) -> Unit,
     onNavigateToRate: (String, String) -> Unit,
+    onNavigateToCart: () -> Unit,
     viewModel: OrderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 2 })
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collectLatest { effect ->
+            when (effect) {
+                is OrderUiEffect.NavigateToCart -> onNavigateToCart()
+                is OrderUiEffect.ShowError -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+                is OrderUiEffect.ShowSuccess -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     LaunchedEffect(pagerState.currentPage) {
         viewModel.onEvent(OrderEvent.SelectTab(pagerState.currentPage))

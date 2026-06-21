@@ -196,7 +196,6 @@ fun CartContent(
                     item {
                         BillBreakdown(
                             subtotal = state.subTotal,
-                            deliveryFee = state.deliveryFee,
                             discount = state.discount,
                             total = state.total,
                             modifier = Modifier.padding(horizontal = 24.dp)

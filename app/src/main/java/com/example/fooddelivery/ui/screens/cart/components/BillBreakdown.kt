@@ -15,7 +15,6 @@ import java.util.Locale
 @Composable
 fun BillBreakdown(
     subtotal: Double,
-    deliveryFee: Double,
     discount: Double,
     total: Double,
     modifier: Modifier = Modifier
@@ -38,7 +37,6 @@ fun BillBreakdown(
                 )
             )
             BillRow(label = "Subtotal", value = subtotal)
-            BillRow(label = "Delivery Fee", value = deliveryFee)
 
             if (discount > 0) {
                 Row(
@@ -51,7 +49,7 @@ fun BillBreakdown(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "-$${String.format(Locale.US, "%.2f",discount)}",
+                        text = "-$${String.format(Locale.US, "%.2f", discount)}",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -74,7 +72,7 @@ fun BillBreakdown(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "$${String.format(Locale.US, "%.2f",total)}",
+                    text = "$${String.format(Locale.US, "%.2f", total)}",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary
@@ -97,7 +95,7 @@ private fun BillRow(label: String, value: Double) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = "$${String.format(Locale.US, "%.2f",value)}",
+            text = "$${String.format(Locale.US, "%.2f", value)}",
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )

@@ -11,16 +11,16 @@ interface CartApi {
     suspend fun getCart(): Response<CartResponse>
 
     @POST("cart")
-    suspend fun addToCart(@Body request: AddToCartRequest): Response<Unit>
+    suspend fun addToCart(@Body request: AddToCartRequest): Response<CartResponse>
 
     @PATCH("cart/{cartItemId}")
     suspend fun updateCartItem(
         @Path("cartItemId") cartItemId: Int,
         @Body request: UpdateCartItemRequest
-    ): Response<Unit>
+    ): Response<CartResponse>
 
     @DELETE("cart/{cartItemId}")
-    suspend fun deleteCartItem(@Path("cartItemId") cartItemId: Int): Response<Unit>
+    suspend fun deleteCartItem(@Path("cartItemId") cartItemId: Int): Response<CartResponse>
 
     @DELETE("cart")
     suspend fun clearCart(): Response<Unit>

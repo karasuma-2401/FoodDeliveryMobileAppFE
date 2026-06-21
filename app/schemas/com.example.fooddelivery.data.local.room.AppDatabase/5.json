@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "ddba27582fbcd5a0d61e986bddb6d38d",
+    "identityHash": "9d86903e9a6f20a379219579fe7e8c14",
     "entities": [
       {
         "tableName": "notifications",
@@ -174,7 +174,7 @@
       },
       {
         "tableName": "cart_items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`foodId` TEXT NOT NULL, `restaurantId` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `unitPrice` REAL NOT NULL, `restaurantName` TEXT NOT NULL, `foodName` TEXT NOT NULL, `foodPrice` REAL NOT NULL, `foodImageUrl` TEXT, `foodImageRes` INTEGER, `categoryId` TEXT NOT NULL, `rating` REAL NOT NULL, `reviewCount` INTEGER NOT NULL, `soldCount` INTEGER NOT NULL, `promoTag` TEXT, `foodSize` TEXT NOT NULL, `cartItemId` INTEGER, PRIMARY KEY(`foodId`, `restaurantId`, `foodSize`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`foodId` TEXT NOT NULL, `restaurantId` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `unitPrice` REAL NOT NULL, `restaurantName` TEXT NOT NULL, `foodName` TEXT NOT NULL, `foodPrice` REAL NOT NULL, `foodImageUrl` TEXT, `foodImageRes` INTEGER, `categoryId` TEXT NOT NULL, `rating` REAL NOT NULL, `reviewCount` INTEGER NOT NULL, `soldCount` INTEGER NOT NULL, `promoTag` TEXT, `foodSize` TEXT NOT NULL, `cartItemId` INTEGER, `note` TEXT, PRIMARY KEY(`foodId`, `restaurantId`, `foodSize`))",
         "fields": [
           {
             "fieldPath": "foodId",
@@ -271,6 +271,12 @@
             "columnName": "cartItemId",
             "affinity": "INTEGER",
             "notNull": false
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -288,7 +294,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ddba27582fbcd5a0d61e986bddb6d38d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9d86903e9a6f20a379219579fe7e8c14')"
     ]
   }
 }
