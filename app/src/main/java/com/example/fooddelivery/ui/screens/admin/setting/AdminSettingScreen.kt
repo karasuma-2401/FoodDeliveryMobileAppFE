@@ -22,6 +22,7 @@ fun AdminSettingScreen(
     onNavigateToResetPassword: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
+    totalEarnings: String = "$124,500.80",
     adminEmail: String = "admin@dfood.com"
 ) {
     Column(
@@ -30,7 +31,10 @@ fun AdminSettingScreen(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
-        AdminHeader(adminEmail = adminEmail)
+        AdminHeader(
+            adminEmail = adminEmail,
+            totalEarnings = totalEarnings
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
