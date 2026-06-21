@@ -12,12 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.fooddelivery.ui.screens.admin.notification.VendorNotification
+import com.example.fooddelivery.domain.model.Notification
 
 @Composable
 fun VendorNotificationItem(
-    notification: VendorNotification,
+    notification: Notification,
     onApprove: () -> Unit,
     onReject: () -> Unit,
     modifier: Modifier = Modifier
@@ -34,7 +33,10 @@ fun VendorNotificationItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -50,34 +52,30 @@ fun VendorNotificationItem(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "New Vendor Request",
+                        text = notification.title,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
                     )
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = notification.timestamp,
+                    text = notification.timestamp.toString(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
+            
             Text(
-                text = "Restaurant: ${notification.restaurantName}",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Owner: ${notification.ownerName} (${notification.email})",
+                text = notification.message,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(20.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
