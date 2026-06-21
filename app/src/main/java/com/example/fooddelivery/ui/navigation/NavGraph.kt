@@ -66,6 +66,7 @@ import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
 import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
+import com.example.fooddelivery.ui.screens.profile.notification.NotificationScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -443,6 +444,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
+                }
+            )
+        }
+
+        composable<NotificationRoute> {
+            NotificationScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToOrder = { orderId ->
+                    navController.navigate(TrackOrderRoute(orderId = orderId))
                 }
             )
         }

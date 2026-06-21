@@ -7,6 +7,8 @@ import com.example.fooddelivery.data.remote.api.AuthApi
 import com.example.fooddelivery.data.remote.api.CartApi
 import com.example.fooddelivery.data.remote.api.CategoryApi
 import com.example.fooddelivery.data.remote.api.ChatApi
+import com.example.fooddelivery.data.remote.api.DeviceApi
+import com.example.fooddelivery.data.remote.api.NotificationApi
 import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.UserApi
@@ -156,6 +158,18 @@ object NetworkModule {
     @Singleton
     fun provideChatApi(@Named("MainRetrofit") retrofit: Retrofit): ChatApi {
         return retrofit.create(ChatApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationApi(@Named("MainRetrofit") retrofit: Retrofit): NotificationApi {
+        return retrofit.create(NotificationApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeviceApi(@Named("MainRetrofit") retrofit: Retrofit): DeviceApi {
+        return retrofit.create(DeviceApi::class.java)
     }
 
     @Provides
