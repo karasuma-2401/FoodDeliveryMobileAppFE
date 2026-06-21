@@ -96,3 +96,14 @@ fun AdminCouponScreen(
         }
     }
 }
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun AdminCouponScreenReview() {
+    DFoodTheme {
+        AdminCouponScreen(
+            onNavigateBack = {},
+            onNavigateToEditCoupon = {},
+            onNavigateToCreateCoupon = {}
+        )
+    }
+}
