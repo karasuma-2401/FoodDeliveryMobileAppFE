@@ -25,6 +25,7 @@ data class OrderSummaryItem(
 )
 data class TrackOrderState(
     val orderId: String = "",
+    val restaurantId: Int = 0,
     val expectedArrival: String = "12:45 PM",
     val status: TrackingStatus = TrackingStatus.RECEIVED,
     val restaurantName: String = "Rose Garden Restaurant",
@@ -50,6 +51,7 @@ class TrackOrderViewModel @Inject constructor() : ViewModel() {
     private fun setupInitialData(id: String) {
         _state.update { it.copy(
             orderId = id,
+            restaurantId = 6,
             status = TrackingStatus.RECEIVED,
             items = listOf(
                 OrderSummaryItem("Burger Bistro", 1, "Extra cheese, No onions", "https://example.com/burger.jpg"),

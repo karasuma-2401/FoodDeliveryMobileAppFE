@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,24 +21,24 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun ConversationScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToChat: (String, String) -> Unit,
+    onNavigateToChat: (String, String, String) -> Unit,
     viewModel: ConversationViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
     ConversationContent(
         onNavigateBack = onNavigateBack,
-        onNavigateToChat = onNavigateToChat
+        onNavigateToChat = onNavigateToChat,
+        viewModel = viewModel
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationContent(
     onNavigateBack: () -> Unit,
-    onNavigateToChat: (String, String) -> Unit,
+    onNavigateToChat: (String, String, String) -> Unit,
     viewModel: ConversationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
 
     Scaffold(
         topBar = {
@@ -60,13 +59,12 @@ fun ConversationContent(
                 onQueryChange = { viewModel.onEvent(ConversationEvent.OnSearchQueryChanged(it)) }
             )
 
-            if (state.isLoading) {
+            if (state.isLoading && state.conversations.isEmpty()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    userScrollEnabled = false
+                    contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    item(8) {
+                    items(8) {
                         ConversationItemSkeleton()
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 24.dp),
@@ -79,12 +77,12 @@ fun ConversationContent(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    items(state.conversations) { conversation ->
+                    items(state.conversations, key = { it.id }) { conversation ->
                         ConversationItem(
                             conversation = conversation,
                             onClick = {
                                 viewModel.onEvent(ConversationEvent.MarkAsRead(conversation.id))
-                                onNavigateToChat(conversation.id, conversation.restaurantName)
+                                onNavigateToChat(conversation.id, conversation.restaurantName, conversation.restaurantImage)
                             }
                         )
                         HorizontalDivider(
@@ -95,15 +93,5 @@ fun ConversationContent(
                 }
             }
         }
-    }
-}
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ConversationListScreenPreview() {
-    DFoodTheme(darkTheme = false) {
-        ConversationContent(
-            onNavigateBack = {},
-            onNavigateToChat = { _, _ -> }
-        )
     }
 }

@@ -34,7 +34,7 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 fun TrackOrderScreen(
     orderId: String,
     onNavigateBack: () -> Unit,
-    onChatWithRestaurant: (String) -> Unit,
+    onChatWithRestaurant: (Int, Int, String, String) -> Unit,
     viewModel: TrackOrderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -48,12 +48,13 @@ fun TrackOrderScreen(
         onChatWithRestaurant = onChatWithRestaurant
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackOrderContent(
     state: TrackOrderState,
     onNavigateBack: () -> Unit,
-    onChatWithRestaurant: (String) -> Unit
+    onChatWithRestaurant: (Int, Int, String, String) -> Unit
 ) {
     val context = LocalContext.current
     Scaffold(
@@ -131,7 +132,14 @@ fun TrackOrderContent(
                     }
                     context.startActivity(intent)
                 },
-                onChatClick = { onChatWithRestaurant(state.orderId) }
+                onChatClick = {
+                    onChatWithRestaurant(
+                        state.orderId.toIntOrNull() ?: 0, 
+                        state.restaurantId,
+                        state.restaurantName,
+                        state.restaurantImage
+                    ) 
+                }
             )
             OrderSummaryCard(items = state.items)
 
@@ -165,7 +173,7 @@ fun TrackOrderContentPreview() {
                 )
             ),
             onNavigateBack = {},
-            onChatWithRestaurant = {}
+            onChatWithRestaurant = { _, _, _, _ -> }
         )
     }
 }

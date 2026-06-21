@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -109,5 +111,7 @@ private fun getNotificationIcon(type: NotificationType): Pair<ImageVector, Color
         NotificationType.ORDER -> Icons.Default.LocalShipping to MaterialTheme.colorScheme.primary
         NotificationType.PROMOTION -> Icons.Default.Percent to MaterialTheme.colorScheme.secondary
         NotificationType.SYSTEM -> Icons.Default.Settings to MaterialTheme.colorScheme.tertiary
+        NotificationType.PAYMENT -> Icons.Default.Payments to Color(0xFF4CAF50) // Green for payment
+        NotificationType.CHAT -> Icons.Default.Chat to Color(0xFF2196F3) // Blue for chat
     }
 }

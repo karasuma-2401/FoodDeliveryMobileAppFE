@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.local.datastore.DataStoreManager
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.NotificationRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import com.example.fooddelivery.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import javax.inject.Inject
 data class ProfileState(
     val user: User? = null,
     val cartItemCount: Int = 0,
+    val unreadNotificationCount: Int = 0,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val isLogoutSuccess: Boolean = false,
@@ -41,6 +43,7 @@ class ProfileViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val cartRepository: CartRepository,
+    private val notificationRepository: NotificationRepository,
     private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
@@ -52,6 +55,7 @@ class ProfileViewModel @Inject constructor(
             onEvent(ProfileEvent.LoadUserProfile)
         }
         observeCart()
+        observeNotifications()
         observeSettings()
     }
 
@@ -77,10 +81,25 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    private fun observeNotifications() {
+        viewModelScope.launch {
+            notificationRepository.getUnreadCountFlow().collectLatest { count ->
+                _state.update { it.copy(unreadNotificationCount = count) }
+            }
+        }
+        // Fetch unread count from API initially
+        viewModelScope.launch {
+            notificationRepository.getUnreadCount()
+        }
+    }
+
     fun onEvent(event: ProfileEvent) {
         when (event) {
             ProfileEvent.LoadUserProfile -> loadUserProfile(isManualRefresh = false)
-            ProfileEvent.RefreshUserProfile -> loadUserProfile(isManualRefresh = true)
+            ProfileEvent.RefreshUserProfile -> {
+                loadUserProfile(isManualRefresh = true)
+                refreshUnreadCount()
+            }
             ProfileEvent.LogoutClicked -> logout()
             ProfileEvent.ErrorDismissed -> _state.update { it.copy(errorMessage = null) }
             is ProfileEvent.ToggleDarkMode -> {
@@ -93,6 +112,12 @@ class ProfileViewModel @Inject constructor(
                     dataStoreManager.saveNotificationsState(event.enabled)
                 }
             }
+        }
+    }
+
+    private fun refreshUnreadCount() {
+        viewModelScope.launch {
+            notificationRepository.getUnreadCount()
         }
     }
 

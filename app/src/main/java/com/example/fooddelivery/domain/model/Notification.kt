@@ -12,5 +12,7 @@ data class Notification(
 enum class NotificationType {
     ORDER,
     PROMOTION,
-    SYSTEM
+    SYSTEM,
+    PAYMENT,
+    CHAT
 }

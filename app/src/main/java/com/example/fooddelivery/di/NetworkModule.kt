@@ -7,6 +7,8 @@ import com.example.fooddelivery.data.remote.api.AuthApi
 import com.example.fooddelivery.data.remote.api.CartApi
 import com.example.fooddelivery.data.remote.api.CategoryApi
 import com.example.fooddelivery.data.remote.api.ChatApi
+import com.example.fooddelivery.data.remote.api.DeviceApi
+import com.example.fooddelivery.data.remote.api.NotificationApi
 import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.UserApi
@@ -160,15 +162,32 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideNotificationApi(@Named("MainRetrofit") retrofit: Retrofit): NotificationApi {
+        return retrofit.create(NotificationApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeviceApi(@Named("MainRetrofit") retrofit: Retrofit): DeviceApi {
+        return retrofit.create(DeviceApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun providePhotonService(@Named("PhotonRetrofit") retrofit: Retrofit): PhotonService {
         return retrofit.create(PhotonService::class.java)
     }
     @Provides
     @Singleton
-    fun provideSocket(): Socket {
+    fun provideSocket(tokenManager: TokenManager): Socket {
         return try {
-            val options = IO.Options()
-            options.reconnection = true
+            val token = runBlocking {
+                tokenManager.getAccessToken.first()
+            }
+            val options = IO.Options().apply {
+                reconnection = true
+                auth = mapOf("token" to "Bearer $token")
+            }
             IO.socket(BuildConfig.SOCKET_URL, options)
         } catch (e: URISyntaxException) {
             throw RuntimeException(e)

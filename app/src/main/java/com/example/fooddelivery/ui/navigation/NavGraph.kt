@@ -64,6 +64,7 @@ import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
 import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
+import com.example.fooddelivery.ui.screens.profile.notification.NotificationScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -334,7 +335,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<RestaurantDetailRoute> { backStackEntry ->
+        composable<RestaurantDetailRoute> {
             RestaurantDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToFoodDetail = { foodId ->
@@ -445,6 +446,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
+        composable<NotificationRoute> {
+            NotificationScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToOrder = { orderId ->
+                    navController.navigate(TrackOrderRoute(orderId = orderId))
+                }
+            )
+        }
+
         composable<PaymentMethodRoute> {
             PaymentMethodScreen(
                 onNavigateBack = { navController.popBackStack() }
@@ -473,8 +483,13 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             TrackOrderScreen(
                 orderId = args.orderId,
                 onNavigateBack = { navController.popBackStack() },
-                onChatWithRestaurant = { receiverId ->
-                    navController.navigate(ChatRoute(conversationId = receiverId))
+                onChatWithRestaurant = { orderId, sellerId, name, image ->
+                    navController.navigate(ChatRoute(
+                        orderId = orderId,
+                        sellerId = sellerId,
+                        restaurantName = name,
+                        restaurantImage = image
+                    ))
                 }
             )
         }
@@ -517,8 +532,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<ConversationRoute> {
             ConversationScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToChat = { id, name ->
-                    navController.navigate(ChatRoute(conversationId = id, restaurantName = name))
+                onNavigateToChat = { id, name, image ->
+                    navController.navigate(ChatRoute(conversationId = id, restaurantName = name, restaurantImage = image))
                 }
             )
         }
@@ -527,6 +542,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             val args = backStackEntry.toRoute<ChatRoute>()
             ChatScreen(
                 conversationId = args.conversationId,
+                orderId = args.orderId,
+                sellerId = args.sellerId,
                 restaurantName = args.restaurantName,
                 restaurantImage = args.restaurantImage,
                 onNavigateBack = { navController.popBackStack() }
@@ -545,14 +562,16 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
         val isMenu = currentRouteStr.contains("RestaurantFoodListRoute")
         val isNotifications = currentRouteStr.contains("RestaurantNotificationsRoute")
         val isProfile = currentRouteStr.contains("RestaurantProfileRoute")
+        val isMessages = currentRouteStr.contains("ConversationRoute") || currentRouteStr.contains("ChatRoute")
 
-        val showBottomBar = isDashboard || isMenu || isNotifications || isProfile
+        val showBottomBar = isDashboard || isMenu || isNotifications || isProfile || isMessages
 
         val vendorCurrentRoute = when {
             isDashboard -> "dashboard"
             isMenu -> "menu"
             isNotifications -> "notifications"
             isProfile -> "profile"
+            isMessages -> "messages"
             else -> "dashboard"
         }
 
@@ -563,6 +582,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 "notifications" -> vendorNavController.navigate(RestaurantNotificationsRoute)
                 "profile" -> vendorNavController.navigate(RestaurantProfileRoute)
                 "coupons" -> vendorNavController.navigate(RestaurantCouponRoute)
+                "messages" -> vendorNavController.navigate(ConversationRoute)
             }
         }
 
@@ -581,6 +601,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                                 "menu" -> RestaurantFoodListRoute
                                 "notifications" -> RestaurantNotificationsRoute
                                 "profile" -> RestaurantProfileRoute
+                                "messages" -> ConversationRoute
                                 else -> RestaurantDashboardRoute
                             }
                             vendorNavController.navigate(targetRoute) {
@@ -639,7 +660,28 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 }
 
                 composable<RestaurantNotificationsRoute> { Text("Notifications") }
-                composable<RestaurantMessagesRoute> { Text("Messages")  }
+                
+                composable<ConversationRoute> {
+                    ConversationScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onNavigateToChat = { id, name, image ->
+                            vendorNavController.navigate(ChatRoute(conversationId = id, restaurantName = name, restaurantImage = image))
+                        }
+                    )
+                }
+
+                composable<ChatRoute> { backStackEntry ->
+                    val args = backStackEntry.toRoute<ChatRoute>()
+                    ChatScreen(
+                        conversationId = args.conversationId,
+                        orderId = args.orderId,
+                        sellerId = args.sellerId,
+                        restaurantName = args.restaurantName,
+                        restaurantImage = args.restaurantImage,
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
+                }
+
                 composable<RestaurantProfileRoute> { Text("Profile") }
 
                 composable<RestaurantCouponRoute> {
