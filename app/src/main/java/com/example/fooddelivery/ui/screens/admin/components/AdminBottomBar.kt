@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,11 +40,14 @@ fun AdminBottomBar(
             NavigationBarItem(
                 selected = isSelected,
                 onClick = { onTabSelected(tab) },
+                alwaysShowLabel = true,
                 label = {
                     Text(
                         text = tab.title,
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        fontSize = 11.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 },
                 icon = {
@@ -71,6 +76,7 @@ sealed class AdminTab(
     data object Dashboard : AdminTab("dashboard", "Dashboard", Icons.Default.Dashboard)
     data object Coupons : AdminTab("coupons", "Coupons", Icons.Default.ConfirmationNumber)
     data object Categories : AdminTab("categories", "Categories", Icons.Default.Category)
+    data object Notification : AdminTab("notification", "Notifications", Icons.Default.Notifications)
     data object Settings : AdminTab("settings", "Settings", Icons.Default.Settings)
 }
 
@@ -78,6 +84,7 @@ val adminTabs = listOf(
     AdminTab.Dashboard,
     AdminTab.Coupons,
     AdminTab.Categories,
+    AdminTab.Notification,
     AdminTab.Settings
 )
 

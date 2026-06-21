@@ -63,6 +63,7 @@ import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
 import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
+import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 
@@ -268,6 +269,7 @@ fun NavGraphBuilder.authNavGraph(
 
 fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
     navigation<CustomerGraph>(startDestination = HomeRoute) {
+
         composable<HomeRoute> {
             HomeScreen(
                 onNavigateToCategory = { id ->
@@ -596,6 +598,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 }
             }
         ) { paddingValues ->
+
             NavHost(
                 navController = vendorNavController,
                 startDestination = RestaurantDashboardRoute,
@@ -649,6 +652,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
     }
 }
 
+// admin graph
 fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
     val onAdminNavigate: (String) -> Unit = { route ->
         when (route) {
@@ -681,7 +685,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         composable<AdminCategoriesRoute> {
             AdminCategoryScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAdd = { /* TODO */ },
+                onNavigateToAdd = { /* TODO: navController.navigate(CreateCategoryRoute) */ },
                 onNavigateToEdit = { /* TODO */ },
                 onNavigate = onAdminNavigate
             )
@@ -694,12 +698,16 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
 
         composable<AdminSettingsRoute> {
-            Column {
-                Text("Admin Settings")
-                Button(onClick = { navController.popBackStack() }) {
-                    Text("Back")
+            AdminSettingScreen(
+                onNavigateToResetPassword = {
+                    navController.navigate(ChangePasswordRoute)
+                },
+                onLogoutSuccess = {
+                    navController.navigate(AuthGraph) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
-            }
+            )
         }
     }
 }

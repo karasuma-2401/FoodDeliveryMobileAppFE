@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,7 @@ fun RestaurantProfileScreen(
     onNavigateToWithdrawalHistory: () -> Unit,
     onNavigateToReviews: () -> Unit,
     onLogout: () -> Unit,
+    onNavigateToResetPassword: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RestaurantProfileViewModel = viewModel() 
 ) {
@@ -91,6 +93,15 @@ fun RestaurantProfileScreen(
 
             ProfileMenuGroup {
                 ProfileMenuItem(
+                    icon = Icons.Default.Settings,
+                    iconTint = MaterialTheme.colorScheme.tertiary,
+                    title = "Reset Password",
+                    onClick = onNavigateToResetPassword
+                )
+            }
+
+            ProfileMenuGroup {
+                ProfileMenuItem(
                     icon = Icons.Default.ExitToApp,
                     iconTint = MaterialTheme.colorScheme.error,
                     title = "Log Out",
@@ -109,7 +120,8 @@ fun RestaurantProfilePreview() {
             onNavigateToPersonalInfo = {},
             onNavigateToWithdrawalHistory = {},
             onNavigateToReviews = {},
-            onLogout = {}
+            onLogout = {},
+            onNavigateToResetPassword = {}
         )
     }
 }
