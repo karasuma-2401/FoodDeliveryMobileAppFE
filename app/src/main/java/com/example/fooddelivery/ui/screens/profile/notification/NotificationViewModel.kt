@@ -14,6 +14,7 @@ import javax.inject.Inject
 
 data class NotificationState(
     val notifications: List<Notification> = emptyList(),
+    val unreadCount: Int = 0,
     val isLoading: Boolean = false,
     val isPaginating: Boolean = false,
     val isEndReached: Boolean = false,
@@ -27,6 +28,7 @@ sealed interface NotificationEvent {
     data class MarkAsRead(val id: String): NotificationEvent
     object MarkAllRead : NotificationEvent
     object ErrorDismissed : NotificationEvent
+    object RefreshUnreadCount : NotificationEvent
 }
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
@@ -37,7 +39,8 @@ class NotificationViewModel @Inject constructor(
 
     private val pageSize = 10
     init {
-
+        onEvent(NotificationEvent.LoadNotifications)
+        onEvent(NotificationEvent.RefreshUnreadCount)
     }
     fun onEvent(event: NotificationEvent) {
         when(event) {
@@ -46,6 +49,7 @@ class NotificationViewModel @Inject constructor(
             is NotificationEvent.MarkAsRead -> markAsRead(event.id)
             NotificationEvent.MarkAllRead -> markAllRead()
             NotificationEvent.ErrorDismissed -> _state.update { it.copy(errorMessage = null) }
+            NotificationEvent.RefreshUnreadCount -> loadUnreadCount()
         }
     }
     private fun loadInitialNotification() {
@@ -88,7 +92,8 @@ class NotificationViewModel @Inject constructor(
                 state.copy(
                     notifications = state.notifications.map {
                         if (it.id == id) it.copy(isRead = true) else it
-                    }
+                    },
+                    unreadCount = (state.unreadCount - 1).coerceAtLeast(0)
                 )
             }
         }
@@ -98,8 +103,16 @@ class NotificationViewModel @Inject constructor(
             repository.markAllRead()
             _state.update { state ->
                 state.copy(
-                    notifications = state.notifications.map { it.copy(isRead = true)}
+                    notifications = state.notifications.map { it.copy(isRead = true)},
+                    unreadCount = 0
                 )
+            }
+        }
+    }
+    private fun loadUnreadCount() {
+        viewModelScope.launch {
+            repository.getUnreadCount().onSuccess { count ->
+                _state.update { it.copy(unreadCount = count) }
             }
         }
     }

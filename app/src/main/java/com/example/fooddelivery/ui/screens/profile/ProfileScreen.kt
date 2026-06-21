@@ -256,7 +256,20 @@ fun ProfileContent(
                     iconContainerColor = Color(0xFFFFFDE7),
                     iconTint = Color(0xFFFFEB3B),
                     tittle = "Notification",
-                    onClick = onNavigateToNotification
+                    onClick = onNavigateToNotification,
+                    trailing = {
+                        if (state.unreadNotificationCount > 0) {
+                            Badge(
+                                containerColor = Color(0xFFFF7622),
+                                contentColor = Color.White,
+                            ) {
+                                Text(
+                                    text = if (state.unreadNotificationCount > 99) "99+" else state.unreadNotificationCount.toString(),
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                    }
                 )
                 ProfileMenuCard(
                     icon = Icons.Default.CreditCard,
