@@ -29,7 +29,12 @@ data class ChatState(
 )
 
 sealed interface ChatEvent {
-    data class InitChat(val conversationId: String, val restaurantName: String, val restaurantImage: String) : ChatEvent
+    data class InitChat(
+        val conversationId: String,
+        val restaurantName: String? = null,
+        val restaurantImage: String? = null
+    ) : ChatEvent
+    data class InitChatFromOrder(val orderId: Int, val sellerId: Int) : ChatEvent
     data class OnTextChanged(val text: String) : ChatEvent
     data object SendMessage : ChatEvent
     data class SendImage(val imagePath: String) : ChatEvent
@@ -55,18 +60,10 @@ class ChatViewModel @Inject constructor(
     fun onEvent(event: ChatEvent) {
         when (event) {
             is ChatEvent.InitChat -> {
-                currentConversationId = event.conversationId
-                _state.update { it.copy(
-                    conversationId = event.conversationId,
-                    restaurantName = event.restaurantName,
-                    restaurantImage = event.restaurantImage,
-                    currentPage = 0,
-                    isLoading = false,
-                    isLoadMore = false,
-                    hasMore = true
-                ) }
-                observeMessages(event.conversationId)
-                syncInitialMessages(event.conversationId)
+                initChatById(event.conversationId, event.restaurantName, event.restaurantImage)
+            }
+            is ChatEvent.InitChatFromOrder -> {
+                initChatByOrderId(event.orderId, event.sellerId)
             }
             is ChatEvent.OnTextChanged -> {
                 _state.update { it.copy(inputText = event.text) }
@@ -85,6 +82,7 @@ class ChatViewModel @Inject constructor(
             }
         }
     }
+
     private fun getCurrentUser() {
         viewModelScope.launch {
             userRepository.getUserProfile().onSuccess { user ->
@@ -92,6 +90,55 @@ class ChatViewModel @Inject constructor(
             }.onFailure { error ->
                 _state.update { it.copy(error = error.message) }
             }
+        }
+    }
+
+    private fun initChatById(
+        conversationId: String,
+        restaurantName: String? = null,
+        restaurantImage: String? = null
+    ) {
+        currentConversationId = conversationId
+        _state.update { it.copy(
+            conversationId = conversationId,
+            restaurantName = restaurantName ?: it.restaurantName,
+            restaurantImage = restaurantImage ?: it.restaurantImage,
+            currentPage = 0,
+            hasMore = true,
+            isLoading = true
+        ) }
+        
+        viewModelScope.launch {
+            chatRepository.joinRoom(conversationId)
+            observeMessages(conversationId)
+            chatRepository.syncConversationDetail(conversationId.toInt(), 0).onSuccess {
+                _state.update { it.copy(isLoading = false) }
+            }.onFailure { error ->
+                _state.update { it.copy(isLoading = false, error = error.message) }
+            }
+        }
+    }
+
+    private fun initChatByOrderId(orderId: Int, sellerId: Int) {
+        _state.update { it.copy(isLoading = true) }
+        
+        viewModelScope.launch {
+            chatRepository.createConversation(orderId, sellerId).onSuccess { entity ->
+                currentConversationId = entity.id
+                _state.update { it.copy(
+                    conversationId = entity.id,
+                    restaurantName = entity.restaurantName,
+                    restaurantImage = entity.restaurantImage
+                ) }
+                
+                chatRepository.joinRoom(entity.id)
+                observeMessages(entity.id)
+                chatRepository.syncConversationDetailByOrder(orderId, 0)
+                
+            }.onFailure { error ->
+                _state.update { it.copy(error = error.message) }
+            }
+            _state.update { it.copy(isLoading = false) }
         }
     }
 
@@ -104,23 +151,16 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private fun syncInitialMessages(conversationId: String) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            chatRepository.syncMessages(conversationId, 0)
-            _state.update { it.copy(isLoading = false) }
-        }
-    }
-
     private fun loadMoreMessages() {
         val conversationId = currentConversationId ?: return
-        if (_state.value.isLoadMore) return
+        if (_state.value.isLoadMore || !_state.value.hasMore) return
 
         viewModelScope.launch {
             _state.update { it.copy(isLoadMore = true) }
             val nextPage = _state.value.currentPage + 1
             val messagesBefore = _state.value.messages.size
-            chatRepository.syncMessages(conversationId, nextPage).onSuccess {
+            
+            chatRepository.syncConversationDetail(conversationId.toInt(), nextPage).onSuccess {
                 val messagesAfter = _state.value.messages.size
                 val hasMore = messagesAfter > messagesBefore
                 _state.update { it.copy(currentPage = nextPage, isLoadMore = false, hasMore = hasMore) }

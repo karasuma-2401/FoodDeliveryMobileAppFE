@@ -26,9 +26,11 @@ import java.io.FileOutputStream
 
 @Composable
 fun ChatScreen(
-    conversationId: String,
-    restaurantName: String,
-    restaurantImage: String,
+    conversationId: String? = null,
+    restaurantName: String? = null,
+    restaurantImage: String? = null,
+    orderId: Int? = null,
+    sellerId: Int? = null,
     onNavigateBack: () -> Unit,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
@@ -36,8 +38,12 @@ fun ChatScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(conversationId) {
-        viewModel.onEvent(ChatEvent.InitChat(conversationId, restaurantName, restaurantImage))
+    LaunchedEffect(conversationId, orderId, sellerId) {
+        if (conversationId != null) {
+            viewModel.onEvent(ChatEvent.InitChat(conversationId, restaurantName, restaurantImage))
+        } else if (orderId != null && sellerId != null) {
+            viewModel.onEvent(ChatEvent.InitChatFromOrder(orderId, sellerId))
+        }
     }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
