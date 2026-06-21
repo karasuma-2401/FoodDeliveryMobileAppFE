@@ -179,10 +179,15 @@ object NetworkModule {
     }
     @Provides
     @Singleton
-    fun provideSocket(): Socket {
+    fun provideSocket(tokenManager: TokenManager): Socket {
         return try {
-            val options = IO.Options()
-            options.reconnection = true
+            val token = runBlocking {
+                tokenManager.getAccessToken.first()
+            }
+            val options = IO.Options().apply {
+                reconnection = true
+                auth = mapOf("token" to "Bearer $token")
+            }
             IO.socket(BuildConfig.SOCKET_URL, options)
         } catch (e: URISyntaxException) {
             throw RuntimeException(e)
