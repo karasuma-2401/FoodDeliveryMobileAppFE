@@ -34,6 +34,7 @@ fun RestaurantProfileScreen(
     onNavigateToWithdrawalHistory: () -> Unit,
     onNavigateToReviews: () -> Unit,
     onLogout: () -> Unit,
+    onNavigateToResetPassword: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RestaurantProfileViewModel = viewModel() 
 ) {
@@ -95,7 +96,7 @@ fun RestaurantProfileScreen(
                     icon = Icons.Default.Settings,
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     title = "Reset Password",
-                    onClick = onNavigateToReviews
+                    onClick = onNavigateToResetPassword
                 )
             }
 
@@ -119,7 +120,8 @@ fun RestaurantProfilePreview() {
             onNavigateToPersonalInfo = {},
             onNavigateToWithdrawalHistory = {},
             onNavigateToReviews = {},
-            onLogout = {}
+            onLogout = {},
+            onNavigateToResetPassword = {}
         )
     }
 }
