@@ -5,9 +5,7 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +40,7 @@ import com.example.fooddelivery.ui.screens.restaurant.food_management.AddFoodScr
 import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
-import com.example.fooddelivery.ui.screens.admin.dashboard.AdminRestaurantScreen
+import com.example.fooddelivery.ui.screens.admin.restaurantmanagement.AdminRestaurantScreen
 import com.example.fooddelivery.ui.screens.profile.changePassword.ChangePasswordScreen
 import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.profile.ProfileScreen
