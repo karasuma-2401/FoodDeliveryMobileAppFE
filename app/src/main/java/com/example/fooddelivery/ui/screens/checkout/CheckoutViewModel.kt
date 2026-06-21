@@ -6,11 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.R
-import com.example.fooddelivery.data.remote.dto.OrderFoodRequest
 import com.example.fooddelivery.data.remote.dto.OrderItemRequest
 import com.example.fooddelivery.data.remote.dto.OrderRequest
 import com.example.fooddelivery.domain.model.Address
-import com.example.fooddelivery.domain.model.OrderStatus
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
@@ -31,7 +29,6 @@ import javax.inject.Inject
 data class CheckoutState(
     val restaurantName: String = "",
     val address: Address? = null,
-    val selectedDeliveryOption: DeliveryOption = DeliveryOption.STANDARD,
     val paymentMethod: PaymentMethod = PaymentMethod.MoMo,
     val orderNote: String = "",
     val subtotal: Double = 0.0,
@@ -40,13 +37,7 @@ data class CheckoutState(
     val isPolling: Boolean = false,
     val errorMessage: String? = null
 ) {
-    val deliveryFee: Double get() = selectedDeliveryOption.fee
-    val total: Double get() = (subtotal + deliveryFee - discount).coerceAtLeast(0.0)
-}
-
-enum class DeliveryOption(val title: String, val fee: Double) {
-    STANDARD("Standard", 5.0),
-    EXPRESS("Express", 10.0)
+    val total: Double get() = (subtotal - discount).coerceAtLeast(0.0)
 }
 
 sealed class PaymentMethod(@StringRes val titleRes: Int, val value: String) {
@@ -56,7 +47,6 @@ sealed class PaymentMethod(@StringRes val titleRes: Int, val value: String) {
 
 sealed interface CheckoutEvent {
     data class NoteChanged(val note: String) : CheckoutEvent
-    data class DeliveryOptionSelected(val option: DeliveryOption) : CheckoutEvent
     data object ChangeAddress : CheckoutEvent
     data class PaymentMethodSelected(val method: PaymentMethod) : CheckoutEvent
     data object ChangePaymentMethod : CheckoutEvent
@@ -124,9 +114,6 @@ class CheckoutViewModel @Inject constructor(
             is CheckoutEvent.NoteChanged -> {
                 _state.update { it.copy(orderNote = event.note) }
             }
-            is CheckoutEvent.DeliveryOptionSelected -> {
-                _state.update { it.copy(selectedDeliveryOption = event.option) }
-            }
             is CheckoutEvent.ChangeAddress -> {
                 viewModelScope.launch {
                     _uiEffect.emit(CheckoutUiEffect.NavigateToAddAddress)
@@ -171,31 +158,25 @@ class CheckoutViewModel @Inject constructor(
 
             val orderRequest = OrderRequest(
                 restaurantId = cartItems.first().restaurantId.toIntOrNull() ?: 0,
-                items = cartItems.map { item ->
+                savedAddressId = currentState.address.id.toIntOrNull() ?: 0,
+                orderFoods = cartItems.map { item ->
                     OrderItemRequest(
+                        foodId = item.food.id.toIntOrNull() ?: 0,
                         quantity = item.quantity,
-                        price = item.unitPrice,
-                        food = OrderFoodRequest(
-                            id = item.food.id.toIntOrNull() ?: 0,
-                            size = item.food.size
-                        )
+                        fullText = item.note,
+                        foodSizeId = null // Assuming mapping handled elsewhere or not needed for now
                     )
                 },
-                addressId = currentState.address.id.toIntOrNull() ?: 0,
-                deliveryOption = currentState.selectedDeliveryOption.name,
                 paymentMethod = currentState.paymentMethod.value,
                 note = currentState.orderNote,
-                totalAmount = currentState.total
+                clearCartAfterOrder = true,
+                totalAmount = null
             )
 
             val result = orderRepository.createOrder(orderRequest)
 
             result.onSuccess { response ->
                 if (currentState.paymentMethod is PaymentMethod.Cash) {
-                    // Clear only items from this restaurant
-                    cartItems.forEach { item ->
-                        item.cartItemId?.let { cartRepository.removeItem(it) }
-                    }
                     _state.update { it.copy(isLoading = false) }
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
                 } else {
@@ -227,8 +208,10 @@ class CheckoutViewModel @Inject constructor(
                 delay(3000)
                 val statusResult = orderRepository.checkOrderStatus(orderId)
 
-                statusResult.onSuccess { status ->
-                    if (status == OrderStatus.COMPLETED) {
+                statusResult.onSuccess { summary ->
+                    // Order status step 2 (CONFIRMED) or above usually means payment received for online methods
+                    // or checking backend_status specifically
+                    if (summary.statusStep >= 2 || summary.backendStatus == "CONFIRMED") {
                         isPaid = true
                     }
                 }
@@ -238,12 +221,6 @@ class CheckoutViewModel @Inject constructor(
             _state.update { it.copy(isPolling = false) }
 
             if (isPaid) {
-                val cartItems = cartRepository.cartItems.first()
-                    .filter { it.restaurantId == checkoutArgs.restaurantId }
-                cartItems.forEach { item ->
-                    item.cartItemId?.let { cartRepository.removeItem(it) }
-                }
-
                 pendingOrderId = null
                 _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
             } else {

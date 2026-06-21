@@ -14,7 +14,6 @@ import java.util.Locale
 @Composable
 fun CheckoutBillBreakdown(
     subtotal: Double,
-    deliveryFee: Double,
     discount: Double,
     total: Double,
     modifier: Modifier = Modifier
@@ -41,10 +40,7 @@ fun CheckoutBillBreakdown(
                 Text("Subtotal", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("$${String.format(Locale.US, "%.2f",subtotal)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Delivery Fee", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("$${String.format(Locale.US, "%.2f",deliveryFee)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-            }
+
             if (discount > 0) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Discount", color = MaterialTheme.colorScheme.primary)

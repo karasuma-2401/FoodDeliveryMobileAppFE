@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.Order
 import com.example.fooddelivery.domain.model.OrderStatus
 import com.example.fooddelivery.domain.model.OrderType
+import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -28,10 +31,22 @@ sealed interface OrderEvent {
     data class ReOrder(val orderId: String) : OrderEvent
 }
 
+sealed interface OrderUiEffect {
+    data object NavigateToCart : OrderUiEffect
+    data class ShowError(val message: String) : OrderUiEffect
+    data class ShowSuccess(val message: String) : OrderUiEffect
+}
+
 @HiltViewModel
-class OrderViewModel @Inject constructor() : ViewModel() {
+class OrderViewModel @Inject constructor(
+    private val orderRepository: OrderRepository,
+    private val cartRepository: CartRepository
+) : ViewModel() {
     private val _state = MutableStateFlow(OrderState())
     val state: StateFlow<OrderState> = _state.asStateFlow()
+
+    private val _uiEffect = MutableSharedFlow<OrderUiEffect>()
+    val uiEffect = _uiEffect.asSharedFlow()
 
     init {
         loadOrders()
@@ -52,25 +67,17 @@ class OrderViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun cancelOrder(orderId: String) {
+        val id = orderId.toIntOrNull() ?: return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            // Giả lập gọi API hủy đơn
-            delay(1000)
-            _state.update { currentState ->
-                val canceledOrder = currentState.ongoingOrders.find { it.id == orderId }
-                val updatedOngoing = currentState.ongoingOrders.filter { it.id != orderId }
-                
-                val updatedHistory = if (canceledOrder != null) {
-                    listOf(canceledOrder.copy(status = OrderStatus.CANCELED, date = "Just Now")) + currentState.historyOrders
-                } else {
-                    currentState.historyOrders
-                }
-
-                currentState.copy(
-                    ongoingOrders = updatedOngoing,
-                    historyOrders = updatedHistory,
-                    isLoading = false
-                )
+            val result = orderRepository.cancelOrderPost(id)
+            _state.update { it.copy(isLoading = false) }
+            
+            result.onSuccess { message ->
+                _uiEffect.emit(OrderUiEffect.ShowSuccess(message))
+                loadOrders()
+            }.onFailure { error ->
+                _uiEffect.emit(OrderUiEffect.ShowError(error.message ?: "Failed to cancel order"))
             }
         }
     }
@@ -78,85 +85,42 @@ class OrderViewModel @Inject constructor() : ViewModel() {
     private fun reOrder(orderId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            // call api here
-            delay(1500)
-            _state.update { it.copy(isLoading = false) }
-            // navigate to cart screen
+            val result = orderRepository.reorder(orderId)
+            
+            result.onSuccess { message ->
+                // Sync cart from server to local before navigating
+                cartRepository.syncCart()
+                _state.update { it.copy(isLoading = false) }
+                _uiEffect.emit(OrderUiEffect.ShowSuccess(message))
+                _uiEffect.emit(OrderUiEffect.NavigateToCart)
+            }.onFailure { error ->
+                _state.update { it.copy(isLoading = false) }
+                _uiEffect.emit(OrderUiEffect.ShowError(error.message ?: "Failed to reorder"))
+            }
         }
     }
 
     private fun loadOrders() {
         viewModelScope.launch {
             _state.update { it.copy(isInitLoading = true) }
-            delay(2000)
-            val mockOngoing = listOf(
-                Order(
-                    id = "162432",
-                    restaurantId = "res_1",
-                    restaurantName = "Pizza Hut",
-                    restaurantImage = "https://img.freepik.com/free-photo/pizza-pizza-filled-with-tomatoes-salami-olives_140725-1200.jpg",
-                    price = 35.25,
-                    itemCount = 3,
-                    type = OrderType.FOOD,
-                    status = OrderStatus.ONGOING
-                ),
-                Order(
-                    id = "242432",
-                    restaurantId = "res_2",
-                    restaurantName = "McDonald",
-                    restaurantImage = "https://img.freepik.com/free-photo/delicious-burger-with-fresh-ingredients_23-2150857908.jpg",
-                    price = 40.15,
-                    itemCount = 2,
-                    type = OrderType.FOOD,
-                    status = OrderStatus.ONGOING
-                ),
-                Order(
-                    id = "240112",
-                    restaurantId = "res_3",
-                    restaurantName = "Starbucks",
-                    restaurantImage = "https://img.freepik.com/free-photo/cup-coffee-with-heart-drawn-it_188544-12644.jpg",
-                    price = 10.20,
-                    itemCount = 1,
-                    type = OrderType.DRINK,
-                    status = OrderStatus.ONGOING
+            
+            val ongoingResult = orderRepository.getOrders(status = "ongoing")
+            val historyResult = orderRepository.getOrders(status = "history")
+            
+            _state.update { currentState ->
+                currentState.copy(
+                    ongoingOrders = ongoingResult.getOrDefault(emptyList()),
+                    historyOrders = historyResult.getOrDefault(emptyList()),
+                    isInitLoading = false
                 )
-            )
-            val mockHistory = listOf(
-                Order(
-                    id = "162435",
-                    restaurantId = "res_1",
-                    restaurantName = "Pizza Hut",
-                    restaurantImage = "https://img.freepik.com/free-photo/pizza-pizza-filled-with-tomatoes-salami-olives_140725-1200.jpg",
-                    price = 35.25,
-                    itemCount = 3,
-                    type = OrderType.FOOD,
-                    status = OrderStatus.COMPLETED,
-                    date = "29 JAN, 12:30"
-                ),
-                Order(
-                    id = "242436",
-                    restaurantId = "res_2",
-                    restaurantName = "McDonald",
-                    restaurantImage = "https://img.freepik.com/free-photo/delicious-burger-with-fresh-ingredients_23-2150857908.jpg",
-                    price = 40.15,
-                    itemCount = 2,
-                    type = OrderType.FOOD,
-                    status = OrderStatus.COMPLETED,
-                    date = "30 JAN, 12:30"
-                ),
-                Order(
-                    id = "240117",
-                    restaurantId = "res_3",
-                    restaurantName = "Starbucks",
-                    restaurantImage = "https://img.freepik.com/free-photo/cup-coffee-with-heart-drawn-it_188544-12644.jpg",
-                    price = 10.20,
-                    itemCount = 1,
-                    type = OrderType.DRINK,
-                    status = OrderStatus.CANCELED,
-                    date = "30 JAN, 12:30"
-                )
-            )
-            _state.update { it.copy(ongoingOrders = mockOngoing, historyOrders = mockHistory, isInitLoading = false) }
+            }
+            
+            ongoingResult.onFailure { error ->
+                _uiEffect.emit(OrderUiEffect.ShowError("Ongoing: ${error.message}"))
+            }
+            historyResult.onFailure { error ->
+                _uiEffect.emit(OrderUiEffect.ShowError("History: ${error.message}"))
+            }
         }
     }
 }

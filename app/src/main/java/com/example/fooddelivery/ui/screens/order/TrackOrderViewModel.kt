@@ -2,7 +2,10 @@ package com.example.fooddelivery.ui.screens.order
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.model.OrderDetail
+import com.example.fooddelivery.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,64 +15,120 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 enum class TrackingStatus(val step: Int, val title: String, val subtitle: String) {
-    RECEIVED(0, "Order Received", "We have received your order"),
-    PREPARING(1, "Preparing Food", "The chef is making your meal"),
-    ON_THE_WAY(2, "On the Way", "Your order is out for delivery"),
-    DELIVERED(3, "Delivered", "Handover complete"),
+    PENDING(1, "Order Received", "We have received your order"),
+    CONFIRMED(2, "Confirmed", "Restaurant has confirmed your order"),
+    PREPARING(3, "Preparing Food", "The chef is making your meal"),
+    DELIVERING(4, "On the Way", "Your order is out for delivery"),
+    COMPLETED(5, "Delivered", "Handover complete"),
 }
+
 data class OrderSummaryItem(
     val name: String,
     val quantity: Int,
     val description: String,
     val image: String
 )
+
 data class TrackOrderState(
     val orderId: String = "",
-    val restaurantId: Int = 0,
-    val expectedArrival: String = "12:45 PM",
-    val status: TrackingStatus = TrackingStatus.RECEIVED,
-    val restaurantName: String = "Rose Garden Restaurant",
-    val restaurantImage: String = "https://example.com/logo.jpg",
-    val restaurantPhone: String = "0987654321",
-    val items: List<OrderSummaryItem> = emptyList()
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val orderDetail: OrderDetail? = null,
+    val trackingStatus: TrackingStatus = TrackingStatus.PENDING,
+    val expectedArrival: String = "--:--",
+    val restaurantName: String = "",
+    val restaurantImage: String = "",
+    val restaurantPhone: String = "",
+    val items: List<OrderSummaryItem> = emptyList(),
+    val restaurantId: Int = 0
 )
+
 sealed interface TrackOrderEvent {
     data class Initialize(val orderId: String) : TrackOrderEvent
+    data object Refresh : TrackOrderEvent
 }
 
 @HiltViewModel
-class TrackOrderViewModel @Inject constructor() : ViewModel() {
+class TrackOrderViewModel @Inject constructor(
+    private val orderRepository: OrderRepository
+) : ViewModel() {
     private val _state = MutableStateFlow(TrackOrderState())
     val state: StateFlow<TrackOrderState> = _state.asStateFlow()
+
+    private var pollingJob: Job? = null
+
     fun onEvent(event: TrackOrderEvent) {
         when (event) {
             is TrackOrderEvent.Initialize -> {
-                setupInitialData(event.orderId)
+                if (_state.value.orderId != event.orderId) {
+                    _state.update { it.copy(orderId = event.orderId) }
+                    fetchOrderDetail(event.orderId)
+                    startPolling(event.orderId)
+                }
+            }
+            is TrackOrderEvent.Refresh -> {
+                fetchOrderDetail(_state.value.orderId)
             }
         }
     }
-    private fun setupInitialData(id: String) {
-        _state.update { it.copy(
-            orderId = id,
-            restaurantId = 6,
-            status = TrackingStatus.RECEIVED,
-            items = listOf(
-                OrderSummaryItem("Burger Bistro", 1, "Extra cheese, No onions", "https://example.com/burger.jpg"),
-                OrderSummaryItem("Garden Pizza", 1, "Medium size, thin crust", "https://example.com/pizza.jpg")
-            )
-        ) }
-        startPollingStatus()
-    }
-    private fun startPollingStatus() {
+
+    private fun fetchOrderDetail(orderId: String) {
+        val id = orderId.toIntOrNull() ?: return
         viewModelScope.launch {
-            delay(3000)
-            _state.update { it.copy(status = TrackingStatus.PREPARING) }
-
-            delay(4000)
-            _state.update { it.copy(status = TrackingStatus.ON_THE_WAY) }
-
-            delay(5000)
-            _state.update { it.copy(status = TrackingStatus.DELIVERED) }
+            if (_state.value.orderDetail == null) {
+                _state.update { it.copy(isLoading = true, error = null) }
+            }
+            val result = orderRepository.getOrderDetail(id)
+            _state.update { state ->
+                result.fold(
+                    onSuccess = { detail ->
+                        // Stop polling if order reached final state
+                        if (detail.statusStep >= 5) {
+                            stopPolling()
+                        }
+                        state.copy(
+                            isLoading = false,
+                            orderDetail = detail,
+                            trackingStatus = mapToTrackingStatus(detail.statusStep),
+                            expectedArrival = detail.expectedArrival ?: "--:--",
+                            restaurantName = detail.restaurantName,
+                            restaurantImage = detail.restaurantImage,
+                            restaurantPhone = detail.customerPhone ?: "", // Placeholder: using customer phone as restaurant phone if missing
+                            items = detail.items.map { 
+                                OrderSummaryItem(it.name, it.quantity, it.size ?: "", it.image) 
+                            },
+                            restaurantId = detail.restaurantId
+                        )
+                    },
+                    onFailure = { error ->
+                        state.copy(isLoading = false, error = error.message)
+                    }
+                )
+            }
         }
+    }
+
+    private fun startPolling(orderId: String) {
+        stopPolling()
+        pollingJob = viewModelScope.launch {
+            while (true) {
+                delay(10000) // Poll every 10 seconds
+                fetchOrderDetail(orderId)
+            }
+        }
+    }
+
+    private fun stopPolling() {
+        pollingJob?.cancel()
+        pollingJob = null
+    }
+
+    private fun mapToTrackingStatus(step: Int): TrackingStatus {
+        return TrackingStatus.entries.find { it.step == step } ?: TrackingStatus.PENDING
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopPolling()
     }
 }

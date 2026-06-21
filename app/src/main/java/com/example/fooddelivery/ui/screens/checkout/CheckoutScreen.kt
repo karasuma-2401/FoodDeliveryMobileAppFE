@@ -129,12 +129,6 @@ fun CheckoutScreen(
                     onChangeClick = { viewModel.onEvent(CheckoutEvent.ChangeAddress) }
                 )
 
-                SectionTitle("Delivery Options")
-                DeliveryOptionsCard(
-                    selectedOption = state.selectedDeliveryOption,
-                    onOptionSelected = { viewModel.onEvent(CheckoutEvent.DeliveryOptionSelected(it)) }
-                )
-
                 SectionTitle("Order Notes")
                 OrderNotesCard(
                     note = state.orderNote, 
@@ -149,7 +143,6 @@ fun CheckoutScreen(
 
                 CheckoutBillBreakdown(
                     subtotal = state.subtotal,
-                    deliveryFee = state.deliveryFee,
                     discount = state.discount,
                     total = state.total
                 )

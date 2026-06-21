@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -391,7 +391,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToTrackOrder = { orderId -> navController.navigate(TrackOrderRoute(orderId = orderId)) },
                 onNavigateToRate = { orderId, restaurantName ->
                     navController.navigate(RatingReviewRoute(orderId = orderId, restaurantName = restaurantName))
-                }
+                },
+                onNavigateToCart = { navController.navigate(CartRoute) }
             )
         }
 
@@ -534,6 +535,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<ConversationRoute> {
             ConversationScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToChat = { id, name, image ->
                     navController.navigate(ChatRoute(conversationId = id, restaurantName = name, restaurantImage = image))
                 }

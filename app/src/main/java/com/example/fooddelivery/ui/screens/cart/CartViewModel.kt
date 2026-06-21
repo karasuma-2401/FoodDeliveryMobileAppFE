@@ -19,7 +19,6 @@ import javax.inject.Inject
 
 data class CartState(
     val items: List<CartItem> = emptyList(),
-    val deliveryFee: Double = 5.0,
     val availableVouchers: List<Voucher> = emptyList(),
     val selectedVoucher: Voucher? = null,
     val promoCode: String = "",
@@ -31,7 +30,7 @@ data class CartState(
     val selectedItems: List<CartItem> get() = items.filter { it.restaurantName == selectedRestaurantName }
     val subTotal: Double get() = selectedItems.sumOf { it.totalPrice }
     val discount: Double get() = selectedVoucher?.discountAmount ?: 0.0
-    val total: Double get() = (subTotal + deliveryFee - discount).coerceAtLeast(0.0)
+    val total: Double get() = (subTotal - discount).coerceAtLeast(0.0)
     val isCartEmpty: Boolean get() = items.isEmpty()
     val canCheckout: Boolean get() = selectedItems.isNotEmpty() && selectedRestaurantName != null
 }
