@@ -22,7 +22,7 @@ data class VerificationRoute(
 @Serializable
 data class ResetPasswordRoute (
     val email: String = "",
-    val resetCode: String = ""
+    val otp: String = ""
 )
 
 @Serializable

@@ -4,9 +4,14 @@ import com.example.fooddelivery.domain.repository.AuthRepository
 import javax.inject.Inject
 
 class SendResetPasswordCodeUseCase @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val validateUseCase: ValidateAuthInputUseCase
 ) {
     suspend operator fun invoke(email: String): Result<Unit> {
+        val emailError = validateUseCase.validateEmail(email)
+        if (emailError != null) {
+            return Result.failure(Exception(emailError))
+        }
         return authRepository.sendResetPasswordCode(email)
     }
 }

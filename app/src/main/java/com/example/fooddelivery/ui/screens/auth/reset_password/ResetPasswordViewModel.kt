@@ -1,7 +1,5 @@
 package com.example.fooddelivery.ui.screens.auth.reset_password
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.usecase.ResetPasswordUseCase
@@ -16,11 +14,10 @@ import javax.inject.Inject
 
 data class ResetPasswordState(
     val email: String = "",
-    val resetCode: String = "",
+    val otp: String = "",
     val newPassword: String = "",
     val confirmPassword: String = "",
 
-    val resetCodeError: String? = null,
     val passwordError: String? = null,
     val confirmPasswordError: String? = null,
 
@@ -47,7 +44,7 @@ class ResetPasswordViewModel @Inject constructor(
     fun onEvent(event: ResetPasswordEvent) {
         when (event) {
             is ResetPasswordEvent.Init -> {
-                _state.update { it.copy(email = event.email, resetCode = event.code) }
+                _state.update { it.copy(email = event.email, otp = event.code) }
             }
             is ResetPasswordEvent.NewPasswordChanged -> {
                 _state.update { it.copy(newPassword = event.newPassword, passwordError = null, errorMessage = null) }
@@ -94,8 +91,8 @@ class ResetPasswordViewModel @Inject constructor(
 
             val result = resetPasswordUseCase(
                 email = currentState.email,
-                resetCode = currentState.resetCode,
-                newPass = currentState.newPassword
+                otp = currentState.otp,
+                newPassword = currentState.newPassword
             )
 
             result.onSuccess {
