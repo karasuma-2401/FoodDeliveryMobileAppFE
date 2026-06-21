@@ -18,16 +18,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.screens.admin.components.DashboardRevenueCard
 import com.example.fooddelivery.ui.screens.admin.components.DashboardStatsGrid
-import com.example.fooddelivery.ui.screens.admin.coupons.AdminCouponScreen
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
     modifier: Modifier = Modifier,
     viewModel: AdminDashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    AdminDashboardContent(
+        state = state,
+        onEvent = { event -> viewModel.onEvent(event) },
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminDashboardContent(
+    state: AdminDashboardState,
+    onEvent: (AdminDashboardEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val scrollState = rememberScrollState()
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -36,7 +49,7 @@ fun AdminDashboardScreen(
                 TopAppBar(
                     title = { Text("Dashboard", fontWeight = FontWeight.Bold) },
                     actions = {
-                        IconButton(onClick = { viewModel.onEvent(AdminDashboardEvent.Refresh) }) {
+                        IconButton(onClick = { onEvent(AdminDashboardEvent.Refresh) }) {
                             Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
                         }
                     },
@@ -80,12 +93,25 @@ fun AdminDashboardScreen(
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun AdminDashboardScreenReview() {
     DFoodTheme {
-        AdminDashboardScreen(
-
+        AdminDashboardContent(
+            state = AdminDashboardState(
+                stats = DashboardStats(
+                    users = 150,
+                    restaurants = 12,
+                    orders = 450,
+                    payments = 400,
+                    categories = 8,
+                    vouchers = 15,
+                    deliveredRevenue = 75000000.0
+                ),
+                isLoading = false
+            ),
+            onEvent = {}
         )
     }
 }

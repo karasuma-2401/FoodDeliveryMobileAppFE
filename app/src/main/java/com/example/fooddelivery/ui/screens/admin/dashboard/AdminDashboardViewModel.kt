@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.admin.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.repository.AdminRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdminDashboardViewModel @Inject constructor(
-    private val adminRepository: com.example.fooddelivery.domain.repository.AdminRepository
+    private val adminRepository: AdminRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminDashboardState())
