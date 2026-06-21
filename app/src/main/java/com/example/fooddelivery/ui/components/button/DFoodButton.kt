@@ -34,47 +34,39 @@ fun DFoodButton (
     }
     val haptic = LocalHapticFeedback.current
 
-    Box(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
             .bounceClick(
                 scale = 0.96f,
                 enableHaptic = false,
-                enabled = enabled,
+                enabled = enabled && !isLoading,
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onClick()
                 }
-            )
+            ),
+        shape = MaterialTheme.shapes.medium,
+        color = if (enabled) containerColor else containerColor.copy(alpha = 0.6f),
+        contentColor = effectiveContentColor,
+        shadowElevation = if (enabled) 4.dp else 0.dp
     ) {
-        Button(
-            onClick = {},
+        Box(
             modifier = Modifier.fillMaxSize(),
-            enabled = enabled,
-            shape = MaterialTheme.shapes.medium,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = containerColor,
-                contentColor = effectiveContentColor,
-                disabledContainerColor = containerColor.copy(alpha = 0.6f),
-                disabledContentColor = effectiveContentColor.copy(alpha = 0.6f),
-            ),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 8.dp,
-                pressedElevation = 2.dp
-            ),
-            contentPadding = PaddingValues(horizontal = 16.dp)
+            contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
-                    color = LocalContentColor.current,
+                    color = effectiveContentColor,
                     strokeWidth = 3.dp
                 )
             } else {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     if (leadingIcon != null) {
                         leadingIcon()
