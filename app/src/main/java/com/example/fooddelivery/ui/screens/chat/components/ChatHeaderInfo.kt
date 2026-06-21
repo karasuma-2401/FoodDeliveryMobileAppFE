@@ -27,7 +27,7 @@ fun ChatHeaderInfo(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box {
@@ -35,7 +35,7 @@ fun ChatHeaderInfo(
                 model = restaurantImage,
                 contentDescription = "$restaurantName avatar",
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(45.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop
@@ -44,9 +44,9 @@ fun ChatHeaderInfo(
             if (isOnline) {
                 Box(
                     modifier = Modifier
-                        .size(14.dp)
+                        .size(12.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF059C6A)) // Keep green for online status but could use a custom semantic color
+                        .background(Color(0xFF059C6A))
                         .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                         .align(Alignment.BottomEnd)
                 )
@@ -62,9 +62,9 @@ fun ChatHeaderInfo(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = if (isOnline) "Online | Typically replies in 2 mins" else "Offline",
+                text = if (isOnline) "Active now" else "Offline",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                color = if (isOnline) Color(0xFF059C6A) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
         }
     }
