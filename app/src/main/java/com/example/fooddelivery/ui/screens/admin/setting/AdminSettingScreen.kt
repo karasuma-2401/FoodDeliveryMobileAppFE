@@ -7,11 +7,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fooddelivery.ui.screens.admin.components.AdminHeader
 import com.example.fooddelivery.ui.screens.restaurant.component.profile.ProfileMenuGroup
 import com.example.fooddelivery.ui.screens.restaurant.component.profile.ProfileMenuItem
@@ -20,43 +26,66 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun AdminSettingScreen(
     onNavigateToResetPassword: () -> Unit,
-    onLogout: () -> Unit,
+    onLogoutSuccess: () -> Unit, // Đổi tên callback để rõ ngữ nghĩa
     modifier: Modifier = Modifier,
-    totalEarnings: String = "$124,500.80",
-    adminEmail: String = "admin@dfood.com"
+    viewModel: AdminSettingViewModel = viewModel() // Tích hợp ViewModel vào đây
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-    ) {
-        AdminHeader(
-            adminEmail = adminEmail,
-            totalEarnings = totalEarnings
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.Lock,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = "Reset Password",
-                    onClick = onNavigateToResetPassword
-                )
-            }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.ExitToApp,
-                    iconTint = MaterialTheme.colorScheme.error,
-                    title = "Log Out",
-                    onClick = onLogout
-                )
+    LaunchedEffect(uiState.isLoggedOutSuccessfully) {
+        if (uiState.isLoggedOutSuccessfully) {
+            onLogoutSuccess()
+            viewModel.clearLogoutFlag()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Header lấy dữ liệu động từ ViewModel
+            AdminHeader(
+                adminEmail = uiState.adminEmail,
+                totalEarnings = uiState.totalEarnings
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.Lock,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        title = "Reset Password",
+                        onClick = onNavigateToResetPassword
+                    )
+                }
+
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.ExitToApp,
+                        iconTint = MaterialTheme.colorScheme.error,
+                        title = "Log Out",
+                        onClick = { viewModel.logout() }
+                    )
+                }
+            }
+        }
+
+        if (uiState.isLoading) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color.Black.copy(alpha = 0.2f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
             }
         }
     }
@@ -68,7 +97,7 @@ fun AdminProfilePreview() {
     DFoodTheme {
         AdminSettingScreen(
             onNavigateToResetPassword = {},
-            onLogout = {}
-        )
+            onLogoutSuccess = {}
+        ) 
     }
 }
