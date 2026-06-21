@@ -11,9 +11,10 @@ data class ConversationDto(
     val createdAt: String,
     val lastMessage: LastMessageDto? = null,
     val order: OrderInfoDto? = null,
-    // Các trường BE sẽ bổ sung sau để phục vụ UI
     val sellerName: String? = null,
     val sellerImage: String? = null,
+    val customerName: String? = null,
+    val customerImage: String? = null,
     val unreadCount: Int? = 0
 )
 

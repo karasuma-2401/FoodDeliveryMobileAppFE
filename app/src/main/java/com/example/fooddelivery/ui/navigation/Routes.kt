@@ -71,9 +71,11 @@ data class RatingReviewRoute(
 @Serializable object UserReviewRoute
 @Serializable object ConversationRoute
 @Serializable data class ChatRoute(
-    val conversationId: String,
-    val restaurantName: String = "",
-    val restaurantImage: String = ""
+    val conversationId: String? = null,
+    val orderId: Int? = null,
+    val sellerId: Int? = null,
+    val restaurantName: String? = null,
+    val restaurantImage: String? = null
 )
 
 // Restaurant
