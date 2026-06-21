@@ -1,12 +1,15 @@
 package com.example.fooddelivery.data.local.datastore
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -19,9 +22,22 @@ private val Context.userPrefDataStore: DataStore<Preferences> by preferencesData
 class TokenManager @Inject constructor (
     @ApplicationContext private val context: Context
 ) {
+    // SECURITY ENHANCEMENT: Sử dụng EncryptedSharedPreferences cho dữ liệu nhạy cảm (Tokens)
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    private val securePrefs: SharedPreferences = EncryptedSharedPreferences.create(
+        context,
+        "secure_user_prefs",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
     companion object {
-        val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
-        val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
+        private const val ACCESS_TOKEN = "access_token"
+        private const val REFRESH_TOKEN = "refresh_token"
         val REMEMBER_ME_KEY = booleanPreferencesKey("remember_me")
         val PHONE_KEY = stringPreferencesKey("saved_phone")
         val USER_NAME_KEY = stringPreferencesKey("user_name")
@@ -36,12 +52,17 @@ class TokenManager @Inject constructor (
         email: String,
         rememberMe: Boolean
     ) {
+        // Lưu token vào kho lưu trữ được mã hóa
+        securePrefs.edit().apply {
+            putString(ACCESS_TOKEN, accessToken)
+            putString(REFRESH_TOKEN, refreshToken)
+            apply()
+        }
+
+        // Các thông tin không nhạy cảm vẫn có thể lưu ở DataStore
         context.userPrefDataStore.edit { preferences ->
-            preferences[ACCESS_TOKEN_KEY] = accessToken
-            preferences[REFRESH_TOKEN_KEY] = refreshToken
             preferences[USER_NAME_KEY] = name
             preferences[USER_EMAIL_KEY] = email
-            
             if (rememberMe) {
                 preferences[PHONE_KEY] = phone
                 preferences[REMEMBER_ME_KEY] = true
@@ -53,20 +74,20 @@ class TokenManager @Inject constructor (
     }
 
     suspend fun clearAuthData() {
+        securePrefs.edit().clear().apply()
         context.userPrefDataStore.edit { preferences ->
-            preferences.remove(ACCESS_TOKEN_KEY)
-            preferences.remove(REFRESH_TOKEN_KEY)
             preferences.remove(USER_NAME_KEY)
             preferences.remove(USER_EMAIL_KEY)
         }
     }
 
-    val getAccessToken: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
-        preferences[ACCESS_TOKEN_KEY]
+    // Lấy token từ kho mã hóa
+    val getAccessToken: Flow<String?> = context.userPrefDataStore.data.map { 
+        securePrefs.getString(ACCESS_TOKEN, null) 
     }
 
-    val getRefreshToken: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
-        preferences[REFRESH_TOKEN_KEY]
+    val getRefreshToken: Flow<String?> = context.userPrefDataStore.data.map { 
+        securePrefs.getString(REFRESH_TOKEN, null) 
     }
 
     val getUserName: Flow<String?> = context.userPrefDataStore.data.map { preferences ->

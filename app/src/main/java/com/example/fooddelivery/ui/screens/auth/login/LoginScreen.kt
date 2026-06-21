@@ -46,6 +46,7 @@ import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.components.button.SocialButton
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
+import com.example.fooddelivery.ui.utils.rememberGoogleLoginLauncher
 
 
 @Composable
@@ -65,11 +66,10 @@ fun LoginScreen(
         onError = { viewModel.onEvent(LoginEvent.ErrorMessageSet("Facebook error: $it")) }
     )
 
-    // Placeholder for Google Login trigger - you should implement this based on your Google Auth setup
-    val triggerGoogleLogin = {
-        // TODO: Implement actual Google Sign-In integration with Google Auth library
-        viewModel.onEvent(LoginEvent.GoogleLoginClicked(""))
-    }
+    val triggerGoogleLogin = rememberGoogleLoginLauncher(
+        onSuccess = { idToken -> viewModel.onEvent(LoginEvent.GoogleLoginClicked(idToken)) },
+        onError = { error -> viewModel.onEvent(LoginEvent.ErrorMessageSet(error)) }
+    )
 
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {

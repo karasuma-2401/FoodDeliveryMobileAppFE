@@ -23,7 +23,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
 import com.example.fooddelivery.ui.components.bottombar.BottomNavItem
-import com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.auth.forgot_password.ForgotPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
@@ -64,7 +63,6 @@ import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
 import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
 import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
-// Import màn hình ReviewScreen mới
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 
@@ -88,7 +86,7 @@ fun RootNavigationGraph(
     Scaffold(
         bottomBar = {
             if (showCustomerBottomBar) {
-                DFoodBottomBar(
+                com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar(
                     currentRoute = when {
                         currentDestination?.hasRoute(HomeRoute::class) == true -> "home"
                         currentDestination?.hasRoute(SearchRoute::class) == true -> "search"
@@ -144,7 +142,6 @@ fun RootNavigationGraph(
     }
 }
 
-// auth graph
 fun NavGraphBuilder.authNavGraph(
     navController: NavHostController,
     startDestination: Any
@@ -182,10 +179,13 @@ fun NavGraphBuilder.authNavGraph(
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack()},
                 onNavigateToLogin = { navController.popBackStack() },
-                onNavigateToRegistrationSuccess = { email ->
-                    navController.navigate(VerificationRoute(email = email, isFromRegistration = true)) {
-                        popUpTo<RegisterRoute> { inclusive = true }
+                onNavigateHome = {
+                    navController.navigate(CustomerGraph) {
+                        popUpTo<AuthGraph> { inclusive = true }
                     }
+                },
+                onNavigateToVerification = { email ->
+                    navController.navigate(VerificationRoute(email = email, isFromRegistration = true))
                 },
                 onNavigateToPolicy = { type ->
                     navController.navigate(PolicyRoute(type = type))
@@ -244,7 +244,7 @@ fun NavGraphBuilder.authNavGraph(
                             popUpTo<VerificationRoute> { inclusive = true }
                         }
                     } else {
-                        navController.navigate(ResetPasswordRoute(email = email, resetCode = otp))
+                        navController.navigate(ResetPasswordRoute(email = email, otp = otp))
                     }
                 }
             )
@@ -254,11 +254,11 @@ fun NavGraphBuilder.authNavGraph(
             val args = backStackEntry.toRoute<ResetPasswordRoute>()
             ResetPasswordScreen(
                 email = args.email,
-                resetCode = args.resetCode,
+                otp = args.otp,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToLogin = {
                     navController.navigate(LoginRoute) {
-                        popUpTo<LoginRoute> { inclusive = true }
+                        popUpTo<AuthGraph> { inclusive = true }
                     }
                 }
             )
@@ -266,10 +266,8 @@ fun NavGraphBuilder.authNavGraph(
     }
 }
 
-// customer graph
 fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
     navigation<CustomerGraph>(startDestination = HomeRoute) {
-
         composable<HomeRoute> {
             HomeScreen(
                 onNavigateToCategory = { id ->
@@ -374,7 +372,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-
         composable<CheckoutSuccessRoute> {
             CheckoutSuccessScreen(
                 onTrackOrder = {
@@ -414,7 +411,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onChangePassword = { navController.navigate(ChangePasswordRoute) },
                 onResetEmail = { navController.navigate(ResetEmailRoute) },
                 onLogout = {
-                    // delete all backstack
                     navController.navigate(AuthGraph) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -539,12 +535,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
     }
 }
 
-// vendor graph
 fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
-
     composable<RestaurantGraph> {
         val vendorNavController = androidx.navigation.compose.rememberNavController()
-
         val navBackStackEntry by vendorNavController.currentBackStackEntryAsState()
         val currentRouteStr = navBackStackEntry?.destination?.route ?: ""
 
@@ -603,7 +596,6 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 }
             }
         ) { paddingValues ->
-
             NavHost(
                 navController = vendorNavController,
                 startDestination = RestaurantDashboardRoute,
@@ -657,7 +649,6 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
     }
 }
 
-// admin graph
 fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
     val onAdminNavigate: (String) -> Unit = { route ->
         when (route) {
@@ -690,7 +681,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         composable<AdminCategoriesRoute> {
             AdminCategoryScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAdd = { /* TODO: navController.navigate(CreateCategoryRoute) */ },
+                onNavigateToAdd = { /* TODO */ },
                 onNavigateToEdit = { /* TODO */ },
                 onNavigate = onAdminNavigate
             )

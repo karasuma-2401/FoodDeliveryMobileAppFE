@@ -1,6 +1,7 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AuthApi
+import com.example.fooddelivery.data.remote.dto.AuthResponse
 import com.example.fooddelivery.data.remote.dto.ChangePasswordRequest
 import com.example.fooddelivery.data.remote.dto.FacebookLoginRequest
 import com.example.fooddelivery.data.remote.dto.GoogleLoginRequest
@@ -12,6 +13,7 @@ import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.RegisterResponse
 import com.example.fooddelivery.data.remote.dto.ResetEmailRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
+import com.example.fooddelivery.data.remote.dto.SocialLoginRequest
 import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import com.example.fooddelivery.domain.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
@@ -30,7 +32,8 @@ class AuthRepositoryImpl @Inject constructor(
                     Result.success(it)
                 } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception("Login failed: ${response.code()}"))
+                val errorMsg = response.errorBody()?.string() ?: "Login failed: ${response.code()}"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -38,15 +41,16 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun loginFacebook(facebookToken: String): Result<LoginResponse> {
+    override suspend fun loginFacebook(accessToken: String?, code: String?): Result<LoginResponse> {
         return try {
-            val response = api.loginFacebook(FacebookLoginRequest(accessToken = facebookToken))
+            val response = api.loginFacebook(FacebookLoginRequest(accessToken = accessToken, code = code))
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it)
                 } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception("Login with facebook failed: ${response.code()}"))
+                val errorMsg = response.errorBody()?.string() ?: "Login with facebook failed"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -54,19 +58,42 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun loginGoogle(googleToken: String): Result<LoginResponse> {
+    override suspend fun loginGoogle(accessToken: String?, code: String?): Result<LoginResponse> {
         return try {
-            val response = api.loginGoogle(GoogleLoginRequest(accessToken = googleToken))
+            val response = api.loginGoogle(GoogleLoginRequest(accessToken = accessToken, code = code))
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it)
                 } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception("Login with google failed: ${response.code()}"))
+                val errorMsg = response.errorBody()?.string() ?: "Login with google failed"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun loginSocial(
+        provider: String,
+        accessToken: String?,
+        code: String?
+    ): Result<LoginResponse> {
+        return try {
+            val request = SocialLoginRequest(provider, accessToken, code)
+            val response = api.loginSocial(request)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Social login failed"
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
         }
     }
 
@@ -78,7 +105,8 @@ class AuthRepositoryImpl @Inject constructor(
                     Result.success(it)
                 } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception("Refresh token failed: ${response.code()}"))
+                val errorMsg = response.errorBody()?.string() ?: "Refresh token failed"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -86,16 +114,17 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun register(name: String, email: String, phone: String, password: String): Result<RegisterResponse> {
+    override suspend fun register(name: String, email: String, phone: String, password: String, birthday: String?): Result<RegisterResponse> {
         return try {
-            val request = RegisterRequest(name, email, phone, password)
+            val request = RegisterRequest(name, email, phone, password, birthday)
             val response = api.register(request)
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it)
                 } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception("Registration failed: ${response.code()}"))
+                val errorMsg = response.errorBody()?.string() ?: "Registration failed"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -103,13 +132,16 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun verifyAccount(otp: String): Result<Unit> {
+    override suspend fun verifyAccount(otp: String): Result<AuthResponse> {
         return try {
             val response = api.verifyAccount(otp)
             if (response.isSuccessful) {
-                Result.success(Unit)
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
             } else {
-                Result.failure(Exception("Verification failed: ${response.code()}"))
+                val errorMsg = response.errorBody()?.string() ?: "Verification failed"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -123,7 +155,8 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body()?.isSuccess == true) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(response.body()?.message ?: "Failed to send reset code"))
+                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Failed to send reset code"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -139,7 +172,8 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body()?.isSuccess == true) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(response.body()?.message ?: "Failed to verify code"))
+                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Failed to verify code"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -149,16 +183,17 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun resetPassword(
         email: String,
-        resetCode: String,
+        otp: String,
         newPassword: String
     ): Result<Unit> {
         return try {
-            val request = ResetPasswordRequest(email, resetCode, newPassword)
+            val request = ResetPasswordRequest(email, otp, newPassword)
             val response = api.resetPassword(request)
-            if (response.isSuccessful && response.body()?.isSuccess == true) {
+            if (response.isSuccessful && (response.body()?.isSuccess == true || response.code() == 200)) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(response.body()?.message ?: "Failed to reset password"))
+                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Failed to reset password"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -178,7 +213,8 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(response.body()?.message ?: "Change password failed"))
+                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Change password failed"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -192,7 +228,8 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(response.body()?.otp)
             } else {
-                Result.failure(Exception(response.body()?.message ?: "Request failed"))
+                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Request failed"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -206,7 +243,8 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(response.body()?.message ?: "Verification failed"))
+                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Verification failed"
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

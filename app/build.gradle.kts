@@ -7,15 +7,16 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.services)
 }
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
-// Cung cấp giá trị mặc định "0" nếu không tìm thấy trong local.properties để tránh crash
 val fbAppId = localProperties.getProperty("FACEBOOK_APP_ID") ?: "0"
 val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN") ?: "0"
+val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""
 val fbProtocolScheme = "fb$fbAppId"
 
 
@@ -36,7 +37,9 @@ android {
         resValue("string", "facebook_client_token", fbClientToken)
         resValue("string", "fb_login_protocol_scheme", fbProtocolScheme)
 
-        // Mặc định dùng localhost cho adb reverse
+        // SECURITY: Đưa Google Client ID vào BuildConfig
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
+
         buildConfigField("String", "API_BASE_URL", "\"http://localhost:4000/api/\"")
 
         ksp {
@@ -50,7 +53,7 @@ android {
             buildConfigField("String", "SOCKET_URL", "\"http://localhost:4000\"")
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true // Bật obfuscation để bảo vệ code
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -130,4 +133,16 @@ dependencies {
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     
     implementation("com.airbnb.android:lottie-compose:6.7.1")
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth)
+    implementation(libs.play.services.auth)
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    // Security
+    implementation(libs.androidx.security.crypto)
 }

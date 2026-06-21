@@ -22,6 +22,13 @@ data class GoogleLoginRequest (
 )
 
 @Serializable
+data class SocialLoginRequest(
+    val provider: String,
+    val accessToken: String? = null,
+    val code: String? = null
+)
+
+@Serializable
 data class RefreshRequest (
     val refreshToken: String
 )
@@ -45,7 +52,8 @@ data class RegisterRequest (
     val name: String,
     val email: String,
     val phone: String,
-    val password: String
+    val password: String,
+    val birthday: String? = null
 )
 
 @Serializable
@@ -62,8 +70,8 @@ data class VerifyCodeRequest(
 @Serializable
 data class ResetPasswordRequest(
     val email: String,
-    val resetCode: String,
-    val newPass: String
+    val otp: String,
+    val newPassword: String
 )
 
 @Serializable
@@ -79,7 +87,8 @@ data class RegisterResponse(
     val id: Int,
     val name: String,
     val phone: String,
-    val email: String
+    val email: String,
+    val otp: String? = null
 )
 
 @Serializable
