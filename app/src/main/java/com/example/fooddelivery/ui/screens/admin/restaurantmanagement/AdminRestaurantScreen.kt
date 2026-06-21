@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.admin.dashboard
+package com.example.fooddelivery.ui.screens.admin.restaurantmanagement
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

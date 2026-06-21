@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.admin.notification
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,7 +20,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.admin.components.VendorNotificationItem
-import com.example.fooddelivery.ui.screens.admin.dashboard.RestaurantFormScreen
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
