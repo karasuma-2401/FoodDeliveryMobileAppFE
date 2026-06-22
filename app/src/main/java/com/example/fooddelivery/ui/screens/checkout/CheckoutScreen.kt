@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.R
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,6 +27,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.screens.cart.components.VoucherSelectionSheet
 import com.example.fooddelivery.ui.screens.checkout.components.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -42,8 +44,12 @@ fun CheckoutScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
+    val paymentSheetState = rememberModalBottomSheetState()
     var showPaymentSheet by remember { mutableStateOf(false) }
+    
+    val voucherSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showVoucherSheet by remember { mutableStateOf(false) }
+    
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -140,6 +146,12 @@ fun CheckoutScreen(
                     paymentMethod = state.paymentMethod,
                     onClick = { showPaymentSheet = true }
                 )
+                
+                SectionTitle("Discount Voucher")
+                VoucherCard(
+                    selectedVoucher = state.selectedVoucher,
+                    onClick = { showVoucherSheet = true }
+                )
 
                 CheckoutBillBreakdown(
                     subtotal = state.subtotal,
@@ -182,13 +194,53 @@ fun CheckoutScreen(
             onPaymentMethodSelected = { method ->
                 viewModel.onEvent(CheckoutEvent.PaymentMethodSelected(method))
                 scope.launch { 
-                    sheetState.hide() 
+                    paymentSheetState.hide() 
                 }.invokeOnCompletion { 
-                    if (!sheetState.isVisible) showPaymentSheet = false 
+                    if (!paymentSheetState.isVisible) showPaymentSheet = false 
                 }
             },
             selectedPaymentMethod = state.paymentMethod,
-            sheetState = sheetState
+            sheetState = paymentSheetState
         )
     }
+
+    if (showVoucherSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showVoucherSheet = false },
+            sheetState = voucherSheetState,
+            dragHandle = null,
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            VoucherSelectionSheet(
+                vouchers = state.availableVouchers,
+                selectedVoucherId = state.selectedVoucher?.id,
+                promoCode = "", // Can be implemented in ViewModel if needed
+                promoError = null,
+                onPromoCodeChange = {},
+                onApplyPromoCode = {},
+                onVoucherSelected = { /* Optional preview logic */ },
+                onConfirm = { voucher ->
+                    viewModel.onEvent(CheckoutEvent.ApplyVoucher(voucher))
+                    scope.launch { voucherSheetState.hide() }.invokeOnCompletion {
+                        showVoucherSheet = false
+                    }
+                },
+                onDismiss = {
+                    scope.launch { voucherSheetState.hide() }.invokeOnCompletion {
+                        showVoucherSheet = false
+                    }
+                }
+            )
+        }
+    }
 }
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun CheckoutScreenPreview() {
+    CheckoutScreen(
+        onNavigateBack = {},
+        onNavigateToAddAddress = {},
+        onNavigateToPaymentSuccessful = {}
+    )
+}
+

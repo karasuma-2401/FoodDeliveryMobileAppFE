@@ -161,23 +161,43 @@ class OrderRepositoryImpl @Inject constructor(
             restaurantId = restaurant?.id ?: 0,
             restaurantName = restaurant?.name ?: "",
             restaurantImage = restaurant?.image ?: "",
-            items = orderFoods.map { food ->
+            restaurantPhone = restaurant?.phone,
+            items = orderFoods.map { foodBrief ->
                 OrderItemDetail(
-                    id = food.id,
-                    name = food.name,
-                    image = food.image,
-                    quantity = food.quantity,
-                    price = food.price,
-                    size = food.sizeName
+                    id = foodBrief.id,
+                    foodId = foodBrief.food?.id ?: 0,
+                    name = foodBrief.food?.name ?: "Unknown",
+                    image = foodBrief.food?.image ?: "",
+                    quantity = foodBrief.quantity,
+                    price = foodBrief.price,
+                    size = foodBrief.sizeName,
+                    note = foodBrief.fullText,
+                    description = foodBrief.food?.description
                 )
             },
-            address = address?.fullText ?: "",
+            address = OrderAddress(
+                id = address?.id ?: 0,
+                title = address?.title ?: "",
+                fullText = address?.fullText ?: "",
+                latitude = address?.latitude ?: 0.0,
+                longitude = address?.longitude ?: 0.0
+            ),
             note = note,
             paymentMethod = payment?.method ?: "",
             paymentStatus = payment?.paymentStatus ?: "",
+            paymentDate = payment?.createdAt?.let { formatDate(it) },
             customerName = user?.name ?: "",
             customerPhone = user?.phone,
-            conversationId = conversation?.id
+            customerEmail = user?.email,
+            conversationId = conversation?.id,
+            voucherInfo = voucher?.let {
+                VoucherSummary(
+                    id = it.id,
+                    name = it.name,
+                    sale = it.sale ?: 0.0,
+                    type = it.type ?: "MONEY"
+                )
+            }
         )
     }
 
@@ -193,10 +213,16 @@ class OrderRepositoryImpl @Inject constructor(
 
     private fun formatDate(dateStr: String): String {
         return try {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-            inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-            val date = inputFormat.parse(dateStr)
+            // Check if it's ISO format or other
+            val inputFormat = if (dateStr.contains("T")) {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+            } else {
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            }
             
+            val date = inputFormat.parse(dateStr)
             val outputFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
             outputFormat.format(date!!)
         } catch (e: Exception) {

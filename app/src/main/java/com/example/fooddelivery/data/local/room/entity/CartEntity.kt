@@ -25,7 +25,8 @@ data class CartEntity(
     val promoTag: String?,
     val foodSize: String,
     val cartItemId: Int? = null,
-    val note: String? = null
+    val note: String? = null,
+    val foodSizeId: String? = null
 )
 
 fun CartEntity.toDomain(): CartItem {
@@ -50,7 +51,8 @@ fun CartEntity.toDomain(): CartItem {
         restaurantId = restaurantId,
         restaurantName = restaurantName,
         cartItemId = cartItemId,
-        note = note
+        note = note,
+        foodSizeId = foodSizeId
     )
 }
 
@@ -72,6 +74,7 @@ fun CartItem.toEntity(): CartEntity {
         promoTag = food.promoTag,
         foodSize = food.size ?: "",
         cartItemId = cartItemId,
-        note = note
+        note = note,
+        foodSizeId = foodSizeId
     )
 }
