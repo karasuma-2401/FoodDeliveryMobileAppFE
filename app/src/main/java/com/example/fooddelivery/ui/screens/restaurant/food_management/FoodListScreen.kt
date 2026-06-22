@@ -1,4 +1,5 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -53,7 +54,6 @@ fun MyFoodListScreenContent(
                 onBackClick = onNavigateBack,
             )
         },
-        // ĐÃ XÓA KHỐI bottomBar TẠI ĐÂY - Giúp thanh điều hướng không bị lặp lại
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
@@ -92,25 +92,24 @@ fun MyFoodListScreenContent(
 @Composable
 fun FoodListScreenPreview() {
     DFoodTheme {
-        // Use the stateless MyFoodListScreenContent for the preview to avoid Hilt/ViewModel issues
         MyFoodListScreenContent(
             state = MyFoodListState(
                 foodList = listOf(
                     FoodResponse(
                         id = "1",
                         name = "Classic Burger",
-                        price = 10.0,
+                        price = 45000.0, // Đổi sang mệnh giá đ cho đồng bộ mẫu
                         details = "Juicy beef patty with cheese",
-                        category = "Lunch",
+                        category = "Fast Food",
                         rating = 4.5f,
                         reviewCount = 120
                     ),
                     FoodResponse(
                         id = "2",
-                        name = "Pancakes",
-                        price = 7.0,
-                        details = "Fluffy pancakes with syrup",
-                        category = "Breakfast",
+                        name = "Cheese Pizza",
+                        price = 120000.0,
+                        details = "Fluffy pizza with double cheese",
+                        category = "Pizza",
                         rating = 4.8f,
                         reviewCount = 85
                     )
@@ -119,18 +118,18 @@ fun FoodListScreenPreview() {
                     FoodResponse(
                         id = "1",
                         name = "Classic Burger",
-                        price = 10.0,
+                        price = 45000.0,
                         details = "Juicy beef patty with cheese",
-                        category = "Lunch",
+                        category = "Fast Food",
                         rating = 4.5f,
                         reviewCount = 120
                     ),
                     FoodResponse(
                         id = "2",
-                        name = "Pancakes",
-                        price = 7.0,
-                        details = "Fluffy pancakes with syrup",
-                        category = "Breakfast",
+                        name = "Cheese Pizza",
+                        price = 120000.0,
+                        details = "Fluffy pizza with double cheese",
+                        category = "Pizza",
                         rating = 4.8f,
                         reviewCount = 85
                     )

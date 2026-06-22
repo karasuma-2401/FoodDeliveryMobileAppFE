@@ -1,7 +1,6 @@
 package com.example.fooddelivery.ui.components.card
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -11,10 +10,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
@@ -28,6 +27,9 @@ fun FoodItemCard(
     onDeleteClick: () -> Unit = {}
 ) {
     var showMenu by remember { mutableStateOf(false) }
+
+    val displayPrice = item.price.toInt()
+    val formattedPrice = String.format("%,d", displayPrice).replace(',', '.') + "đ"
 
     Row(
         modifier = modifier
@@ -47,6 +49,7 @@ fun FoodItemCard(
         )
 
         Spacer(modifier = Modifier.width(16.dp))
+
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -56,26 +59,29 @@ fun FoodItemCard(
                     fontWeight = FontWeight.Bold
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = item.category,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold
                     )
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Star,
@@ -83,26 +89,21 @@ fun FoodItemCard(
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(16.dp)
                 )
-
                 Spacer(modifier = Modifier.width(4.dp))
-
                 Text(
                     text = item.rating.toString(),
                     color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                 )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "(${item.reviewCount} Review)",
+                    text = "(${item.reviewCount} Reviews)",
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.labelMedium
                 )
             }
         }
+
         Column(
             horizontalAlignment = Alignment.End,
             modifier = Modifier.height(88.dp),
@@ -129,12 +130,7 @@ fun FoodItemCard(
                         }
                     )
                     DropdownMenuItem(
-                        text = { 
-                            Text(
-                                text = "Delete", 
-                                color = MaterialTheme.colorScheme.error
-                            ) 
-                        },
+                        text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
                         onClick = {
                             showMenu = false
                             onDeleteClick()
@@ -144,7 +140,7 @@ fun FoodItemCard(
             }
 
             Text(
-                text = "$${item.price.toInt()}",
+                text = formattedPrice,
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary

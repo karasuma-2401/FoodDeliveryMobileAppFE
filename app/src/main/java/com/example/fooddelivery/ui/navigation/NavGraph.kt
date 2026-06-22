@@ -65,7 +65,8 @@ import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
 import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.profile.notification.NotificationScreen
-
+import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
+import com.example.fooddelivery.ui.screens.admin.notification.AdminNotificationScreen
 @Composable
 fun RootNavigationGraph(
     navController: NavHostController,
@@ -712,11 +713,19 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
             "settings" -> navController.navigate(AdminSettingsRoute) {
                 launchSingleTop = true
             }
+            "notifications" -> navController.navigate(AdminNotificationRoute) {
+                launchSingleTop = true
+            }
         }
     }
 
     navigation<AdminGraph>(startDestination = AdminDashboardRoute) {
+
         composable<AdminDashboardRoute> {
+            AdminDashboardScreen()
+        }
+
+        composable<AdminRestaurantsRoute> {
             AdminRestaurantScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAdd = { /* TODO */ },
@@ -736,6 +745,12 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
 
         composable<AdminCouponRoute> {
             RestaurantCouponScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<AdminNotificationRoute> {
+            AdminNotificationScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
