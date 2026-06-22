@@ -52,7 +52,8 @@ data class CheckoutRoute(
 @Serializable data class TrackOrderRoute(val orderId: String = "")
 @Serializable 
 data class RatingReviewRoute(
-    val orderId: String, 
+    val orderId: String,
+    val restaurantId: String = "",
     val restaurantName: String = "", 
     val restaurantImage: String = "",
     val initialRating: Int = 0,
