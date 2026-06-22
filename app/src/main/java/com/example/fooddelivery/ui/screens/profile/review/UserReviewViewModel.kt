@@ -34,6 +34,7 @@ sealed interface UserReviewEvent {
 sealed interface UserReviewUiEffect {
     data class NavigateToEdit(
         val orderId: String,
+        val restaurantId: String,
         val restaurantName: String,
         val restaurantImage: String,
         val rating: Int,
@@ -72,6 +73,7 @@ class UserReviewViewModel @Inject constructor() : ViewModel() {
                 viewModelScope.launch {
                     _uiEffect.emit(UserReviewUiEffect.NavigateToEdit(
                         orderId = event.review.orderId,
+                        restaurantId = event.review.restaurantId,
                         restaurantName = event.review.restaurantName,
                         restaurantImage = event.review.restaurantImage,
                         rating = event.review.rating,

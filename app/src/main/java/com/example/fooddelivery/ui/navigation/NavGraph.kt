@@ -388,8 +388,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             OrdersScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTrackOrder = { orderId -> navController.navigate(TrackOrderRoute(orderId = orderId)) },
-                onNavigateToRate = { orderId, restaurantName ->
-                    navController.navigate(RatingReviewRoute(orderId = orderId, restaurantName = restaurantName))
+                onNavigateToRate = { orderId, restaurantId, restaurantName ->
+                    navController.navigate(RatingReviewRoute(orderId = orderId, restaurantId = restaurantId, restaurantName = restaurantName))
                 },
                 onNavigateToCart = { navController.navigate(CartRoute) }
             )
@@ -466,10 +466,11 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<UserReviewRoute> {
             UserReviewScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToEdit = { orderId, name, image, rating, comment ->
+                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment ->
                     navController.navigate(
                         RatingReviewRoute(
                             orderId = orderId,
+                            restaurantId = restaurantId,
                             restaurantName = name,
                             restaurantImage = image,
                             initialRating = rating,

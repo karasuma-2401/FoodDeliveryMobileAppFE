@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun UserReviewScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToEdit: (String, String, String, Int, String) -> Unit,
+    onNavigateToEdit: (String, String, String, String, Int, String) -> Unit,
     viewModel: UserReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -43,6 +43,7 @@ fun UserReviewScreen(
                 is UserReviewUiEffect.NavigateToEdit -> {
                     onNavigateToEdit(
                         effect.orderId,
+                        effect.restaurantId,
                         effect.restaurantName,
                         effect.restaurantImage,
                         effect.rating,

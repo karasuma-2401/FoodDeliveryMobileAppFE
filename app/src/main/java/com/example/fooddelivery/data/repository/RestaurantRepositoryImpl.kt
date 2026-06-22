@@ -125,4 +125,18 @@ class RestaurantRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun rateRestaurant(request: RestaurantRatingRequest): Result<FoodRatingResponse> {
+        return try {
+            val response = api.rateRestaurant(request.restaurantId, request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.message()))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
 }

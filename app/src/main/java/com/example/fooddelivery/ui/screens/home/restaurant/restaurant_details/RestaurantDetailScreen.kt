@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,6 +24,7 @@ import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.co
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.RestaurantHeader
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.RestaurantHeaderSkeleton
 import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.components.SectionHeaderSkeleton
+import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -213,5 +215,16 @@ fun RestaurantDetailScreen(
                 }
             }
         }
+    }
+}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun RestaurantDetailScreenPreview() {
+    DFoodTheme(darkTheme = false) {
+        RestaurantDetailScreen(
+            onNavigateBack = {},
+            onNavigateToFoodDetail = {},
+            viewModel = hiltViewModel()
+        )
     }
 }

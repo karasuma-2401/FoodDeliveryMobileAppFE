@@ -1,9 +1,6 @@
 package com.example.fooddelivery.domain.repository
 
-import com.example.fooddelivery.data.remote.dto.DashboardResponse
-import com.example.fooddelivery.data.remote.dto.FoodRequest
-import com.example.fooddelivery.data.remote.dto.FoodResponse
-import com.example.fooddelivery.data.remote.dto.BaseResponse
+import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.domain.model.Restaurant
 
 interface RestaurantRepository {
@@ -20,4 +17,5 @@ interface RestaurantRepository {
     suspend fun getFoodById(id: String): Result<FoodResponse>
     suspend fun updateFood(id: String, request: FoodRequest): Result<BaseResponse<FoodResponse>>
     suspend fun deleteFood(id: String): Result<BaseResponse<Unit>>
+    suspend fun rateRestaurant(request: RestaurantRatingRequest): Result<FoodRatingResponse>
 }

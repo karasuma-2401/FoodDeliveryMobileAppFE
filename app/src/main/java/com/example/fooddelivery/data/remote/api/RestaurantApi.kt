@@ -1,10 +1,6 @@
 package com.example.fooddelivery.data.remote.api
 
-import com.example.fooddelivery.data.remote.dto.BaseResponse
-import com.example.fooddelivery.data.remote.dto.DashboardResponse
-import com.example.fooddelivery.data.remote.dto.FoodRequest
-import com.example.fooddelivery.data.remote.dto.FoodResponse
-import com.example.fooddelivery.data.remote.dto.RestaurantResponse
+import com.example.fooddelivery.data.remote.dto.*
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -34,4 +30,10 @@ interface RestaurantApi {
 
     @DELETE("restaurant/foods/{id}")
     suspend fun deleteFood(@Path("id") id: String): Response<BaseResponse<Unit>>
+
+    @POST("api/restaurant/{id}/ratings")
+    suspend fun rateRestaurant(
+        @Path("id") restaurantId: Int,
+        @Body request: RestaurantRatingRequest
+    ): Response<FoodRatingResponse>
 }
