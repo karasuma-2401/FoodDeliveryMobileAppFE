@@ -2,7 +2,9 @@ package com.example.fooddelivery.ui.screens.order
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.model.OrderAddress
 import com.example.fooddelivery.domain.model.OrderDetail
+import com.example.fooddelivery.domain.model.VoucherSummary
 import com.example.fooddelivery.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -25,8 +27,10 @@ enum class TrackingStatus(val step: Int, val title: String, val subtitle: String
 data class OrderSummaryItem(
     val name: String,
     val quantity: Int,
+    val price: Double,
     val description: String,
-    val image: String
+    val image: String,
+    val note: String? = null
 )
 
 data class TrackOrderState(
@@ -40,7 +44,13 @@ data class TrackOrderState(
     val restaurantImage: String = "",
     val restaurantPhone: String = "",
     val items: List<OrderSummaryItem> = emptyList(),
-    val restaurantId: Int = 0
+    val restaurantId: Int = 0,
+    val address: OrderAddress? = null,
+    val paymentMethod: String = "",
+    val paymentStatus: String = "",
+    val totalPrice: Double = 0.0,
+    val voucherInfo: VoucherSummary? = null,
+    val note: String? = null
 )
 
 sealed interface TrackOrderEvent {
@@ -82,8 +92,8 @@ class TrackOrderViewModel @Inject constructor(
             _state.update { state ->
                 result.fold(
                     onSuccess = { detail ->
-                        // Stop polling if order reached final state
-                        if (detail.statusStep >= 5) {
+                        // Stop polling if order reached final state (Delivered or Canceled)
+                        if (detail.statusStep >= 5 || detail.backendStatus == "CANCELLED" || detail.backendStatus == "DELIVERED") {
                             stopPolling()
                         }
                         state.copy(
@@ -93,11 +103,17 @@ class TrackOrderViewModel @Inject constructor(
                             expectedArrival = detail.expectedArrival ?: "--:--",
                             restaurantName = detail.restaurantName,
                             restaurantImage = detail.restaurantImage,
-                            restaurantPhone = detail.customerPhone ?: "", // Placeholder: using customer phone as restaurant phone if missing
+                            restaurantPhone = detail.restaurantPhone ?: "",
                             items = detail.items.map { 
-                                OrderSummaryItem(it.name, it.quantity, it.size ?: "", it.image) 
+                                OrderSummaryItem(it.name, it.quantity, it.price, it.size ?: "", it.image, it.note) 
                             },
-                            restaurantId = detail.restaurantId
+                            restaurantId = detail.restaurantId,
+                            address = detail.address,
+                            paymentMethod = detail.paymentMethod,
+                            paymentStatus = detail.paymentStatus,
+                            totalPrice = detail.totalPrice,
+                            voucherInfo = detail.voucherInfo,
+                            note = detail.note
                         )
                     },
                     onFailure = { error ->

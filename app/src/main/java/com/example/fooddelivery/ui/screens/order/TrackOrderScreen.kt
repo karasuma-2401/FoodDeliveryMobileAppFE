@@ -1,5 +1,7 @@
 package com.example.fooddelivery.ui.screens.order
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,18 +17,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.screens.order.components.OrderSummaryCard
-import com.example.fooddelivery.ui.screens.order.components.RestaurantContactCard
-import com.example.fooddelivery.ui.screens.order.components.TimelineItem
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.fooddelivery.ui.screens.checkout.components.SectionTitle
+import com.example.fooddelivery.ui.screens.order.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,6 +74,8 @@ fun TrackOrderContent(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Arrival Time Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -100,17 +101,19 @@ fun TrackOrderContent(
                     }
                 }
             }
+
+            // Tracking Section
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Live Tracking",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground,
+                SectionTitle(
+                    title = "Live Tracking",
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 val statuses = TrackingStatus.entries
                 statuses.forEachIndexed { index, status ->
-                    val isCompleted = state.trackingStatus.step > status.step || (state.trackingStatus == status && state.trackingStatus == TrackingStatus.COMPLETED)
+                    // Logic: isCompleted if we passed this step
+                    // isActive if we are currently at this step
+                    val isCompleted = state.trackingStatus.step > status.step 
                     val isActive = state.trackingStatus == status
 
                     TimelineItem(
@@ -123,6 +126,8 @@ fun TrackOrderContent(
                     )
                 }
             }
+
+            // Contact Card
             RestaurantContactCard(
                 restaurantName = state.restaurantName,
                 restaurantImage = state.restaurantImage,
@@ -141,7 +146,46 @@ fun TrackOrderContent(
                     ) 
                 }
             )
+
+            // Delivery Address
+            SectionTitle(title = "Delivery Details")
+            DeliveryAddressCard(address = state.address)
+
+            // Order Summary
             OrderSummaryCard(items = state.items)
+
+            // Payment & Billing Detail
+            OrderBillDetailCard(
+                totalPrice = state.totalPrice,
+                paymentMethod = state.paymentMethod,
+                paymentStatus = state.paymentStatus,
+                paymentDate = state.orderDetail?.paymentDate,
+                voucherInfo = state.voucherInfo
+            )
+
+            // Order Note
+            if (!state.note.isNullOrBlank()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Order Note",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = state.note,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -171,9 +215,12 @@ fun TrackOrderContentPreview() {
                 restaurantName = "Rose Garden Restaurant",
                 restaurantPhone = "0987654321",
                 items = listOf(
-                    OrderSummaryItem("Burger Bistro", 1, "Extra cheese", ""),
-                    OrderSummaryItem("Garden Pizza", 1, "Medium size", "")
-                )
+                    OrderSummaryItem("Burger Bistro", 1, 15.0, "Extra cheese", ""),
+                    OrderSummaryItem("Garden Pizza", 1, 22.0, "Medium size", "")
+                ),
+                totalPrice = 37.0,
+                paymentMethod = "MOMO",
+                paymentStatus = "DONE"
             ),
             onNavigateBack = {},
             onChatWithRestaurant = { _, _, _, _ -> }

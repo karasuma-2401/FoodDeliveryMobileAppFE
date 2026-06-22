@@ -11,8 +11,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.ui.screens.order.OrderSummaryItem
+import java.util.Locale
 
 @Composable
 fun OrderSummaryCard(
@@ -40,8 +42,9 @@ fun OrderSummaryCard(
                     color = MaterialTheme.colorScheme.primaryContainer,
                     shape = RoundedCornerShape(8.dp)
                 ) {
+                    val totalItems = items.sumOf { it.quantity }
                     Text(
-                        text = "${items.size} Items",
+                        text = "$totalItems Items",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -54,48 +57,68 @@ fun OrderSummaryCard(
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             Spacer(modifier = Modifier.height(16.dp))
-            items.forEach { item ->
+            
+            items.forEachIndexed { index, item ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth().padding(bottom = if (index == items.size - 1) 0.dp else 16.dp),
+                    verticalAlignment = Alignment.Top
                 ) {
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = "${item.quantity}x",
                                 color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = item.name,
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(
-                            text = item.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (item.description.isNotEmpty()) {
+                            Text(
+                                text = item.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (!item.note.isNullOrBlank()) {
+                            Text(
+                                text = "Note: ${item.note}",
+                                style = MaterialTheme.typography.bodySmall.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.width(16.dp))
-                    AsyncImage(
-                        model = item.image,
-                        contentDescription = item.name,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentScale = ContentScale.Crop
-                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "$${String.format(Locale.US, "%.2f", item.price * item.quantity)}",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        AsyncImage(
+                            model = item.image,
+                            contentDescription = item.name,
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
         }
