@@ -15,6 +15,8 @@ data class OrderItem(
 data class OrderModel(
     val id: String,
     val orderTime: String,
+    val customerName: String,
+    val customerPhone: String,
     val items: List<OrderItem>,
     val status: OrderStatus
 ) {
@@ -71,6 +73,8 @@ class OrderManagementViewModel @Inject constructor() : ViewModel() {
                 OrderModel(
                     id = "#12345",
                     orderTime = "10:30 AM",
+                    customerName = "Nguyễn Văn Anh",
+                    customerPhone = "0901.234.567",
                     status = OrderStatus.REQUEST,
                     items = listOf(
                         OrderItem("Classic Burger", 2, 45000.0),
@@ -80,6 +84,8 @@ class OrderManagementViewModel @Inject constructor() : ViewModel() {
                 OrderModel(
                     id = "#12346",
                     orderTime = "09:15 AM",
+                    customerName = "Trần Thị Bích",
+                    customerPhone = "0988.777.666",
                     status = OrderStatus.RUNNING,
                     items = listOf(
                         OrderItem("Thai Biriyani", 1, 65000.0),
@@ -89,6 +95,8 @@ class OrderManagementViewModel @Inject constructor() : ViewModel() {
                 OrderModel(
                     id = "#12347",
                     orderTime = "Yesterday",
+                    customerName = "Lê Hoàng Nam",
+                    customerPhone = "0912.333.444",
                     status = OrderStatus.COMPLETED,
                     items = listOf(
                         OrderItem("Fried Chicken", 4, 35000.0)
