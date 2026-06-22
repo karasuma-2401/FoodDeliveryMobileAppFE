@@ -59,7 +59,8 @@ class CartRepositoryImpl @Inject constructor(
                 promoTag = itemDto.food.label,
                 foodSize = itemDto.sizeName ?: "",
                 cartItemId = itemDto.id,
-                note = itemDto.fullText
+                note = itemDto.fullText,
+                foodSizeId = itemDto.foodSizeId?.toString()
             )
         }
         cartDao.clearCart()

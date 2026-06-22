@@ -33,23 +33,45 @@ data class OrderDetail(
     val restaurantId: Int,
     val restaurantName: String,
     val restaurantImage: String,
+    val restaurantPhone: String?,
     val items: List<OrderItemDetail>,
-    val address: String,
+    val address: OrderAddress,
     val note: String?,
     val paymentMethod: String,
     val paymentStatus: String,
+    val paymentDate: String?,
     val customerName: String,
     val customerPhone: String?,
-    val conversationId: Int?
+    val customerEmail: String?,
+    val conversationId: Int?,
+    val voucherInfo: VoucherSummary? = null
+)
+
+data class OrderAddress(
+    val id: Int,
+    val title: String,
+    val fullText: String,
+    val latitude: Double,
+    val longitude: Double
 )
 
 data class OrderItemDetail(
     val id: Int,
+    val foodId: Int,
     val name: String,
     val image: String,
     val quantity: Int,
     val price: Double,
-    val size: String?
+    val size: String?,
+    val note: String?,
+    val description: String? = null
+)
+
+data class VoucherSummary(
+    val id: Int,
+    val name: String,
+    val sale: Double,
+    val type: String
 )
 
 data class OrderStatusSummary(

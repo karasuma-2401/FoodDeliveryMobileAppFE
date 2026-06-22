@@ -33,12 +33,54 @@ data class OrderItemRequest(
 
 @Serializable
 data class OrderResponse(
+    val order: OrderDetailDto,
+    val payment: PaymentDto,
+    val momoPayment: MomoPaymentDto? = null,
+    val conversation: OrderConversationDto? = null
+)
+
+@Serializable
+data class OrderDetailDto(
     val id: Int,
+    val restaurantId: Int,
+    val totalPrice: Double,
     val status: String,
-    val orderCode: String? = null,
-    val totalAmount: Double? = null,
-    val createdAt: String? = null,
-    val deeplink: String? = null
+    val userId: Int,
+    val addressId: Int,
+    val voucherId: Int? = null,
+    val note: String? = null,
+    val createdAt: String? = null
+)
+
+@Serializable
+data class PaymentDto(
+    val id: Int,
+    val orderId: Int,
+    val amount: Double,
+    val method: String,
+    val paymentStatus: String,
+    val createdAt: String? = null
+)
+
+@Serializable
+data class MomoPaymentDto(
+    val partnerCode: String,
+    val orderId: String,
+    val requestId: String,
+    val payUrl: String,
+    val deeplink: String,
+    val qrCodeUrl: String,
+    val resultCode: Int,
+    val message: String
+)
+
+@Serializable
+data class OrderConversationDto(
+    val id: Int,
+    val orderId: Int,
+    val customerId: Int,
+    val sellerId: Int,
+    val updatedAt: String? = null
 )
 
 @Serializable
@@ -62,6 +104,11 @@ data class CancelOrderResponse(
 @Serializable
 data class UpdateOrderStatusRequest(
     val status: String
+)
+
+@Serializable
+data class MessageResponse(
+    val message: String
 )
 
 // DTOs for Order List and Details
@@ -89,13 +136,13 @@ data class OrderDetailResponse(
     val status: String,
     val status_step: Int? = null,
     val backend_status: String? = null,
+    val note: String? = null,
     val expected_arrival: String? = null,
     val user: OrderUserDto? = null,
     val address: OrderAddressDto? = null,
     val restaurant: OrderRestaurantBriefDto? = null,
     val orderFoods: List<OrderFoodBriefDto> = emptyList(),
     val voucher: OrderVoucherDto? = null,
-    val note: String? = null,
     val payment: OrderPaymentDto? = null,
     val conversation: OrderConversationDto? = null
 )
@@ -105,19 +152,15 @@ data class OrderUserDto(
     val id: Int,
     val name: String,
     val email: String,
-    val phone: String? = null
-)
-
-@Serializable
-data class OrderConversationDto(
-    val id: Int,
-    val participantIds: List<Int> = emptyList()
+    val phone: String
 )
 
 @Serializable
 data class OrderAddressDto(
     val id: Int,
     val title: String,
+    val latitude: Double,
+    val longitude: Double,
     val fullText: String
 )
 
@@ -125,33 +168,47 @@ data class OrderAddressDto(
 data class OrderRestaurantBriefDto(
     val id: Int,
     val name: String,
-    val image: String
+    val image: String,
+    val phone: String? = null,
+    val ownerId: Int? = null,
+    val estimatedDeliveryTime: Int? = null
 )
 
 @Serializable
 data class OrderFoodBriefDto(
     val id: Int,
-    val name: String,
-    val image: String,
     val quantity: Int,
+    val fullText: String? = null,
     val price: Double,
     val foodSizeId: Int? = null,
-    val sizeName: String? = null
+    val sizeName: String? = null,
+    val food: OrderFoodDetailDto? = null
+)
+
+@Serializable
+data class OrderFoodDetailDto(
+    val id: Int,
+    val name: String,
+    val image: String,
+    val description: String? = null,
+    val label: String? = null
 )
 
 @Serializable
 data class OrderVoucherDto(
     val id: Int,
-    val name: String
+    val name: String,
+    val sale: Double? = null,
+    val type: String? = null
 )
 
 @Serializable
 data class OrderPaymentDto(
     val id: Int,
-    val paymentStatus: String,
-    val method: String,
     val amount: Double,
-    val createdAt: String
+    val method: String,
+    val paymentStatus: String,
+    val createdAt: String? = null
 )
 
 @Serializable

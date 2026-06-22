@@ -9,6 +9,8 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.data.remote.dto.OrderItemRequest
 import com.example.fooddelivery.data.remote.dto.OrderRequest
 import com.example.fooddelivery.domain.model.Address
+import com.example.fooddelivery.domain.model.Voucher
+import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
@@ -33,6 +35,8 @@ data class CheckoutState(
     val orderNote: String = "",
     val subtotal: Double = 0.0,
     val discount: Double = 0.0,
+    val selectedVoucher: Voucher? = null,
+    val availableVouchers: List<Voucher> = emptyList(),
     val isLoading: Boolean = false,
     val isPolling: Boolean = false,
     val errorMessage: String? = null
@@ -52,6 +56,7 @@ sealed interface CheckoutEvent {
     data object ChangePaymentMethod : CheckoutEvent
     data object PlaceOrder : CheckoutEvent
     data object ReturnFromMoMo : CheckoutEvent
+    data class ApplyVoucher(val voucher: Voucher?) : CheckoutEvent
 }
 
 sealed interface CheckoutUiEffect {
@@ -86,6 +91,7 @@ class CheckoutViewModel @Inject constructor(
     init {
         loadInitialData()
         observeCart()
+        loadMockVouchers()
     }
 
     private fun loadInitialData() {
@@ -109,6 +115,24 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
+    private fun loadMockVouchers() {
+        // Mocking vouchers for now as in CartViewModel
+        val mockVouchers = listOf(
+            Voucher(
+                id = "1",
+                code = "SALE20",
+                title = "Giảm 20% tối đa $15",
+                description = "Cho đơn hàng từ $50",
+                discountAmount = 15.0,
+                minOrderAmount = 50.0,
+                expiryText = "Hết hạn trong 2 ngày",
+                type = VoucherType.DISCOUNT,
+                isApplicable = true
+            )
+        )
+        _state.update { it.copy(availableVouchers = mockVouchers) }
+    }
+
     fun onEvent(event: CheckoutEvent) {
         when (event) {
             is CheckoutEvent.NoteChanged -> {
@@ -130,6 +154,12 @@ class CheckoutViewModel @Inject constructor(
             }
             is CheckoutEvent.ReturnFromMoMo -> {
                 startPolling()
+            }
+            is CheckoutEvent.ApplyVoucher -> {
+                _state.update { it.copy(
+                    selectedVoucher = event.voucher,
+                    discount = event.voucher?.discountAmount ?: checkoutArgs.discount
+                ) }
             }
         }
     }
@@ -158,19 +188,20 @@ class CheckoutViewModel @Inject constructor(
 
             val orderRequest = OrderRequest(
                 restaurantId = cartItems.first().restaurantId.toIntOrNull() ?: 0,
+                voucherId = currentState.selectedVoucher?.id?.toIntOrNull(),
                 savedAddressId = currentState.address.id.toIntOrNull() ?: 0,
                 orderFoods = cartItems.map { item ->
                     OrderItemRequest(
                         foodId = item.food.id.toIntOrNull() ?: 0,
                         quantity = item.quantity,
                         fullText = item.note,
-                        foodSizeId = null // Assuming mapping handled elsewhere or not needed for now
+                        foodSizeId = item.foodSizeId?.toIntOrNull() // Mapping from item
                     )
                 },
                 paymentMethod = currentState.paymentMethod.value,
                 note = currentState.orderNote,
                 clearCartAfterOrder = true,
-                totalAmount = null
+                totalAmount = null // Server calculates
             )
 
             val result = orderRepository.createOrder(orderRequest)
@@ -180,9 +211,9 @@ class CheckoutViewModel @Inject constructor(
                     _state.update { it.copy(isLoading = false) }
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
                 } else {
-                    pendingOrderId = response.id.toString()
+                    pendingOrderId = response.order.id.toString()
                     _state.update { it.copy(isLoading = false) }
-                    response.deeplink?.let {
+                    response.momoPayment?.deeplink?.let {
                         _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(it, currentState.total))
                     } ?: run {
                         _uiEffect.emit(CheckoutUiEffect.ShowError("Failed to get payment link"))
@@ -209,8 +240,8 @@ class CheckoutViewModel @Inject constructor(
                 val statusResult = orderRepository.checkOrderStatus(orderId)
 
                 statusResult.onSuccess { summary ->
-                    // Order status step 2 (CONFIRMED) or above usually means payment received for online methods
-                    // or checking backend_status specifically
+                    // According to API docs, we should probably check backend_status or paymentStatus
+                    // but summary.statusStep >= 2 is a safe bet for "Confirmed"
                     if (summary.statusStep >= 2 || summary.backendStatus == "CONFIRMED") {
                         isPaid = true
                     }
