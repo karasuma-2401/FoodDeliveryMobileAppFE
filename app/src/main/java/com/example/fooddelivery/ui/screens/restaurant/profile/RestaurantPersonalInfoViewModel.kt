@@ -3,6 +3,7 @@ package com.example.fooddelivery.ui.screens.restaurant.profile
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,24 +12,32 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RestaurantPersonalInfoViewModel @Inject constructor() : ViewModel() {
+class RestaurantPersonalInfoViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     var uiState by mutableStateOf(RestaurantPersonalInfoState())
         private set
 
     init {
-        loadCurrentRestaurantProfile()
+        val isFromSignUp: Boolean = savedStateHandle["isFromSignUp"] ?: false
+        uiState = uiState.copy(isFromSignUp = isFromSignUp)
+
+        if (!isFromSignUp) {
+            loadCurrentRestaurantProfile()
+        }
     }
 
     private fun loadCurrentRestaurantProfile() {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
             uiState = RestaurantPersonalInfoState(
-                name = "King Burger - Nhánh Quận 1",
+                name = "King Burger - District 1",
                 phone = "0901234567",
-                street = "123 Lê Lợi",
-                district = "Quận 1",
-                city = "TP Hồ Chí Minh"
+                street = "123 Le Loi Street",
+                district = "District 1",
+                city = "Ho Chi Minh City",
+                isFromSignUp = false
             )
         }
     }

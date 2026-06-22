@@ -33,7 +33,8 @@ fun RestaurantPersonalInfoScreen(
 
     LaunchedEffect(key1 = state.isSuccess) {
         if (state.isSuccess) {
-            Toast.makeText(context, "Information updated successfully!", Toast.LENGTH_SHORT).show()
+            val message = if (state.isFromSignUp) "Profile setup completed!" else "Information updated successfully!"
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.resetSuccessState()
             onNavigateBack()
         }
@@ -55,7 +56,8 @@ fun RestaurantPersonalInfoContent(
 ) {
     Scaffold(
         topBar = {
-            DFoodTopBar(title = "Restaurant Information", onBackClick = onNavigateBack)
+            val screenTitle = if (state.isFromSignUp) "Setup Restaurant" else "Restaurant Information"
+            DFoodTopBar(title = screenTitle, onBackClick = onNavigateBack)
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -71,7 +73,6 @@ fun RestaurantPersonalInfoContent(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Upload Image Section
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -93,7 +94,6 @@ fun RestaurantPersonalInfoContent(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // GENERAL INFORMATION
                 SectionHeader("GENERAL INFORMATION")
                 RestaurantInputField(
                     label = "Restaurant Name",
@@ -112,7 +112,6 @@ fun RestaurantPersonalInfoContent(
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // BUSINESS ADDRESS
                 SectionHeader("BUSINESS ADDRESS")
                 RestaurantInputField(
                     label = "Street Address",
@@ -140,7 +139,6 @@ fun RestaurantPersonalInfoContent(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // SAVE BUTTON
                 Button(
                     onClick = { onEvent(RestaurantPersonalInfoEvent.Submit) },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -150,7 +148,9 @@ fun RestaurantPersonalInfoContent(
                     if (state.isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Save Changes", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                        // Tự động đổi chữ nút bấm theo luồng
+                        val buttonText = if (state.isFromSignUp) "Complete Setup" else "Save Changes"
+                        Text(text = buttonText, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                     }
                 }
 
@@ -176,11 +176,12 @@ fun RestaurantPersonalInfoPreview() {
         RestaurantPersonalInfoContent(
             state = RestaurantPersonalInfoState(
                 isLoading = false,
-                name = "King Burger - District 1",
-                phone = "0901234567",
-                street = "123 Le Loi Street",
-                district = "District 1",
-                city = "Ho Chi Minh City"
+                isFromSignUp = true,
+                name = "",
+                phone = "",
+                street = "",
+                district = "",
+                city = ""
             ),
             onEvent = {},
             onNavigateBack = {}

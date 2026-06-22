@@ -9,7 +9,8 @@ data class RestaurantPersonalInfoState(
     val imageUrl: String? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isFromSignUp: Boolean = false
 )
 
 sealed interface RestaurantPersonalInfoEvent {
@@ -18,5 +19,5 @@ sealed interface RestaurantPersonalInfoEvent {
     data class StreetChanged(val street: String) : RestaurantPersonalInfoEvent
     data class DistrictChanged(val district: String) : RestaurantPersonalInfoEvent
     data class CityChanged(val city: String) : RestaurantPersonalInfoEvent
-    data object Submit : RestaurantPersonalInfoEvent
+    object Submit : RestaurantPersonalInfoEvent
 }
