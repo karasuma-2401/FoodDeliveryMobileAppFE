@@ -40,7 +40,7 @@ fun RestaurantPersonalInfoScreen(
 
     Scaffold(
         topBar = {
-            DFoodTopBar(title = "Thông tin nhà hàng", onBackClick = onNavigateBack)
+            DFoodTopBar(title = "Restaurant Information", onBackClick = onNavigateBack)
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
