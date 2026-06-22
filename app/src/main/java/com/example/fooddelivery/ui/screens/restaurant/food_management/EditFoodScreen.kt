@@ -246,7 +246,7 @@ fun EditFoodContent(
                             }
                         }
                     }
-                    
+
                     Column {
                         DFoodSectionLabel(text = "DESCRIPTION")
                         DFoodTextArea(
