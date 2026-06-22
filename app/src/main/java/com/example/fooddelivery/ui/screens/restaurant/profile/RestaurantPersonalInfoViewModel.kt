@@ -21,10 +21,8 @@ class RestaurantPersonalInfoViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun loadCurrentRestaurantProfile() {
-        // Giả lập lấy thông tin nhà hàng hiện tại của User đang đăng nhập từ API/Database
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-            delay(1000) // Giả lập mạng
             uiState = RestaurantPersonalInfoState(
                 name = "King Burger - Nhánh Quận 1",
                 phone = "0901234567",
@@ -49,12 +47,11 @@ class RestaurantPersonalInfoViewModel @Inject constructor() : ViewModel() {
     private fun updateProfile() {
         viewModelScope.launch {
             if (uiState.name.isBlank() || uiState.phone.isBlank()) {
-                uiState = uiState.copy(error = "Tên và Số điện thoại không được để trống!")
+                uiState = uiState.copy(error = "Name and Phone Number cannot be empty!")
                 return@launch
             }
 
             uiState = uiState.copy(isLoading = true, error = null)
-            delay(1500) // Giả lập gọi API cập nhật thông tin
             uiState = uiState.copy(isLoading = false, isSuccess = true)
         }
     }

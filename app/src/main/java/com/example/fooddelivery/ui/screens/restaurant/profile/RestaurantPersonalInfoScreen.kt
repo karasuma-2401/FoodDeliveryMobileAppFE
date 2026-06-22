@@ -1,4 +1,5 @@
 package com.example.fooddelivery.ui.screens.restaurant.profile
+
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,9 +20,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.sectionheader.SectionHeader
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.screens.restaurant.component.RestaurantInputField
-@OptIn(ExperimentalMaterial3Api::class)
+import com.example.fooddelivery.ui.theme.DFoodTheme
+
 @Composable
 fun RestaurantPersonalInfoScreen(
     onNavigateBack: () -> Unit,
@@ -32,12 +33,26 @@ fun RestaurantPersonalInfoScreen(
 
     LaunchedEffect(key1 = state.isSuccess) {
         if (state.isSuccess) {
-            Toast.makeText(context, "Cập nhật thông tin thành công!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Information updated successfully!", Toast.LENGTH_SHORT).show()
             viewModel.resetSuccessState()
             onNavigateBack()
         }
     }
 
+    RestaurantPersonalInfoContent(
+        state = state,
+        onEvent = { event -> viewModel.onEvent(event) },
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RestaurantPersonalInfoContent(
+    state: RestaurantPersonalInfoState,
+    onEvent: (RestaurantPersonalInfoEvent) -> Unit,
+    onNavigateBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             DFoodTopBar(title = "Restaurant Information", onBackClick = onNavigateBack)
@@ -56,6 +71,7 @@ fun RestaurantPersonalInfoScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                // Upload Image Section
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -66,64 +82,67 @@ fun RestaurantPersonalInfoScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_add),
-                            contentDescription = "Upload Ảnh",
+                            contentDescription = "Upload Photo",
                             tint = MaterialTheme.colorScheme.primary
                         )
-                        TextButton(onClick = { /* Mở Gallery Picker */ }) {
-                            Text("Thay đổi ảnh nhà hàng")
+                        TextButton(onClick = { /* Open Gallery Picker */ }) {
+                            Text("Change Restaurant Photo")
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                SectionHeader("THÔNG TIN CHUNG")
+                // GENERAL INFORMATION
+                SectionHeader("GENERAL INFORMATION")
                 RestaurantInputField(
-                    label = "Tên nhà hàng",
-                    placeholder = "Ví dụ: King Burger",
+                    label = "Restaurant Name",
+                    placeholder = "e.g. King Burger",
                     value = state.name,
-                    onValueChange = { viewModel.onEvent(RestaurantPersonalInfoEvent.NameChanged(it)) }
+                    onValueChange = { onEvent(RestaurantPersonalInfoEvent.NameChanged(it)) }
                 )
                 RestaurantInputField(
-                    label = "Số điện thoại hotline",
+                    label = "Hotline Phone Number",
                     placeholder = "090xxxxxxx",
                     value = state.phone,
-                    onValueChange = { viewModel.onEvent(RestaurantPersonalInfoEvent.PhoneChanged(it)) }
+                    onValueChange = { onEvent(RestaurantPersonalInfoEvent.PhoneChanged(it)) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SectionHeader("ĐỊA CHỈ KINH DOANH")
+                // BUSINESS ADDRESS
+                SectionHeader("BUSINESS ADDRESS")
                 RestaurantInputField(
-                    label = "Số nhà, tên đường",
-                    placeholder = "Ví dụ: 123 Đường số 1",
+                    label = "Street Address",
+                    placeholder = "e.g. 123 Main Street",
                     value = state.street,
-                    onValueChange = { viewModel.onEvent(RestaurantPersonalInfoEvent.StreetChanged(it)) }
+                    onValueChange = { onEvent(RestaurantPersonalInfoEvent.StreetChanged(it)) }
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     RestaurantInputField(
-                        label = "Quận / Huyện",
-                        placeholder = "Quận 1",
+                        label = "District",
+                        placeholder = "District 1",
                         value = state.district,
-                        onValueChange = { viewModel.onEvent(RestaurantPersonalInfoEvent.DistrictChanged(it)) },
+                        onValueChange = { onEvent(RestaurantPersonalInfoEvent.DistrictChanged(it)) },
                         modifier = Modifier.weight(1f)
                     )
                     RestaurantInputField(
-                        label = "Thành phố",
-                        placeholder = "TP HCM",
+                        label = "City",
+                        placeholder = "HCMC",
                         value = state.city,
-                        onValueChange = { viewModel.onEvent(RestaurantPersonalInfoEvent.CityChanged(it)) },
+                        onValueChange = { onEvent(RestaurantPersonalInfoEvent.CityChanged(it)) },
                         modifier = Modifier.weight(1f)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // SAVE BUTTON
                 Button(
-                    onClick = { viewModel.onEvent(RestaurantPersonalInfoEvent.Submit) },
+                    onClick = { onEvent(RestaurantPersonalInfoEvent.Submit) },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !state.isLoading
@@ -131,7 +150,7 @@ fun RestaurantPersonalInfoScreen(
                     if (state.isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Lưu thay đổi", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                        Text("Save Changes", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                     }
                 }
 
@@ -149,11 +168,21 @@ fun RestaurantPersonalInfoScreen(
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RestaurantPersonalInfoPreview() {
     DFoodTheme {
-        RestaurantPersonalInfoScreen(
+        RestaurantPersonalInfoContent(
+            state = RestaurantPersonalInfoState(
+                isLoading = false,
+                name = "King Burger - District 1",
+                phone = "0901234567",
+                street = "123 Le Loi Street",
+                district = "District 1",
+                city = "Ho Chi Minh City"
+            ),
+            onEvent = {},
             onNavigateBack = {}
         )
     }
