@@ -29,6 +29,7 @@ fun FoodItemCard(
     var showMenu by remember { mutableStateOf(false) }
 
     val displayPrice = item.price.toInt()
+    val formattedPrice = String.format("%,d", displayPrice).replace(',', '.') + "đ"
 
     Row(
         modifier = modifier
@@ -139,7 +140,7 @@ fun FoodItemCard(
             }
 
             Text(
-                text = "đ$displayPrice",
+                text = formattedPrice,
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary
