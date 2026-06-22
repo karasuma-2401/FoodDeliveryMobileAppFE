@@ -66,6 +66,7 @@ import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.profile.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
+import com.example.fooddelivery.ui.screens.admin.notification.AdminNotificationScreen
 @Composable
 fun RootNavigationGraph(
     navController: NavHostController,
@@ -700,7 +701,6 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         when (route) {
             "dashboard" -> navController.navigate(AdminDashboardRoute) {
                 launchSingleTop = true
-                // Tránh việc bấm lại chính nó bị tạo mới backstack
                 popUpTo<AdminDashboardRoute> { inclusive = false }
             }
             "categories" -> navController.navigate(AdminCategoriesRoute) {
@@ -712,17 +712,16 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
             "settings" -> navController.navigate(AdminSettingsRoute) {
                 launchSingleTop = true
             }
-            // 💡 Nếu sau này bạn tách màn hình Quản lý nhà hàng ra riêng:
-            // "restaurants" -> navController.navigate(AdminRestaurantsRoute) { launchSingleTop = true }
+            "notifications" -> navController.navigate(AdminNotificationRoute) {
+                launchSingleTop = true
+            }
         }
     }
 
     navigation<AdminGraph>(startDestination = AdminDashboardRoute) {
 
         composable<AdminDashboardRoute> {
-            AdminDashboardScreen(
-
-            )
+            AdminDashboardScreen()
         }
 
         composable<AdminRestaurantsRoute> {
@@ -734,7 +733,6 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
             )
         }
 
-
         composable<AdminCategoriesRoute> {
             AdminCategoryScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -745,9 +743,13 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
 
         composable<AdminCouponRoute> {
-            // Lưu ý: Ở đây bạn đang dùng chung màn hình Coupon của bên Vendor,
-            // đảm bảo màn hình này xử lý được logic hiển thị/thao tác của Admin nhé!
             RestaurantCouponScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<AdminNotificationRoute> {
+            AdminNotificationScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
