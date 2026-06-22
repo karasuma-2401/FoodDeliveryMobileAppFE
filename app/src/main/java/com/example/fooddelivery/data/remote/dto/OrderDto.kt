@@ -1,7 +1,7 @@
 package com.example.fooddelivery.data.remote.dto
 
 import kotlinx.serialization.Serializable
-import com.example.fooddelivery.data.remote.dto.MessageDto
+import com.example.fooddelivery.data.remote.dto.MessageResponse
 @Serializable
 data class OrderRequest(
     val restaurantId: Int,
