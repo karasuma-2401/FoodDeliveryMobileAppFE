@@ -51,7 +51,13 @@ data class AddFoodState(
 
     val selectedSizes: Map<String, String> = emptyMap(),
 
-    val ingredients: List<IngredientItemState> = emptyList()
+    val ingredients: List<IngredientItemState> = listOf(
+        IngredientItemState("1", "Egg", androidx.compose.material.icons.Icons.Default.Egg),
+        IngredientItemState("2", "Grass", androidx.compose.material.icons.Icons.Default.Grass),
+        IngredientItemState("3", "Salmon", androidx.compose.material.icons.Icons.Default.SetMeal),
+        IngredientItemState("4", "Pizza", androidx.compose.material.icons.Icons.Default.LocalPizza),
+        IngredientItemState("5", "Bread", androidx.compose.material.icons.Icons.Default.BakeryDining)
+    )
 
 )
 
