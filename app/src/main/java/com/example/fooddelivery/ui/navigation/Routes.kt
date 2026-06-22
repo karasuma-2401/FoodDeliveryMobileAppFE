@@ -95,3 +95,5 @@ data class RatingReviewRoute(
 @Serializable object AdminCategoriesRoute
 @Serializable object AdminCouponRoute
 @Serializable object AdminSettingsRoute
+
+@Serializable object AdminRestaurantsRoute
