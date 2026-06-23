@@ -26,7 +26,8 @@ class RestaurantRepositoryImpl @Inject constructor(
         return try {
             val response = api.getRestaurants(limit, offset, keyword, categoryId)
             if (response.isSuccessful && response.body() != null) {
-                val restaurants = response.body()!!.map { dto ->
+                val baseResponse = response.body()!!
+                val restaurants = baseResponse.data?.map { dto ->
                     Restaurant(
                         id = dto.id.toString(),
                         name = dto.name,
@@ -39,7 +40,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                         isLiked = dto.isLiked ?: false,
                         totalLikes = dto.totalLikes ?: 0
                     )
-                }
+                } ?: emptyList()
                 Result.success(restaurants)
             } else {
                 Result.failure(Exception("Failed to load restaurants: ${response.message()}"))
@@ -68,7 +69,8 @@ class RestaurantRepositoryImpl @Inject constructor(
         return try {
             val response = api.getMyRestaurants()
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val baseResponse = response.body()!!
+                Result.success(baseResponse.data ?: emptyList())
             } else {
                 Result.failure(Exception("Failed to load my restaurants: ${response.message()}"))
             }
@@ -130,7 +132,12 @@ class RestaurantRepositoryImpl @Inject constructor(
         return try {
             val response = api.getFoods(restaurantId)
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val body = response.body()!!
+                if (body.data != null) {
+                    Result.success(body.data)
+                } else {
+                    Result.failure(Exception("Failed to load foods: data is null"))
+                }
             } else {
                 Result.failure(Exception(response.message()))
             }

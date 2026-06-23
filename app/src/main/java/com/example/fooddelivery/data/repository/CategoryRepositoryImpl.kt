@@ -17,7 +17,9 @@ class CategoryRepositoryImpl @Inject constructor(
         return try {
             val response = api.getCategories(keyword, limit, offset)
             if (response.isSuccessful && response.body() != null) {
-                val categories = response.body()!!.map { dto ->
+                val baseResponse = response.body()!!
+
+                val categories = baseResponse.data?.map { dto ->
                     Category(
                         id = dto.id.toString(),
                         name = dto.name,
@@ -25,7 +27,8 @@ class CategoryRepositoryImpl @Inject constructor(
                         description = dto.description,
                         foodCount = dto.foodCount ?: 0
                     )
-                }
+                } ?: emptyList()
+
                 Result.success(categories)
             } else {
                 Result.failure(Exception("Failed to load categories: ${response.message()}"))
