@@ -52,7 +52,7 @@ fun OrderCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Đơn hàng ${order.id}",
+                    text = "Order ${order.id}",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
@@ -73,7 +73,7 @@ fun OrderCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "SĐT: ${order.customerPhone}",
+                    text = "Phone: ${order.customerPhone}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -88,7 +88,7 @@ fun OrderCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Tổng thanh toán: ",
+                        text = "Total Price: ",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -113,7 +113,7 @@ fun OrderCard(
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                     Text(
-                        text = "DANH SÁCH MÓN ĂN",
+                        text = "LIST OF FOODS",
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 6.dp)
@@ -184,8 +184,8 @@ fun OrderCard(
                         }
                     }
                 }
-                OrderStatus.COMPLETED -> BadgeStatus(text = "Đã hoàn thành", color = Color(0xFF4CAF50))
-                OrderStatus.CANCELLED -> BadgeStatus(text = "Đã hủy đơn", color = MaterialTheme.colorScheme.error)
+                OrderStatus.COMPLETED -> BadgeStatus(text = "CONFIRMED", color = Color(0xFF4CAF50))
+                OrderStatus.CANCELLED -> BadgeStatus(text = "CANCELLED", color = MaterialTheme.colorScheme.error)
             }
         }
     }
