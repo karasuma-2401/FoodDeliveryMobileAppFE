@@ -1,15 +1,23 @@
 package com.example.fooddelivery.ui.screens.chat.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,47 +34,58 @@ fun ChatBottomSection(
     onTextChange: (String) -> Unit,
     onSend: () -> Unit,
     onAddClick: () -> Unit,
+    onEmojiSelected: (String) -> Unit,
     isUploading: Boolean = false
 ) {
+    var showEmojiPicker by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .navigationBarsPadding()
     ) {
-        Surface(
-            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
+        // Only show order status card if data exists
+        AnimatedVisibility(
+            visible = orderStatus.isNotEmpty(),
+            enter = expandVertically(),
+            exit = shrinkVertically()
         ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small),
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ReceiptLong,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = orderStatus,
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ReceiptLong,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = orderStatus,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
                 }
             }
         }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -93,6 +112,16 @@ fun ChatBottomSection(
                     )
                 }
             }
+
+            IconButton(
+                onClick = { showEmojiPicker = !showEmojiPicker }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.EmojiEmotions,
+                    contentDescription = "Emoji",
+                    tint = if (showEmojiPicker) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             
             TextField(
                 value = inputText,
@@ -117,7 +146,10 @@ fun ChatBottomSection(
                 textStyle = MaterialTheme.typography.bodyMedium
             )
             IconButton(
-                onClick = onSend,
+                onClick = {
+                    onSend()
+                    showEmojiPicker = false
+                },
                 modifier = Modifier
                     .size(40.dp)
                     .background(MaterialTheme.colorScheme.primary, CircleShape),
@@ -129,6 +161,67 @@ fun ChatBottomSection(
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
+            }
+        }
+
+        AnimatedVisibility(
+            visible = showEmojiPicker,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            EmojiPicker(
+                onEmojiSelected = { 
+                    onEmojiSelected(it)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .padding(top = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun EmojiPicker(
+    onEmojiSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val emojis = remember {
+        listOf(
+            "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇",
+            "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚",
+            "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩",
+            "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣",
+            "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬",
+            "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗",
+            "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯",
+            "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐",
+            "🥴", "🤢", "🤮", "🤧", "🤨", "🧐", "🍔", "🍕", "🍟", "🌭",
+            "🥪", "🌮", "🌯", "🥗", "🥘", "🍝", "🍜", "🍲", "🍛", "🍣"
+        )
+    }
+
+    Surface(
+        tonalElevation = 2.dp,
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier
+    ) {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(40.dp),
+            contentPadding = PaddingValues(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(emojis) { emoji ->
+                Box(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .clickable { onEmojiSelected(emoji) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = emoji, fontSize = 24.sp)
+                }
             }
         }
     }

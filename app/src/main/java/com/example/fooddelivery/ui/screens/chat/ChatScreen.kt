@@ -122,6 +122,9 @@ fun ChatContent(
                 onTextChange = { onEvent(ChatEvent.OnTextChanged(it)) },
                 onSend = { onEvent(ChatEvent.SendMessage) },
                 onAddClick = onAddClick,
+                onEmojiSelected = { emoji -> 
+                    onEvent(ChatEvent.OnTextChanged(state.inputText + emoji))
+                },
                 isUploading = state.isUploadingImage
             )
         },

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "67ded10e01f3bb9887cedad4148ec36a",
+    "identityHash": "96cc1a8fd57860c8a22e145f9c7a08a3",
     "entities": [
       {
         "tableName": "notifications",
@@ -62,7 +62,7 @@
       },
       {
         "tableName": "messages",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `conversationId` TEXT NOT NULL, `senderId` TEXT NOT NULL, `content` TEXT NOT NULL, `imageUrl` TEXT, `createdAt` TEXT NOT NULL, `isSending` INTEGER NOT NULL, `isFailed` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `conversationId` TEXT NOT NULL, `senderId` TEXT NOT NULL, `content` TEXT NOT NULL, `imageUrl` TEXT, `createdAt` TEXT NOT NULL, `isSending` INTEGER NOT NULL, `isFailed` INTEGER NOT NULL, `isRead` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -109,6 +109,12 @@
           {
             "fieldPath": "isFailed",
             "columnName": "isFailed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isRead",
+            "columnName": "isRead",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -300,7 +306,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '67ded10e01f3bb9887cedad4148ec36a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '96cc1a8fd57860c8a22e145f9c7a08a3')"
     ]
   }
 }

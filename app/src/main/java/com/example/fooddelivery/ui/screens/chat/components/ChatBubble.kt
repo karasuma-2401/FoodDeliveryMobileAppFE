@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,16 +31,10 @@ fun ChatBubble(
 ) {
     val isMe = message.senderId == currentUserId
     
-    // Modern chat bubble colors
     val bubbleColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
     val textColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
 
-    val timeStr = try {
-        val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
-        sdf.format(Date(message.createdAt.toLong()))
-    } catch (e: Exception) {
-        message.createdAt
-    }
+    val timeStr = rememberFormattedTime(message.createdAt)
 
     Column(
         modifier = Modifier
@@ -123,8 +118,36 @@ fun ChatBubble(
                     )
                 } else if (message.isFailed) {
                     Text("!", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                } else if (message.isRead) {
+                    Text(
+                        text = " · Seen",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun rememberFormattedTime(createdAt: String): String {
+    return remember(createdAt) {
+        try {
+            val outputFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+            if (createdAt.contains("T")) {
+                val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val cleanTime = createdAt.substringBefore(".").substringBefore("Z")
+                val date = isoFormat.parse(cleanTime)
+                date?.let { outputFormat.format(it) } ?: createdAt
+            } else {
+                val date = Date(createdAt.toLong())
+                outputFormat.format(date)
+            }
+        } catch (e: Exception) {
+            createdAt
         }
     }
 }
