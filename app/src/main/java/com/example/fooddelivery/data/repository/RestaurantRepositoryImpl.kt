@@ -126,9 +126,37 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun rateRestaurant(request: RestaurantRatingRequest): Result<FoodRatingResponse> {
+    override suspend fun rateRestaurant(restaurantId: Int, request: RestaurantRatingRequest): Result<FoodRatingResponse> {
         return try {
-            val response = api.rateRestaurant(request.restaurantId, request)
+            val response = api.rateRestaurant(restaurantId, request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.message()))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateReview(reviewId: Int, request: UpdateReviewRequest): Result<FoodRatingResponse> {
+        return try {
+            val response = api.updateReview(reviewId, request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.message()))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteReview(reviewId: Int): Result<FoodRatingResponse> {
+        return try {
+            val response = api.deleteReview(reviewId)
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {

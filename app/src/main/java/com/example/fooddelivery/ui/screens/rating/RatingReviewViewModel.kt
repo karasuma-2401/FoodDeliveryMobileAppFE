@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.data.remote.dto.RestaurantRatingRequest
+import com.example.fooddelivery.data.remote.dto.UpdateReviewRequest
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.ui.navigation.RatingReviewRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,7 @@ import javax.inject.Inject
 data class RatingReviewState(
     val orderId: String = "",
     val restaurantId: String = "",
+    val reviewId: String? = null,
     val restaurantName: String = "",
     val restaurantImage: String = "",
     val rating: Int = 0,
@@ -27,7 +29,7 @@ data class RatingReviewState(
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,
     val availableTags: List<String> = listOf(
-        "Món ăn ngon", "Giao hàng nhanh", "Đóng gói cẩn thận", "Giá cả hợp lý", "Phục vụ tốt",
+        "Delicious food", "Fast delivery", "Carefully packed", "Good service", "Reasonable price",
     ),
     val selectedTags: Set<String> = emptySet()
 )
@@ -38,6 +40,7 @@ sealed interface RatingReviewEvent {
     data class OnTagToggled(val tag: String) : RatingReviewEvent
     data class OnCommentChanged(val comment: String) : RatingReviewEvent
     object OnSubmit : RatingReviewEvent
+    object OnDelete : RatingReviewEvent
 }
 
 sealed interface RatingReviewUiEffect {
@@ -56,6 +59,7 @@ class RatingReviewViewModel @Inject constructor(
         RatingReviewState(
             orderId = routeData.orderId,
             restaurantId = routeData.restaurantId,
+            reviewId = routeData.reviewId,
             restaurantName = routeData.restaurantName,
             restaurantImage = routeData.restaurantImage,
             rating = routeData.initialRating,
@@ -85,6 +89,7 @@ class RatingReviewViewModel @Inject constructor(
                 _state.update { it.copy(comment = event.comment) }
             }
             RatingReviewEvent.OnSubmit -> submitReview()
+            RatingReviewEvent.OnDelete -> deleteReview()
         }
     }
 
@@ -94,35 +99,67 @@ class RatingReviewViewModel @Inject constructor(
 
         if (currentState.rating == 0) {
             viewModelScope.launch {
-                _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Vui lòng chọn số sao đánh giá"))
+                _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Please select a star rating"))
             }
             return
         }
-
-        val orderIdInt = currentState.orderId.toIntOrNull() ?: return
-        val restaurantIdInt = currentState.restaurantId.toIntOrNull() ?: 0
 
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isSubmitting = true) }
                 
-                val request = RestaurantRatingRequest(
-                    restaurantId = restaurantIdInt,
-                    orderId = orderIdInt,
-                    vote = currentState.rating,
-                    comment = currentState.comment,
-                    tags = currentState.selectedTags.toList()
-                )
+                val result = if (currentState.reviewId != null) {
+                    // Update existing review
+                    val updateRequest = UpdateReviewRequest(
+                        vote = currentState.rating,
+                        comment = currentState.comment,
+                        tags = currentState.selectedTags.toList()
+                    )
+                    restaurantRepository.updateReview(currentState.reviewId.toInt(), updateRequest)
+                } else {
+                    // Create new review
+                    val orderIdInt = currentState.orderId.toIntOrNull() ?: return@launch
+                    val restaurantIdInt = currentState.restaurantId.toIntOrNull() ?: 0
+                    val createRequest = RestaurantRatingRequest(
+                        orderId = orderIdInt,
+                        vote = currentState.rating,
+                        comment = currentState.comment,
+                        tags = currentState.selectedTags.toList()
+                    )
+                    restaurantRepository.rateRestaurant(restaurantIdInt, createRequest)
+                }
 
-                restaurantRepository.rateRestaurant(request).onSuccess {
-                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Đánh giá đã được gửi thành công!"))
+                result.onSuccess {
+                    val successMsg = if (currentState.reviewId != null) "Review updated successfully!" else "Review submitted successfully!"
+                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar(successMsg))
                     _uiEffect.emit(RatingReviewUiEffect.NavigateBack)
                 }.onFailure { e ->
-                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Gửi đánh giá thất bại: ${e.message}"))
+                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Operation failed: ${e.message}"))
                 }
 
             } catch (e: Exception) {
-                _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar(e.localizedMessage ?: "Đã có lỗi xảy ra"))
+                _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar(e.localizedMessage ?: "An error occurred"))
+            } finally {
+                _state.update { it.copy(isSubmitting = false) }
+            }
+        }
+    }
+
+    private fun deleteReview() {
+        val currentState = _state.value
+        val reviewIdInt = currentState.reviewId?.toIntOrNull() ?: return
+
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isSubmitting = true) }
+                restaurantRepository.deleteReview(reviewIdInt).onSuccess {
+                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Review deleted successfully!"))
+                    _uiEffect.emit(RatingReviewUiEffect.NavigateBack)
+                }.onFailure { e ->
+                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Failed to delete review: ${e.message}"))
+                }
+            } catch (e: Exception) {
+                _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar(e.localizedMessage ?: "An error occurred"))
             } finally {
                 _state.update { it.copy(isSubmitting = false) }
             }

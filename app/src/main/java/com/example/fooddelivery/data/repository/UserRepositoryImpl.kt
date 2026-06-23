@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.UserApi
 import com.example.fooddelivery.domain.model.User
+import com.example.fooddelivery.domain.model.UserReview
 import com.example.fooddelivery.domain.repository.UserRepository
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -9,6 +10,8 @@ import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.local.room.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class UserRepositoryImpl @Inject constructor(
     private val api: UserApi,
@@ -68,6 +71,37 @@ class UserRepositoryImpl @Inject constructor(
             }
 
             Result.success(Unit)
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getUserReviews(limit: Int, offset: Int): Result<List<UserReview>> {
+        return try {
+            val response = api.getUserReviews(limit, offset)
+            if (response.isSuccessful && response.body() != null) {
+                val reviews = response.body()!!.map { dto ->
+                    UserReview(
+                        id = dto.id.toString(),
+                        restaurantId = dto.restaurantId.toString(),
+                        restaurantName = dto.restaurantName,
+                        restaurantImage = dto.restaurantImage ?: "",
+                        rating = dto.vote,
+                        comment = dto.comment ?: "",
+                        tags = dto.tags,
+                        createdAt = try {
+                            ZonedDateTime.parse(dto.createdAt).toInstant().toEpochMilli()
+                        } catch (e: Exception) {
+                            System.currentTimeMillis()
+                        },
+                        orderId = dto.orderId.toString()
+                    )
+                }
+                Result.success(reviews)
+            } else {
+                Result.failure(Exception("Failed to load reviews: ${response.message()}"))
+            }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)

@@ -31,9 +31,20 @@ interface RestaurantApi {
     @DELETE("restaurant/foods/{id}")
     suspend fun deleteFood(@Path("id") id: String): Response<BaseResponse<Unit>>
 
-    @POST("api/restaurant/{id}/ratings")
+    @POST("restaurant/reviews/{id}")
     suspend fun rateRestaurant(
         @Path("id") restaurantId: Int,
         @Body request: RestaurantRatingRequest
+    ): Response<FoodRatingResponse>
+
+    @PATCH("restaurant/reviews/{reviewId}")
+    suspend fun updateReview(
+        @Path("reviewId") reviewId: Int,
+        @Body request: UpdateReviewRequest
+    ): Response<FoodRatingResponse>
+
+    @DELETE("restaurant/reviews/{reviewId}")
+    suspend fun deleteReview(
+        @Path("reviewId") reviewId: Int
     ): Response<FoodRatingResponse>
 }

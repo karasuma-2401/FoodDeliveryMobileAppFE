@@ -3,9 +3,10 @@ package com.example.fooddelivery.ui.screens.profile.review
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.UserReview
+import com.example.fooddelivery.domain.repository.RestaurantRepository
+import com.example.fooddelivery.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -18,7 +19,7 @@ data class UserReviewState(
     val reviews: List<UserReview> = emptyList(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val page: Int = 1,
+    val offset: Int = 0,
     val endReached: Boolean = false,
     val errorMessage: String? = null
 )
@@ -38,13 +39,17 @@ sealed interface UserReviewUiEffect {
         val restaurantName: String,
         val restaurantImage: String,
         val rating: Int,
-        val comment: String
+        val comment: String,
+        val reviewId: String
     ) : UserReviewUiEffect
     data class ShowToast(val message: String) : UserReviewUiEffect
 }
 
 @HiltViewModel
-class UserReviewViewModel @Inject constructor() : ViewModel() {
+class UserReviewViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val restaurantRepository: RestaurantRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(UserReviewState())
     val state = _state.asStateFlow()
@@ -53,6 +58,7 @@ class UserReviewViewModel @Inject constructor() : ViewModel() {
     val uiEffect = _uiEffect.asSharedFlow()
 
     private var fetchJob: Job? = null
+    private val limit = 20
 
     init {
         loadReviews()
@@ -62,7 +68,7 @@ class UserReviewViewModel @Inject constructor() : ViewModel() {
         when (event) {
             is UserReviewEvent.RefreshReviews -> {
                 fetchJob?.cancel()
-                _state.update { it.copy(isRefreshing = true, page = 1, endReached = false) }
+                _state.update { it.copy(isRefreshing = true, offset = 0, endReached = false) }
                 loadReviews(isRefresh = true)
             }
             is UserReviewEvent.LoadNextPage -> {
@@ -77,7 +83,8 @@ class UserReviewViewModel @Inject constructor() : ViewModel() {
                         restaurantName = event.review.restaurantName,
                         restaurantImage = event.review.restaurantImage,
                         rating = event.review.rating,
-                        comment = event.review.comment
+                        comment = event.review.comment,
+                        reviewId = event.review.id
                     ))
                 }
             }
@@ -94,72 +101,56 @@ class UserReviewViewModel @Inject constructor() : ViewModel() {
             try {
                 if (!isRefresh) _state.update { it.copy(isLoading = true) }
                 
-                delay(1000)
-
-                val newPage = if (isRefresh) 1 else _state.value.page
-                val mockPageData = generateMockReviews(newPage)
-
-                _state.update { currentState ->
-                    currentState.copy(
-                        reviews = if (isRefresh) mockPageData else currentState.reviews + mockPageData,
-                        isLoading = false,
-                        isRefreshing = false,
-                        page = newPage + 1,
-                        endReached = mockPageData.isEmpty() || newPage >= 3,
-                        errorMessage = null
-                    )
-                }
+                val currentOffset = if (isRefresh) 0 else _state.value.offset
+                
+                userRepository.getUserReviews(limit = limit, offset = currentOffset)
+                    .onSuccess { newReviews ->
+                        _state.update { currentState ->
+                            currentState.copy(
+                                reviews = if (isRefresh) newReviews else currentState.reviews + newReviews,
+                                isLoading = false,
+                                isRefreshing = false,
+                                offset = currentOffset + newReviews.size,
+                                endReached = newReviews.size < limit,
+                                errorMessage = null
+                            )
+                        }
+                    }
+                    .onFailure { e ->
+                        _state.update { it.copy(
+                            isLoading = false, 
+                            isRefreshing = false, 
+                            errorMessage = e.message ?: "Could not load reviews"
+                        ) }
+                    }
             } catch (e: Exception) {
                 _state.update { it.copy(
                     isLoading = false, 
                     isRefreshing = false, 
-                    errorMessage = e.message ?: "An unexpected error occurred"
+                    errorMessage = e.message ?: "An error occurred"
                 ) }
             }
         }
     }
 
     private fun deleteReview(reviewId: String) {
+        val idInt = reviewId.toIntOrNull() ?: return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            delay(500)
-            _state.update { currentState ->
-                currentState.copy(
-                    reviews = currentState.reviews.filter { it.id != reviewId },
-                    isLoading = false
-                )
-            }
-            _uiEffect.emit(UserReviewUiEffect.ShowToast("Review deleted successfully"))
+            restaurantRepository.deleteReview(idInt)
+                .onSuccess {
+                    _state.update { currentState ->
+                        currentState.copy(
+                            reviews = currentState.reviews.filter { it.id != reviewId },
+                            isLoading = false
+                        )
+                    }
+                    _uiEffect.emit(UserReviewUiEffect.ShowToast("Review deleted successfully"))
+                }
+                .onFailure { e ->
+                    _state.update { it.copy(isLoading = false) }
+                    _uiEffect.emit(UserReviewUiEffect.ShowToast("Failed to delete review: ${e.message}"))
+                }
         }
-    }
-
-    private fun generateMockReviews(page: Int): List<UserReview> {
-        val now = System.currentTimeMillis()
-        val oneDay = 24 * 60 * 60 * 1000L
-        
-        return if (page > 3) emptyList() else listOf(
-            UserReview(
-                id = "rev_${page}_1",
-                restaurantId = "res_1",
-                restaurantName = "Pizza Hut",
-                restaurantImage = "https://example.com/pizza.jpg",
-                rating = 5,
-                comment = "Best pizza ever! The crust was perfect and the toppings were fresh.",
-                tags = listOf("Delicious Food", "Fast Delivery"),
-                createdAt = now - (page * oneDay),
-                orderId = "order_123"
-            ),
-            UserReview(
-                id = "rev_${page}_2",
-                restaurantId = "res_2",
-                restaurantName = "Burger King",
-                restaurantImage = "https://example.com/burger.jpg",
-                rating = 3,
-                comment = "Burger was okay, but the fries were a bit cold when they arrived.",
-                tags = listOf("Good Value"),
-                createdAt = now - (6 * oneDay),
-                orderId = "order_456"
-            )
-        )
     }
 }
