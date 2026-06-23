@@ -1,6 +1,8 @@
 package com.example.fooddelivery.data.remote.api
 
 import com.example.fooddelivery.data.remote.dto.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -13,23 +15,51 @@ interface RestaurantApi {
         @Query("categoryId") categoryId: Int? = null
     ): Response<List<RestaurantResponse>>
 
-    @GET("restaurant/dashboard")
-    suspend fun getDashboard(): Response<DashboardResponse>
+    @GET("restaurant/my")
+    suspend fun getMyRestaurants(): Response<List<RestaurantResponse>>
 
-    @GET("restaurant/foods")
-    suspend fun getFoods(): Response<List<FoodResponse>>
+    @GET("restaurant/manage/{restaurantId}/dashboard")
+    suspend fun getDashboard(
+        @Path("restaurantId") restaurantId: Int,
+        @Query("range") range: String = "day"
+    ): Response<DashboardResponse>
 
-    @POST("restaurant/foods")
-    suspend fun addFood(@Body request: FoodRequest): Response<BaseResponse<FoodResponse>>
+    @GET("food")
+    suspend fun getFoods(
+        @Query("restaurantId") restaurantId: Int
+    ): Response<List<FoodResponse>>
 
-    @GET("restaurant/foods/{id}")
-    suspend fun getFoodById(@Path("id") id: String): Response<FoodResponse>
+    @Multipart
+    @POST("food/manage")
+    suspend fun addFood(
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("categoryId") categoryId: RequestBody,
+        @Part("restaurantId") restaurantId: RequestBody,
+        @Part("price") price: RequestBody,
+        @Part("sizes") sizes: RequestBody,         // JSON string
+        @Part("ingredientIds") ingredientIds: RequestBody?, // CSV string
+        @Part image: MultipartBody.Part?
+    ): Response<FoodResponse>
 
-    @PUT("restaurant/foods/{id}")
-    suspend fun updateFood(@Path("id") id: String, @Body request: FoodRequest): Response<BaseResponse<FoodResponse>>
+    @GET("food/{id}")
+    suspend fun getFoodById(@Path("id") id: Int): Response<FoodResponse>
 
-    @DELETE("restaurant/foods/{id}")
-    suspend fun deleteFood(@Path("id") id: String): Response<BaseResponse<Unit>>
+    @Multipart
+    @PATCH("food/manage/{id}")
+    suspend fun updateFood(
+        @Path("id") id: Int,
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("categoryId") categoryId: RequestBody,
+        @Part("price") price: RequestBody,
+        @Part("sizes") sizes: RequestBody,         // JSON string
+        @Part("ingredientIds") ingredientIds: RequestBody?, // CSV string
+        @Part image: MultipartBody.Part?
+    ): Response<FoodResponse>
+
+    @DELETE("food/manage/{id}")
+    suspend fun deleteFood(@Path("id") id: Int): Response<Unit>
 
     @POST("api/restaurant/{id}/ratings")
     suspend fun rateRestaurant(

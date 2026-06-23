@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -42,6 +43,7 @@ class TokenManager @Inject constructor (
         val PHONE_KEY = stringPreferencesKey("saved_phone")
         val USER_NAME_KEY = stringPreferencesKey("user_name")
         val USER_EMAIL_KEY = stringPreferencesKey("user_email")
+        val RESTAURANT_ID_KEY = intPreferencesKey("restaurant_id")
     }
 
     suspend fun saveAuthData(
@@ -73,11 +75,18 @@ class TokenManager @Inject constructor (
         }
     }
 
+    suspend fun saveRestaurantId(restaurantId: Int) {
+        context.userPrefDataStore.edit { preferences ->
+            preferences[RESTAURANT_ID_KEY] = restaurantId
+        }
+    }
+
     suspend fun clearAuthData() {
         securePrefs.edit().clear().apply()
         context.userPrefDataStore.edit { preferences ->
             preferences.remove(USER_NAME_KEY)
             preferences.remove(USER_EMAIL_KEY)
+            preferences.remove(RESTAURANT_ID_KEY)
         }
     }
 
@@ -100,5 +109,9 @@ class TokenManager @Inject constructor (
     
     val getPhone: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
         preferences[PHONE_KEY]
+    }
+
+    val getRestaurantId: Flow<Int?> = context.userPrefDataStore.data.map { preferences ->
+        preferences[RESTAURANT_ID_KEY]
     }
 }
