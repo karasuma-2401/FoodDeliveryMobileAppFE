@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant.reviews
+package com.example.fooddelivery.ui.screens.rating.restaurant_reviews
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf

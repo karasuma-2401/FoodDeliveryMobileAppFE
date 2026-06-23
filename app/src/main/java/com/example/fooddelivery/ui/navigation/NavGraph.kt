@@ -62,7 +62,7 @@ import com.example.fooddelivery.ui.screens.home.location.LocationScreen
 import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
 import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
 import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
-import com.example.fooddelivery.ui.screens.restaurant.reviews.ReviewScreen
+import com.example.fooddelivery.ui.screens.rating.restaurant_reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.profile.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen

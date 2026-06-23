@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant.component.review
+package com.example.fooddelivery.ui.screens.rating.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
