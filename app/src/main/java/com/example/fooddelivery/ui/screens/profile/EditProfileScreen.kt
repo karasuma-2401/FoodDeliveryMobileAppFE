@@ -56,8 +56,10 @@ fun EditProfileScreen(
 
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
-            snackBarHostState.showSnackbar(it)
-            viewModel.onEvent(EditProfileEvent.ErrorDismissed)
+            if (it.isNotEmpty()) {
+                snackBarHostState.showSnackbar(it)
+                viewModel.onEvent(EditProfileEvent.ErrorDismissed)
+            }
         }
     }
 
@@ -134,7 +136,7 @@ fun EditProfileContent(
                         .background(MaterialTheme.colorScheme.surface)
                         .border(4.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
                 ) {
-                    if (!state.user.profileImage.isNullOrEmpty()) {
+                    if (!state.user.profileImage.isNullOrEmpty() || state.selectedImageUri != null) {
                         AsyncImage(
                             model = state.selectedImageUri ?: state.user.profileImage,
                             contentDescription = "Profile Picture",
@@ -204,6 +206,8 @@ fun EditProfileContent(
                         value = state.user.fullName,
                         onValueChange = { onEvent(EditProfileEvent.FullNameChanged(it)) },
                         icon = Icons.Default.AccountCircle,
+                        isError = state.fullNameError != null,
+                        errorMessage = state.fullNameError,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                     )
 
@@ -214,6 +218,8 @@ fun EditProfileContent(
                         value = state.user.email,
                         onValueChange = { onEvent(EditProfileEvent.EmailChanged(it)) },
                         icon = Icons.Default.Email,
+                        isError = state.emailError != null,
+                        errorMessage = state.emailError,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next
@@ -227,6 +233,8 @@ fun EditProfileContent(
                         value = state.user.phone,
                         onValueChange = { onEvent(EditProfileEvent.PhoneChanged(it)) },
                         icon = Icons.Default.Phone,
+                        isError = state.phoneError != null,
+                        errorMessage = state.phoneError,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Phone,
                             imeAction = ImeAction.Next
@@ -259,6 +267,8 @@ fun ProfileInputField(
     value: String,
     onValueChange: (String) -> Unit,
     icon: ImageVector,
+    isError: Boolean = false,
+    errorMessage: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
@@ -280,6 +290,8 @@ fun ProfileInputField(
                     tint = MaterialTheme.colorScheme.primary
                 )
             },
+            isError = isError,
+            errorMessage = errorMessage,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             modifier = Modifier.fillMaxWidth()

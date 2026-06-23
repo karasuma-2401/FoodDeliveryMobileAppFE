@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import com.example.fooddelivery.domain.usecase.UpdateUserProfileUseCase
+import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +16,9 @@ import javax.inject.Inject
 
 data class EditProfileState(
     val user: User = User(),
+    val fullNameError: String? = null,
+    val emailError: String? = null,
+    val phoneError: String? = null,
     val selectedImageUri: String? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
@@ -36,7 +39,8 @@ sealed interface EditProfileEvent {
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val updateUserProfileUseCase: UpdateUserProfileUseCase
+    private val updateUserProfileUseCase: UpdateUserProfileUseCase,
+    private val validateInputUseCase: ValidateAuthInputUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(EditProfileState())
     val state: StateFlow<EditProfileState> = _state.asStateFlow()
@@ -48,13 +52,13 @@ class EditProfileViewModel @Inject constructor(
     fun onEvent(event: EditProfileEvent) {
         when (event) {
             is EditProfileEvent.FullNameChanged -> {
-                _state.update { it.copy(user = it.user.copy(fullName = event.name)) }
+                _state.update { it.copy(user = it.user.copy(fullName = event.name), fullNameError = null) }
             }
             is EditProfileEvent.EmailChanged -> {
-                _state.update { it.copy(user = it.user.copy(email = event.email)) }
+                _state.update { it.copy(user = it.user.copy(email = event.email), emailError = null) }
             }
             is EditProfileEvent.PhoneChanged -> {
-                _state.update { it.copy(user = it.user.copy(phone = event.phone)) }
+                _state.update { it.copy(user = it.user.copy(phone = event.phone), phoneError = null) }
             }
             is EditProfileEvent.BioChanged -> {
                 _state.update { it.copy(user = it.user.copy(bio = event.bio)) }
@@ -77,31 +81,45 @@ class EditProfileViewModel @Inject constructor(
     private fun loadUserProfile() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-
-            delay(1000)
-            val mockUser = User(
-                id = "user123",
-                fullName = "Lê Minh",
-                email = "leminh@example.com",
-                phone = "0123456789",
-                bio = "I love food delivery!",
-                profileImage = null
-            )
-            
-            _state.update { it.copy(isLoading = false, user = mockUser) }
+            getUserProfileUseCase().onSuccess { user ->
+                _state.update { it.copy(isLoading = false, user = user) }
+            }.onFailure { e ->
+                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
         }
     }
 
+    private fun validate(): Boolean {
+        val user = _state.value.user
+        val nameError = validateInputUseCase.validateFullName(user.fullName)
+        val emailError = validateInputUseCase.validateEmail(user.email)
+        val phoneError = validateInputUseCase.validatePhone(user.phone)
+
+        val hasError = listOf(nameError, emailError, phoneError).any { it != null }
+
+        if (hasError) {
+            _state.update { 
+                it.copy(
+                    fullNameError = nameError,
+                    emailError = emailError,
+                    phoneError = phoneError
+                )
+            }
+        }
+        return !hasError
+    }
+
     private fun saveProfile() {
+        if (!validate()) return
         if (_state.value.isLoading) return
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-
-            // Mocking API call for saving
-            delay(1500)
-            
-            _state.update { it.copy(isLoading = false, isSuccess = true) }
+            updateUserProfileUseCase(_state.value.user).onSuccess {
+                _state.update { it.copy(isLoading = false, isSuccess = true) }
+            }.onFailure { e ->
+                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
         }
     }
 }

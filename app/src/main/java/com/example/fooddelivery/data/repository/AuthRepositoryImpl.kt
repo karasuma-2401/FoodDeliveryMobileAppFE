@@ -15,6 +15,8 @@ import com.example.fooddelivery.data.remote.dto.ResetEmailRequest
 import com.example.fooddelivery.data.remote.dto.ResetPasswordRequest
 import com.example.fooddelivery.data.remote.dto.SocialLoginRequest
 import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
+import com.example.fooddelivery.data.remote.dto.VerifyResetOtpRequest
+import com.example.fooddelivery.data.remote.dto.VerifyResetOtpResponse
 import com.example.fooddelivery.domain.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
@@ -152,10 +154,10 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun sendResetPasswordCode(email: String): Result<Unit> {
         return try {
             val response = api.forgotPassword(ForgotPasswordRequest(email))
-            if (response.isSuccessful && response.body()?.isSuccess == true) {
+            if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Failed to send reset code"
+                val errorMsg = response.errorBody()?.string() ?: "Failed to send reset code"
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
@@ -169,10 +171,10 @@ class AuthRepositoryImpl @Inject constructor(
             val request = VerifyCodeRequest(email, code)
             val response = api.verifyCode(request)
 
-            if (response.isSuccessful && response.body()?.isSuccess == true) {
+            if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Failed to verify code"
+                val errorMsg = response.errorBody()?.string() ?: "Failed to verify code"
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
@@ -181,18 +183,35 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun verifyResetOtp(email: String, otp: String): Result<VerifyResetOtpResponse> {
+        return try {
+            val request = VerifyResetOtpRequest(email, otp)
+            val response = api.verifyResetOtp(request)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Failed to verify OTP"
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
+        }
+    }
+
     override suspend fun resetPassword(
-        email: String,
-        otp: String,
+        resetToken: String,
         newPassword: String
     ): Result<Unit> {
         return try {
-            val request = ResetPasswordRequest(email, otp, newPassword)
+            val request = ResetPasswordRequest(resetToken, newPassword)
             val response = api.resetPassword(request)
-            if (response.isSuccessful && (response.body()?.isSuccess == true || response.code() == 200)) {
+            if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Failed to reset password"
+                val errorMsg = response.errorBody()?.string() ?: "Failed to reset password"
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
@@ -213,7 +232,7 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Change password failed"
+                val errorMsg = response.errorBody()?.string() ?: "Change password failed"
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
@@ -228,7 +247,7 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(response.body()?.otp)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Request failed"
+                val errorMsg = response.errorBody()?.string() ?: "Request failed"
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
@@ -243,7 +262,7 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: response.body()?.message ?: "Verification failed"
+                val errorMsg = response.errorBody()?.string() ?: "Verification failed"
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
