@@ -13,8 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ResetPasswordState(
-    val email: String = "",
-    val otp: String = "",
+    val resetToken: String = "",
     val newPassword: String = "",
     val confirmPassword: String = "",
 
@@ -26,7 +25,7 @@ data class ResetPasswordState(
     val errorMessage: String? = null,
 )
 sealed interface ResetPasswordEvent {
-    data class Init(val email: String, val code: String): ResetPasswordEvent
+    data class Init(val resetToken: String): ResetPasswordEvent
     data class NewPasswordChanged(val newPassword: String): ResetPasswordEvent
     data class ConfirmPasswordChanged(val confirmPassword: String): ResetPasswordEvent
     object ResetPasswordClicked: ResetPasswordEvent
@@ -44,7 +43,7 @@ class ResetPasswordViewModel @Inject constructor(
     fun onEvent(event: ResetPasswordEvent) {
         when (event) {
             is ResetPasswordEvent.Init -> {
-                _state.update { it.copy(email = event.email, otp = event.code) }
+                _state.update { it.copy(resetToken = event.resetToken) }
             }
             is ResetPasswordEvent.NewPasswordChanged -> {
                 _state.update { it.copy(newPassword = event.newPassword, passwordError = null, errorMessage = null) }
@@ -90,8 +89,7 @@ class ResetPasswordViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
             val result = resetPasswordUseCase(
-                email = currentState.email,
-                otp = currentState.otp,
+                resetToken = currentState.resetToken,
                 newPassword = currentState.newPassword
             )
 

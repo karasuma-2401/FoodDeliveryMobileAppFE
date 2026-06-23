@@ -7,16 +7,12 @@ class ResetPasswordUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val validateUseCase: ValidateAuthInputUseCase
 ) {
-    suspend operator fun invoke(email: String, otp: String, newPassword: String): Result<Unit> {
-        val emailError = validateUseCase.validateEmail(email)
-        if (emailError != null) return Result.failure(Exception(emailError))
-
-        val otpError = validateUseCase.validateOtp(otp)
-        if (otpError != null) return Result.failure(Exception(otpError))
-
+    suspend operator fun invoke(resetToken: String, newPassword: String): Result<Unit> {
         val passwordError = validateUseCase.validatePassword(newPassword)
         if (passwordError != null) return Result.failure(Exception(passwordError))
 
-        return authRepository.resetPassword(email, otp, newPassword)
+        if (resetToken.isBlank()) return Result.failure(Exception("Reset token is missing"))
+
+        return authRepository.resetPassword(resetToken, newPassword)
     }
 }

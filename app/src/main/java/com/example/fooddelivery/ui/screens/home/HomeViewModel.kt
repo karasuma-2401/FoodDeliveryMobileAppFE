@@ -49,6 +49,7 @@ data class HomeState(
     val availableLocations: List<String> = listOf("Home", "Work", "Other"),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
+    val isPhoneMissing: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -62,6 +63,7 @@ sealed interface HomeEvent {
     data class BannerClicked(val banner: HomeBanner) : HomeEvent
     object SeeAllCategoriesClicked : HomeEvent
     object SeeAllRestaurantsClicked : HomeEvent
+    object PhoneUpdateDismissed : HomeEvent
 }
 
 sealed interface HomeUiEffect {
@@ -72,6 +74,7 @@ sealed interface HomeUiEffect {
     data class NavigateToCategory(val categoryId: String) : HomeUiEffect
     data class NavigateToRestaurant(val restaurantId: String) : HomeUiEffect
     data class NavigateToFoodDetail(val foodId: String) : HomeUiEffect
+    object NavigateToEditProfile : HomeUiEffect
 }
 
 @HiltViewModel
@@ -133,6 +136,7 @@ class HomeViewModel @Inject constructor(
                 }
                 HomeEvent.SeeAllCategoriesClicked -> _effect.emit(HomeUiEffect.NavigateToAllCategories)
                 HomeEvent.SeeAllRestaurantsClicked -> _effect.emit(HomeUiEffect.NavigateToAllRestaurants)
+                HomeEvent.PhoneUpdateDismissed -> _state.update { it.copy(isPhoneMissing = false) }
             }
         }
     }
@@ -144,7 +148,17 @@ class HomeViewModel @Inject constructor(
             // Fetch user profile
             launch {
                 getUserProfileUseCase().onSuccess { user ->
-                    _state.update { it.copy(user = user) }
+                    _state.update { 
+                        it.copy(
+                            user = user,
+                            isPhoneMissing = user.phone.isBlank()
+                        ) 
+                    }
+                    if (user.phone.isBlank()) {
+                        // Tự động nhắc nhở người dùng cập nhật SĐT
+                        // Hoặc có thể dùng hiệu ứng để chuyển màn hình
+                        // _effect.emit(HomeUiEffect.NavigateToEditProfile)
+                    }
                 }
             }
 
@@ -164,7 +178,7 @@ class HomeViewModel @Inject constructor(
                 }
             }
 
-            delay(1500) // Reduced delay for better UX after real data integration
+            delay(1500)
 
             val mockBanners = listOf(
                 HomeBanner("1", "Flash Sale 50%", "Pizza Hut Special Deal", R.drawable.food_bowl, BannerTarget.RESTAURANT, "3", 0xFFFF8142),

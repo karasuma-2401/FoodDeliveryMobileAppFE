@@ -19,18 +19,20 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable
 fun VerificationScreen(
     email: String,
     isFromRegistration: Boolean,
     onNavigateBack: () -> Unit,
-    onVerificationSuccess: (String, String) -> Unit, // email, otp
+    onVerificationSuccess: (String, String?) -> Unit,
     viewModel: VerificationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -42,7 +44,7 @@ fun VerificationScreen(
     
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            onVerificationSuccess(state.email, state.otpCode)
+            onVerificationSuccess(state.email, state.resetToken)
         }
     }
     
@@ -50,6 +52,18 @@ fun VerificationScreen(
         state.errorMessage?.let { message ->
             if (message.isNotEmpty()) {
                 snackBarHostState.showSnackbar(message)
+                viewModel.onEvent(VerificationEvent.ErrorDismissed)
+            }
+        }
+    }
+
+    LaunchedEffect(state.resendMessage) {
+        state.resendMessage?.let { message ->
+            if (message.isNotEmpty()) {
+                snackBarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Short
+                )
                 viewModel.onEvent(VerificationEvent.ErrorDismissed)
             }
         }
@@ -91,12 +105,6 @@ fun VerificationContent(
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = "Enter Code",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
@@ -116,7 +124,7 @@ fun VerificationContent(
                 modifier = Modifier.padding(top = 4.dp)
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             BasicTextField(
                 value = state.otpCode,
@@ -164,35 +172,42 @@ fun VerificationContent(
                 }
             )
             Spacer(modifier = Modifier.height(32.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (state.timeLeft > 0) {
-                    Text(
-                        text = buildAnnotatedString {
-                            append("Resend in  ")
-                            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                val minutes = state.timeLeft / 60
-                                val seconds = state.timeLeft % 60
-                                val secondsFormatted = if (seconds < 10) "0$seconds" else "$seconds"
-                                val timeString = "$minutes:$secondsFormatted"
-                                append(timeString)
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    Text(
-                        text = "Resend Code",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable { onEvent(VerificationEvent.ResendCodeClicked) }
-                    )
+            if (!state.isFromRegistration) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (state.timeLeft > 0) {
+                        Text(
+                            text = buildAnnotatedString {
+                                append("Resend in  ")
+                                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                                    val minutes = state.timeLeft / 60
+                                    val seconds = state.timeLeft % 60
+                                    val secondsFormatted = if (seconds < 10) "0$seconds" else "$seconds"
+                                    val timeString = "$minutes:$secondsFormatted"
+                                    append(timeString)
+                                }
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        Text(
+                            text = "Resend Code",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable { onEvent(VerificationEvent.ResendCodeClicked) }
+                        )
+                    }
                 }
+            } else {
+                Text(
+                    text = "Please check your inbox or spam folder",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -203,5 +218,18 @@ fun VerificationContent(
                 enabled = state.otpCode.length == 6 && !state.isLoading
             )
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun VerificationScreenPreview() {
+    DFoodTheme(darkTheme = false) {
+        VerificationContent(
+            state = VerificationState(),
+            onEvent = {},
+            onNavigateBack = {},
+            snackBarHostState = remember { SnackbarHostState() }
+        )
     }
 }
