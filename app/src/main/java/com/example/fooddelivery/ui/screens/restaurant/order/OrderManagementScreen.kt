@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.OrderCard
 import com.example.fooddelivery.ui.theme.DFoodTheme
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderManagementScreen(
@@ -25,9 +26,9 @@ fun OrderManagementScreen(
 
     val filteredOrders = remember(state.orders, state.selectedTab) {
         when (state.selectedTab) {
-            0 -> state.orders.filter { it.status == OrderStatus.REQUEST }
-            1 -> state.orders.filter { it.status == OrderStatus.RUNNING }
-            else -> state.orders.filter { it.status == OrderStatus.COMPLETED || it.status == OrderStatus.CANCELLED }
+            0 -> state.orders.filter { it.status == OrderStatus.PENDING }
+            1 -> state.orders.filter { it.status == OrderStatus.PREPARING || it.status == OrderStatus.DELIVERING }
+            else -> state.orders.filter { it.status == OrderStatus.DELIVERED || it.status == OrderStatus.CANCELLED }
         }
     }
 
@@ -65,6 +66,7 @@ fun OrderManagementScreen(
                             onAccept = { viewModel.acceptOrder(order.id) },
                             onDeny = { viewModel.denyOrder(order.id) },
                             onDone = { viewModel.completeOrder(order.id) },
+                            onDelivered = { viewModel.deliverOrder(order.id) }, // 🌟 Gán sự kiện xác nhận giao hàng xong
                             onCancel = { viewModel.cancelOrder(order.id) }
                         )
                     }
@@ -73,11 +75,12 @@ fun OrderManagementScreen(
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun OderManagementScreenPreview() {
     DFoodTheme {
-       OrderManagementScreen(
+        OrderManagementScreen(
             onNavigateBack = {}
         )
     }

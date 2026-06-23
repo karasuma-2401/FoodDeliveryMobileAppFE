@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderModel
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderStatus
 
@@ -25,6 +26,7 @@ fun OrderCard(
     onAccept: () -> Unit,
     onDeny: () -> Unit,
     onDone: () -> Unit,
+    onDelivered: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -52,7 +54,7 @@ fun OrderCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Đơn hàng ${order.id}",
+                    text = "Order ${order.id}",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
@@ -73,7 +75,8 @@ fun OrderCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "SĐT: ${order.customerPhone}",
+                    text = "Phone: ${order.customerPhone}",
+                    modifier = Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -88,7 +91,7 @@ fun OrderCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Tổng thanh toán: ",
+                        text = "Total Price: ",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -113,7 +116,7 @@ fun OrderCard(
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                     Text(
-                        text = "DANH SÁCH MÓN ĂN",
+                        text = "LIST OF FOODS",
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 6.dp)
@@ -142,8 +145,9 @@ fun OrderCard(
             }
 
             Spacer(modifier = Modifier.height(14.dp))
+
             when (order.status) {
-                OrderStatus.REQUEST -> {
+                OrderStatus.PENDING -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -163,7 +167,7 @@ fun OrderCard(
                         }
                     }
                 }
-                OrderStatus.RUNNING -> {
+                OrderStatus.PREPARING -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -184,8 +188,29 @@ fun OrderCard(
                         }
                     }
                 }
-                OrderStatus.COMPLETED -> BadgeStatus(text = "Đã hoàn thành", color = Color(0xFF4CAF50))
-                OrderStatus.CANCELLED -> BadgeStatus(text = "Đã hủy đơn", color = MaterialTheme.colorScheme.error)
+                OrderStatus.DELIVERING -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onCancel,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Cancel", fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = onDelivered,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                        ) {
+                            Text("Delivered", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                OrderStatus.DELIVERED -> BadgeStatus(text = "DELIVERED", color = Color(0xFF4CAF50))
+                OrderStatus.CANCELLED -> BadgeStatus(text = "CANCELLED", color = MaterialTheme.colorScheme.error)
             }
         }
     }

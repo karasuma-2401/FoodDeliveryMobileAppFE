@@ -1,14 +1,20 @@
 package com.example.fooddelivery.ui.screens.restaurant.dashboard
+
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.R
@@ -36,6 +42,7 @@ fun DashboardScreen(
         onSeeAllClick = onSeeAllClick,
         onSeeAllReviewsClick = onSeeAllReviewsClick,
         onAddFoodClick = onAddFoodClick,
+        onSeeAllOrdersClick = { onNavigate("order_management") },
         onNavigate = onNavigate
     )
 }
@@ -46,6 +53,7 @@ fun DashboardContent(
     onSeeAllClick: () -> Unit = {},
     onSeeAllReviewsClick: () -> Unit = {},
     onAddFoodClick: () -> Unit = {},
+    onSeeAllOrdersClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
 ) {
     Box(
@@ -102,6 +110,14 @@ fun DashboardContent(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                OrderHistorySection(
+                    orders = state.recentOrders,
+                    totalOrders = state.totalOrders,
+                    onSeeAllClick = onSeeAllOrdersClick
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
                 BestSellerSection(
                     items = listOf(
                         BestSellerItem("Burger", "$5.99", 4.5f, 120, R.drawable.ic_launcher_background),
@@ -110,6 +126,8 @@ fun DashboardContent(
                     ),
                     onSeeAllClick = onSeeAllClick
                 )
+
+                Spacer(modifier = Modifier.height(20.dp))
 
                 ActiveVouchersPreviewCard(
                     onSeeDetailClick = {
@@ -121,6 +139,120 @@ fun DashboardContent(
         }
     }
 }
+
+@Composable
+fun OrderHistorySection(
+    orders: List<RecentOrder>,
+    totalOrders: Int,
+    onSeeAllClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "ORDER HISTORY",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    )
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Surface(
+                    shape = RoundedCornerShape(percent = 50),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        text = totalOrders.toString(),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+
+            Text(
+                text = "See Details",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                modifier = Modifier.clickable { onSeeAllClick() }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (orders.isEmpty()) {
+                    Text(
+                        text = "No recent orders",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                } else {
+                    orders.take(3).forEachIndexed { index, order ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Order #${order.orderNumber}",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                                Text(
+                                    text = "${order.customerName} • ${order.time}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Gray
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "$${String.format("%.2f", order.totalPrice)}",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                                Text(
+                                    text = order.status,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (order.status.equals("Delivered", true)) Color(0xFF2E7D32) else Color(0xFFC62828)
+                                )
+                            }
+                        }
+                        if (index < orders.take(3).size - 1) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                thickness = 1.dp,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun DashboardPreview() {
@@ -131,7 +263,13 @@ fun DashboardPreview() {
                 orderRequest = 5,
                 revenue = 2241.0,
                 rating = 4.9,
-                totalReviews = 20
+                totalReviews = 20,
+                totalOrders = 142,
+                recentOrders = listOf(
+                    RecentOrder("1", "9842", "Nguyen Van A", 24.50, "Delivered", "10:30 AM"),
+                    RecentOrder("2", "9841", "Tran Thi B", 12.99, "Delivered", "09:15 AM"),
+                    RecentOrder("3", "9840", "Le Van C", 45.00, "Cancelled", "Yesterday")
+                )
             )
         )
     }

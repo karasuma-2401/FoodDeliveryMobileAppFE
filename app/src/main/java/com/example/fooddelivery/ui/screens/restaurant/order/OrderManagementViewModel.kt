@@ -1,10 +1,12 @@
 package com.example.fooddelivery.ui.screens.restaurant.order
+
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-enum class OrderStatus { REQUEST, RUNNING, COMPLETED, CANCELLED }
+
+enum class OrderStatus { PENDING, PREPARING, DELIVERING, DELIVERED, CANCELLED }
 
 data class OrderItem(
     val name: String,
@@ -30,6 +32,7 @@ data class OrderManagementState(
     val isLoading: Boolean = false,
     val error: String? = null
 )
+
 @HiltViewModel
 class OrderManagementViewModel @Inject constructor() : ViewModel() {
 
@@ -45,7 +48,7 @@ class OrderManagementViewModel @Inject constructor() : ViewModel() {
     }
 
     fun acceptOrder(orderId: String) {
-        updateOrderStatus(orderId, OrderStatus.RUNNING)
+        updateOrderStatus(orderId, OrderStatus.PREPARING)
     }
 
     fun denyOrder(orderId: String) {
@@ -53,7 +56,11 @@ class OrderManagementViewModel @Inject constructor() : ViewModel() {
     }
 
     fun completeOrder(orderId: String) {
-        updateOrderStatus(orderId, OrderStatus.COMPLETED)
+        updateOrderStatus(orderId, OrderStatus.DELIVERING)
+    }
+
+    fun deliverOrder(orderId: String) {
+        updateOrderStatus(orderId, OrderStatus.DELIVERED)
     }
 
     fun cancelOrder(orderId: String) {
@@ -75,7 +82,7 @@ class OrderManagementViewModel @Inject constructor() : ViewModel() {
                     orderTime = "10:30 AM",
                     customerName = "Nguyễn Văn Anh",
                     customerPhone = "0901.234.567",
-                    status = OrderStatus.REQUEST,
+                    status = OrderStatus.PENDING,
                     items = listOf(
                         OrderItem("Classic Burger", 2, 45000.0),
                         OrderItem("Cheese Pizza (M)", 1, 120000.0)
@@ -86,7 +93,7 @@ class OrderManagementViewModel @Inject constructor() : ViewModel() {
                     orderTime = "09:15 AM",
                     customerName = "Trần Thị Bích",
                     customerPhone = "0988.777.666",
-                    status = OrderStatus.RUNNING,
+                    status = OrderStatus.PREPARING,
                     items = listOf(
                         OrderItem("Thai Biriyani", 1, 65000.0),
                         OrderItem("Iced Tea", 3, 15000.0)
@@ -97,7 +104,7 @@ class OrderManagementViewModel @Inject constructor() : ViewModel() {
                     orderTime = "Yesterday",
                     customerName = "Lê Hoàng Nam",
                     customerPhone = "0912.333.444",
-                    status = OrderStatus.COMPLETED,
+                    status = OrderStatus.DELIVERED,
                     items = listOf(
                         OrderItem("Fried Chicken", 4, 35000.0)
                     )

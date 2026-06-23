@@ -13,6 +13,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class RecentOrder(
+    val id: String,
+    val orderNumber: String,
+    val customerName: String,
+    val totalPrice: Double,
+    val status: String,
+    val time: String
+)
+
 data class DashboardState(
     val isLoading: Boolean = false,
     val runningOrders: Int = 0,
@@ -20,6 +29,8 @@ data class DashboardState(
     val revenue: Double = 0.0,
     val rating: Double = 0.0,
     val totalReviews: Int = 0,
+    val totalOrders: Int = 0,
+    val recentOrders: List<RecentOrder> = emptyList(),
     val error: String? = null
 )
 
@@ -80,7 +91,13 @@ class DashboardViewModel @Inject constructor(
                         orderRequest = dashboard.orderRequest,
                         revenue = dashboard.revenue,
                         rating = dashboard.rating,
-                        totalReviews = dashboard.totalReviews
+                        totalReviews = dashboard.totalReviews,
+                        totalOrders = 142,
+                        recentOrders = listOf(
+                            RecentOrder("1", "9842", "Nguyen Van A", 24.50, "Delivered", "10:30 AM"),
+                            RecentOrder("2", "9841", "Tran Thi B", 12.99, "Delivered", "09:15 AM"),
+                            RecentOrder("3", "9840", "Le Van C", 45.00, "Cancelled", "Yesterday")
+                        )
                     )
                 }
             }
