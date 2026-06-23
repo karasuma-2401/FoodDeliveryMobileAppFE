@@ -15,6 +15,9 @@ interface RestaurantApi {
         @Query("categoryId") categoryId: Int? = null
     ): Response<BaseListResponse<RestaurantResponse>>
 
+    @GET("restaurant/{id}")
+    suspend fun getRestaurantById(@Path("id") id: Int): Response<RestaurantResponse>
+
     @GET("restaurant/my")
     suspend fun getMyRestaurants(): Response<BaseListResponse<RestaurantResponse>>
 
@@ -23,6 +26,12 @@ interface RestaurantApi {
         @Path("restaurantId") restaurantId: Int,
         @Query("range") range: String = "day"
     ): Response<DashboardResponse>
+
+    @POST("restaurant/{restaurantId}/like")
+    suspend fun toggleFavorite(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<LikeStatusResponse>>
+
+    @GET("restaurant/{restaurantId}/like-status")
+    suspend fun getLikeStatus(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<LikeStatusResponse>>
 
     @GET("food")
     suspend fun getFoods(

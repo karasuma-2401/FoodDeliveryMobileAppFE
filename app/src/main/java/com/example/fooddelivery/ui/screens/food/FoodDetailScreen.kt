@@ -101,9 +101,7 @@ fun FoodDetailContent(
             ) {
                 item {
                     FoodImageHeader(
-                        imageRes = state.food?.imageRes ?: R.drawable.food_bowl,
-                        isFavorite = state.isFavorite,
-                        onFavoriteToggle = { onEvent(FoodDetailEvent.ToggleFavorite) }
+                        imageRes = state.food?.imageRes ?: R.drawable.food_bowl
                     )
                 }
                 item { Spacer(modifier = Modifier.height(24.dp)) }

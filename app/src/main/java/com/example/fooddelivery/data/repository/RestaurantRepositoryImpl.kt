@@ -26,7 +26,6 @@ class RestaurantRepositoryImpl @Inject constructor(
         return try {
             val response = api.getRestaurants(limit, offset, keyword, categoryId)
             if (response.isSuccessful && response.body() != null) {
-                // 🌟 Bóc tách .data từ BaseListResponse
                 val baseResponse = response.body()!!
                 val restaurants = baseResponse.data?.map { dto ->
                     Restaurant(
@@ -37,7 +36,9 @@ class RestaurantRepositoryImpl @Inject constructor(
                         rating = dto.averageRating?.toFloat() ?: 0f,
                         deliveryFee = dto.deliveryFee ?: 0.0,
                         imageUrl = dto.image,
-                        promoTags = if (dto.deliveryFee == 0.0) listOf("Free Delivery") else emptyList()
+                        promoTags = if (dto.deliveryFee == 0.0) listOf("Free Delivery") else emptyList(),
+                        isLiked = dto.isLiked ?: false,
+                        totalLikes = dto.totalLikes ?: 0
                     )
                 } ?: emptyList()
                 Result.success(restaurants)
@@ -47,6 +48,20 @@ class RestaurantRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error: ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun getRestaurantById(id: Int): Result<RestaurantResponse> {
+        return try {
+            val response = api.getRestaurantById(id)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Failed to load restaurant details: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
         }
     }
 
@@ -72,6 +87,40 @@ class RestaurantRepositoryImpl @Inject constructor(
                 Result.success(response.body()!!)
             } else {
                 Result.failure(Exception(response.message()))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun toggleFavorite(restaurantId: Int): Result<LikeStatusResponse> {
+        return try {
+            val response = api.toggleFavorite(restaurantId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                val errorMsg = when (response.code()) {
+                    401 -> "Unauthorized: Please login again"
+                    403 -> "Forbidden: You don't have permission"
+                    404 -> "Restaurant not found"
+                    else -> "Failed to update favorite status: ${response.message()}"
+                }
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getLikeStatus(restaurantId: Int): Result<LikeStatusResponse> {
+        return try {
+            val response = api.getLikeStatus(restaurantId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                Result.failure(Exception("Failed to get like status: ${response.message()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

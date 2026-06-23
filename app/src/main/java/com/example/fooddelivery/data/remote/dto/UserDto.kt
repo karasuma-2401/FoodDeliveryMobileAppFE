@@ -23,3 +23,16 @@ data class UserReviewDto(
     val tags: List<String> = emptyList(),
     val createdAt: String
 )
+
+@Serializable
+data class PaginationDto(
+    val total: Int,
+    val limit: Int,
+    val offset: Int
+)
+
+@Serializable
+data class FavoriteRestaurantResponse(
+    val data: List<RestaurantResponse>,
+    val pagination: PaginationDto
+)

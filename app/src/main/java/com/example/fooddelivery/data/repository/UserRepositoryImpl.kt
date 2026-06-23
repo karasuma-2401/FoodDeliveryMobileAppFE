@@ -1,6 +1,8 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.UserApi
+import com.example.fooddelivery.data.remote.dto.RestaurantResponse
+import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.model.UserReview
 import com.example.fooddelivery.domain.repository.UserRepository
@@ -105,6 +107,39 @@ class UserRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
+        }
+    }
+
+    override suspend fun getFavoriteRestaurants(limit: Int, offset: Int): Result<List<Restaurant>> {
+        return try {
+            val response = api.getFavoriteRestaurants(limit, offset)
+            if (response.isSuccessful && response.body() != null) {
+                val restaurants = response.body()!!.data.map { dto ->
+                    Restaurant(
+                        id = dto.id.toString(),
+                        name = dto.name,
+                        description = dto.description ?: "",
+                        tags = dto.tags ?: dto.categories?.map { it.name } ?: emptyList(),
+                        rating = (dto.rating ?: dto.averageRating ?: 0.0).toFloat(),
+                        deliveryFee = dto.deliveryFee ?: 0.0,
+                        imageUrl = dto.image,
+                        promoTags = if (dto.deliveryFee == 0.0) listOf("Free Delivery") else emptyList(),
+                        isLiked = dto.isLiked ?: true,
+                        totalLikes = dto.totalLikes ?: 0
+                    )
+                }
+                Result.success(restaurants)
+            } else {
+                val errorMsg = when (response.code()) {
+                    401 -> "Unauthorized: Please login again"
+                    403 -> "Forbidden: You don't have permission"
+                    else -> "Failed to load favorite restaurants: ${response.message()}"
+                }
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
         }
     }
 }

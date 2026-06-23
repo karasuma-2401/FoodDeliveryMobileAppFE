@@ -3,8 +3,9 @@ package com.example.fooddelivery.ui.screens.profile.favourite
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.domain.repository.RestaurantRepository
+import com.example.fooddelivery.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,28 +26,13 @@ sealed interface FavouriteEvent {
 }
 
 @HiltViewModel
-class FavouriteViewModel @Inject constructor() : ViewModel() {
+class FavouriteViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val restaurantRepository: RestaurantRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(FavouriteState())
     val state: StateFlow<FavouriteState> = _state.asStateFlow()
-    private var mockFavourites = mutableListOf(
-        Restaurant(
-            id = "1",
-            name = "Rose Garden Restaurant",
-            tags = listOf("Burger", "Chicken", "Rice"),
-            rating = 4.7f,
-            deliveryFee = 2.0,
-            imageRes = com.example.fooddelivery.R.drawable.food_bowl
-        ),
-        Restaurant(
-            id = "3",
-            name = "Pizza Hut Deli",
-            tags = listOf("Pizza", "Italian"),
-            rating = 4.8f,
-            deliveryFee = 0.0,
-            imageRes = com.example.fooddelivery.R.drawable.food_bowl
-        )
-    )
 
     init {
         onEvent(FavouriteEvent.LoadFavourites)
@@ -63,42 +49,46 @@ class FavouriteViewModel @Inject constructor() : ViewModel() {
     private fun loadFavourites() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            delay(800)
-            _state.update { 
-                it.copy(
-                    favouriteRestaurants = mockFavourites.toList(),
-                    isLoading = false 
-                ) 
-            }
+            userRepository.getFavoriteRestaurants(limit = 50, offset = 0)
+                .onSuccess { restaurants ->
+                    _state.update { 
+                        it.copy(
+                            favouriteRestaurants = restaurants,
+                            isLoading = false,
+                            errorMessage = null
+                        ) 
+                    }
+                }
+                .onFailure { error ->
+                    _state.update { 
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "Failed to load favourites"
+                        ) 
+                    }
+                }
         }
     }
 
     private fun toggleFavourite(restaurantId: String) {
         val currentList = _state.value.favouriteRestaurants
-        val restaurantToRemove = currentList.find { it.id == restaurantId }
+        val restaurantIdInt = restaurantId.toIntOrNull() ?: return
         
-        if (restaurantToRemove != null) {
+        viewModelScope.launch {
+            // Optimistic UI update: remove from list immediately
             val updatedList = currentList.filterNot { it.id == restaurantId }
             _state.update { it.copy(favouriteRestaurants = updatedList) }
 
-            viewModelScope.launch {
-                val result = simulateToggleApi(restaurantId)
-                if (result.isFailure) {
+            restaurantRepository.toggleFavorite(restaurantIdInt)
+                .onFailure { error ->
+                    // Rollback if failed
                     _state.update { 
                         it.copy(
                             favouriteRestaurants = currentList,
-                            errorMessage = "Failed to update favourites. Please try again."
+                            errorMessage = error.message ?: "Failed to update favourites"
                         ) 
                     }
-                } else {
-                    mockFavourites.removeAll { it.id == restaurantId }
                 }
-            }
         }
-    }
-
-    private suspend fun simulateToggleApi(id: String): Result<Unit> {
-        delay(1000)
-        return if (Math.random() > 0.1) Result.success(Unit) else Result.failure(Exception("API Error"))
     }
 }
