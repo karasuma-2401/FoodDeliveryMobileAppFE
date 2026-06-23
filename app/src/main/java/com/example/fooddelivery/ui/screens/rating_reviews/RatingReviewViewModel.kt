@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.rating
+package com.example.fooddelivery.ui.screens.rating_reviews
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

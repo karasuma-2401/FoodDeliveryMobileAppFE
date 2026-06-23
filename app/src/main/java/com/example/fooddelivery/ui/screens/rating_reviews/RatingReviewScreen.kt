@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.rating
+package com.example.fooddelivery.ui.screens.rating_reviews
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -44,8 +44,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.screens.rating.components.ReviewTagCloud
-import com.example.fooddelivery.ui.screens.rating.components.StarRatingBar
+import com.example.fooddelivery.ui.screens.rating_reviews.components.ReviewTagCloud
+import com.example.fooddelivery.ui.screens.rating_reviews.components.StarRatingBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.flow.collectLatest
 
