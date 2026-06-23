@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderModel
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderStatus
 
@@ -25,6 +26,7 @@ fun OrderCard(
     onAccept: () -> Unit,
     onDeny: () -> Unit,
     onDone: () -> Unit,
+    onDelivered: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -74,6 +76,7 @@ fun OrderCard(
                 )
                 Text(
                     text = "Phone: ${order.customerPhone}",
+                    modifier = Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -142,8 +145,9 @@ fun OrderCard(
             }
 
             Spacer(modifier = Modifier.height(14.dp))
+
             when (order.status) {
-                OrderStatus.REQUEST -> {
+                OrderStatus.PENDING -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -163,7 +167,7 @@ fun OrderCard(
                         }
                     }
                 }
-                OrderStatus.RUNNING -> {
+                OrderStatus.PREPARING -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -184,7 +188,28 @@ fun OrderCard(
                         }
                     }
                 }
-                OrderStatus.COMPLETED -> BadgeStatus(text = "CONFIRMED", color = Color(0xFF4CAF50))
+                OrderStatus.DELIVERING -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onCancel,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Cancel", fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = onDelivered,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                        ) {
+                            Text("Delivered", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                OrderStatus.DELIVERED -> BadgeStatus(text = "DELIVERED", color = Color(0xFF4CAF50))
                 OrderStatus.CANCELLED -> BadgeStatus(text = "CANCELLED", color = MaterialTheme.colorScheme.error)
             }
         }
