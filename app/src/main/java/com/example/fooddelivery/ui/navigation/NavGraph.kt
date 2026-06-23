@@ -49,7 +49,7 @@ import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
 import com.example.fooddelivery.ui.screens.profile.favourite.FavouriteScreen
 import com.example.fooddelivery.ui.screens.payment.PaymentMethodScreen
 import com.example.fooddelivery.ui.screens.profile.review.UserReviewScreen
-import com.example.fooddelivery.ui.screens.home.restaurant.restaurant_details.RestaurantDetailScreen
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.RestaurantDetailScreen
 import com.example.fooddelivery.ui.screens.order.OrdersScreen
 import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
 import com.example.fooddelivery.ui.screens.chat.ChatScreen
