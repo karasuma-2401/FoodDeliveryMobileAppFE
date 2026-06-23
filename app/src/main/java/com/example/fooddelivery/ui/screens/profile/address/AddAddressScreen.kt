@@ -1,7 +1,6 @@
 package com.example.fooddelivery.ui.screens.profile.address
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,7 +14,6 @@ import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
@@ -193,22 +191,6 @@ fun AddAddressContent(
                         onValueChange = { onEvent(AddAddressEvent.FullAddressChanged(it)) },
                         leadingIcon = Icons.Default.LocationOn,
                         placeholder = "Search or enter full address",
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "BUILDING / FLOOR / NOTE (Optional)",
-                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    CustomAddressTextField(
-                        value = state.buildingNote,
-                        onValueChange = { onEvent(AddAddressEvent.BuildingNoteChanged(it)) },
-                        leadingIcon = Icons.Default.Apartment,
-                        placeholder = "e.g. Floor 4, Room 402, Building A",
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = {
                             focusManager.clearFocus()
@@ -216,26 +198,7 @@ fun AddAddressContent(
                         })
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onEvent(AddAddressEvent.DefaultChanged(!state.isDefault)) }
-                    ) {
-                        Checkbox(
-                            checked = state.isDefault,
-                            onCheckedChange = { onEvent(AddAddressEvent.DefaultChanged(it)) }
-                        )
-                        Text(
-                            text = "Set as default address",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     DFoodButton(
                         text = if (state.isLoading) "SAVING..." else if (isEditMode) "UPDATE ADDRESS" else "SAVE LOCATION",

@@ -6,7 +6,7 @@ import javax.inject.Inject
 class DeleteAddressUseCase @Inject constructor(
     private val repository: AddressRepository
 ) {
-    suspend operator fun invoke(addressId: String): Result<Unit> {
+    suspend operator fun invoke(addressId: Int): Result<Unit> {
         return repository.deleteAddress(addressId)
     }
 }

@@ -98,7 +98,8 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             val result = addressRepository.getAddresses()
             result.onSuccess { addresses ->
-                val defaultAddress = addresses.find { it.isDefault } ?: addresses.firstOrNull()
+                // Chọn địa chỉ đầu tiên làm mặc định thay vì tìm isDefault
+                val defaultAddress = addresses.firstOrNull()
                 _state.update { it.copy(address = defaultAddress) }
             }
         }
@@ -116,7 +117,6 @@ class CheckoutViewModel @Inject constructor(
     }
 
     private fun loadMockVouchers() {
-        // Mocking vouchers for now as in CartViewModel
         val mockVouchers = listOf(
             Voucher(
                 id = "1",
@@ -189,19 +189,19 @@ class CheckoutViewModel @Inject constructor(
             val orderRequest = OrderRequest(
                 restaurantId = cartItems.first().restaurantId.toIntOrNull() ?: 0,
                 voucherId = currentState.selectedVoucher?.id?.toIntOrNull(),
-                savedAddressId = currentState.address.id.toIntOrNull() ?: 0,
+                savedAddressId = currentState.address.id, // ID hiện tại đã là Int
                 orderFoods = cartItems.map { item ->
                     OrderItemRequest(
                         foodId = item.food.id.toIntOrNull() ?: 0,
                         quantity = item.quantity,
                         fullText = item.note,
-                        foodSizeId = item.foodSizeId?.toIntOrNull() // Mapping from item
+                        foodSizeId = item.foodSizeId?.toIntOrNull()
                     )
                 },
                 paymentMethod = currentState.paymentMethod.value,
                 note = currentState.orderNote,
                 clearCartAfterOrder = true,
-                totalAmount = null // Server calculates
+                totalAmount = null
             )
 
             val result = orderRepository.createOrder(orderRequest)
@@ -240,8 +240,6 @@ class CheckoutViewModel @Inject constructor(
                 val statusResult = orderRepository.checkOrderStatus(orderId)
 
                 statusResult.onSuccess { summary ->
-                    // According to API docs, we should probably check backend_status or paymentStatus
-                    // but summary.statusStep >= 2 is a safe bet for "Confirmed"
                     if (summary.statusStep >= 2 || summary.backendStatus == "CONFIRMED") {
                         isPaid = true
                     }
