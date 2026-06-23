@@ -4,6 +4,12 @@ import com.example.fooddelivery.data.remote.api.RestaurantApi
 import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.repository.RestaurantRepository
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -42,9 +48,23 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getDashboard(): Result<DashboardResponse> {
+    override suspend fun getMyRestaurants(): Result<List<RestaurantResponse>> {
         return try {
-            val response = api.getDashboard()
+            val response = api.getMyRestaurants()
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Failed to load my restaurants: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getDashboard(restaurantId: Int): Result<DashboardResponse> {
+        return try {
+            val response = api.getDashboard(restaurantId)
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
@@ -56,9 +76,9 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getFoods(): Result<List<FoodResponse>> {
+    override suspend fun getFoods(restaurantId: Int): Result<List<FoodResponse>> {
         return try {
-            val response = api.getFoods()
+            val response = api.getFoods(restaurantId)
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
@@ -70,13 +90,45 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addFood(request: FoodRequest): Result<BaseResponse<FoodResponse>> {
+    override suspend fun addFood(
+        name: String,
+        description: String,
+        categoryId: Int,
+        restaurantId: Int,
+        price: Double,
+        sizesJson: String,
+        ingredientIdsCsv: String?,
+        imageFile: File?
+    ): Result<FoodResponse> {
         return try {
-            val response = api.addFood(request)
+            val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+            val categoryIdBody = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val restaurantIdBody = restaurantId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val sizesBody = sizesJson.toRequestBody("application/json".toMediaTypeOrNull())
+            val ingredientIdsBody = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val imagePart = imageFile?.let {
+                val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                MultipartBody.Part.createFormData("image", it.name, requestFile)
+            }
+
+            val response = api.addFood(
+                name = nameBody,
+                description = descriptionBody,
+                categoryId = categoryIdBody,
+                restaurantId = restaurantIdBody,
+                price = priceBody,
+                sizes = sizesBody,
+                ingredientIds = ingredientIdsBody,
+                image = imagePart
+            )
+
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception("Failed to add food: ${response.message()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -84,7 +136,7 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getFoodById(id: String): Result<FoodResponse> {
+    override suspend fun getFoodById(id: Int): Result<FoodResponse> {
         return try {
             val response = api.getFoodById(id)
             if (response.isSuccessful && response.body() != null) {
@@ -98,13 +150,44 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateFood(id: String, request: FoodRequest): Result<BaseResponse<FoodResponse>> {
+    override suspend fun updateFood(
+        id: Int,
+        name: String,
+        description: String,
+        categoryId: Int,
+        price: Double,
+        sizesJson: String,
+        ingredientIdsCsv: String?,
+        imageFile: File?
+    ): Result<FoodResponse> {
         return try {
-            val response = api.updateFood(id, request)
+            val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+            val categoryIdBody = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val sizesBody = sizesJson.toRequestBody("application/json".toMediaTypeOrNull())
+            val ingredientIdsBody = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val imagePart = imageFile?.let {
+                val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                MultipartBody.Part.createFormData("image", it.name, requestFile)
+            }
+
+            val response = api.updateFood(
+                id = id,
+                name = nameBody,
+                description = descriptionBody,
+                categoryId = categoryIdBody,
+                price = priceBody,
+                sizes = sizesBody,
+                ingredientIds = ingredientIdsBody,
+                image = imagePart
+            )
+
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception("Failed to update food: ${response.message()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -112,13 +195,13 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteFood(id: String): Result<BaseResponse<Unit>> {
+    override suspend fun deleteFood(id: Int): Result<Unit> {
         return try {
             val response = api.deleteFood(id)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+            if (response.isSuccessful) {
+                Result.success(Unit)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception("Failed to delete food: ${response.message()}"))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

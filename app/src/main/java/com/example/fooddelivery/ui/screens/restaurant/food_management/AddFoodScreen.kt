@@ -1,5 +1,8 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -14,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,6 +28,11 @@ import com.example.fooddelivery.ui.screens.restaurant.component.DFoodImagePicker
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodSectionLabel
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodTextArea
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun AddFoodScreen(
@@ -31,6 +40,31 @@ fun AddFoodScreen(
     viewModel: AddFoodViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    val file = withContext(Dispatchers.IO) {
+                        val tempFile = File(context.cacheDir, "food_image_${System.currentTimeMillis()}.jpg")
+                        context.contentResolver.openInputStream(it)?.use { input ->
+                            FileOutputStream(tempFile).use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        tempFile
+                    }
+                    viewModel.onImageSelected(file, it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -48,7 +82,8 @@ fun AddFoodScreen(
         onDetailsChange = viewModel::onDetailsChange,
         onSaveClick = viewModel::saveFoodItem,
         onResetClick = viewModel::resetState,
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        onPickImageClick = { imagePickerLauncher.launch("image/*") }
     )
 }
 
@@ -64,7 +99,8 @@ fun AddFoodScreenContent(
     onDetailsChange: (String) -> Unit,
     onSaveClick: () -> Unit,
     onResetClick: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onPickImageClick: () -> Unit
 ) {
     var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
 
@@ -130,7 +166,10 @@ fun AddFoodScreenContent(
 
                 Column {
                     DFoodSectionLabel(text = "UPLOAD PHOTO/VIDEO")
-                    DFoodImagePicker()
+                    DFoodImagePicker(
+                        selectedImage = state.selectedImageUri,
+                        onAddClick = onPickImageClick
+                    )
                 }
 
                 Column {
@@ -274,7 +313,8 @@ fun AddFoodScreenPreview() {
             onDetailsChange = {},
             onSaveClick = {},
             onResetClick = {},
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onPickImageClick = {}
         )
     }
 }

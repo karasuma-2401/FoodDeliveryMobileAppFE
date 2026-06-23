@@ -1,5 +1,8 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -16,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +33,11 @@ import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodSectionLabel
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodTextArea
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun EditFoodScreen(
@@ -36,6 +45,31 @@ fun EditFoodScreen(
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    val file = withContext(Dispatchers.IO) {
+                        val tempFile = File(context.cacheDir, "food_image_${System.currentTimeMillis()}.jpg")
+                        context.contentResolver.openInputStream(it)?.use { input ->
+                            FileOutputStream(tempFile).use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        tempFile
+                    }
+                    viewModel.onImageSelected(file, it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -52,7 +86,8 @@ fun EditFoodScreen(
         onSizePriceChange = viewModel::onSizePriceChange,
         onIngredientToggle = viewModel::onIngredientToggle,
         onDetailsChange = viewModel::onDetailsChange,
-        onSaveClick = viewModel::updateFoodItem
+        onSaveClick = viewModel::updateFoodItem,
+        onPickImageClick = { imagePickerLauncher.launch("image/*") }
     )
 }
 
@@ -68,6 +103,7 @@ fun EditFoodContent(
     onIngredientToggle: (Int) -> Unit,
     onDetailsChange: (String) -> Unit,
     onSaveClick: () -> Unit,
+    onPickImageClick: () -> Unit,
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
 ) {
@@ -104,8 +140,9 @@ fun EditFoodContent(
             ) {
 
                 FoodImageWithTags(
-                    imageUrl = state.imageUrl ?: "",
-                    tags = listOf(state.selectedCategory)
+                    selectedImage = state.selectedImageUri ?: state.imageUrl ?: "",
+                    tags = listOf(state.selectedCategory),
+                    onClick = onPickImageClick
                 )
 
                 Column(
@@ -274,15 +311,16 @@ fun EditFoodContent(
 }
 
 @Composable
-fun FoodImageWithTags(imageUrl: String, tags: List<String>) {
+fun FoodImageWithTags(selectedImage: Any?, tags: List<String>, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(280.dp)
             .padding(horizontal = 24.dp, vertical = 12.dp)
+            .clickable { onClick() }
     ) {
         AsyncImage(
-            model = imageUrl,
+            model = selectedImage,
             contentDescription = null,
             placeholder = painterResource(id = R.drawable.food_bowl),
             error = painterResource(id = R.drawable.food_bowl),
@@ -334,7 +372,8 @@ fun EditFoodScreenPreview() {
             onSizePriceChange = { _, _ -> },
             onIngredientToggle = {},
             onDetailsChange = {},
-            onSaveClick = {}
+            onSaveClick = {},
+            onPickImageClick = {}
         )
     }
 }

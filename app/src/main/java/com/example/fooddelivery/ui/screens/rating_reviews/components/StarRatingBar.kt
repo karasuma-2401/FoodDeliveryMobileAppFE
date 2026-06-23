@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.rating.components
+package com.example.fooddelivery.ui.screens.rating_reviews.components
 
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown

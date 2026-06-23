@@ -21,15 +21,25 @@ data class FoodRequest(
 )
 
 @Serializable
+data class FoodSizeRequest(
+    val sizeId: Int,
+    val price: Double,
+    val isDefault: Boolean = false
+)
+
+@Serializable
 data class FoodResponse(
-    val id: String,
+    val id: Int,
     val name: String,
     val price: Double,
-    val details: String,
-    val category: String,
-    val rating: Float,
-    val reviewCount: Int,
-    val imageUrl: String? = null
+    val description: String,
+    val categoryId: Int,
+    val restaurantId: Int,
+    val label: String? = null,
+    val isAvailable: Boolean = true,
+    val image: String? = null,
+    val rating: Float? = null,
+    val reviewCount: Int? = null
 )
 
 @Serializable

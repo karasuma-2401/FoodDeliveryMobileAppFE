@@ -31,6 +31,15 @@ fun FoodItemCard(
     val displayPrice = item.price.toInt()
     val formattedPrice = String.format("%,d", displayPrice).replace(',', '.') + "đ"
 
+    val categoryName = when (item.categoryId) {
+        1 -> "Burger"
+        2 -> "Rice"
+        3 -> "Sushi"
+        4 -> "Noodles"
+        5 -> "Dessert"
+        else -> "Food"
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -38,7 +47,7 @@ fun FoodItemCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = item.imageUrl,
+            model = item.image,
             contentDescription = null,
             placeholder = painterResource(id = R.drawable.food_bowl),
             error = painterResource(id = R.drawable.food_bowl),
@@ -72,7 +81,7 @@ fun FoodItemCard(
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Text(
-                    text = item.category,
+                    text = categoryName,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontWeight = FontWeight.Bold
@@ -91,13 +100,13 @@ fun FoodItemCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = item.rating.toString(),
+                    text = (item.rating ?: 0f).toString(),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "(${item.reviewCount} Reviews)",
+                    text = "(${item.reviewCount ?: 0} Reviews)",
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.labelMedium
                 )

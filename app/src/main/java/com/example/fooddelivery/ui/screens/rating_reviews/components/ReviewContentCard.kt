@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.restaurant.component.review
+package com.example.fooddelivery.ui.screens.rating_reviews.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
