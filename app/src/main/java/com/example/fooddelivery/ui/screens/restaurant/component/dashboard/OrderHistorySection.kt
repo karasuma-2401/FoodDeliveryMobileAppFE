@@ -16,18 +16,16 @@ import com.example.fooddelivery.ui.screens.restaurant.dashboard.RecentOrder
 @Composable
 fun OrderHistorySection(
     orders: List<RecentOrder>,
-    totalOrders: Int, // 🌟 Nhận thêm tổng số đơn hàng từ State
+    totalOrders: Int,
     onSeeAllClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        // Header Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Nhóm Tiêu đề + Badge số lượng tổng
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "ORDER HISTORY",
@@ -38,7 +36,6 @@ fun OrderHistorySection(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // 🌟 Badge hiển thị tổng số đơn hàng
                 Surface(
                     shape = RoundedCornerShape(percent = 50),
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
@@ -66,7 +63,6 @@ fun OrderHistorySection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Card danh sách đơn hàng (giữ nguyên logic cũ của ông)
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
