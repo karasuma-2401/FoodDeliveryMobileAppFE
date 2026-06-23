@@ -26,7 +26,6 @@ class RestaurantRepositoryImpl @Inject constructor(
         return try {
             val response = api.getRestaurants(limit, offset, keyword, categoryId)
             if (response.isSuccessful && response.body() != null) {
-                // 🌟 Bóc tách .data từ BaseListResponse
                 val baseResponse = response.body()!!
                 val restaurants = baseResponse.data?.map { dto ->
                     Restaurant(
