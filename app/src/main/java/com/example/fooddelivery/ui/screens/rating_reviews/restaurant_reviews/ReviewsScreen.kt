@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.rating_reviews.components.ReviewItemRow
-import com.example.fooddelivery.ui.screens.restaurant.component.review.ReviewItemRow
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
