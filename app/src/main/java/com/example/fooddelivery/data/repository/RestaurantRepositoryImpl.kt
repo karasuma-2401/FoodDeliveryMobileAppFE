@@ -54,7 +54,6 @@ class RestaurantRepositoryImpl @Inject constructor(
         return try {
             val response = api.getMyRestaurants()
             if (response.isSuccessful && response.body() != null) {
-                // 🌟 Bóc tách .data từ BaseListResponse tại đây
                 val baseResponse = response.body()!!
                 Result.success(baseResponse.data ?: emptyList())
             } else {
