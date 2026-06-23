@@ -1,0 +1,3 @@
+- GET /api/conversation/me, POST /api/conversation, GET /api/conversation/detail, GET /api/conversation/:id: Tên và Ảnh người bán (sellerName, sellerImage, customerName, customerImage) => Để hiển thị trên Header của màn hình Chat và Danh sách hội thoại.
+- API GET /api/conversation/me cần them số tin nhắn chưa đọc (unreadCount) => Giao diện FE danh sách conversation có Badge thông báo tin nhắn mới
+- Online/Offline: Thông tin online hay offline/ online cua seller (nếu làm được thì làm khong duoc thi bo nho bao lai cho TL nha)

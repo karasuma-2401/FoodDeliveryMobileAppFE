@@ -153,14 +153,8 @@ fun LoginScreenContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Phone number",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
             DFoodFTextField(
                 value = state.phone,
                 onValueChange = { onEvent(LoginEvent.PhoneChanged(it))},
@@ -177,14 +171,8 @@ fun LoginScreenContent(
                 errorMessage = state.phoneError
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "Password",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
             DFoodFTextField(
                 value = state.password,
                 onValueChange = { onEvent(LoginEvent.PasswordChanged(it))},

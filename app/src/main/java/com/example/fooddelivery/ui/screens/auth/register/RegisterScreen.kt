@@ -21,6 +21,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,6 +31,7 @@ import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.button.SocialButton
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.utils.rememberFacebookLoginLauncher
 import com.example.fooddelivery.ui.utils.rememberGoogleLoginLauncher
 
@@ -140,12 +142,6 @@ fun RegisterContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = "Full Name",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
             DFoodFTextField(
                 value = state.fullName,
                 onValueChange = { onEvent(RegisterEvent.FullNameChanged(it))},
@@ -161,13 +157,7 @@ fun RegisterContent(
                 errorMessage = state.fullNameError
             )
             Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Email",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            
             DFoodFTextField(
                 value = state.email,
                 onValueChange = { onEvent(RegisterEvent.EmailChanged(it))},
@@ -185,12 +175,6 @@ fun RegisterContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "Phone Number",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
             DFoodFTextField(
                 value = state.phone,
                 onValueChange = { onEvent(RegisterEvent.PhoneChanged(it))},
@@ -208,12 +192,7 @@ fun RegisterContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "Password",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+
             DFoodFTextField(
                 value = state.password,
                 onValueChange = { onEvent(RegisterEvent.PasswordChanged(it))},
@@ -232,12 +211,6 @@ fun RegisterContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "Confirm Password",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
             DFoodFTextField(
                 value = state.confirmPassword,
                 onValueChange = { onEvent(RegisterEvent.ConfirmPasswordChanged(it))},
@@ -255,7 +228,7 @@ fun RegisterContent(
                 errorMessage = state.confirmPasswordError
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 verticalAlignment = Alignment.Top,
@@ -376,5 +349,21 @@ fun RegisterContent(
             }
             Spacer(modifier = Modifier.height(48.dp))
         }
+    }
+}
+@Preview (showBackground = true, showSystemUi = true)
+@Composable
+fun RegisterScreenPreview() {
+    DFoodTheme(darkTheme = false) {
+        RegisterContent(
+            state = RegisterState(),
+            onEvent = {},
+            triggerFacebookLogin = {},
+            triggerGoogleLogin = {},
+            onNavigateBack = {},
+            onNavigateToLogin = {},
+            onNavigateToPolicy = {},
+            snackBarHostState = remember { SnackbarHostState() }
+        )
     }
 }

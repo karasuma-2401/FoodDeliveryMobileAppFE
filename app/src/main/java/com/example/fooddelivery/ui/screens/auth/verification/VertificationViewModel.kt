@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.usecase.SendResetPasswordCodeUseCase
 import com.example.fooddelivery.domain.usecase.VerifyAccountUseCase
-import com.example.fooddelivery.domain.usecase.VerifyCodeUseCase
+import com.example.fooddelivery.domain.usecase.VerifyResetOtpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -18,10 +18,11 @@ import javax.inject.Inject
 data class VerificationState(
     val email: String = "",
     val otpCode: String = "",
-    val timeLeft: Int = 60,
+    val timeLeft: Int = 900,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val isFromRegistration: Boolean = false,
+    val resetToken: String? = null,
     val errorMessage: String? = null,
     val resendMessage: String? = null
 )
@@ -36,7 +37,7 @@ sealed interface VerificationEvent {
 
 @HiltViewModel
 class VerificationViewModel @Inject constructor(
-    private val verifyCodeUseCase: VerifyCodeUseCase,
+    private val verifyResetOtpUseCase: VerifyResetOtpUseCase,
     private val verifyAccountUseCase: VerifyAccountUseCase,
     private val sendResetPasswordCodeUseCase: SendResetPasswordCodeUseCase
 ) : ViewModel() {
@@ -55,7 +56,9 @@ class VerificationViewModel @Inject constructor(
                             isFromRegistration = event.isFromRegistration 
                         ) 
                     }
-                    startTimer()
+                    if (!event.isFromRegistration) {
+                        startTimer()
+                    }
                 }
             }
             is VerificationEvent.OtpChanged -> {
@@ -64,7 +67,7 @@ class VerificationViewModel @Inject constructor(
                 }
             }
             VerificationEvent.ResendCodeClicked -> {
-                if (_state.value.timeLeft == 0) {
+                if (_state.value.timeLeft == 0 && !_state.value.isFromRegistration) {
                     resendCode()
                 }
             }
@@ -79,7 +82,7 @@ class VerificationViewModel @Inject constructor(
 
     private fun startTimer() {
         timerJob?.cancel()
-        _state.update { it.copy(timeLeft = 60) }
+        _state.update { it.copy(timeLeft = 900) }
         timerJob = viewModelScope.launch {
             while (_state.value.timeLeft > 0) {
                 delay(1000L)
@@ -92,8 +95,6 @@ class VerificationViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             
-            // Hiện tại chúng ta dùng chung API gửi mã cho Forgot Password.
-            // Nếu có API resend riêng cho Registration, hãy cập nhật tại đây.
             val result = sendResetPasswordCodeUseCase(_state.value.email)
             
             result.onSuccess {
@@ -120,23 +121,38 @@ class VerificationViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             
-            val result = if (currentState.isFromRegistration) {
-                verifyAccountUseCase(currentState.otpCode)
+            if (currentState.isFromRegistration) {
+                val result = verifyAccountUseCase(currentState.otpCode)
+                result.onSuccess {
+                    _state.update { it.copy(isLoading = false, isSuccess = true) }
+                }.onFailure { exception ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = exception.message ?: "Invalid OTP"
+                        )
+                    }
+                }
             } else {
-                verifyCodeUseCase(
+                val result = verifyResetOtpUseCase(
                     email = currentState.email,
-                    code = currentState.otpCode
+                    otp = currentState.otpCode
                 )
-            }
-
-            result.onSuccess {
-                _state.update { it.copy(isLoading = false, isSuccess = true) }
-            }.onFailure { exception ->
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = exception.message ?: "Invalid OTP"
-                    )
+                result.onSuccess { response ->
+                    _state.update { 
+                        it.copy(
+                            isLoading = false, 
+                            isSuccess = true, 
+                            resetToken = response.resetToken 
+                        ) 
+                    }
+                }.onFailure { exception ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = exception.message ?: "Invalid OTP"
+                        )
+                    }
                 }
             }
         }

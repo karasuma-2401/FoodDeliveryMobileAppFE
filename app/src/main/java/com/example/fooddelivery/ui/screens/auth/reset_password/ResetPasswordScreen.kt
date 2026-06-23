@@ -23,8 +23,7 @@ import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 
 @Composable
 fun ResetPasswordScreen(
-    email: String,
-    otp: String,
+    resetToken: String,
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
     viewModel: ResetPasswordViewModel = hiltViewModel()
@@ -32,8 +31,8 @@ fun ResetPasswordScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
-        viewModel.onEvent(ResetPasswordEvent.Init(email, otp))
+    LaunchedEffect(resetToken) {
+        viewModel.onEvent(ResetPasswordEvent.Init(resetToken))
     }
 
     LaunchedEffect(state.isSuccess) {

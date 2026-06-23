@@ -68,9 +68,19 @@ data class VerifyCodeRequest(
 )
 
 @Serializable
-data class ResetPasswordRequest(
+data class VerifyResetOtpRequest(
     val email: String,
-    val otp: String,
+    val otp: String
+)
+
+@Serializable
+data class VerifyResetOtpResponse(
+    val resetToken: String
+)
+
+@Serializable
+data class ResetPasswordRequest(
+    val resetToken: String,
     val newPassword: String
 )
 

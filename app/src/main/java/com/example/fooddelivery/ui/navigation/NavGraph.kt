@@ -239,13 +239,13 @@ fun NavGraphBuilder.authNavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onVerificationSuccess = { email, otp ->
+                onVerificationSuccess = { email, resetToken ->
                     if (route.isFromRegistration) {
                         navController.navigate(RegistrationSuccessRoute) {
                             popUpTo<VerificationRoute> { inclusive = true }
                         }
                     } else {
-                        navController.navigate(ResetPasswordRoute(email = email, otp = otp))
+                        navController.navigate(ResetPasswordRoute(resetToken = resetToken ?: ""))
                     }
                 }
             )
@@ -254,8 +254,7 @@ fun NavGraphBuilder.authNavGraph(
         composable<ResetPasswordRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<ResetPasswordRoute>()
             ResetPasswordScreen(
-                email = args.email,
-                otp = args.otp,
+                resetToken = args.resetToken,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToLogin = {
                     navController.navigate(LoginRoute) {
@@ -278,6 +277,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToSearch = { navController.navigate(SearchRoute) },
                 onNavigateToProfile = { navController.navigate(ProfileRoute) },
+                onNavigateToEditProfile = { navController.navigate(EditProfileRoute) },
                 onNavigateToOrders = { navController.navigate(MyOrdersRoute) },
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
