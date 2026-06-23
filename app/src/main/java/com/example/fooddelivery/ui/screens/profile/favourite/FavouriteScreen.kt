@@ -10,7 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,10 +34,14 @@ fun FavouriteScreen(
             viewModel.onEvent(FavouriteEvent.ErrorDismissed)
         }
     }
+
     FavouriteContent(
         state = state,
         onNavigateBack = onNavigateBack,
         onNavigateToRestaurant = onNavigateToRestaurant,
+        onToggleFavorite = { restaurantId ->
+            viewModel.onEvent(FavouriteEvent.ToggleFavourite(restaurantId))
+        },
         snackbarHostState = snackbarHostState
     )
 }
@@ -49,9 +52,9 @@ fun FavouriteContent(
     state: FavouriteState,
     onNavigateBack: () -> Unit,
     onNavigateToRestaurant: (String) -> Unit,
+    onToggleFavorite: (String) -> Unit,
     snackbarHostState: SnackbarHostState
 ) {
-
     Scaffold(
         topBar = {
             DFoodTopBar(
@@ -72,7 +75,7 @@ fun FavouriteContent(
                     modifier = Modifier.align(Alignment.Center),
                     color = MaterialTheme.colorScheme.primary
                 )
-            } else if (state.favouriteRestaurants.isEmpty()) {
+            } else if (state.favouriteRestaurants.isEmpty() && !state.isLoading) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -100,7 +103,8 @@ fun FavouriteContent(
                     ) { restaurant ->
                         RestaurantItem(
                             restaurant = restaurant,
-                            onClick = { onNavigateToRestaurant(restaurant.id) }
+                            onClick = { onNavigateToRestaurant(restaurant.id) },
+                            onFavoriteClick = { onToggleFavorite(restaurant.id) }
                         )
                     }
                 }
@@ -117,6 +121,7 @@ fun FavouriteScreenPreview() {
             state = FavouriteState(),
             onNavigateBack = {},
             onNavigateToRestaurant = {},
+            onToggleFavorite = {},
             snackbarHostState = remember { SnackbarHostState() }
         )
     }

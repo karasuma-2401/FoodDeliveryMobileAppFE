@@ -7,9 +7,11 @@ import androidx.navigation.toRoute
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.domain.model.Voucher
+import com.example.fooddelivery.domain.model.VoucherType
+import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.ui.navigation.RestaurantDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,21 +24,26 @@ import javax.inject.Inject
 data class RestaurantDetailState(
     val restaurant: Restaurant? = null,
     val foodItems: List<FoodItem> = emptyList(),
-    val categories: List<String> = listOf("Burger", "Sandwich", "Pizza"),
-    val selectedCategory: String = "Burger",
+    val categories: List<String> = emptyList(),
+    val selectedCategory: String = "",
     val isLoading: Boolean = false,
-    val categorizedFoodItem: Map<String, List<FoodItem>> = emptyMap()
+    val categorizedFoodItem: Map<String, List<FoodItem>> = emptyMap(),
+    val vouchers: List<Voucher> = emptyList()
 )
 
 sealed interface RestaurantDetailEvent {
     data class CategorySelected(val category: String) : RestaurantDetailEvent
     data class AddFoodToCart(val foodItem: FoodItem) : RestaurantDetailEvent
+    object ToggleFavorite : RestaurantDetailEvent
 }
+
 sealed interface RestaurantDetailUiEffect {
     data class ShowSnackBar(val message: String) : RestaurantDetailUiEffect
 }
+
 @HiltViewModel
 class RestaurantDetailViewModel @Inject constructor(
+    private val restaurantRepository: RestaurantRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val restaurantId: String = savedStateHandle.toRoute<RestaurantDetailRoute>().restaurantId
@@ -58,6 +65,36 @@ class RestaurantDetailViewModel @Inject constructor(
             is RestaurantDetailEvent.AddFoodToCart -> {
                 addToCart(event.foodItem)
             }
+            RestaurantDetailEvent.ToggleFavorite -> {
+                toggleFavorite()
+            }
+        }
+    }
+
+    private fun toggleFavorite() {
+        val currentRestaurant = _state.value.restaurant ?: return
+        val id = currentRestaurant.id.toIntOrNull() ?: return
+
+        val previousState = currentRestaurant.isLiked
+        val newFavoriteStatus = !previousState
+        
+        _state.update { 
+            it.copy(restaurant = currentRestaurant.copy(isLiked = newFavoriteStatus))
+        }
+        
+        viewModelScope.launch {
+            restaurantRepository.toggleFavorite(id).onSuccess { result ->
+                _state.update { 
+                    it.copy(restaurant = it.restaurant?.copy(isLiked = result.isLiked))
+                }
+                val message = if (result.isLiked) "Added to favorites" else "Removed from favorites"
+                _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar(message))
+            }.onFailure { error ->
+                _state.update { 
+                    it.copy(restaurant = it.restaurant?.copy(isLiked = previousState))
+                }
+                _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar(error.message ?: "Failed to update favorite"))
+            }
         }
     }
 
@@ -67,96 +104,190 @@ class RestaurantDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadRestaurantDetails () {
+    private fun loadRestaurantDetails() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            delay(5000)
-
-            val (mockRestaurant, mockFoodItems) = when (restaurantId) {
-                "1" -> {
-                    val restaurant = Restaurant(
-                        id = restaurantId,
-                        name = "Rose Garden Restaurant",
-                        description = "Authentic Asian cuisine with fresh ingredients and traditional recipes.",
-                        tags = listOf("Burger", "Chicken", "Rice", "Wings"),
-                        rating = 4.7f,
-                        deliveryFee = 0.0,
-                        imageRes = R.drawable.food_bowl
-                    )
-                    val items = listOf(
-                        FoodItem(id = "1", name = "Burger Ferguson", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Burger", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "PROMOTION"),
-                        FoodItem(id = "2", name = "Rockin' Burgers", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Burger", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 20%"),
-                        FoodItem(id = "3", name = "Egg Burger", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Burger", price = 35.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP"),
-                        FoodItem(id = "5", name = "Club Sandwich", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Sandwich", price = 30.0, imageRes = R.drawable.food_bowl, promoTag = "BÁN CHẠY"),
-                        FoodItem(id = "6", name = "Tuna Melt", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Sandwich", price = 32.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP"),
-                        FoodItem(id = "9", name = "Margherita Pizza", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Pizza", price = 120.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 10%"),
-                        FoodItem(id = "10", name = "Pepperoni Feast", restaurantId = restaurantId, restaurantName = "Rose Garden Restaurant", categoryId = "Pizza", price = 150.0, imageRes = R.drawable.food_bowl, promoTag = "HOT")
-                    )
-                    Pair(restaurant, items)
-                }
-                "2" -> {
-                    val restaurant = Restaurant(
-                        id = restaurantId,
-                        name = "KFC - Ho Chi Minh",
-                        description = "World famous fried chicken and fast food favorites.",
-                        tags = listOf("Fast Food", "Fried Chicken"),
-                        rating = 4.5f,
-                        deliveryFee = 1.5,
-                        imageRes = R.drawable.food_bowl
-                    )
-                    val items = listOf(
-                        FoodItem(id = "4", name = "BBQ Special", restaurantId = restaurantId, restaurantName = "KFC - Ho Chi Minh", categoryId = "Burger", price = 45.0, imageRes = R.drawable.food_bowl, promoTag = "HOT"),
-                        FoodItem(id = "7", name = "Beef Pastrami", restaurantId = restaurantId, restaurantName = "KFC - Ho Chi Minh", categoryId = "Sandwich", price = 50.0, imageRes = R.drawable.food_bowl, promoTag = "NEW"),
-                        FoodItem(id = "8", name = "Veggie Supreme", restaurantId = restaurantId, restaurantName = "KFC - Ho Chi Minh", categoryId = "Sandwich", price = 28.0, imageRes = R.drawable.food_bowl, promoTag = "HEALTHY")
-                    )
-                    Pair(restaurant, items)
-                }
-                "3" -> {
-                    val restaurant = Restaurant(
-                        id = restaurantId,
-                        name = "Pizza Hut Deli",
-                        description = "Premium pizzas and Italian specialties delivered hot and fresh.",
-                        tags = listOf("Pizza", "Italian", "Pasta"),
-                        rating = 4.8f,
-                        deliveryFee = 0.0,
-                        imageRes = R.drawable.food_bowl
-                    )
-                    val items = listOf(
-                        FoodItem(id = "11", name = "Seafood Black Pepper", restaurantId = restaurantId, restaurantName = "Pizza Hut Deli", categoryId = "Pizza", price = 180.0, imageRes = R.drawable.food_bowl, promoTag = "PROMOTION"),
-                        FoodItem(id = "12", name = "Hawaiian Classic", restaurantId = restaurantId, restaurantName = "Pizza Hut Deli", categoryId = "Pizza", price = 140.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP")
-                    )
-                    Pair(restaurant, items)
-                }
-                else -> {
-                    // Default fallback
-                    val restaurant = Restaurant(
-                        id = restaurantId,
-                        name = "Spicy Restaurant",
-                        description = "Maecenas sed diam eget risus varius blandit sit amet non magna.",
-                        tags = listOf("Burger", "Chicken", "Rice", "Wings"),
-                        rating = 4.7f,
-                        deliveryFee = 0.0,
-                        imageRes = R.drawable.food_bowl
-                    )
-                    val items = listOf(
-                        FoodItem(id = "1", name = "Burger Ferguson", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Burger", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "PROMOTION"),
-                        FoodItem(id = "2", name = "Rockin' Burgers", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Burger", price = 40.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 20%"),
-                        FoodItem(id = "3", name = "Egg Burger", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Burger", price = 35.0, imageRes = R.drawable.food_bowl, promoTag = "FREESHIP"),
-                        FoodItem(id = "5", name = "Club Sandwich", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Sandwich", price = 30.0, imageRes = R.drawable.food_bowl, promoTag = "BÁN CHẠY"),
-                        FoodItem(id = "9", name = "Margherita Pizza", restaurantId = restaurantId, restaurantName = "Spicy Restaurant", categoryId = "Pizza", price = 120.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 10%")
-                    )
-                    Pair(restaurant, items)
+            
+            val idInt = restaurantId.toIntOrNull() ?: 1
+            
+            // Parallel loading
+            launch {
+                restaurantRepository.getFoods(idInt).onSuccess { foodResponses ->
+                    val apiFoodItems = foodResponses.map { dto ->
+                        FoodItem(
+                            id = dto.id.toString(),
+                            name = dto.name,
+                            restaurantId = restaurantId,
+                            restaurantName = _state.value.restaurant?.name ?: "",
+                            categoryId = dto.categoryId.toString(),
+                            price = dto.price,
+                            imageRes = R.drawable.food_bowl,
+                            imageUrl = dto.image
+                        )
+                    }
+                    
+                    val foodItems = if (apiFoodItems.isEmpty()) getSeedFoodItems() else apiFoodItems
+                    val categories = foodItems.map { it.categoryId }.distinct()
+                    
+                    _state.update {
+                        it.copy(
+                            foodItems = foodItems,
+                            categories = categories,
+                            selectedCategory = categories.firstOrNull() ?: "",
+                            categorizedFoodItem = foodItems.groupBy { item -> item.categoryId }
+                        )
+                    }
+                }.onFailure {
+                    val foodItems = getSeedFoodItems()
+                    val categories = foodItems.map { it.categoryId }.distinct()
+                    _state.update {
+                        it.copy(
+                            foodItems = foodItems,
+                            categories = categories,
+                            selectedCategory = categories.firstOrNull() ?: "",
+                            categorizedFoodItem = foodItems.groupBy { item -> item.categoryId }
+                        )
+                    }
                 }
             }
 
-            _state.update {
-                it.copy(
-                    restaurant = mockRestaurant,
-                    foodItems = mockFoodItems,
-                    categorizedFoodItem = mockFoodItems.groupBy { item -> item.categoryId },
-                    isLoading = false
-                )
+            launch {
+                restaurantRepository.getRestaurantById(idInt).onSuccess { dto ->
+                    val restaurant = Restaurant(
+                        id = dto.id.toString(),
+                        name = dto.name,
+                        description = dto.description ?: "",
+                        tags = dto.categories?.map { it.name } ?: emptyList(),
+                        rating = dto.averageRating?.toFloat() ?: 0f,
+                        deliveryFee = dto.deliveryFee ?: 0.0,
+                        imageUrl = dto.image,
+                        isLiked = dto.isLiked ?: false
+                    )
+                    _state.update { it.copy(restaurant = restaurant) }
+                    
+                    // After getting restaurant, check its specific like status
+                    checkLikeStatus(idInt)
+                }.onFailure {
+                    if (_state.value.restaurant == null) {
+                        _state.update { it.copy(restaurant = getMockRestaurant()) }
+                        checkLikeStatus(idInt)
+                    }
+                }
+            }
+
+            _state.update { it.copy(vouchers = getMockVouchers(), isLoading = false) }
+        }
+    }
+
+    private fun checkLikeStatus(restaurantId: Int) {
+        viewModelScope.launch {
+            restaurantRepository.getLikeStatus(restaurantId).onSuccess { result ->
+                _state.update { 
+                    it.copy(restaurant = it.restaurant?.copy(isLiked = result.isLiked))
+                }
             }
         }
+    }
+
+    private fun getMockRestaurant() = Restaurant(
+        id = restaurantId,
+        name = "Heo Con - Cơm Gà Sốt, Da Gà & Hamburger - Đình Phong Phú",
+        description = "Famous for its crispy chicken and unique sauces.",
+        tags = listOf("Chicken", "Burger", "Asian"),
+        rating = 4.6f,
+        reviewCount = 999,
+        deliveryFee = 2.0,
+        isLiked = false,
+        imageRes = R.drawable.food_bowl
+    )
+
+    private fun getMockVouchers() = listOf(
+        Voucher(
+            id = "1",
+            code = "OFF15",
+            title = "$15.00 OFF",
+            description = "Discount for your first order. Min spend $0.",
+            discountAmount = 15.0,
+            minOrderAmount = 0.0,
+            expiryText = "Exp. 30 Jun 2024",
+            type = VoucherType.DISCOUNT
+        ),
+        Voucher(
+            id = "2",
+            code = "OFF16",
+            title = "$16.00 OFF",
+            description = "Special weekend offer. Min spend $0.",
+            discountAmount = 16.0,
+            minOrderAmount = 0.0,
+            expiryText = "Exp. 15 Jul 2024",
+            type = VoucherType.DISCOUNT
+        )
+    )
+
+    private fun getSeedFoodItems(): List<FoodItem> {
+        return listOf(
+            FoodItem(
+                id = "f1",
+                name = "Crispy Chicken with Sauce",
+                restaurantId = restaurantId,
+                restaurantName = "Heo Con",
+                categoryId = "Popular",
+                price = 39000.0,
+                soldCount = 1000,
+                imageRes = R.drawable.food_bowl,
+                promoTag = "1K+ Sold"
+            ),
+            FoodItem(
+                id = "f2",
+                name = "Classic Beef Burger",
+                restaurantId = restaurantId,
+                restaurantName = "Heo Con",
+                categoryId = "Popular",
+                price = 45000.0,
+                soldCount = 82,
+                imageRes = R.drawable.food_bowl,
+                promoTag = "82 Sold"
+            ),
+            FoodItem(
+                id = "f3",
+                name = "Fried Rice with Egg",
+                restaurantId = restaurantId,
+                restaurantName = "Heo Con",
+                categoryId = "Main Dishes",
+                price = 35000.0,
+                soldCount = 500,
+                imageRes = R.drawable.food_bowl
+            ),
+            FoodItem(
+                id = "f4",
+                name = "Spicy Chicken Wings",
+                restaurantId = restaurantId,
+                restaurantName = "Heo Con",
+                categoryId = "Main Dishes",
+                price = 55000.0,
+                soldCount = 200,
+                imageRes = R.drawable.food_bowl
+            ),
+            FoodItem(
+                id = "f5",
+                name = "Coca Cola",
+                restaurantId = restaurantId,
+                restaurantName = "Heo Con",
+                categoryId = "Drinks",
+                price = 15000.0,
+                soldCount = 2000,
+                imageRes = R.drawable.food_bowl
+            ),
+            FoodItem(
+                id = "f6",
+                name = "Iced Milk Coffee",
+                restaurantId = restaurantId,
+                restaurantName = "Heo Con",
+                categoryId = "Drinks",
+                price = 25000.0,
+                soldCount = 300,
+                imageRes = R.drawable.food_bowl
+            )
+        )
     }
 }
