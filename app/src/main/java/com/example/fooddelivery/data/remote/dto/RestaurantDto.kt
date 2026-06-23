@@ -46,7 +46,7 @@ data class FoodResponse(
 data class BaseResponse<T>(
     val data: T? = null,
     val message: String? = null,
-    val isSuccess: Boolean
+    val success: Boolean
 )
 
 @Serializable
@@ -62,9 +62,20 @@ data class RestaurantResponse(
     val estimatedDeliveryTime: Int? = null,
     val address: RestaurantAddressDto? = null,
     val averageRating: Double? = null,
+    val rating: Double? = null, // Dùng cho API /user/favorites
     val ratingCount: Int? = null,
     val categories: List<RestaurantCategoryDto>? = null,
-    val startingPrice: Double? = null
+    val tags: List<String>? = null, // Dùng cho API /user/favorites
+    val startingPrice: Double? = null,
+    val isLiked: Boolean? = false,
+    val totalLikes: Int? = 0
+)
+
+@Serializable
+data class LikeStatusResponse(
+    val restaurantId: Int? = null,
+    val isLiked: Boolean,
+    val totalLikes: Int? = null
 )
 
 @Serializable

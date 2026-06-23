@@ -1,5 +1,6 @@
 package com.example.fooddelivery.data.remote.api
 
+import com.example.fooddelivery.data.remote.dto.FavoriteRestaurantResponse
 import com.example.fooddelivery.data.remote.dto.UserProfileResponse
 import com.example.fooddelivery.data.remote.dto.UserReviewDto
 import com.example.fooddelivery.domain.model.User
@@ -26,4 +27,10 @@ interface UserApi {
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0
     ): Response<List<UserReviewDto>>
+
+    @GET("user/favorites/restaurants")
+    suspend fun getFavoriteRestaurants(
+        @Query("limit") limit: Int = 20,
+        @Query("offset") offset: Int = 0
+    ): Response<FavoriteRestaurantResponse>
 }

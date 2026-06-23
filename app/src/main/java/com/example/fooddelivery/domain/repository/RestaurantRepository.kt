@@ -13,9 +13,15 @@ interface RestaurantRepository {
         categoryId: Int? = null
     ): Result<List<Restaurant>>
 
+    suspend fun getRestaurantById(id: Int): Result<RestaurantResponse>
+
     suspend fun getMyRestaurants(): Result<List<RestaurantResponse>>
 
     suspend fun getDashboard(restaurantId: Int): Result<DashboardResponse>
+
+    suspend fun toggleFavorite(restaurantId: Int): Result<LikeStatusResponse>
+
+    suspend fun getLikeStatus(restaurantId: Int): Result<LikeStatusResponse>
 
     suspend fun getFoods(restaurantId: Int): Result<List<FoodResponse>>
 
