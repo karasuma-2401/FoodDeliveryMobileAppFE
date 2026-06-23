@@ -45,7 +45,7 @@ fun MyFoodListScreenContent(
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {},
     onCategorySelected: (Int) -> Unit = {},
-    onDeleteFood: (String) -> Unit = {}
+    onDeleteFood: (Int) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -79,7 +79,7 @@ fun MyFoodListScreenContent(
 
                     FoodList(
                         items = state.filteredFoodList,
-                        onEditClick = { food -> onEditFood(food.id) },
+                        onEditClick = { food -> onEditFood(food.id.toString()) },
                         onDeleteClick = { food -> onDeleteFood(food.id) }
                     )
                 }
@@ -96,40 +96,44 @@ fun FoodListScreenPreview() {
             state = MyFoodListState(
                 foodList = listOf(
                     FoodResponse(
-                        id = "1",
+                        id = 1,
                         name = "Classic Burger",
-                        price = 45000.0, // Đổi sang mệnh giá đ cho đồng bộ mẫu
-                        details = "Juicy beef patty with cheese",
-                        category = "Fast Food",
+                        price = 45000.0,
+                        description = "Juicy beef patty with cheese",
+                        categoryId = 1,
+                        restaurantId = 1,
                         rating = 4.5f,
                         reviewCount = 120
                     ),
                     FoodResponse(
-                        id = "2",
+                        id = 2,
                         name = "Cheese Pizza",
                         price = 120000.0,
-                        details = "Fluffy pizza with double cheese",
-                        category = "Pizza",
+                        description = "Fluffy pizza with double cheese",
+                        categoryId = 1,
+                        restaurantId = 1,
                         rating = 4.8f,
                         reviewCount = 85
                     )
                 ),
                 filteredFoodList = listOf(
                     FoodResponse(
-                        id = "1",
+                        id = 1,
                         name = "Classic Burger",
                         price = 45000.0,
-                        details = "Juicy beef patty with cheese",
-                        category = "Fast Food",
+                        description = "Juicy beef patty with cheese",
+                        categoryId = 1,
+                        restaurantId = 1,
                         rating = 4.5f,
                         reviewCount = 120
                     ),
                     FoodResponse(
-                        id = "2",
+                        id = 2,
                         name = "Cheese Pizza",
                         price = 120000.0,
-                        details = "Fluffy pizza with double cheese",
-                        category = "Pizza",
+                        description = "Fluffy pizza with double cheese",
+                        categoryId = 1,
+                        restaurantId = 1,
                         rating = 4.8f,
                         reviewCount = 85
                     )
