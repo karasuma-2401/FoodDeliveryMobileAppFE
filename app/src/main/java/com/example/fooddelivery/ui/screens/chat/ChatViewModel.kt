@@ -22,7 +22,7 @@ data class ChatState(
     val restaurantName: String = "Restaurant",
     val restaurantImage: String = "",
     val isOnline: Boolean = true,
-    val orderStatus: String = "Order Delivering",
+    val orderStatus: String = "", // Default empty since API 1.1/1.3 doesn't provide it
     val currentPage: Int = 0,
     val hasMore: Boolean = true,
     val error: String? = null
@@ -110,6 +110,7 @@ class ChatViewModel @Inject constructor(
         
         viewModelScope.launch {
             chatRepository.joinRoom(conversationId)
+            chatRepository.markAsRead(conversationId)
             observeMessages(conversationId)
             chatRepository.syncConversationDetail(conversationId.toInt(), 0).onSuccess {
                 _state.update { it.copy(isLoading = false) }
@@ -132,6 +133,7 @@ class ChatViewModel @Inject constructor(
                 ) }
                 
                 chatRepository.joinRoom(entity.id)
+                chatRepository.markAsRead(entity.id)
                 observeMessages(entity.id)
                 chatRepository.syncConversationDetailByOrder(orderId, 0)
                 
@@ -147,6 +149,10 @@ class ChatViewModel @Inject constructor(
         messageObserverJob = viewModelScope.launch {
             chatRepository.getMessages(conversationId).collectLatest { messages ->
                 _state.update { it.copy(messages = messages) }
+                // Nếu có tin nhắn mới khi đang ở trong chat, tự động đánh dấu đã đọc
+                if (messages.any { !it.isRead && it.senderId != _state.value.currentUserId }) {
+                    chatRepository.markAsRead(conversationId)
+                }
             }
         }
     }
@@ -196,5 +202,14 @@ class ChatViewModel @Inject constructor(
                 _state.update { it.copy(isUploadingImage = false, error = "Failed to upload image") }
             }
         }
+    }
+
+    override fun onCleared() {
+        currentConversationId?.let { id ->
+            viewModelScope.launch {
+                chatRepository.leaveRoom(id)
+            }
+        }
+        super.onCleared()
     }
 }

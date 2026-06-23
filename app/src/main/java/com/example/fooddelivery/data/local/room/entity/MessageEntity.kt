@@ -13,5 +13,6 @@ data class MessageEntity(
     val imageUrl: String?,
     val createdAt: String,
     val isSending: Boolean,
-    val isFailed: Boolean
+    val isFailed: Boolean,
+    val isRead: Boolean = false
 )

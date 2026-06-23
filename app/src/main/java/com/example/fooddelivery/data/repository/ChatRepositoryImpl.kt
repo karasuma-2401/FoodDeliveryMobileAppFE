@@ -7,12 +7,10 @@ import com.example.fooddelivery.data.local.room.entity.MessageEntity
 import com.example.fooddelivery.data.remote.api.ChatApi
 import com.example.fooddelivery.data.remote.dto.ConversationDto
 import com.example.fooddelivery.data.remote.dto.CreateConversationRequest
+import com.example.fooddelivery.data.remote.dto.OtherUserDto
 import com.example.fooddelivery.domain.repository.ChatRepository
-import io.socket.client.Ack
 import io.socket.client.Socket
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -20,7 +18,6 @@ import org.json.JSONObject
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
-import kotlin.coroutines.resume
 
 class ChatRepositoryImpl @Inject constructor(
     private val chatApi: ChatApi,
@@ -35,7 +32,7 @@ class ChatRepositoryImpl @Inject constructor(
         return try {
             val response = chatApi.getConversations()
             if (response.isSuccessful && response.body() != null) {
-                val entities = response.body()!!.map { dto -> mapToEntity(dto) }
+                val entities = response.body()!!.conversations.map { dto -> mapToEntity(dto) }
                 entities.forEach { conversationDao.updateConversation(it) }
                 Result.success(Unit)
             } else Result.failure(Exception("Sync failed"))
@@ -54,41 +51,28 @@ class ChatRepositoryImpl @Inject constructor(
         } catch (e: Exception) { Result.failure(e) }
     }
 
-    private fun mapToEntity(dto: ConversationDto): ConversationEntity {
-        // Tự động nhận diện tên/ảnh đối phương dựa trên role (BE trả về cái nào thì dùng cái đó)
-        val name = dto.sellerName ?: dto.customerName ?: "User #${dto.sellerId}/${dto.customerId}"
-        val image = dto.sellerImage ?: dto.customerImage ?: ""
-        
+    private fun mapToEntity(dto: ConversationDto, otherUser: OtherUserDto? = null): ConversationEntity {
+        val other = otherUser ?: dto.other
         return ConversationEntity(
             id = dto.id.toString(),
-            restaurantName = name, // Trong entity đặt tên là restaurantName nhưng có thể hiểu là "Đối phương"
-            restaurantImage = image,
+            restaurantName = other?.name ?: "User #${other?.id ?: dto.sellerId}",
+            restaurantImage = other?.avatar ?: "",
             lastMessage = dto.lastMessage?.content ?: "",
             lastMessageTime = dto.lastMessage?.createdAt ?: dto.createdAt,
-            unreadCount = dto.unreadCount ?: 0
+            unreadCount = dto.unreadCount
         )
     }
 
     override suspend fun markAsRead(conversationId: String): Result<Unit> {
         return try {
             conversationDao.markConversationAsRead(conversationId)
-            val ackResult = withTimeoutOrNull(5000L) {
-                suspendCancellableCoroutine { continuation ->
-                    val data = JSONObject().put("conversationId", conversationId.toInt())
-                    socket.emit("mark_read", arrayOf(data), object : Ack {
-                        override fun call(vararg args: Any?) {
-                            val response = args.getOrNull(0) as? JSONObject
-                            val success = response?.optBoolean("success", false) ?: false
-                            if (success) {
-                                continuation.resume(Result.success(Unit))
-                            } else {
-                                continuation.resume(Result.failure(Exception("Mark read failed")))
-                            }
-                        }
-                    })
-                }
+            messageDao.markMessagesAsRead(conversationId)
+            val response = chatApi.markAsRead(conversationId.toInt())
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Mark as read failed"))
             }
-            ackResult ?: Result.failure(Exception("Mark read timeout"))
         } catch (e: Exception) { Result.failure(e) }
     }
 
@@ -104,7 +88,7 @@ class ChatRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 val body = response.body()!!
                 
-                val convEntity = mapToEntity(body.conversation)
+                val convEntity = mapToEntity(body.conversation, body.other)
                 conversationDao.updateConversation(convEntity)
 
                 val messageEntities = body.messages.map { dto ->
@@ -116,7 +100,8 @@ class ChatRepositoryImpl @Inject constructor(
                         imageUrl = dto.imageUrl,
                         createdAt = dto.createdAt,
                         isSending = false,
-                        isFailed = false
+                        isFailed = false,
+                        isRead = dto.isRead
                     )
                 }
                 messageDao.insertMessages(messageEntities)
@@ -131,7 +116,7 @@ class ChatRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 val body = response.body()!!
                 
-                val convEntity = mapToEntity(body.conversation)
+                val convEntity = mapToEntity(body.conversation, body.other)
                 conversationDao.updateConversation(convEntity)
 
                 val messageEntities = body.messages.map { dto ->
@@ -143,7 +128,8 @@ class ChatRepositoryImpl @Inject constructor(
                         imageUrl = dto.imageUrl,
                         createdAt = dto.createdAt,
                         isSending = false,
-                        isFailed = false
+                        isFailed = false,
+                        isRead = dto.isRead
                     )
                 }
                 messageDao.insertMessages(messageEntities)
@@ -175,7 +161,9 @@ class ChatRepositoryImpl @Inject constructor(
             val json = JSONObject().apply {
                 put("conversationId", message.conversationId.toInt())
                 put("content", message.content)
-                put("image", message.imageUrl)
+                if (message.imageUrl != null) {
+                    put("image", message.imageUrl)
+                }
             }
             socket.emit("text-chat", json)
             messageDao.updateMessage(message.copy(isSending = false))
@@ -190,6 +178,15 @@ class ChatRepositoryImpl @Inject constructor(
         try {
             val data = JSONObject().put("conversationId", conversationId.toInt())
             socket.emit("join-room", data)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override suspend fun leaveRoom(conversationId: String) {
+        try {
+            val data = JSONObject().put("conversationId", conversationId.toInt())
+            socket.emit("leave-room", data)
         } catch (e: Exception) {
             e.printStackTrace()
         }

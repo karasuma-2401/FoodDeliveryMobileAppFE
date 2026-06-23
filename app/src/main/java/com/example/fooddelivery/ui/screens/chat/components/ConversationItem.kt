@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.defaultMinSize
 import coil.compose.AsyncImage
 import com.example.fooddelivery.data.local.room.entity.ConversationEntity
+import java.text.SimpleDateFormat
+import java.util.*
 
 private fun formatUnreadCount(unreadCount: Int): String = if (unreadCount > 99) "99+" else unreadCount.toString()
 
@@ -26,6 +29,28 @@ fun ConversationItem(
     conversation: ConversationEntity,
     onClick: () -> Unit
 ) {
+    val formattedTime = remember(conversation.lastMessageTime) {
+        try {
+            val outputFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+            if (conversation.lastMessageTime.contains("T")) {
+                val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val cleanTime = conversation.lastMessageTime.substringBefore(".")
+                    .substringBefore("Z")
+                val date = isoFormat.parse(cleanTime)
+                date?.let { outputFormat.format(it) } ?: conversation.lastMessageTime
+            } else if (conversation.lastMessageTime.isNotEmpty()) {
+                val date = Date(conversation.lastMessageTime.toLong())
+                outputFormat.format(date)
+            } else {
+                ""
+            }
+        } catch (e: Exception) {
+            conversation.lastMessageTime
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -57,7 +82,7 @@ fun ConversationItem(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = conversation.lastMessageTime,
+                    text = formattedTime,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
@@ -67,7 +92,7 @@ fun ConversationItem(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = conversation.lastMessage,
+                    text = if (conversation.lastMessage.isNotEmpty()) conversation.lastMessage else "No messages yet",
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (conversation.unreadCount > 0)
                         MaterialTheme.colorScheme.onSurface

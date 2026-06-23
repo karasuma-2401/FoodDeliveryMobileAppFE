@@ -1,30 +1,13 @@
 package com.example.fooddelivery.ui.screens.rating_reviews
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -91,7 +74,7 @@ fun RatingReviewContent(
     Scaffold(
         topBar = {
             DFoodTopBar(
-                title = "Rating & Review",
+                title = if (state.reviewId != null) "Edit Review" else "Rating & Review",
                 onBackClick = { onEvent(RatingReviewEvent.OnNavigateBack) }
             )
         },
@@ -196,12 +179,22 @@ fun RatingReviewContent(
                 }
                 Spacer(modifier = Modifier.height(32.dp))
                 DFoodButton(
-                    text = "Submit Review",
+                    text = if (state.reviewId != null) "Update Review" else "Submit Review",
                     onClick = { onEvent(RatingReviewEvent.OnSubmit) },
                     modifier = Modifier.fillMaxWidth(),
                     isLoading = state.isSubmitting,
                     enabled = !state.isSubmitting
                 )
+                if (state.reviewId != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    TextButton(
+                        onClick = { onEvent(RatingReviewEvent.OnDelete) },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        enabled = !state.isSubmitting
+                    ) {
+                        Text("Delete Review")
+                    }
+                }
             }
         }
     }

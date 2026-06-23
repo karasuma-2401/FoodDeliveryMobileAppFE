@@ -56,7 +56,8 @@ data class RatingReviewRoute(
     val restaurantName: String = "", 
     val restaurantImage: String = "",
     val initialRating: Int = 0,
-    val initialComment: String = ""
+    val initialComment: String = "",
+    val reviewId: String? = null
 )
 
 @Serializable object ProfileRoute
