@@ -6,12 +6,6 @@ import kotlinx.serialization.Serializable
 data class ConversationDetailDto(
     val conversation: ConversationDto,
     val messages: List<MessageDto>,
-    val pagination: PaginationDto
-)
-
-@Serializable
-data class PaginationDto(
-    val total: Int,
-    val limit: Int,
-    val offset: Int
+    val me: OtherUserDto? = null,
+    val other: OtherUserDto? = null
 )

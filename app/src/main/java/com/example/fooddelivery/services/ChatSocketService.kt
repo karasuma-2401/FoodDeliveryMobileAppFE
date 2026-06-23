@@ -45,13 +45,14 @@ class ChatSocketService : Service() {
             try {
                 val message = MessageEntity(
                     id = data.optString("id", System.currentTimeMillis().toString()),
-                    conversationId = data.getString("conversationId"),
-                    senderId = data.getString("senderId"),
+                    conversationId = data.optString("conversationId"),
+                    senderId = data.optString("senderId"),
                     content = data.optString("content"),
                     imageUrl = data.optString("image", null),
                     createdAt = data.optString("createdAt", System.currentTimeMillis().toString()),
                     isSending = false,
-                    isFailed = false
+                    isFailed = false,
+                    isRead = data.optBoolean("isRead", false)
                 )
                 serviceScope.launch {
                     chatRepository.handleNewMessage(message)
@@ -62,7 +63,9 @@ class ChatSocketService : Service() {
         }
         socket.on("exception") { args ->
             val data = args.getOrNull(0) as? JSONObject
-            Log.e("ChatSocketService", "Socket Exception: ${data?.toString()}")
+            val status = data?.optString("status")
+            val content = data?.optString("content")
+            Log.e("ChatSocketService", "Socket Exception: [$status] $content")
         }
         
         socket.on(Socket.EVENT_CONNECT) {

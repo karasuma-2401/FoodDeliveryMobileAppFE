@@ -3,19 +3,21 @@ package com.example.fooddelivery.data.remote.dto
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class ConversationListResponse(
+    val conversations: List<ConversationDto>
+)
+
+@Serializable
 data class ConversationDto(
     val id: Int,
     val orderId: Int,
     val customerId: Int,
     val sellerId: Int,
     val createdAt: String,
+    val updatedAt: String? = null,
     val lastMessage: LastMessageDto? = null,
-    val order: OrderInfoDto? = null,
-    val sellerName: String? = null,
-    val sellerImage: String? = null,
-    val customerName: String? = null,
-    val customerImage: String? = null,
-    val unreadCount: Int? = 0
+    val unreadCount: Int = 0,
+    val other: OtherUserDto? = null
 )
 
 @Serializable
@@ -25,7 +27,8 @@ data class LastMessageDto(
 )
 
 @Serializable
-data class OrderInfoDto(
+data class OtherUserDto(
     val id: Int,
-    val status: String
+    val name: String,
+    val avatar: String? = null
 )

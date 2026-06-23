@@ -48,7 +48,7 @@ fun UserReviewItem(
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dateFormat = remember { SimpleDateFormat("dd MM yyyy", Locale.getDefault()) }
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH) }
     val dateString = dateFormat.format(Date(review.createdAt))
 
     Card(
@@ -157,6 +157,7 @@ fun UserReviewItem(
         }
     }
 }
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FlowRow(

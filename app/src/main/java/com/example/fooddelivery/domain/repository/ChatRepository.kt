@@ -17,6 +17,7 @@ interface ChatRepository {
     
     suspend fun sendMessage(conversationId: String, senderId: String, content: String, imageUrl: String? = null): Result<Unit>
     suspend fun joinRoom(conversationId: String)
+    suspend fun leaveRoom(conversationId: String)
     suspend fun uploadImage(imagePath: String): Result<String>
     suspend fun handleNewMessage(message: MessageEntity)
 }

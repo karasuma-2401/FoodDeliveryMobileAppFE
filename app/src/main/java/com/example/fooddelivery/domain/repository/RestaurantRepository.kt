@@ -17,5 +17,7 @@ interface RestaurantRepository {
     suspend fun getFoodById(id: String): Result<FoodResponse>
     suspend fun updateFood(id: String, request: FoodRequest): Result<BaseResponse<FoodResponse>>
     suspend fun deleteFood(id: String): Result<BaseResponse<Unit>>
-    suspend fun rateRestaurant(request: RestaurantRatingRequest): Result<FoodRatingResponse>
+    suspend fun rateRestaurant(restaurantId: Int, request: RestaurantRatingRequest): Result<FoodRatingResponse>
+    suspend fun updateReview(reviewId: Int, request: UpdateReviewRequest): Result<FoodRatingResponse>
+    suspend fun deleteReview(reviewId: Int): Result<FoodRatingResponse>
 }

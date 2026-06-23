@@ -11,13 +11,6 @@ data class MessageDto(
     val content: String,
     @SerialName("image")
     val imageUrl: String? = null,
-    val createdAt: String,
-    val sender: SenderDto? = null
-)
-
-@Serializable
-data class SenderDto(
-    val id: Int,
-    val name: String,
-    val avatar: String? = null
+    val isRead: Boolean = false,
+    val createdAt: String
 )

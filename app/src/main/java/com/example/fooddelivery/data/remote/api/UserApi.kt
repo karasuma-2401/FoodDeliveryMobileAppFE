@@ -1,6 +1,7 @@
 package com.example.fooddelivery.data.remote.api
 
 import com.example.fooddelivery.data.remote.dto.UserProfileResponse
+import com.example.fooddelivery.data.remote.dto.UserReviewDto
 import com.example.fooddelivery.domain.model.User
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -19,4 +20,10 @@ interface UserApi {
 
     @POST("auth/logout")
     suspend fun logout(): Response<Unit>
+
+    @GET("user/reviews")
+    suspend fun getUserReviews(
+        @Query("limit") limit: Int = 20,
+        @Query("offset") offset: Int = 0
+    ): Response<List<UserReviewDto>>
 }
