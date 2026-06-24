@@ -6,11 +6,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BakeryDining
-import androidx.compose.material.icons.filled.Egg
-import androidx.compose.material.icons.filled.Grass
-import androidx.compose.material.icons.filled.LocalPizza
 import androidx.compose.material.icons.filled.SetMeal
+import com.example.fooddelivery.ui.screens.food.FoodIngredient
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,16 +20,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun IngredientsSection(
+    ingredients: List<FoodIngredient>,
     modifier: Modifier = Modifier
 ) {
-    val ingredients = listOf(
-        Icons.Default.Egg,
-        Icons.Default.Grass,
-        Icons.Default.SetMeal,
-        Icons.Default.LocalPizza,
-        Icons.Default.BakeryDining
-    )
-    
+    if (ingredients.isEmpty()) return
+
     Column(modifier = modifier) {
         Text(
             text = "INGREDIENTS:",
@@ -45,7 +37,7 @@ fun IngredientsSection(
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            items(ingredients) { icon ->
+            items(ingredients, key = { it.id }) { ingredient ->
                 Box(
                     modifier = Modifier
                         .size(50.dp)
@@ -53,12 +45,20 @@ fun IngredientsSection(
                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(26.dp)
-                    )
+                    if (!ingredient.iconUrl.isNullOrBlank()) {
+                        coil.compose.AsyncImage(
+                            model = ingredient.iconUrl,
+                            contentDescription = ingredient.name,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.SetMeal,
+                            contentDescription = ingredient.name,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
                 }
             }
         }
