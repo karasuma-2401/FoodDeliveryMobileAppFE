@@ -30,6 +30,7 @@ import com.example.fooddelivery.ui.screens.customer.order.components.OrderBillDe
 import com.example.fooddelivery.ui.screens.customer.order.components.OrderSummaryCard
 import com.example.fooddelivery.ui.screens.customer.order.components.RestaurantContactCard
 import com.example.fooddelivery.ui.screens.customer.order.components.TimelineItem
+import com.example.fooddelivery.ui.screens.customer.order.components.TrackOrderSkeleton
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,135 +64,139 @@ fun TrackOrderContent(
     Scaffold(
         topBar = {
             DFoodTopBar(
-                title = "Order #${state.orderId}",
+                title = if (state.orderId.isNotEmpty()) "Order #${state.orderId}" else "Order Details",
                 onBackClick = onNavigateBack
             )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Arrival Time Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        if (state.isLoading && state.orderDetail == null) {
+            Box(modifier = Modifier.padding(innerPadding)) {
+                TrackOrderSkeleton()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 24.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "EXPECTED ARRIVAL",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = state.expectedArrival,
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // Tracking Section
-            Column(modifier = Modifier.fillMaxWidth()) {
-                SectionTitle(
-                    title = "Live Tracking",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                val statuses = TrackingStatus.entries
-                statuses.forEachIndexed { index, status ->
-                    // Logic: isCompleted if we passed this step
-                    // isActive if we are currently at this step
-                    val isCompleted = state.trackingStatus.step > status.step 
-                    val isActive = state.trackingStatus == status
-
-                    TimelineItem(
-                        title = status.title,
-                        subtitle = status.subtitle,
-                        icon = getTrackingIcon(status),
-                        isCompleted = isCompleted,
-                        isActive = isActive,
-                        isLast = index == statuses.size - 1
-                    )
-                }
-            }
-
-            // Contact Card
-            RestaurantContactCard(
-                restaurantName = state.restaurantName,
-                restaurantImage = state.restaurantImage,
-                onCallClick = {
-                    val intent = Intent(Intent.ACTION_DIAL).apply {
-                        data = Uri.parse("tel:${state.restaurantPhone}")
-                    }
-                    context.startActivity(intent)
-                },
-                onChatClick = {
-                    onChatWithRestaurant(
-                        state.orderId.toIntOrNull() ?: 0,
-                        state.restaurantId,
-                        state.restaurantName,
-                        state.restaurantImage
-                    )
-                }
-            )
-
-            // Delivery Address
-            SectionTitle(title = "Delivery Details")
-            DeliveryAddressCard(address = state.address)
-
-            // Order Summary
-            OrderSummaryCard(items = state.items)
-
-            // Payment & Billing Detail
-            OrderBillDetailCard(
-                totalPrice = state.totalPrice,
-                paymentMethod = state.paymentMethod,
-                paymentStatus = state.paymentStatus,
-                paymentDate = state.orderDetail?.paymentDate,
-                voucherInfo = state.voucherInfo
-            )
-
-            // Order Note
-            if (!state.note.isNullOrBlank()) {
+                // Arrival Time Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Order Note",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = state.note,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Row(
+                        modifier = Modifier.padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "EXPECTED ARRIVAL",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = state.expectedArrival,
+                                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                // Tracking Section
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    SectionTitle(
+                        title = "Live Tracking",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    val statuses = TrackingStatus.entries
+                    statuses.forEachIndexed { index, status ->
+                        val isCompleted = state.trackingStatus.step > status.step
+                        val isActive = state.trackingStatus == status
+
+                        TimelineItem(
+                            title = status.title,
+                            subtitle = status.subtitle,
+                            icon = getTrackingIcon(status),
+                            isCompleted = isCompleted,
+                            isActive = isActive,
+                            isLast = index == statuses.size - 1
                         )
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                // Contact Card
+                RestaurantContactCard(
+                    restaurantName = state.restaurantName,
+                    restaurantImage = state.restaurantImage,
+                    onCallClick = {
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:${state.restaurantPhone}")
+                        }
+                        context.startActivity(intent)
+                    },
+                    onChatClick = {
+                        onChatWithRestaurant(
+                            state.orderId.toIntOrNull() ?: 0,
+                            state.restaurantId,
+                            state.restaurantName,
+                            state.restaurantImage
+                        )
+                    }
+                )
+
+                // Delivery Address
+                SectionTitle(title = "Delivery Details")
+                DeliveryAddressCard(address = state.address)
+
+                // Order Summary
+                OrderSummaryCard(items = state.items)
+
+                // Payment & Billing Detail
+                OrderBillDetailCard(
+                    totalPrice = state.totalPrice,
+                    paymentMethod = state.paymentMethod,
+                    paymentStatus = state.paymentStatus,
+                    paymentDate = state.orderDetail?.paymentDate,
+                    voucherInfo = state.voucherInfo
+                )
+
+                // Order Note
+                if (!state.note.isNullOrBlank()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Order Note",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = state.note,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
