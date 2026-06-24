@@ -1,4 +1,3 @@
-# API Documentation - Tính năng Yêu thích Nhà hàng (Favorite Restaurants)
 
 Tài liệu này mô tả các API cần thiết để thực hiện tính năng "Yêu thích nhà hàng" cho người dùng trong ứng dụng FoodDelivery.
 

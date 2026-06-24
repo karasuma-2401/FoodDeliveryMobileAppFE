@@ -9,6 +9,8 @@ import android.location.LocationManager
 import androidx.core.content.ContextCompat
 import com.example.fooddelivery.domain.location.LocationTracker
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -37,24 +39,22 @@ class DefaultLocationTracker @Inject constructor(
         }
 
         return suspendCancellableCoroutine { cont ->
-            locationClient.lastLocation.apply {
-                if (isComplete) {
-                    if (isSuccessful) {
-                        cont.resume(result)
-                    } else {
-                        cont.resume(null)
-                    }
-                    return@suspendCancellableCoroutine
-                }
-                addOnSuccessListener {
-                    cont.resume(it)
-                }
-                addOnFailureListener {
+            // Thử lấy vị trí hiện tại với độ chính xác cao thay vì chỉ lấy vị trí cũ cuối cùng
+            val cancellationTokenSource = CancellationTokenSource()
+            
+            locationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                cancellationTokenSource.token
+            ).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    cont.resume(task.result)
+                } else {
                     cont.resume(null)
                 }
-                addOnCanceledListener {
-                    cont.cancel()
-                }
+            }
+
+            cont.invokeOnCancellation {
+                cancellationTokenSource.cancel()
             }
         }
     }

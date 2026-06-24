@@ -104,6 +104,16 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun confirmReceived(orderId: Int): Result<String> {
+        return try {
+            api.confirmReceived(orderId)
+                .unwrapData("Failed to confirm receipt")
+                .map { it.message }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun OrderListDto.toOrder(): Order {
         return Order(
             id = id.toString(),
@@ -114,7 +124,7 @@ class OrderRepositoryImpl @Inject constructor(
             itemCount = item_count,
             type = if (type.uppercase() == "DRINK") OrderType.DRINK else OrderType.FOOD,
             status = when (status.uppercase()) {
-                "DELIVERED", "COMPLETED" -> OrderStatus.COMPLETED
+                "CONFIRMED", "COMPLETED" -> OrderStatus.COMPLETED
                 "CANCELED", "CANCELLED" -> OrderStatus.CANCELED
                 else -> OrderStatus.ONGOING
             },
@@ -130,6 +140,11 @@ class OrderRepositoryImpl @Inject constructor(
             statusStep = status_step ?: 0,
             backendStatus = backend_status ?: "",
             expectedArrival = expected_arrival?.let { formatDate(it) },
+            deliveredAt = delivered_at?.let { formatDate(it) },
+            autoConfirmAt = auto_confirm_at?.let { formatDate(it) },
+            hoursUntilAutoConfirm = hours_until_auto_confirm,
+            confirmedAt = confirmed_at?.let { formatDate(it) },
+            confirmedBy = confirmed_by,
             restaurantId = restaurant?.id ?: 0,
             restaurantName = restaurant?.name ?: "",
             restaurantImage = restaurant?.image ?: "",
@@ -179,7 +194,12 @@ class OrderRepositoryImpl @Inject constructor(
             status = status,
             statusStep = status_step,
             updatedAt = formatDate(updated_at),
-            backendStatus = backend_status
+            backendStatus = backend_status,
+            deliveredAt = delivered_at?.let { formatDate(it) },
+            autoConfirmAt = auto_confirm_at?.let { formatDate(it) },
+            hoursUntilAutoConfirm = hours_until_auto_confirm,
+            confirmedAt = confirmed_at?.let { formatDate(it) },
+            confirmedBy = confirmed_by
         )
     }
 
