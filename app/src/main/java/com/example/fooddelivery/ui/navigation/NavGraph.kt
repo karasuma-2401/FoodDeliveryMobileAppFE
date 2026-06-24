@@ -28,11 +28,11 @@ import com.example.fooddelivery.ui.screens.auth.register.RegistrationSuccessScre
 import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
-import com.example.fooddelivery.ui.screens.cart.CartScreen
-import com.example.fooddelivery.ui.screens.checkout.CheckoutScreen
-import com.example.fooddelivery.ui.screens.checkout.CheckoutSuccessScreen
-import com.example.fooddelivery.ui.screens.home.HomeScreen
-import com.example.fooddelivery.ui.screens.home.search.SearchScreen
+import com.example.fooddelivery.ui.screens.customer.cart.CartScreen
+import com.example.fooddelivery.ui.screens.customer.checkout.CheckoutScreen
+import com.example.fooddelivery.ui.screens.customer.checkout.CheckoutSuccessScreen
+import com.example.fooddelivery.ui.screens.customer.home.HomeScreen
+import com.example.fooddelivery.ui.screens.customer.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 import com.example.fooddelivery.ui.screens.restaurant.coupon.RestaurantCouponScreen
 import com.example.fooddelivery.ui.screens.restaurant.dashboard.DashboardScreen
@@ -41,30 +41,28 @@ import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodSc
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
 import com.example.fooddelivery.ui.screens.admin.restaurantmanagement.AdminRestaurantScreen
-import com.example.fooddelivery.ui.screens.profile.changePassword.ChangePasswordScreen
-import com.example.fooddelivery.ui.screens.profile.EditProfileScreen
-import com.example.fooddelivery.ui.screens.profile.ProfileScreen
-import com.example.fooddelivery.ui.screens.profile.address.AddAddressScreen
-import com.example.fooddelivery.ui.screens.profile.address.CustomerAddressScreen
-import com.example.fooddelivery.ui.screens.profile.favourite.FavouriteScreen
-import com.example.fooddelivery.ui.screens.payment.PaymentMethodScreen
-import com.example.fooddelivery.ui.screens.profile.review.UserReviewScreen
+import com.example.fooddelivery.ui.screens.auth.changePassword.ChangePasswordScreen
+import com.example.fooddelivery.ui.screens.customer.profile.EditProfileScreen
+import com.example.fooddelivery.ui.screens.customer.profile.ProfileScreen
+import com.example.fooddelivery.ui.screens.customer.address.AddAddressScreen
+import com.example.fooddelivery.ui.screens.customer.address.CustomerAddressScreen
+import com.example.fooddelivery.ui.screens.customer.favourite.FavouriteScreen
+import com.example.fooddelivery.ui.screens.customer.review.UserReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.RestaurantDetailScreen
-import com.example.fooddelivery.ui.screens.order.OrdersScreen
-import com.example.fooddelivery.ui.screens.order.TrackOrderScreen
+import com.example.fooddelivery.ui.screens.customer.order.OrdersScreen
+import com.example.fooddelivery.ui.screens.customer.order.TrackOrderScreen
 import com.example.fooddelivery.ui.screens.chat.ChatScreen
 import com.example.fooddelivery.ui.screens.chat.ConversationScreen
 import com.example.fooddelivery.ui.screens.rating_reviews.RatingReviewScreen
 import com.example.fooddelivery.ui.screens.category.CategoryFilterScreen
 import com.example.fooddelivery.ui.screens.category.AllCategoriesScreen
-import com.example.fooddelivery.ui.screens.home.restaurant.AllRestaurantScreen
-import com.example.fooddelivery.ui.screens.home.location.LocationScreen
-import com.example.fooddelivery.ui.screens.profile.resetEmail.ResetEmailScreen
+import com.example.fooddelivery.ui.screens.customer.home.restaurant.AllRestaurantScreen
+import com.example.fooddelivery.ui.screens.auth.resetEmail.ResetEmailScreen
 import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
 import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
 import com.example.fooddelivery.ui.screens.rating_reviews.restaurant_reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
-import com.example.fooddelivery.ui.screens.profile.notification.NotificationScreen
+import com.example.fooddelivery.ui.screens.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
 import com.example.fooddelivery.ui.screens.admin.notification.AdminNotificationScreen
 @Composable
@@ -299,15 +297,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<LocationRoute> {
-            LocationScreen(
-                onPermissionGranted = {
-                    navController.navigate(HomeRoute) {
-                        popUpTo<LocationRoute> { inclusive = true }
-                    }
-                }
-            )
-        }
+
 
         composable<AllCategoriesRoute> {
             AllCategoriesScreen(
@@ -454,12 +444,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToOrder = { orderId ->
                     navController.navigate(TrackOrderRoute(orderId = orderId))
                 }
-            )
-        }
-
-        composable<PaymentMethodRoute> {
-            PaymentMethodScreen(
-                onNavigateBack = { navController.popBackStack() }
             )
         }
 

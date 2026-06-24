@@ -23,7 +23,7 @@ import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
-import com.example.fooddelivery.ui.screens.home.search.components.SectionHeader
+import com.example.fooddelivery.ui.screens.customer.search.components.SectionHeader
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.CategoryTabs
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.CategoryTabsSkeleton
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.FoodItemCard
