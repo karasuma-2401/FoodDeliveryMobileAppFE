@@ -2,7 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.FoodApi
 import com.example.fooddelivery.data.remote.dto.FoodResponse
-import com.example.fooddelivery.data.remote.parseErrorMessage
+import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.domain.repository.FoodRepository
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -17,18 +17,8 @@ class FoodRepositoryImpl @Inject constructor(
         keyword: String?
     ): Result<List<FoodResponse>> {
         return try {
-            val response = foodApi.getFoods(categoryId, restaurantId, keyword)
-            if (response.isSuccessful && response.body() != null) {
-                val baseResponse = response.body()!!
-
-                if (baseResponse.success == true && baseResponse.data != null) {
-                    Result.success(baseResponse.data)
-                } else {
-                    Result.failure(Exception(baseResponse.message ?: "Failed to load foods"))
-                }
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load foods")))
-            }
+            foodApi.getFoods(categoryId, restaurantId, keyword)
+                .unwrapData("Failed to load foods")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -37,18 +27,7 @@ class FoodRepositoryImpl @Inject constructor(
 
     override suspend fun getFoodById(id: Int): Result<FoodResponse> {
         return try {
-            val response = foodApi.getFoodById(id)
-            if (response.isSuccessful && response.body() != null) {
-                val baseResponse = response.body()!!
-
-                if (baseResponse.success == true && baseResponse.data != null) {
-                    Result.success(baseResponse.data)
-                } else {
-                    Result.failure(Exception(baseResponse.message ?: "Food does not exist"))
-                }
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Food does not exist")))
-            }
+            foodApi.getFoodById(id).unwrapData("Food does not exist")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)

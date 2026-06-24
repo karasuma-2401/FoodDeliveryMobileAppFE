@@ -2,9 +2,9 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.PhotonService
-import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.toAddress
 import com.example.fooddelivery.data.remote.dto.toAddressRequest
+import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.repository.AddressRepository
 import javax.inject.Inject
@@ -17,15 +17,13 @@ class AddressRepositoryImpl @Inject constructor(
 
     override suspend fun getAddresses(): Result<List<Address>> {
         return try {
-            val response = addressApi.getAddresses()
-            if (response.isSuccessful && response.body() != null) {
-                val activeAddresses = response.body()!!
-                    .filter { it.address.deleteAt == null }
-                    .map { it.toAddress() }
-                Result.success(activeAddresses)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to get addresses")))
-            }
+            addressApi.getAddresses()
+                .unwrapData("Failed to get addresses")
+                .map { addresses ->
+                    addresses
+                        .filter { it.address.deleteAt == null }
+                        .map { it.toAddress() }
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -34,12 +32,9 @@ class AddressRepositoryImpl @Inject constructor(
 
     override suspend fun getAddressById(addressId: Int): Result<Address> {
         return try {
-            val response = addressApi.getAddress(addressId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!.toAddress())
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to get address")))
-            }
+            addressApi.getAddress(addressId)
+                .unwrapData("Failed to get address")
+                .map { it.toAddress() }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -48,12 +43,9 @@ class AddressRepositoryImpl @Inject constructor(
 
     override suspend fun addAddress(address: Address): Result<Unit> {
         return try {
-            val response = addressApi.addAddress(address.toAddressRequest())
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to add address")))
-            }
+            addressApi.addAddress(address.toAddressRequest())
+                .unwrapData("Failed to add address")
+                .map { Unit }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -62,12 +54,9 @@ class AddressRepositoryImpl @Inject constructor(
 
     override suspend fun updateAddress(address: Address): Result<Unit> {
         return try {
-            val response = addressApi.updateAddress(address.id, address.toAddressRequest())
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to update address")))
-            }
+            addressApi.updateAddress(address.id, address.toAddressRequest())
+                .unwrapData("Failed to update address")
+                .map { Unit }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -76,12 +65,9 @@ class AddressRepositoryImpl @Inject constructor(
 
     override suspend fun deleteAddress(addressId: Int): Result<Unit> {
         return try {
-            val response = addressApi.deleteAddress(addressId)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to delete address")))
-            }
+            addressApi.deleteAddress(addressId)
+                .unwrapData("Failed to delete address")
+                .map { Unit }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)

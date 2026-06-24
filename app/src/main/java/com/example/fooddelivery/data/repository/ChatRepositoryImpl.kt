@@ -5,10 +5,11 @@ import com.example.fooddelivery.data.local.room.dao.MessageDao
 import com.example.fooddelivery.data.local.room.entity.ConversationEntity
 import com.example.fooddelivery.data.local.room.entity.MessageEntity
 import com.example.fooddelivery.data.remote.api.ChatApi
-import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.ConversationDto
 import com.example.fooddelivery.data.remote.dto.CreateConversationRequest
 import com.example.fooddelivery.data.remote.dto.OtherUserDto
+import com.example.fooddelivery.data.remote.unwrapData
+import com.example.fooddelivery.data.remote.unwrapUnit
 import com.example.fooddelivery.domain.repository.ChatRepository
 import io.socket.client.Socket
 import kotlinx.coroutines.flow.Flow
@@ -31,24 +32,24 @@ class ChatRepositoryImpl @Inject constructor(
 
     override suspend fun syncConversations(): Result<Unit> {
         return try {
-            val response = chatApi.getConversations()
-            if (response.isSuccessful && response.body() != null) {
-                val entities = response.body()!!.conversations.map { dto -> mapToEntity(dto) }
-                entities.forEach { conversationDao.updateConversation(it) }
-                Result.success(Unit)
-            } else Result.failure(Exception(response.parseErrorMessage("Sync failed")))
+            chatApi.getConversations()
+                .unwrapData("Sync failed")
+                .mapCatching { payload ->
+                    val entities = payload.conversations.map { dto -> mapToEntity(dto) }
+                    entities.forEach { conversationDao.updateConversation(it) }
+                }
         } catch (e: Exception) { Result.failure(e) }
     }
 
     override suspend fun createConversation(orderId: Int, sellerId: Int): Result<ConversationEntity> {
         return try {
-            val response = chatApi.createConversation(CreateConversationRequest(orderId, sellerId))
-            if (response.isSuccessful && response.body() != null) {
-                val dto = response.body()!!
-                val entity = mapToEntity(dto)
-                conversationDao.updateConversation(entity)
-                Result.success(entity)
-            } else Result.failure(Exception(response.parseErrorMessage("Create conversation failed")))
+            chatApi.createConversation(CreateConversationRequest(orderId, sellerId))
+                .unwrapData("Create conversation failed")
+                .mapCatching { dto ->
+                    val entity = mapToEntity(dto)
+                    conversationDao.updateConversation(entity)
+                    entity
+                }
         } catch (e: Exception) { Result.failure(e) }
     }
 
@@ -68,12 +69,7 @@ class ChatRepositoryImpl @Inject constructor(
         return try {
             conversationDao.markConversationAsRead(conversationId)
             messageDao.markMessagesAsRead(conversationId)
-            val response = chatApi.markAsRead(conversationId.toInt())
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Mark as read failed")))
-            }
+            chatApi.markAsRead(conversationId.toInt()).unwrapUnit("Mark as read failed")
         } catch (e: Exception) { Result.failure(e) }
     }
 
@@ -85,57 +81,53 @@ class ChatRepositoryImpl @Inject constructor(
 
     override suspend fun syncConversationDetail(conversationId: Int, page: Int): Result<Unit> {
         return try {
-            val response = chatApi.getConversationDetail(conversationId, limit = 20, offset = page * 20)
-            if (response.isSuccessful && response.body() != null) {
-                val body = response.body()!!
-                
-                val convEntity = mapToEntity(body.conversation, body.other)
-                conversationDao.updateConversation(convEntity)
+            chatApi.getConversationDetail(conversationId, limit = 20, offset = page * 20)
+                .unwrapData("Sync detail failed")
+                .mapCatching { body ->
+                    val convEntity = mapToEntity(body.conversation, body.other)
+                    conversationDao.updateConversation(convEntity)
 
-                val messageEntities = body.messages.map { dto ->
-                    MessageEntity(
-                        id = dto.id.toString(),
-                        conversationId = dto.conversationId.toString(),
-                        senderId = dto.senderId.toString(),
-                        content = dto.content,
-                        imageUrl = dto.imageUrl,
-                        createdAt = dto.createdAt,
-                        isSending = false,
-                        isFailed = false,
-                        isRead = dto.isRead
-                    )
+                    val messageEntities = body.messages.map { dto ->
+                        MessageEntity(
+                            id = dto.id.toString(),
+                            conversationId = dto.conversationId.toString(),
+                            senderId = dto.senderId.toString(),
+                            content = dto.content,
+                            imageUrl = dto.imageUrl,
+                            createdAt = dto.createdAt,
+                            isSending = false,
+                            isFailed = false,
+                            isRead = dto.isRead
+                        )
+                    }
+                    messageDao.insertMessages(messageEntities)
                 }
-                messageDao.insertMessages(messageEntities)
-                Result.success(Unit)
-            } else Result.failure(Exception(response.parseErrorMessage("Sync detail failed")))
         } catch (e: Exception) { Result.failure(e) }
     }
 
     override suspend fun syncConversationDetailByOrder(orderId: Int, page: Int): Result<Unit> {
         return try {
-            val response = chatApi.getConversationDetailByOrder(orderId, limit = 20, offset = page * 20)
-            if (response.isSuccessful && response.body() != null) {
-                val body = response.body()!!
-                
-                val convEntity = mapToEntity(body.conversation, body.other)
-                conversationDao.updateConversation(convEntity)
+            chatApi.getConversationDetailByOrder(orderId, limit = 20, offset = page * 20)
+                .unwrapData("Sync detail by order failed")
+                .mapCatching { body ->
+                    val convEntity = mapToEntity(body.conversation, body.other)
+                    conversationDao.updateConversation(convEntity)
 
-                val messageEntities = body.messages.map { dto ->
-                    MessageEntity(
-                        id = dto.id.toString(),
-                        conversationId = dto.conversationId.toString(),
-                        senderId = dto.senderId.toString(),
-                        content = dto.content,
-                        imageUrl = dto.imageUrl,
-                        createdAt = dto.createdAt,
-                        isSending = false,
-                        isFailed = false,
-                        isRead = dto.isRead
-                    )
+                    val messageEntities = body.messages.map { dto ->
+                        MessageEntity(
+                            id = dto.id.toString(),
+                            conversationId = dto.conversationId.toString(),
+                            senderId = dto.senderId.toString(),
+                            content = dto.content,
+                            imageUrl = dto.imageUrl,
+                            createdAt = dto.createdAt,
+                            isSending = false,
+                            isFailed = false,
+                            isRead = dto.isRead
+                        )
+                    }
+                    messageDao.insertMessages(messageEntities)
                 }
-                messageDao.insertMessages(messageEntities)
-                Result.success(Unit)
-            } else Result.failure(Exception(response.parseErrorMessage("Sync detail by order failed")))
         } catch (e: Exception) { Result.failure(e) }
     }
 
@@ -197,9 +189,9 @@ class ChatRepositoryImpl @Inject constructor(
         return try {
             val file = File(imagePath)
             val body = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody("image/*".toMediaTypeOrNull()))
-            val response = chatApi.uploadImage(body)
-            if (response.isSuccessful && response.body() != null) Result.success(response.body()!!.imageUrl)
-            else Result.failure(Exception(response.parseErrorMessage("Upload failed")))
+            chatApi.uploadImage(body)
+                .unwrapData("Upload failed")
+                .map { it.imageUrl }
         } catch (e: Exception) { Result.failure(e) }
     }
 

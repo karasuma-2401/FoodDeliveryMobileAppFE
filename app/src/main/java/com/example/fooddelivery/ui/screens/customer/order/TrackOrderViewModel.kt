@@ -17,11 +17,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 enum class TrackingStatus(val step: Int, val title: String, val subtitle: String) {
-    PENDING(1, "Order Received", "We have received your order"),
-    CONFIRMED(2, "Confirmed", "Restaurant has confirmed your order"),
-    PREPARING(3, "Preparing Food", "The chef is making your meal"),
-    DELIVERING(4, "On the Way", "Your order is out for delivery"),
-    COMPLETED(5, "Delivered", "Handover complete"),
+    PENDING(0, "Order Received", "We have received your order"),
+    PREPARING(1, "Preparing Food", "The chef is making your meal"),
+    DELIVERING(2, "On the Way", "Your order is out for delivery"),
+    DELIVERED(3, "Delivered", "Food has arrived at your location"),
+    CONFIRMED(4, "Completed", "Order finished"),
+    CANCELLED(-1, "Cancelled", "Order has been cancelled")
 }
 
 data class OrderSummaryItem(
@@ -36,6 +37,7 @@ data class OrderSummaryItem(
 data class TrackOrderState(
     val orderId: String = "",
     val isLoading: Boolean = false,
+    val isConfirming: Boolean = false,
     val error: String? = null,
     val orderDetail: OrderDetail? = null,
     val trackingStatus: TrackingStatus = TrackingStatus.PENDING,
@@ -50,12 +52,15 @@ data class TrackOrderState(
     val paymentStatus: String = "",
     val totalPrice: Double = 0.0,
     val voucherInfo: VoucherSummary? = null,
-    val note: String? = null
+    val note: String? = null,
+    val autoConfirmAt: String? = null,
+    val hoursUntilAutoConfirm: Double? = null
 )
 
 sealed interface TrackOrderEvent {
     data class Initialize(val orderId: String) : TrackOrderEvent
     data object Refresh : TrackOrderEvent
+    data object ConfirmReceived : TrackOrderEvent
 }
 
 @HiltViewModel
@@ -79,6 +84,9 @@ class TrackOrderViewModel @Inject constructor(
             is TrackOrderEvent.Refresh -> {
                 fetchOrderDetail(_state.value.orderId)
             }
+            is TrackOrderEvent.ConfirmReceived -> {
+                confirmReceived()
+            }
         }
     }
 
@@ -92,8 +100,8 @@ class TrackOrderViewModel @Inject constructor(
             _state.update { state ->
                 result.fold(
                     onSuccess = { detail ->
-                        // Stop polling if order reached final state (Delivered or Canceled)
-                        if (detail.statusStep >= 5 || detail.backendStatus == "CANCELLED" || detail.backendStatus == "DELIVERED") {
+                        // Stop polling if order reached terminal state
+                        if (detail.statusStep == 4 || detail.statusStep == -1 || detail.backendStatus == "CONFIRMED" || detail.backendStatus == "CANCELLED") {
                             stopPolling()
                         }
                         state.copy(
@@ -113,7 +121,9 @@ class TrackOrderViewModel @Inject constructor(
                             paymentStatus = detail.paymentStatus,
                             totalPrice = detail.totalPrice,
                             voucherInfo = detail.voucherInfo,
-                            note = detail.note
+                            note = detail.note,
+                            autoConfirmAt = detail.autoConfirmAt,
+                            hoursUntilAutoConfirm = detail.hoursUntilAutoConfirm
                         )
                     },
                     onFailure = { error ->
@@ -124,11 +134,24 @@ class TrackOrderViewModel @Inject constructor(
         }
     }
 
+    private fun confirmReceived() {
+        val orderId = _state.value.orderId.toIntOrNull() ?: return
+        viewModelScope.launch {
+            _state.update { it.copy(isConfirming = true) }
+            val result = orderRepository.confirmReceived(orderId)
+            result.onSuccess {
+                fetchOrderDetail(orderId.toString())
+            }.onFailure { error ->
+                _state.update { it.copy(isConfirming = false, error = error.message) }
+            }
+        }
+    }
+
     private fun startPolling(orderId: String) {
         stopPolling()
         pollingJob = viewModelScope.launch {
             while (true) {
-                delay(10000) // Poll every 10 seconds
+                delay(15000) // Poll every 15 seconds as suggested
                 fetchOrderDetail(orderId)
             }
         }

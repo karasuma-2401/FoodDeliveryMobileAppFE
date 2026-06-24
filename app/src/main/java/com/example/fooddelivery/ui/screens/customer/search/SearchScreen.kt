@@ -1,5 +1,12 @@
 package com.example.fooddelivery.ui.screens.customer.search
 
+import android.Manifest
+import android.app.Activity
+import android.content.IntentSender
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
@@ -8,9 +15,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Restaurant
@@ -24,6 +33,8 @@ import com.example.fooddelivery.ui.screens.customer.search.components.SearchShim
 import com.example.fooddelivery.ui.screens.customer.search.components.SectionHeader
 import com.example.fooddelivery.ui.screens.customer.home.components.HomeTopBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
 
 enum class SearchDisplayState {
     LOADING, SUGGESTIONS, RESULTS, EMPTY
@@ -41,6 +52,43 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    val gpsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.onEvent(SearchEvent.LoadSearchData)
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val isGranted = permissions.values.all { it }
+        if (isGranted) {
+            checkAndRequestGps(context as Activity, gpsLauncher) {
+                viewModel.onEvent(SearchEvent.LoadSearchData)
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        val permissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        val allGranted = permissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if (allGranted) {
+            checkAndRequestGps(context as Activity, gpsLauncher) {
+                viewModel.onEvent(SearchEvent.LoadSearchData)
+            }
+        } else {
+            permissionLauncher.launch(permissions)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -67,6 +115,31 @@ fun SearchScreen(
     }
 }
 
+private fun checkAndRequestGps(
+    activity: Activity,
+    gpsLauncher: androidx.activity.result.ActivityResultLauncher<IntentSenderRequest>,
+    onAlreadyEnabled: () -> Unit
+) {
+    val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000).build()
+    val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+    val settingsClient = LocationServices.getSettingsClient(activity)
+    val task = settingsClient.checkLocationSettings(builder.build())
+
+    task.addOnSuccessListener {
+        onAlreadyEnabled()
+    }
+
+    task.addOnFailureListener { exception ->
+        if (exception is ResolvableApiException) {
+            try {
+                val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
+                gpsLauncher.launch(intentSenderRequest)
+            } catch (sendEx: IntentSender.SendIntentException) {
+            }
+        }
+    }
+}
+
 @Composable
 fun SearchContent(
     state: SearchState,
@@ -78,7 +151,6 @@ fun SearchContent(
     val scrollState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Ẩn bàn phím khi bắt đầu cuộn
     val isScrolling by remember { derivedStateOf { scrollState.isScrollInProgress } }
     LaunchedEffect(isScrolling) {
         if (isScrolling) {
@@ -86,7 +158,6 @@ fun SearchContent(
         }
     }
 
-    // Xác định trạng thái hiển thị hiện tại
     val displayState = remember(state.isLoading, state.searchQuery, state.suggestedRestaurants, state.popularFood) {
         when {
             state.isLoading -> SearchDisplayState.LOADING
@@ -120,7 +191,6 @@ fun SearchContent(
             )
         }
 
-        // Áp dụng hiệu ứng chuyển đổi cho nội dung chính
         item {
             AnimatedContent(
                 targetState = displayState,
@@ -194,18 +264,5 @@ fun SearchContent(
             }
         }
         item { Spacer(modifier = Modifier.height(40.dp)) }
-    }
-}
-
-@Preview (showBackground = true, showSystemUi = true)
-@Composable
-fun SearchScreenPreview() {
-    DFoodTheme(darkTheme = false) {
-        SearchContent(
-            state = SearchState(),
-            onEvent = {},
-            onNavigateToRestaurant = {},
-            onNavigateToFoodDetail = {}
-        )
     }
 }

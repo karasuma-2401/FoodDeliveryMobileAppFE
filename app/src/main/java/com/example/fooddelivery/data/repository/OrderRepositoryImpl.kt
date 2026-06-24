@@ -1,8 +1,8 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.OrderApi
-import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.*
+import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.domain.model.*
 import com.example.fooddelivery.domain.repository.OrderRepository
 import java.text.SimpleDateFormat
@@ -15,12 +15,7 @@ class OrderRepositoryImpl @Inject constructor(
 ) : OrderRepository {
     override suspend fun createOrder(request: OrderRequest): Result<OrderResponse> {
         return try {
-            val response = api.createOrder(request)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to create order")))
-            }
+            api.createOrder(request).unwrapData("Failed to create order")
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -29,12 +24,9 @@ class OrderRepositoryImpl @Inject constructor(
     override suspend fun checkOrderStatus(orderId: String): Result<OrderStatusSummary> {
         return try {
             val id = orderId.toIntOrNull() ?: return Result.failure(Exception("Invalid order ID"))
-            val response = api.getOrderStatus(id)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!.toDomain())
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to check order status")))
-            }
+            api.getOrderStatus(id)
+                .unwrapData("Failed to check order status")
+                .map { it.toDomain() }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -42,12 +34,9 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun reorder(orderId: String): Result<String> {
         return try {
-            val response = api.reorder(orderId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!.message)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to reorder")))
-            }
+            api.reorder(orderId)
+                .unwrapData("Failed to reorder")
+                .map { it.message }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -57,28 +46,14 @@ class OrderRepositoryImpl @Inject constructor(
         return try {
             when (status) {
                 "ongoing" -> {
-                    val response = api.getOngoingOrders(limit, offset)
-                    if (response.isSuccessful && response.body() != null) {
-                        Result.success(response.body()!!.ongoing_orders.map { it.toOrder() })
-                    } else {
-                        Result.failure(Exception(response.parseErrorMessage("Failed to fetch ongoing orders")))
-                    }
+                    api.getOngoingOrders(limit, offset)
+                        .unwrapData("Failed to fetch ongoing orders")
+                        .map { it.ongoing_orders.map { order -> order.toOrder() } }
                 }
                 "history" -> {
-                    val response = api.getHistoryOrders(limit, offset)
-                    if (response.isSuccessful && response.body() != null) {
-                        Result.success(response.body()!!.history_orders.map { it.toOrder() })
-                    } else {
-                        Result.failure(Exception(response.parseErrorMessage("Failed to fetch history orders")))
-                    }
-                }
-                "confirmed" -> {
-                    val response = api.getConfirmedOrders(limit, offset)
-                    if (response.isSuccessful && response.body() != null) {
-                        Result.success(response.body()!!.map { it.toOrder() })
-                    } else {
-                        Result.failure(Exception(response.parseErrorMessage("Failed to fetch confirmed orders")))
-                    }
+                    api.getHistoryOrders(limit, offset)
+                        .unwrapData("Failed to fetch history orders")
+                        .map { it.history_orders.map { order -> order.toOrder() } }
                 }
                 else -> {
                     Result.failure(Exception("Status parameter is required for this API version (ongoing/history)"))
@@ -91,12 +66,9 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun getOrderDetail(orderId: Int): Result<OrderDetail> {
         return try {
-            val response = api.getOrderDetail(orderId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!.toOrderDetail())
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to fetch order detail")))
-            }
+            api.getOrderDetail(orderId)
+                .unwrapData("Failed to fetch order detail")
+                .map { it.toOrderDetail() }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -104,12 +76,9 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun cancelOrder(orderId: Int): Result<String> {
         return try {
-            val response = api.cancelOrder(orderId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!.message)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to cancel order")))
-            }
+            api.cancelOrder(orderId)
+                .unwrapData("Failed to cancel order")
+                .map { it.message }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -117,12 +86,9 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun cancelOrderPost(orderId: Int): Result<String> {
         return try {
-            val response = api.cancelOrderPost(orderId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!.message)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to cancel order")))
-            }
+            api.cancelOrderPost(orderId)
+                .unwrapData("Failed to cancel order")
+                .map { it.message }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -130,12 +96,19 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun updateOrderStatus(orderId: Int, status: String): Result<String> {
         return try {
-            val response = api.updateOrderStatus(orderId, UpdateOrderStatusRequest(status))
-            if (response.isSuccessful) {
-                Result.success("Order status updated")
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to update order status")))
-            }
+            api.updateOrderStatus(orderId, UpdateOrderStatusRequest(status))
+                .unwrapData("Failed to update order status")
+                .map { it.message }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun confirmReceived(orderId: Int): Result<String> {
+        return try {
+            api.confirmReceived(orderId)
+                .unwrapData("Failed to confirm receipt")
+                .map { it.message }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -151,7 +124,7 @@ class OrderRepositoryImpl @Inject constructor(
             itemCount = item_count,
             type = if (type.uppercase() == "DRINK") OrderType.DRINK else OrderType.FOOD,
             status = when (status.uppercase()) {
-                "DELIVERED", "COMPLETED" -> OrderStatus.COMPLETED
+                "CONFIRMED", "COMPLETED" -> OrderStatus.COMPLETED
                 "CANCELED", "CANCELLED" -> OrderStatus.CANCELED
                 else -> OrderStatus.ONGOING
             },
@@ -167,6 +140,11 @@ class OrderRepositoryImpl @Inject constructor(
             statusStep = status_step ?: 0,
             backendStatus = backend_status ?: "",
             expectedArrival = expected_arrival?.let { formatDate(it) },
+            deliveredAt = delivered_at?.let { formatDate(it) },
+            autoConfirmAt = auto_confirm_at?.let { formatDate(it) },
+            hoursUntilAutoConfirm = hours_until_auto_confirm,
+            confirmedAt = confirmed_at?.let { formatDate(it) },
+            confirmedBy = confirmed_by,
             restaurantId = restaurant?.id ?: 0,
             restaurantName = restaurant?.name ?: "",
             restaurantImage = restaurant?.image ?: "",
@@ -174,9 +152,9 @@ class OrderRepositoryImpl @Inject constructor(
             items = orderFoods.map { foodBrief ->
                 OrderItemDetail(
                     id = foodBrief.id,
-                    foodId = foodBrief.food?.id ?: foodBrief.id,
-                    name = foodBrief.food?.name ?: foodBrief.name ?: "Unknown",
-                    image = foodBrief.food?.image ?: foodBrief.image ?: "",
+                    foodId = foodBrief.food?.id ?: 0,
+                    name = foodBrief.food?.name ?: "Unknown",
+                    image = foodBrief.food?.image ?: "",
                     quantity = foodBrief.quantity,
                     price = foodBrief.price,
                     size = foodBrief.sizeName,
@@ -216,7 +194,12 @@ class OrderRepositoryImpl @Inject constructor(
             status = status,
             statusStep = status_step,
             updatedAt = formatDate(updated_at),
-            backendStatus = backend_status
+            backendStatus = backend_status,
+            deliveredAt = delivered_at?.let { formatDate(it) },
+            autoConfirmAt = auto_confirm_at?.let { formatDate(it) },
+            hoursUntilAutoConfirm = hours_until_auto_confirm,
+            confirmedAt = confirmed_at?.let { formatDate(it) },
+            confirmedBy = confirmed_by
         )
     }
 

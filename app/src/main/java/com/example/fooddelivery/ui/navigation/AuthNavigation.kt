@@ -8,4 +8,4 @@ fun resolveStartDestination(roles: List<String>): Any = when {
     else -> CustomerGraph
 }
 
-fun MeResponse.toStartDestination(): Any = resolveStartDestination(roles)
+fun MeResponse.toStartDestination(): Any = resolveStartDestination(getFinalRoles())

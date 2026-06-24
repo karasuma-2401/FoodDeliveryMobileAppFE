@@ -30,6 +30,11 @@ data class OrderDetail(
     val statusStep: Int,
     val backendStatus: String,
     val expectedArrival: String?,
+    val deliveredAt: String? = null,
+    val autoConfirmAt: String? = null,
+    val hoursUntilAutoConfirm: Double? = null,
+    val confirmedAt: String? = null,
+    val confirmedBy: String? = null,
     val restaurantId: Int,
     val restaurantName: String,
     val restaurantImage: String,
@@ -79,5 +84,10 @@ data class OrderStatusSummary(
     val status: String,
     val statusStep: Int,
     val updatedAt: String,
-    val backendStatus: String
+    val backendStatus: String,
+    val deliveredAt: String? = null,
+    val autoConfirmAt: String? = null,
+    val hoursUntilAutoConfirm: Double? = null,
+    val confirmedAt: String? = null,
+    val confirmedBy: String? = null
 )

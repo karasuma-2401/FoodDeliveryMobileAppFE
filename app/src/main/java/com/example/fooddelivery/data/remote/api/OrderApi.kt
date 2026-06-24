@@ -1,53 +1,48 @@
 package com.example.fooddelivery.data.remote.api
 
 import com.example.fooddelivery.data.remote.dto.*
-import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
 interface OrderApi {
     @POST("orders")
-    suspend fun createOrder(@Body request: OrderRequest): Response<OrderResponse>
+    suspend fun createOrder(@Body request: OrderRequest): Response<BaseResponse<OrderResponse>>
 
     @GET("orders/{orderId}/status")
-    suspend fun getOrderStatus(@Path("orderId") orderId: Int): Response<OrderStatusSummaryResponse>
+    suspend fun getOrderStatus(@Path("orderId") orderId: Int): Response<BaseResponse<OrderStatusSummaryResponse>>
 
     @POST("orders/{orderId}/reorder")
-    suspend fun reorder(@Path("orderId") orderId: String): Response<MessageResponse>
+    suspend fun reorder(@Path("orderId") orderId: String): Response<BaseResponse<MessageResponse>>
 
     @GET("orders")
     suspend fun getOngoingOrders(
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0,
         @Query("status") status: String = "ongoing"
-    ): Response<OngoingOrdersResponse>
+    ): Response<BaseResponse<OngoingOrdersResponse>>
 
     @GET("orders")
     suspend fun getHistoryOrders(
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0,
         @Query("status") status: String = "history"
-    ): Response<HistoryOrdersResponse>
-
-    @GET("orders")
-    suspend fun getConfirmedOrders(
-        @Query("limit") limit: Int = 20,
-        @Query("offset") offset: Int = 0,
-        @Query("status") status: String = "confirmed"
-    ): Response<List<OrderListDto>>
+    ): Response<BaseResponse<HistoryOrdersResponse>>
 
     @GET("orders/{orderId}")
-    suspend fun getOrderDetail(@Path("orderId") orderId: Int): Response<OrderDetailResponse>
+    suspend fun getOrderDetail(@Path("orderId") orderId: Int): Response<BaseResponse<OrderDetailResponse>>
 
     @DELETE("orders/{orderId}")
-    suspend fun cancelOrder(@Path("orderId") orderId: Int): Response<MessageResponse>
+    suspend fun cancelOrder(@Path("orderId") orderId: Int): Response<BaseResponse<MessageResponse>>
 
     @POST("orders/{orderId}/cancel")
-    suspend fun cancelOrderPost(@Path("orderId") orderId: Int): Response<CancelOrderResponse>
+    suspend fun cancelOrderPost(@Path("orderId") orderId: Int): Response<BaseResponse<CancelOrderResponse>>
 
     @PATCH("orders/{orderId}")
     suspend fun updateOrderStatus(
         @Path("orderId") orderId: Int,
         @Body request: UpdateOrderStatusRequest
-    ): Response<ResponseBody>
+    ): Response<BaseResponse<MessageResponse>>
+
+    @POST("orders/{orderId}/confirm-received")
+    suspend fun confirmReceived(@Path("orderId") orderId: Int): Response<BaseResponse<MessageResponse>>
 }
