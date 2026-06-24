@@ -1,13 +1,6 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
 
 import android.net.Uri
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BakeryDining
-import androidx.compose.material.icons.filled.Egg
-import androidx.compose.material.icons.filled.Grass
-import androidx.compose.material.icons.filled.LocalPizza
-import androidx.compose.material.icons.filled.SetMeal
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -78,13 +71,7 @@ class EditFoodViewModel @Inject constructor(
                                 imageUrl = food.image,
                                 categories = categories.map { it.name },
                                 selectedSizes = mapOf("M" to food.price.toString()),
-                                ingredients = listOf(
-                                    IngredientItemState("1", "Egg", Icons.Default.Egg),
-                                    IngredientItemState("2", "Grass", Icons.Default.Grass),
-                                    IngredientItemState("3", "Salmon", Icons.Default.SetMeal),
-                                    IngredientItemState("4", "Pizza", Icons.Default.LocalPizza),
-                                    IngredientItemState("5", "Bread", Icons.Default.BakeryDining)
-                                )
+                                ingredients = defaultIngredientItems()
                             )
                         }
                         .onFailure { error ->

@@ -5,9 +5,10 @@ import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.repository.RestaurantRepository
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
@@ -165,7 +166,24 @@ class RestaurantRepositoryImpl @Inject constructor(
             val restaurantIdBody = restaurantId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
             val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
             val sizesBody = sizesJson.toRequestBody("application/json".toMediaTypeOrNull())
-            val ingredientIdsBody = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val normalizedIngredientIdsJson: String? = ingredientIdsCsv
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?.let { raw ->
+                    if (raw.startsWith("[") && raw.endsWith("]")) {
+                        raw
+                    } else {
+                        val nums = raw.split(',')
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+                            .mapNotNull { it.toIntOrNull() }
+                        Json.encodeToString<List<Int>>(nums)
+                    }
+                }
+
+            val ingredientIdsBody = normalizedIngredientIdsJson?.toRequestBody("application/json".toMediaTypeOrNull())
+
 
             val imagePart = imageFile?.let {
                 val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
@@ -230,7 +248,24 @@ class RestaurantRepositoryImpl @Inject constructor(
             val categoryIdBody = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
             val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
             val sizesBody = sizesJson.toRequestBody("application/json".toMediaTypeOrNull())
-            val ingredientIdsBody = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val normalizedIngredientIdsJson: String? = ingredientIdsCsv
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?.let { raw ->
+                    if (raw.startsWith("[") && raw.endsWith("]")) {
+                        raw
+                    } else {
+                        val nums = raw.split(',')
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+                            .mapNotNull { it.toIntOrNull() }
+                        Json.encodeToString<List<Int>>(nums)
+                    }
+                }
+
+            val ingredientIdsBody = normalizedIngredientIdsJson?.toRequestBody("application/json".toMediaTypeOrNull())
+
 
             val imagePart = imageFile?.let {
                 val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
