@@ -1,12 +1,15 @@
 package com.example.fooddelivery.ui.screens.home.search
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -15,6 +18,10 @@ import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.ui.screens.home.components.HomeTopBar
 import com.example.fooddelivery.ui.screens.home.search.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
+
+enum class SearchDisplayState {
+    LOADING, SUGGESTIONS, RESULTS, EMPTY
+}
 
 @Composable
 fun SearchScreen(
@@ -62,7 +69,29 @@ fun SearchContent(
     onNavigateToFoodDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scrollState = rememberLazyListState()
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Ẩn bàn phím khi bắt đầu cuộn
+    val isScrolling by remember { derivedStateOf { scrollState.isScrollInProgress } }
+    LaunchedEffect(isScrolling) {
+        if (isScrolling) {
+            keyboardController?.hide()
+        }
+    }
+
+    // Xác định trạng thái hiển thị hiện tại
+    val displayState = remember(state.isLoading, state.searchQuery, state.suggestedRestaurants, state.popularFood) {
+        when {
+            state.isLoading -> SearchDisplayState.LOADING
+            state.searchQuery.isEmpty() -> SearchDisplayState.SUGGESTIONS
+            state.suggestedRestaurants.isEmpty() && state.popularFood.isEmpty() -> SearchDisplayState.EMPTY
+            else -> SearchDisplayState.RESULTS
+        }
+    }
+
     LazyColumn(
+        state = scrollState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 24.dp)
     ) {
@@ -70,64 +99,78 @@ fun SearchContent(
             SearchInputField(
                 query = state.searchQuery,
                 onQueryChange = { onEvent(SearchEvent.QueryChanged(it)) },
-                onClear = { onEvent(SearchEvent.ClearSearch) }
+                onClear = { onEvent(SearchEvent.ClearSearch) },
+                onSearch = { onEvent(SearchEvent.PerformSearch) }
             )
         }
-        if (state.searchQuery.isEmpty()) {
-            if(state.recentKeyWords.isNotEmpty()) {
-                item {
-                    RecentKeywordsList(
-                        keywords = state.recentKeyWords,
-                        onKeywordClick = { onEvent(SearchEvent.KeywordClicked(it)) }
-                    )
-                }
-            }
-            item {
-                SectionHeader(title = "Suggested Restaurants", modifier = Modifier.padding(top = 16.dp))
-            }
 
-            items(state.suggestedRestaurants) { restaurant ->
-                SearchRestaurantItem(
-                    restaurant = restaurant,
-                    onClick = { onNavigateToRestaurant(restaurant) }
-                )
-            }
-            item {
-                SectionHeader(title = "Popular Fast Food", modifier = Modifier.padding(top = 24.dp))
-            }
+        item {
+            SearchFilterSection(
+                categories = state.categories,
+                selectedCategoryId = state.selectedCategoryId,
+                selectedSort = state.selectedSort,
+                onCategorySelected = { onEvent(SearchEvent.CategorySelected(it)) },
+                onSortSelected = { onEvent(SearchEvent.SortSelected(it)) }
+            )
+        }
 
-            item {
-                PopularFoodRow(
-                    popularFood = state.popularFood,
-                    onFoodItemClick = onNavigateToFoodDetail
-                )
-            }
-        } else {
-            if (state.isLoading) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            } else if (state.suggestedRestaurants.isEmpty() && state.popularFood.isEmpty()) {
-                item { EmptySearchView(query = state.searchQuery) }
-            } else {
-                if (state.suggestedRestaurants.isNotEmpty()) {
-                    item { SectionHeader("Restaurants Found", modifier = Modifier.padding(top = 8.dp)) }
-                    items(state.suggestedRestaurants) { restaurant ->
-                        SearchRestaurantItem(
-                            restaurant = restaurant,
-                            onClick = { onNavigateToRestaurant(restaurant) }
-                        )
-                    }
-                }
-                if (state.popularFood.isNotEmpty()) {
-                    item { SectionHeader(title = "Dishes Found", modifier = Modifier.padding(top = 24.dp)) }
-                    item {
-                        PopularFoodRow(
-                            popularFood = state.popularFood,
-                            onFoodItemClick = onNavigateToFoodDetail
-                        )
+        // Áp dụng hiệu ứng chuyển đổi cho nội dung chính
+        item {
+            AnimatedContent(
+                targetState = displayState,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                },
+                label = "search_state_transition"
+            ) { target ->
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    when (target) {
+                        SearchDisplayState.LOADING -> {
+                            SearchShimmerLoading()
+                        }
+                        SearchDisplayState.SUGGESTIONS -> {
+                            if (state.recentKeyWords.isNotEmpty()) {
+                                RecentKeywordsList(
+                                    keywords = state.recentKeyWords,
+                                    onKeywordClick = { onEvent(SearchEvent.KeywordClicked(it)) },
+                                    onDeleteHistoryItem = { onEvent(SearchEvent.DeleteHistoryItem(it)) },
+                                    onClearAll = { onEvent(SearchEvent.ClearAllHistory) }
+                                )
+                            }
+                            SectionHeader(title = "Suggested Restaurants", modifier = Modifier.padding(top = 16.dp))
+                            state.suggestedRestaurants.forEach { restaurant ->
+                                SearchRestaurantItem(
+                                    restaurant = restaurant,
+                                    onClick = { onNavigateToRestaurant(restaurant) }
+                                )
+                            }
+                            SectionHeader(title = "Popular Fast Food", modifier = Modifier.padding(top = 24.dp))
+                            PopularFoodRow(
+                                popularFood = state.popularFood,
+                                onFoodItemClick = onNavigateToFoodDetail
+                            )
+                        }
+                        SearchDisplayState.RESULTS -> {
+                            if (state.suggestedRestaurants.isNotEmpty()) {
+                                SectionHeader("Restaurants Found", modifier = Modifier.padding(top = 8.dp))
+                                state.suggestedRestaurants.forEach { restaurant ->
+                                    SearchRestaurantItem(
+                                        restaurant = restaurant,
+                                        onClick = { onNavigateToRestaurant(restaurant) }
+                                    )
+                                }
+                            }
+                            if (state.popularFood.isNotEmpty()) {
+                                SectionHeader(title = "Dishes Found", modifier = Modifier.padding(top = 24.dp))
+                                PopularFoodRow(
+                                    popularFood = state.popularFood,
+                                    onFoodItemClick = onNavigateToFoodDetail
+                                )
+                            }
+                        }
+                        SearchDisplayState.EMPTY -> {
+                            EmptySearchView(query = state.searchQuery)
+                        }
                     }
                 }
             }
@@ -135,6 +178,7 @@ fun SearchContent(
         item { Spacer(modifier = Modifier.height(40.dp)) }
     }
 }
+
 @Preview (showBackground = true, showSystemUi = true)
 @Composable
 fun SearchScreenPreview() {

@@ -26,7 +26,8 @@ fun PopularFoodRow(
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         items(popularFood.size) { index ->
             val food = popularFood[index]
@@ -42,16 +43,32 @@ fun PopularFoodRow(
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    AsyncImage(
-                        model = food.imageUrl ?: food.imageRes,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(110.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentScale = ContentScale.Crop
-                    )
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        AsyncImage(
+                            model = food.imageUrl ?: food.imageRes,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(110.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentScale = ContentScale.Crop
+                        )
+                        if (!food.promoTag.isNullOrBlank()) {
+                            Text(
+                                text = food.promoTag,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onError,
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.error,
+                                        shape = RoundedCornerShape(6.dp)
+                                    )
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
                     Text(
                         text = food.name,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -65,11 +82,21 @@ fun PopularFoodRow(
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1
                     )
+                    
+                    if (food.soldCount > 0) {
+                        Text(
+                            text = "Sold ${food.soldCount}",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+
                     Text(
                         text = "$${String.format(Locale.US,"%.2f", food.price)}",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 6.dp)
                     )
                 }
             }

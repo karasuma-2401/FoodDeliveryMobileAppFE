@@ -146,4 +146,7 @@ dependencies {
 
     // Security
     implementation(libs.androidx.security.crypto)
+
+    // Location
+    implementation(libs.play.services.location)
 }

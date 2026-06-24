@@ -19,6 +19,7 @@ import com.example.fooddelivery.data.remote.api.HomeApi
 import com.example.fooddelivery.data.remote.api.NotificationApi
 import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.api.PhotonService
+import com.example.fooddelivery.data.remote.api.SearchApi
 import com.example.fooddelivery.data.remote.api.UserApi
 import com.example.fooddelivery.data.remote.api.RestaurantApi
 import com.example.fooddelivery.data.repository.AddressRepositoryImpl
@@ -32,6 +33,7 @@ import com.example.fooddelivery.data.repository.HomeRepositoryImpl
 import com.example.fooddelivery.data.repository.NotificationRepositoryImpl
 import com.example.fooddelivery.data.repository.OrderRepositoryImpl
 import com.example.fooddelivery.data.repository.RestaurantRepositoryImpl
+import com.example.fooddelivery.data.repository.SearchRepositoryImpl
 import com.example.fooddelivery.data.repository.UserRepositoryImpl
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.AuthRepository
@@ -44,6 +46,7 @@ import com.example.fooddelivery.domain.repository.HomeRepository
 import com.example.fooddelivery.domain.repository.NotificationRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
+import com.example.fooddelivery.domain.repository.SearchRepository
 import com.example.fooddelivery.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -173,6 +176,14 @@ object AppModule {
         api: HomeApi
     ): HomeRepository {
         return HomeRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchRepository(
+        api: SearchApi
+    ): SearchRepository {
+        return SearchRepositoryImpl(api)
     }
 
     @Provides

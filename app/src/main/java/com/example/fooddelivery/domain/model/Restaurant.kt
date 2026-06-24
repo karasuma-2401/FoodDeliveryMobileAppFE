@@ -14,5 +14,6 @@ data class Restaurant(
     val isLiked: Boolean = false,
     val totalLikes: Int = 0,
     val distance: Double? = null,
-    val estimatedDeliveryTime: Int? = null
+    val estimatedDeliveryTime: Int? = null,
+    val hasVoucher: Boolean = false
 )

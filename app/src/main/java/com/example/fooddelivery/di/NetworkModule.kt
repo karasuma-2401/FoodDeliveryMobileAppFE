@@ -15,6 +15,7 @@ import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.UserApi
 import com.example.fooddelivery.data.remote.api.RestaurantApi
+import com.example.fooddelivery.data.remote.api.SearchApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -184,6 +185,12 @@ object NetworkModule {
     @Singleton
     fun provideHomeApi(@Named("MainRetrofit") retrofit: Retrofit): HomeApi {
         return retrofit.create(HomeApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchApi(@Named("MainRetrofit") retrofit: Retrofit): SearchApi {
+        return retrofit.create(SearchApi::class.java)
     }
 
     @Provides
