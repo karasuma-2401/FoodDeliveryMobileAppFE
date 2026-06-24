@@ -1,6 +1,7 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.CategoryApi
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.repository.CategoryRepository
 import javax.inject.Inject
@@ -31,7 +32,7 @@ class CategoryRepositoryImpl @Inject constructor(
 
                 Result.success(categories)
             } else {
-                Result.failure(Exception("Failed to load categories: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load categories")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

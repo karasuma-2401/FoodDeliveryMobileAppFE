@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import com.example.fooddelivery.data.remote.api.UserApi
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.model.UserReview
@@ -48,7 +49,7 @@ class UserRepositoryImpl @Inject constructor(
                 )
             }
             else {
-                Result.failure(Exception("Failed to load profile: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load profile")))
             }
         } catch (e : Exception){
             if (e is CancellationException) throw e
@@ -89,7 +90,7 @@ class UserRepositoryImpl @Inject constructor(
                     )
                 )
             } else {
-                Result.failure(Exception("Failed to update profile: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to update profile")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -163,7 +164,7 @@ class UserRepositoryImpl @Inject constructor(
                 }
                 Result.success(reviews)
             } else {
-                Result.failure(Exception("Failed to load reviews: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load reviews")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -194,7 +195,7 @@ class UserRepositoryImpl @Inject constructor(
                 val errorMsg = when (response.code()) {
                     401 -> "Unauthorized: Please login again"
                     403 -> "Forbidden: You don't have permission"
-                    else -> "Failed to load favorite restaurants: ${response.message()}"
+                    else -> response.parseErrorMessage("Failed to load favorite restaurants")
                 }
                 Result.failure(Exception(errorMsg))
             }

@@ -1,6 +1,7 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.OrderApi
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.domain.model.*
 import com.example.fooddelivery.domain.repository.OrderRepository
@@ -18,7 +19,7 @@ class OrderRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception("Failed to create order"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to create order")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -32,7 +33,7 @@ class OrderRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!.toDomain())
             } else {
-                Result.failure(Exception("Failed to check order status"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to check order status")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -45,7 +46,7 @@ class OrderRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!.message)
             } else {
-                Result.failure(Exception("Failed to reorder"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to reorder")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -60,7 +61,7 @@ class OrderRepositoryImpl @Inject constructor(
                     if (response.isSuccessful && response.body() != null) {
                         Result.success(response.body()!!.ongoing_orders.map { it.toOrder() })
                     } else {
-                        Result.failure(Exception("Failed to fetch ongoing orders"))
+                        Result.failure(Exception(response.parseErrorMessage("Failed to fetch ongoing orders")))
                     }
                 }
                 "history" -> {
@@ -68,7 +69,7 @@ class OrderRepositoryImpl @Inject constructor(
                     if (response.isSuccessful && response.body() != null) {
                         Result.success(response.body()!!.history_orders.map { it.toOrder() })
                     } else {
-                        Result.failure(Exception("Failed to fetch history orders"))
+                        Result.failure(Exception(response.parseErrorMessage("Failed to fetch history orders")))
                     }
                 }
                 else -> {
@@ -86,7 +87,7 @@ class OrderRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!.toOrderDetail())
             } else {
-                Result.failure(Exception("Failed to fetch order detail"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to fetch order detail")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -99,7 +100,7 @@ class OrderRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!.message)
             } else {
-                Result.failure(Exception("Failed to cancel order: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to cancel order")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -112,7 +113,7 @@ class OrderRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!.message)
             } else {
-                Result.failure(Exception("Failed to cancel order (POST): ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to cancel order")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -125,7 +126,7 @@ class OrderRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!.message)
             } else {
-                Result.failure(Exception("Failed to update order status: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to update order status")))
             }
         } catch (e: Exception) {
             Result.failure(e)

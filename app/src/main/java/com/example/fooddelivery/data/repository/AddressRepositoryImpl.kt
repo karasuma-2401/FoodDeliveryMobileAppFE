@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.PhotonService
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.toAddress
 import com.example.fooddelivery.data.remote.dto.toAddressRequest
 import com.example.fooddelivery.domain.model.Address
@@ -23,7 +24,7 @@ class AddressRepositoryImpl @Inject constructor(
                     .map { it.toAddress() }
                 Result.success(activeAddresses)
             } else {
-                Result.failure(Exception("Failed to get addresses: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to get addresses")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -37,7 +38,7 @@ class AddressRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!.toAddress())
             } else {
-                Result.failure(Exception("Failed to get address: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to get address")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -51,7 +52,7 @@ class AddressRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to add address: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to add address")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -65,7 +66,7 @@ class AddressRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to update address: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to update address")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -79,7 +80,7 @@ class AddressRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to delete address: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to delete address")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
