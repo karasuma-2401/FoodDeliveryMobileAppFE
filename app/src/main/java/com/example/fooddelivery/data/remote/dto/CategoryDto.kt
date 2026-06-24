@@ -6,8 +6,10 @@ import kotlinx.serialization.Serializable
 data class CategoryResponse(
     val id: Int,
     val name: String,
-    val image: String,
+    val image: String = "",
     val description: String? = null,
     val sortOrder: Int? = null,
+    val displayOrder: Int? = null,
+    val isActive: Boolean? = null,
     val foodCount: Int? = null
 )

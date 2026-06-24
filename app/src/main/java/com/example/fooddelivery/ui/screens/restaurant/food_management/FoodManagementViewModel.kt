@@ -123,9 +123,14 @@ class MyFoodListViewModel @Inject constructor(
 
     fun deleteFood(id: Int) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
             repository.deleteFood(id)
-                .onSuccess {
-                    loadFoods()
+                .onSuccess { loadFoods() }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = error.message ?: "Failed to delete food"
+                    )
                 }
         }
     }

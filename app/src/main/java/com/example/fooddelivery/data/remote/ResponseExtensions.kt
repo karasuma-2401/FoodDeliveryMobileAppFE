@@ -50,3 +50,37 @@ fun <T> Response<BaseListResponse<T>>.unwrapList(fallback: String): Result<List<
         Result.failure(Exception(parseErrorMessage(body?.message ?: fallback)))
     }
 }
+
+fun <T> Response<T>.unwrapEntity(fallback: String): Result<T> {
+    val body = body()
+    return if (isSuccessful && body != null) {
+        Result.success(body)
+    } else {
+        Result.failure(Exception(parseErrorMessage(fallback)))
+    }
+}
+
+@JvmName("unwrapBaseResponseEntity")
+fun <T> Response<BaseResponse<T>>.unwrapEntity(fallback: String): Result<T> {
+    val body = this.body()
+
+    return if (this.isSuccessful && body != null) {
+
+        val data = body.data
+        if (body.success == true && data != null) {
+            Result.success(data)
+        } else {
+            Result.failure(Exception("API Error: Backend returned false or missing data"))
+        }
+
+    } else {
+        Result.failure(Exception(parseErrorMessage(fallback)))
+    }
+}
+fun Response<*>.unwrapSuccess(fallback: String): Result<Unit> {
+    return if (isSuccessful) {
+        Result.success(Unit)
+    } else {
+        Result.failure(Exception(parseErrorMessage(fallback)))
+    }
+}

@@ -165,3 +165,25 @@ data class RestaurantCategoryDto(
     val id: Int,
     val name: String
 )
+
+@Serializable
+data class RestaurantMenuCategoryResponse(
+    val id: Int,
+    val name: String,
+    val image: String? = "",
+    val description: String? = "",
+    val sortOrder: Int? = 0,
+    val isActive: Boolean? = true,
+    val displayOrder: Int? = 0,
+    val foodCount: Int? = 0,
+    val foods: List<NestedFoodDto> = emptyList()
+)
+
+@Serializable
+data class NestedFoodDto(
+    val id: Int,
+    val name: String? = null,
+    val price: Double? = null,
+    val description: String? = null,
+    val image: String? = null
+)

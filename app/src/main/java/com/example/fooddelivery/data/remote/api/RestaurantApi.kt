@@ -13,13 +13,13 @@ interface RestaurantApi {
         @Query("offset") offset: Int? = 0,
         @Query("keyword") keyword: String? = null,
         @Query("categoryId") categoryId: Int? = null
-    ): Response<BaseListResponse<RestaurantResponse>>
+    ): Response<BaseResponse<List<RestaurantResponse>>>
 
     @GET("restaurant/{id}")
     suspend fun getRestaurantById(@Path("id") id: Int): Response<BaseResponse<RestaurantResponse>>
 
     @GET("restaurant/my")
-    suspend fun getMyRestaurants(): Response<BaseListResponse<RestaurantResponse>>
+    suspend fun getMyRestaurants(): Response<BaseResponse<List<RestaurantResponse>>>
 
     @GET("restaurant/manage/{restaurantId}/dashboard")
     suspend fun getDashboard(
@@ -41,8 +41,11 @@ interface RestaurantApi {
 
     @GET("food")
     suspend fun getFoods(
-        @Query("restaurantId") restaurantId: Int
-    ): Response<BaseListResponse<FoodResponse>>
+        @Query("restaurantId") restaurantId: Int,
+        @Query("limit") limit: Int? = 100,
+        @Query("offset") offset: Int? = 0
+    ): Response<BaseResponse<List<FoodResponse>>>
+
 
     @Multipart
     @POST("food/manage")

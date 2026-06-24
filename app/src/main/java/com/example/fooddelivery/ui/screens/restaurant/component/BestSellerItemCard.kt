@@ -1,25 +1,20 @@
 package com.example.fooddelivery.ui.screens.restaurant.component
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-
-
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-
-
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.BestSellerItem
@@ -45,10 +40,9 @@ fun BestSellerItemCard(item: BestSellerItem) {
                 contentScale = ContentScale.Crop
             )
         } else {
+            val resId = item.imageRes?.takeIf { it != 0 } ?: R.drawable.ic_launcher_background
             Image(
-                painter = painterResource(
-                    id = if (item.imageRes != 0) item.imageRes else R.drawable.ic_launcher_background
-                ),
+                painter = painterResource(id = resId),
                 contentDescription = "${item.name} image",
                 modifier = Modifier
                     .fillMaxWidth()

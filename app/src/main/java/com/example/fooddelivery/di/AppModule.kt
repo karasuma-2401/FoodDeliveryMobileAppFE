@@ -128,9 +128,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCategoryRepository(
-        api: CategoryApi
+        api: CategoryApi,
+        @ApplicationContext context: Context
     ): CategoryRepository {
-        return CategoryRepositoryImpl(api)
+        return CategoryRepositoryImpl(api, context)
     }
 
     @Provides

@@ -1,7 +1,7 @@
 package com.example.fooddelivery.data.remote.api
 
-import com.example.fooddelivery.data.remote.dto.FoodResponse
 import com.example.fooddelivery.data.remote.dto.BaseResponse
+import com.example.fooddelivery.data.remote.dto.FoodResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -12,7 +12,9 @@ interface FoodApi {
     suspend fun getFoods(
         @Query("categoryId") categoryId: Int? = null,
         @Query("restaurantId") restaurantId: Int? = null,
-        @Query("keyword") keyword: String? = null
+        @Query("name") keyword: String? = null,
+        @Query("limit") limit: Int? = 100,
+        @Query("offset") offset: Int? = 0
     ): Response<BaseResponse<List<FoodResponse>>>
 
     @GET("food/{id}")

@@ -4,8 +4,7 @@ import com.example.fooddelivery.data.remote.api.RestaurantApi
 import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.unwrapData
-import com.example.fooddelivery.data.remote.unwrapList
-import com.example.fooddelivery.data.remote.unwrapUnit
+import com.example.fooddelivery.data.remote.unwrapSuccess
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -28,7 +27,7 @@ class RestaurantRepositoryImpl @Inject constructor(
     ): Result<List<Restaurant>> {
         return try {
             api.getRestaurants(limit, offset, keyword, categoryId)
-                .unwrapList("Failed to load restaurants")
+                .unwrapData("Failed to load restaurants")
                 .map { list ->
                     list.map { dto ->
                         Restaurant(
@@ -62,7 +61,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun getMyRestaurants(): Result<List<RestaurantResponse>> {
         return try {
-            api.getMyRestaurants().unwrapList("Failed to load my restaurants")
+            api.getMyRestaurants().unwrapData("Failed to load my restaurants")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -119,7 +118,8 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun getFoods(restaurantId: Int): Result<List<FoodResponse>> {
         return try {
-            api.getFoods(restaurantId).unwrapList("Failed to load foods")
+            api.getFoods(restaurantId = restaurantId, limit = 100, offset = 0)
+                .unwrapData("Failed to load foods")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -199,7 +199,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun deleteFood(id: Int): Result<Unit> {
         return try {
-            api.deleteFood(id).unwrapUnit("Failed to delete food")
+            api.deleteFood(id).unwrapSuccess("Failed to delete food")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
