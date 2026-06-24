@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -28,6 +29,7 @@ import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponIte
 @Composable
 fun RestaurantCouponScreen(
     onNavigateBack: () -> Unit,
+    onCreateCouponClick: () -> Unit,
     viewModel: RestaurantCouponViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -68,13 +70,33 @@ fun RestaurantCouponScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 32.dp)
                 ) {
-                    item { CreateCouponCard() }
+                    item {
+                        Button(
+                            onClick = onCreateCouponClick,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "Create New Coupons",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
 
                     item {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -102,6 +124,7 @@ fun RestaurantCouponScreen(
                     }
                 }
             } else {
+                // Tab Voucher hệ thống (giữ nguyên logic cũ)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -111,9 +134,7 @@ fun RestaurantCouponScreen(
                         query = uiState.searchQuery,
                         onQueryChange = { viewModel.onSearchQueryChanged(it) }
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     if (uiState.isLoading) {
                         Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
@@ -128,7 +149,6 @@ fun RestaurantCouponScreen(
                             }
                         }
                     }
-
                     CouponPaginationBar(
                         startItem = if (uiState.systemVouchers.isEmpty()) 0 else 1,
                         endItem = uiState.systemVouchers.size,
@@ -142,13 +162,13 @@ fun RestaurantCouponScreen(
     }
 }
 
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RestaurantCouponScreenPreview() {
     DFoodTheme {
         RestaurantCouponScreen(
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onCreateCouponClick = {}
         )
     }
 }

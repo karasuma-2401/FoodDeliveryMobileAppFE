@@ -40,6 +40,7 @@ import com.example.fooddelivery.ui.screens.restaurant.food_management.AddFoodScr
 import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
+import com.example.fooddelivery.ui.screens.admin.coupons.CreateCouponScreen
 import com.example.fooddelivery.ui.screens.admin.restaurantmanagement.AdminRestaurantScreen
 import com.example.fooddelivery.ui.screens.auth.changePassword.ChangePasswordScreen
 import com.example.fooddelivery.ui.screens.customer.profile.EditProfileScreen
@@ -673,7 +674,19 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 composable<RestaurantProfileRoute> { Text("Profile") }
 
                 composable<RestaurantCouponRoute> {
-                    RestaurantCouponScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                    RestaurantCouponScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onCreateCouponClick = {
+                            val currentRestaurantId = 2
+                            vendorNavController.navigate(CreateCouponRoute(restaurantId = currentRestaurantId))
+                        }
+                    )
+                }
+
+                composable<CreateCouponRoute> {
+                    CreateCouponScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
                 }
             }
         }
@@ -729,6 +742,15 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
 
         composable<AdminCouponRoute> {
             RestaurantCouponScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onCreateCouponClick = {
+                    navController.navigate(CreateCouponRoute())
+                }
+            )
+        }
+
+        composable<CreateCouponRoute> {
+            CreateCouponScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

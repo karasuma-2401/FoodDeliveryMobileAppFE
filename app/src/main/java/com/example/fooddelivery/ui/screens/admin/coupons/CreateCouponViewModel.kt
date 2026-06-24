@@ -1,15 +1,17 @@
 package com.example.fooddelivery.ui.screens.admin.coupons
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import androidx.navigation.toRoute
+import com.example.fooddelivery.ui.navigation.CreateCouponRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class AdminCreateCouponUiState(
+data class CreateCouponUiState(
     val couponCode: String = "",
     val description: String = "",
     val discountType: String = "Percentage Discount",
@@ -26,12 +28,19 @@ data class AdminCreateCouponUiState(
     val errorMessage: String? = null
 )
 
-class AdminCreateCouponViewModel : ViewModel() {
+class CreateCouponViewModel(
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AdminCreateCouponUiState())
-    val uiState: StateFlow<AdminCreateCouponUiState> = _uiState.asStateFlow()
+    val restaurantId: Int? = try {
+        savedStateHandle.toRoute<CreateCouponRoute>().restaurantId
+    } catch (e: Exception) {
+        null
+    }
 
-    // --- Các hàm cập nhật State từ UI thay cho remember mutableStateOf ---
+    private val _uiState = MutableStateFlow(CreateCouponUiState())
+    val uiState: StateFlow<CreateCouponUiState> = _uiState.asStateFlow()
+
     fun onCouponCodeChange(value: String) { _uiState.update { it.copy(couponCode = value) } }
     fun onDescriptionChange(value: String) { _uiState.update { it.copy(description = value) } }
     fun onDiscountTypeChange(value: String) { _uiState.update { it.copy(discountType = value) } }
@@ -46,6 +55,7 @@ class AdminCreateCouponViewModel : ViewModel() {
     fun onNeverExpiresChange(value: Boolean) {
         _uiState.update { it.copy(neverExpires = value) }
     }
+
     fun saveCoupon() {
         val currentState = _uiState.value
         if (currentState.couponCode.isBlank()) {

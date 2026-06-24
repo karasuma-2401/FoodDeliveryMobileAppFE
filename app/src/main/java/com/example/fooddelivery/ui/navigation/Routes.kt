@@ -99,3 +99,8 @@ data class RatingReviewRoute(
 
 @Serializable object AdminNotificationRoute
 @Serializable object AdminRestaurantsRoute
+
+@Serializable
+data class CreateCouponRoute(
+    val restaurantId: Int? = null
+)
