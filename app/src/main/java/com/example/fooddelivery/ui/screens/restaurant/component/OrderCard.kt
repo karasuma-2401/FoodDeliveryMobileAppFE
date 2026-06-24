@@ -55,7 +55,7 @@ fun OrderCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Order ${order.id}",
+                    text = "Order #${order.id}",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
@@ -148,6 +148,7 @@ fun OrderCard(
             Spacer(modifier = Modifier.height(14.dp))
 
             when (order.status) {
+                // Bước 1: Khách vừa đặt — nhà hàng có thể Accept hoặc Deny
                 OrderStatus.PENDING -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -170,6 +171,7 @@ fun OrderCard(
                         }
                     }
                 }
+                // Bước 2: Nhà hàng đang làm — có thể Done (→DELIVERING) hoặc Cancel
                 OrderStatus.PREPARING -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -193,30 +195,22 @@ fun OrderCard(
                         }
                     }
                 }
+                // Bước 3: Đang giao — chỉ có thể xác nhận đã giao (BE không cho cancel)
                 OrderStatus.DELIVERING -> {
-                    Row(
+                    Button(
+                        onClick = onDelivered,
+                        enabled = !isUpdating,
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                     ) {
-                        OutlinedButton(
-                            onClick = onCancel,
-                            enabled = !isUpdating,
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                        ) {
-                            Text("Cancel", fontWeight = FontWeight.Bold)
-                        }
-                        Button(
-                            onClick = onDelivered,
-                            enabled = !isUpdating,
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-                        ) {
-                            Text("Delivered", fontWeight = FontWeight.Bold)
-                        }
+                        Text("Delivered", fontWeight = FontWeight.Bold)
                     }
                 }
-                OrderStatus.DELIVERED -> BadgeStatus(text = "DELIVERED", color = Color(0xFF4CAF50))
+                // Bước 4: Đã giao, chờ khách xác nhận
+                OrderStatus.DELIVERED -> BadgeStatus(text = "DELIVERED — Awaiting confirmation", color = Color(0xFF4CAF50))
+                // Bước 5: Khách/hệ thống đã xác nhận
+                OrderStatus.CONFIRMED -> BadgeStatus(text = "CONFIRMED", color = Color(0xFF2196F3))
+                // Đã hủy
                 OrderStatus.CANCELLED -> BadgeStatus(text = "CANCELLED", color = MaterialTheme.colorScheme.error)
             }
         }

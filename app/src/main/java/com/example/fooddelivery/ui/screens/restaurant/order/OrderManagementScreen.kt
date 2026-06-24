@@ -27,8 +27,17 @@ fun OrderManagementScreen(
     val filteredOrders = remember(state.orders, state.selectedTab) {
         when (state.selectedTab) {
             0 -> state.orders.filter { it.status == OrderStatus.PENDING }
-            1 -> state.orders.filter { it.status == OrderStatus.PREPARING || it.status == OrderStatus.DELIVERING }
-            else -> state.orders.filter { it.status == OrderStatus.DELIVERED || it.status == OrderStatus.CANCELLED }
+            1 -> state.orders.filter {
+                it.status == OrderStatus.PREPARING || it.status == OrderStatus.DELIVERING
+            }
+            else -> state.orders.filter {
+                // DELIVERED: nhà hàng đã giao, chờ khách confirm
+                // CONFIRMED: khách xác nhận hoặc hệ thống auto-confirm sau 24h
+                // CANCELLED: bị hủy
+                it.status == OrderStatus.DELIVERED ||
+                    it.status == OrderStatus.CONFIRMED ||
+                    it.status == OrderStatus.CANCELLED
+            }
         }
     }
 
@@ -80,7 +89,7 @@ fun OrderManagementScreen(
                             onAccept = { viewModel.acceptOrder(order.id) },
                             onDeny = { viewModel.denyOrder(order.id) },
                             onDone = { viewModel.completeOrder(order.id) },
-                            onDelivered = { viewModel.deliverOrder(order.id) }, // 🌟 Gán sự kiện xác nhận giao hàng xong
+                            onDelivered = { viewModel.deliverOrder(order.id) },
                             onCancel = { viewModel.cancelOrder(order.id) }
                         )
                     }

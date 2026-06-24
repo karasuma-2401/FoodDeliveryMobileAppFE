@@ -11,7 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class OrderStatus { PENDING, PREPARING, DELIVERING, DELIVERED, CANCELLED }
+enum class OrderStatus { PENDING, PREPARING, DELIVERING, DELIVERED, CONFIRMED, CANCELLED }
 
 data class OrderItem(
     val name: String,
@@ -60,44 +60,43 @@ class OrderManagementViewModel @Inject constructor(
     }
 
     fun acceptOrder(orderId: String) {
-        updateOrderStatus(orderId, "PREPARING")
+        updateOrderStatus(orderId, newStatus = "PREPARING")
     }
 
     fun denyOrder(orderId: String) {
-        updateOrderStatus(orderId, "CANCELLED")
+        updateOrderStatus(orderId, newStatus = "CANCELLED")
     }
 
     fun completeOrder(orderId: String) {
-        updateOrderStatus(orderId, "DELIVERING")
+        updateOrderStatus(orderId, newStatus = "DELIVERING")
     }
 
     fun deliverOrder(orderId: String) {
-        updateOrderStatus(orderId, "DELIVERED")
+        updateOrderStatus(orderId, newStatus = "DELIVERED")
     }
 
     fun cancelOrder(orderId: String) {
-        updateOrderStatus(orderId, "CANCELLED")
+        updateOrderStatus(orderId, newStatus = "CANCELLED")
     }
 
     private fun loadOrders() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
+            // Chỉ cần 2 lần gọi API:
+            // - "ongoing"  → PENDING, PREPARING, DELIVERING, DELIVERED
+            // - "history"  → CONFIRMED, CANCELLED
             val ongoingDeferred = async {
                 orderRepository.getOrders(status = "ongoing", limit = 100, offset = 0)
-            }
-            val confirmedDeferred = async {
-                orderRepository.getOrders(status = "confirmed", limit = 100, offset = 0)
             }
             val historyDeferred = async {
                 orderRepository.getOrders(status = "history", limit = 100, offset = 0)
             }
 
             val ongoingResult = ongoingDeferred.await()
-            val confirmedResult = confirmedDeferred.await()
             val historyResult = historyDeferred.await()
+
             val listError = ongoingResult.exceptionOrNull()
-                ?: confirmedResult.exceptionOrNull()
                 ?: historyResult.exceptionOrNull()
 
             if (listError != null) {
@@ -110,7 +109,6 @@ class OrderManagementViewModel @Inject constructor(
 
             val orderIds = (
                 ongoingResult.getOrDefault(emptyList()) +
-                    confirmedResult.getOrDefault(emptyList()) +
                     historyResult.getOrDefault(emptyList())
                 )
                 .mapNotNull { it.id.toIntOrNull() }
@@ -121,7 +119,7 @@ class OrderManagementViewModel @Inject constructor(
             }.mapNotNull { deferred ->
                 deferred.await().getOrNull()
             }.map { detail ->
-                detail.toOrderModel()
+                toOrderModel(detail)
             }
 
             _state.value = _state.value.copy(
@@ -132,13 +130,13 @@ class OrderManagementViewModel @Inject constructor(
         }
     }
 
-    private fun updateOrderStatus(orderId: String, backendStatus: String) {
+    private fun updateOrderStatus(orderId: String, newStatus: String) {
         val numericOrderId = orderId.toIntOrNull() ?: return
 
         viewModelScope.launch {
             _state.value = _state.value.copy(updatingOrderId = orderId, error = null)
 
-            orderRepository.updateOrderStatus(numericOrderId, backendStatus)
+            orderRepository.updateOrderStatus(numericOrderId, newStatus)
                 .onSuccess {
                     _state.value = _state.value.copy(updatingOrderId = null)
                     loadOrders()
@@ -152,14 +150,14 @@ class OrderManagementViewModel @Inject constructor(
         }
     }
 
-    private fun OrderDetail.toOrderModel(): OrderModel {
+    private fun toOrderModel(detail: com.example.fooddelivery.domain.model.OrderDetail): OrderModel {
         return OrderModel(
-            id = id,
-            orderTime = paymentDate ?: expectedArrival ?: "",
-            customerName = customerName.ifBlank { "Customer #$id" },
-            customerPhone = customerPhone.orEmpty(),
-            status = backendStatus.toRestaurantOrderStatus(status),
-            items = items.map { item ->
+            id = detail.id,
+            orderTime = detail.paymentDate ?: detail.expectedArrival ?: "",
+            customerName = detail.customerName.ifBlank { "Customer #${detail.id}" },
+            customerPhone = detail.customerPhone.orEmpty(),
+            status = mapBackendStatus(detail.backendStatus, detail.status),
+            items = detail.items.map { item ->
                 OrderItem(
                     name = buildString {
                         append(item.name)
@@ -172,14 +170,17 @@ class OrderManagementViewModel @Inject constructor(
         )
     }
 
-    private fun String.toRestaurantOrderStatus(frontendStatus: String): OrderStatus {
-        return when (uppercase().ifBlank { frontendStatus.uppercase() }) {
-            "PENDING" -> OrderStatus.PENDING
-            "CONFIRMED", "PREPARING" -> OrderStatus.PREPARING
-            "DELIVERING" -> OrderStatus.DELIVERING
-            "DELIVERED", "COMPLETED" -> OrderStatus.DELIVERED
-            "CANCELLED", "CANCELED" -> OrderStatus.CANCELLED
-            else -> OrderStatus.PENDING
+    /** Map raw backend status string sang OrderStatus enum của restaurant UI. */
+    private fun mapBackendStatus(backendSt: String, frontendSt: String): OrderStatus {
+        return when (backendSt.uppercase().ifBlank { frontendSt.uppercase() }) {
+            "PENDING"        -> OrderStatus.PENDING
+            "PREPARING"      -> OrderStatus.PREPARING
+            "DELIVERING"     -> OrderStatus.DELIVERING
+            "DELIVERED"      -> OrderStatus.DELIVERED
+            "CONFIRMED"      -> OrderStatus.CONFIRMED
+            "CANCELLED",
+            "CANCELED"       -> OrderStatus.CANCELLED
+            else             -> OrderStatus.PENDING
         }
     }
 }
