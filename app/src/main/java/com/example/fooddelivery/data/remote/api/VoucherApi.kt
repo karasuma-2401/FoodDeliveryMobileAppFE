@@ -30,6 +30,8 @@ interface VoucherApi {
         @Part("maximumDiscountAmount") maximumDiscountAmount: RequestBody?,
         @Part("startAt") startAt: RequestBody?,
         @Part("endAt") endAt: RequestBody?,
+        @Part("usageLimit") usageLimit: RequestBody? = null,
+        @Part("userLimit") userLimit: RequestBody? = null,
         @Part image: MultipartBody.Part? = null
     ): Response<VoucherDto>
 
@@ -47,10 +49,11 @@ interface VoucherApi {
         @Part("maximumDiscountAmount") maximumDiscountAmount: RequestBody? = null,
         @Part("startAt") startAt: RequestBody? = null,
         @Part("endAt") endAt: RequestBody? = null,
+        @Part("usageLimit") usageLimit: RequestBody? = null,
+        @Part("userLimit") userLimit: RequestBody? = null,
         @Part image: MultipartBody.Part? = null
     ): Response<VoucherDto>
 
     @DELETE("vouchers/{id}")
     suspend fun endVoucher(@Path("id") id: Int): Response<VoucherDto>
 }
-

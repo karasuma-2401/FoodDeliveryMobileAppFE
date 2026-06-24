@@ -22,7 +22,9 @@ interface VoucherRepository {
         minimumOrderAmount: Double?,
         maximumDiscountAmount: Double?,
         startAt: String?,
-        endAt: String?
+        endAt: String?,
+        usageLimit: Int? = null,
+        userLimit: Int? = null
     ): Result<VoucherDto>
 
     suspend fun updateVoucherStatus(
@@ -30,4 +32,3 @@ interface VoucherRepository {
         status: String
     ): Result<VoucherDto>
 }
-

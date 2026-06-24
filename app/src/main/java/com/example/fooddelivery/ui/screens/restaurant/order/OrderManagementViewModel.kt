@@ -8,6 +8,7 @@ import com.example.fooddelivery.domain.model.OrderDetail
 import com.example.fooddelivery.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,7 +26,8 @@ data class OrderModel(
     val customerName: String,
     val customerPhone: String,
     val items: List<OrderItem>,
-    val status: OrderStatus
+    val status: OrderStatus,
+    val isError: Boolean = false
 ) {
     val totalPrice: Double
         get() = items.sumOf { it.price * it.quantity }
@@ -83,14 +85,12 @@ class OrderManagementViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
-            // Chỉ cần 2 lần gọi API:
-            // - "ongoing"  → PENDING, PREPARING, DELIVERING, DELIVERED
-            // - "history"  → CONFIRMED, CANCELLED
+            // Increased limit to avoid capping at 100. Ideally, pagination should be implemented.
             val ongoingDeferred = async {
-                orderRepository.getOrders(status = "ongoing", limit = 100, offset = 0)
+                orderRepository.getOrders(status = "ongoing", limit = 1000, offset = 0)
             }
             val historyDeferred = async {
-                orderRepository.getOrders(status = "history", limit = 100, offset = 0)
+                orderRepository.getOrders(status = "history", limit = 1000, offset = 0)
             }
 
             val ongoingResult = ongoingDeferred.await()
@@ -114,12 +114,26 @@ class OrderManagementViewModel @Inject constructor(
                 .mapNotNull { it.id.toIntOrNull() }
                 .distinct()
 
-            val orders = orderIds.map { orderId ->
-                async { orderRepository.getOrderDetail(orderId) }
-            }.mapNotNull { deferred ->
-                deferred.await().getOrNull()
-            }.map { detail ->
-                toOrderModel(detail)
+            val ordersDeferred = orderIds.map { orderId ->
+                async { orderId to orderRepository.getOrderDetail(orderId) }
+            }
+
+            val orders = ordersDeferred.awaitAll().map { (orderId, result) ->
+                result.fold(
+                    onSuccess = { detail -> toOrderModel(detail) },
+                    onFailure = { 
+                        // Instead of dropping the order, create a placeholder with error status
+                        OrderModel(
+                            id = orderId.toString(),
+                            orderTime = "",
+                            customerName = "Error loading order #$orderId",
+                            customerPhone = "",
+                            items = emptyList(),
+                            status = OrderStatus.PENDING,
+                            isError = true
+                        )
+                    }
+                )
             }
 
             _state.value = _state.value.copy(

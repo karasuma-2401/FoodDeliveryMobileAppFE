@@ -71,7 +71,9 @@ class EditFoodViewModel @Inject constructor(
                                 imageUrl = food.image,
                                 categories = categories.map { it.name },
                                 selectedSizes = mapOf("M" to food.price.toString()),
-                                ingredients = defaultIngredientItems()
+                                ingredients = defaultIngredientItems(food.foodIngredients.orEmpty()
+                                                                        .map { it.id.toString() }
+                                                                        .toSet())
                             )
                         }
                         .onFailure { error ->

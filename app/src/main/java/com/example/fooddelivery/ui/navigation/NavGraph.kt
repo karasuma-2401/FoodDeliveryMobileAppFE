@@ -41,6 +41,7 @@ import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodSc
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
 import com.example.fooddelivery.ui.screens.admin.coupons.CreateCouponScreen
+import com.example.fooddelivery.ui.screens.admin.coupons.AdminCouponScreen
 import com.example.fooddelivery.ui.screens.admin.restaurantmanagement.AdminRestaurantScreen
 import com.example.fooddelivery.ui.screens.auth.changePassword.ChangePasswordScreen
 import com.example.fooddelivery.ui.screens.customer.profile.EditProfileScreen
@@ -695,8 +696,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     RestaurantCouponScreen(
                         onNavigateBack = { vendorNavController.popBackStack() },
                         onCreateCouponClick = {
-                            val currentRestaurantId = 2
-                            vendorNavController.navigate(CreateCouponRoute(restaurantId = currentRestaurantId))
+                            vendorNavController.navigate(CreateCouponRoute())
                         }
                     )
                 }
@@ -759,9 +759,10 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
 
         composable<AdminCouponRoute> {
-            RestaurantCouponScreen(
+            AdminCouponScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onCreateCouponClick = {
+                onNavigateToEditCoupon = { /* TODO */ },
+                onNavigateToCreateCoupon = {
                     navController.navigate(CreateCouponRoute())
                 }
             )

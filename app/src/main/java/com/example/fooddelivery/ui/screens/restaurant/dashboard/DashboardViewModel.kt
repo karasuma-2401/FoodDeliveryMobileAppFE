@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 data class RecentOrder(
@@ -122,7 +123,7 @@ class DashboardViewModel @Inject constructor(
                                     ?: if (voucher.type.equals("PERCENT", ignoreCase = true)) {
                                         "${voucher.sale.toInt()}% off"
                                     } else {
-                                        "$${String.format("%.2f", voucher.sale)} off"
+                                        "$${String.format(Locale.US, "%.2f", voucher.sale)} off"
                                     }
                             )
                         }
@@ -153,7 +154,7 @@ class DashboardViewModel @Inject constructor(
                             bestSellers = dashboard.bestSellers.map { item ->
                                 BestSellerItem(
                                     name = item.name,
-                                    price = "$${String.format("%.2f", item.price)}",
+                                    price = "$${String.format(Locale.US, "%.2f", item.price)}",
                                     rating = item.rating.toFloat(),
                                     soldCount = item.soldCount,
                                     imageUrl = item.imageUrl

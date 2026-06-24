@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.restaurant.coupon
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.remote.dto.VoucherDto
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
@@ -10,8 +11,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 data class RestaurantVoucherItem(
@@ -33,15 +36,14 @@ data class RestaurantCouponUiState(
 )
 @HiltViewModel
 class RestaurantCouponViewModel @Inject constructor(
-    private val voucherRepository: VoucherRepository
+    private val voucherRepository: VoucherRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RestaurantCouponUiState())
     val uiState: StateFlow<RestaurantCouponUiState> = _uiState.asStateFlow()
 
     private val pageSize = 20
-    // TODO: Ideally pass restaurantId into this screen/route instead of hardcoding.
-    private val restaurantIdForManagement: Int = 2
 
     init {
         refresh()
@@ -73,14 +75,14 @@ class RestaurantCouponViewModel @Inject constructor(
         val desc = buildString {
             append(description?.takeIf { it.isNotBlank() } ?: name)
             append(" • Min. $")
-            append(String.format("%.2f", minimumOrderAmount))
+            append(String.format(Locale.US, "%.2f", minimumOrderAmount))
             if (type.uppercase() == "PERCENT") {
                 append(" • ")
-                append(String.format("%.0f", sale))
+                append(String.format(Locale.US, "%.0f", sale))
                 append("%")
             } else {
                 append(" • $")
-                append(String.format("%.2f", sale))
+                append(String.format(Locale.US, "%.2f", sale))
             }
         }
         return RestaurantVoucherItem(
@@ -98,10 +100,12 @@ class RestaurantCouponViewModel @Inject constructor(
             val page = _uiState.value.currentPage.coerceAtLeast(1)
             val offset = (page - 1) * pageSize
 
+            val restaurantId = tokenManager.getRestaurantId.first()
+
             val restaurantResult = voucherRepository.getVouchers(
                 limit = pageSize,
                 offset = 0,
-                restaurantId = restaurantIdForManagement,
+                restaurantId = restaurantId,
                 code = null,
                 status = null
             )
@@ -120,7 +124,9 @@ class RestaurantCouponViewModel @Inject constructor(
                 state.copy(
                     restaurantVouchers = restaurantVouchers,
                     systemVouchers = systemVouchers,
-                    totalItems = systemVouchers.size,
+                    // If the list size is exactly pageSize, we assume there might be more. 
+                    // This is a workaround since the backend doesn't provide totalItems yet.
+                    totalItems = if (systemVouchers.size == pageSize) (page * pageSize + 1) else (offset + systemVouchers.size),
                     isLoading = false
                 )
             }

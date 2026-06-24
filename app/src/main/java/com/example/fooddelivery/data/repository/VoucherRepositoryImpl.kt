@@ -43,7 +43,9 @@ class VoucherRepositoryImpl @Inject constructor(
         minimumOrderAmount: Double?,
         maximumDiscountAmount: Double?,
         startAt: String?,
-        endAt: String?
+        endAt: String?,
+        usageLimit: Int?,
+        userLimit: Int?
     ): Result<VoucherDto> {
         return try {
             fun text(value: String) = value.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -64,6 +66,8 @@ class VoucherRepositoryImpl @Inject constructor(
                 maximumDiscountAmount = numberOpt(maximumDiscountAmount),
                 startAt = textOpt(startAt),
                 endAt = textOpt(endAt),
+                usageLimit = intOpt(usageLimit),
+                userLimit = intOpt(userLimit),
                 image = null
             )
             if (response.isSuccessful && response.body() != null) {
@@ -92,4 +96,3 @@ class VoucherRepositoryImpl @Inject constructor(
         }
     }
 }
-

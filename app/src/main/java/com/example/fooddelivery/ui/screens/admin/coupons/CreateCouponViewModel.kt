@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.ui.navigation.CreateCouponRoute
 import com.example.fooddelivery.domain.repository.VoucherRepository
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -36,10 +38,11 @@ data class CreateCouponUiState(
 @HiltViewModel
 class CreateCouponViewModel @Inject constructor(
     private val voucherRepository: VoucherRepository,
+    private val tokenManager: TokenManager,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val restaurantId: Int? = try {
+    private val routeRestaurantId: Int? = try {
         savedStateHandle.toRoute<CreateCouponRoute>().restaurantId
     } catch (e: Exception) {
         null
@@ -67,7 +70,6 @@ class CreateCouponViewModel @Inject constructor(
         return try {
             val formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy")
             val date = LocalDate.parse(mmddyyyy.trim(), formatter)
-            // Backend expects ISO 8601 date string (IsDateString). We send Zulu midnight.
             "${date}T00:00:00.000Z"
         } catch (_: Exception) {
             null
@@ -76,26 +78,69 @@ class CreateCouponViewModel @Inject constructor(
 
     fun saveCoupon() {
         val currentState = _uiState.value
+        
+        // Input Validation
         if (currentState.couponCode.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Coupon Code cannot be empty!") }
             return
         }
 
+        val sale = currentState.discountValue.toDoubleOrNull()
+        if (sale == null || sale <= 0) {
+            _uiState.update { it.copy(errorMessage = "Invalid discount value") }
+            return
+        }
+
+        val minOrder = currentState.minOrder.toDoubleOrNull()
+        if (minOrder == null || minOrder < 0) {
+            _uiState.update { it.copy(errorMessage = "Invalid minimum order amount") }
+            return
+        }
+
+        val maxDiscount = currentState.maxDiscount.toDoubleOrNull()
+        if (maxDiscount != null && maxDiscount < 0) {
+             _uiState.update { it.copy(errorMessage = "Invalid maximum discount amount") }
+             return
+        }
+
+        val perUserLimit = currentState.perUserLimit.toIntOrNull()
+        if (perUserLimit == null || perUserLimit <= 0) {
+             _uiState.update { it.copy(errorMessage = "Invalid per user limit") }
+             return
+        }
+
+        val totalUsageLimit = currentState.totalUsageLimit.toIntOrNull()
+        if (totalUsageLimit == null || totalUsageLimit <= 0) {
+             _uiState.update { it.copy(errorMessage = "Invalid total usage limit") }
+             return
+        }
+
+        val startAt = toIsoDateTimeOrNull(currentState.startDate)
+        if (startAt == null) {
+            _uiState.update { it.copy(errorMessage = "Invalid start date format (MM/dd/yyyy)") }
+            return
+        }
+
+        val endAt = if (currentState.neverExpires) null else {
+            val date = toIsoDateTimeOrNull(currentState.endDate)
+            if (date == null) {
+                _uiState.update { it.copy(errorMessage = "Invalid end date format (MM/dd/yyyy)") }
+                return
+            }
+            date
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             try {
+                // Determine restaurantId: route parameter takes precedence, then tokenManager for vendors
+                val finalRestaurantId = routeRestaurantId ?: tokenManager.getRestaurantId.first()
+
                 val type = if (currentState.discountType.contains("percent", ignoreCase = true)) {
                     "PERCENT"
                 } else {
                     "MONEY"
                 }
-
-                val sale = currentState.discountValue.toDoubleOrNull() ?: 0.0
-                val minOrder = currentState.minOrder.toDoubleOrNull() ?: 0.0
-                val maxDiscount = currentState.maxDiscount.toDoubleOrNull()?.takeIf { it > 0 }
-
-                val startAt = toIsoDateTimeOrNull(currentState.startDate)
-                val endAt = if (currentState.neverExpires) null else toIsoDateTimeOrNull(currentState.endDate)
 
                 val name = currentState.couponCode.trim().uppercase()
                 val code = currentState.couponCode.trim().uppercase()
@@ -108,11 +153,13 @@ class CreateCouponViewModel @Inject constructor(
                     sale = sale,
                     type = type,
                     status = "APPLYING",
-                    restaurantId = restaurantId,
+                    restaurantId = finalRestaurantId,
                     minimumOrderAmount = minOrder,
-                    maximumDiscountAmount = maxDiscount,
+                    maximumDiscountAmount = maxDiscount?.takeIf { it > 0 },
                     startAt = startAt,
-                    endAt = endAt
+                    endAt = endAt,
+                    usageLimit = totalUsageLimit,
+                    userLimit = perUserLimit
                 )
 
                 result.onSuccess {
