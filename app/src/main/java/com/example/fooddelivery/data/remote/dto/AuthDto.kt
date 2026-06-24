@@ -74,9 +74,18 @@ data class VerifyResetOtpRequest(
 )
 
 @Serializable
-data class VerifyResetOtpResponse(
+data class VerifyResetOtpData(
     val resetToken: String
 )
+
+@Serializable
+data class VerifyResetOtpResponse(
+    val resetToken: String? = null,
+    val success: Boolean? = null,
+    val data: VerifyResetOtpData? = null
+) {
+    fun getFinalResetToken(): String? = resetToken ?: data?.resetToken
+}
 
 @Serializable
 data class ResetPasswordRequest(
