@@ -1,6 +1,7 @@
 package com.example.fooddelivery.data.remote.api
 
 import com.example.fooddelivery.data.remote.dto.*
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -28,6 +29,13 @@ interface OrderApi {
         @Query("status") status: String = "history"
     ): Response<HistoryOrdersResponse>
 
+    @GET("orders")
+    suspend fun getConfirmedOrders(
+        @Query("limit") limit: Int = 20,
+        @Query("offset") offset: Int = 0,
+        @Query("status") status: String = "confirmed"
+    ): Response<List<OrderListDto>>
+
     @GET("orders/{orderId}")
     suspend fun getOrderDetail(@Path("orderId") orderId: Int): Response<OrderDetailResponse>
 
@@ -41,5 +49,5 @@ interface OrderApi {
     suspend fun updateOrderStatus(
         @Path("orderId") orderId: Int,
         @Body request: UpdateOrderStatusRequest
-    ): Response<MessageResponse>
+    ): Response<ResponseBody>
 }

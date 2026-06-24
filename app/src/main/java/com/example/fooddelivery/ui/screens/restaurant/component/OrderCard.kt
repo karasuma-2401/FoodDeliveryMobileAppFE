@@ -28,6 +28,7 @@ fun OrderCard(
     onDone: () -> Unit,
     onDelivered: () -> Unit,
     onCancel: () -> Unit,
+    isUpdating: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -154,6 +155,7 @@ fun OrderCard(
                     ) {
                         OutlinedButton(
                             onClick = onDeny,
+                            enabled = !isUpdating,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
@@ -161,6 +163,7 @@ fun OrderCard(
                         }
                         Button(
                             onClick = onAccept,
+                            enabled = !isUpdating,
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Accept", fontWeight = FontWeight.Bold)
@@ -174,6 +177,7 @@ fun OrderCard(
                     ) {
                         OutlinedButton(
                             onClick = onCancel,
+                            enabled = !isUpdating,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
@@ -181,6 +185,7 @@ fun OrderCard(
                         }
                         Button(
                             onClick = onDone,
+                            enabled = !isUpdating,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                         ) {
@@ -195,6 +200,7 @@ fun OrderCard(
                     ) {
                         OutlinedButton(
                             onClick = onCancel,
+                            enabled = !isUpdating,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
@@ -202,6 +208,7 @@ fun OrderCard(
                         }
                         Button(
                             onClick = onDelivered,
+                            enabled = !isUpdating,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                         ) {

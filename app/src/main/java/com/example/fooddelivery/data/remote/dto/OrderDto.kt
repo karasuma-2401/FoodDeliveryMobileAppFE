@@ -173,6 +173,8 @@ data class OrderRestaurantBriefDto(
 @Serializable
 data class OrderFoodBriefDto(
     val id: Int,
+    val name: String? = null,
+    val image: String? = null,
     val quantity: Int,
     val fullText: String? = null,
     val price: Double,

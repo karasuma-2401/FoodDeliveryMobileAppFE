@@ -3,7 +3,12 @@ package com.example.fooddelivery.ui.screens.restaurant.order
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.model.OrderDetail
+import com.example.fooddelivery.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 enum class OrderStatus { PENDING, PREPARING, DELIVERING, DELIVERED, CANCELLED }
@@ -30,86 +35,151 @@ data class OrderManagementState(
     val selectedTab: Int = 0,
     val orders: List<OrderModel> = emptyList(),
     val isLoading: Boolean = false,
+    val updatingOrderId: String? = null,
     val error: String? = null
 )
 
 @HiltViewModel
-class OrderManagementViewModel @Inject constructor() : ViewModel() {
+class OrderManagementViewModel @Inject constructor(
+    private val orderRepository: OrderRepository
+) : ViewModel() {
 
     private val _state = mutableStateOf(OrderManagementState())
     val state: State<OrderManagementState> = _state
 
     init {
-        loadMockOrders()
+        loadOrders()
     }
 
     fun onTabSelected(index: Int) {
         _state.value = _state.value.copy(selectedTab = index)
     }
 
+    fun refresh() {
+        loadOrders()
+    }
+
     fun acceptOrder(orderId: String) {
-        updateOrderStatus(orderId, OrderStatus.PREPARING)
+        updateOrderStatus(orderId, "PREPARING")
     }
 
     fun denyOrder(orderId: String) {
-        updateOrderStatus(orderId, OrderStatus.CANCELLED)
+        updateOrderStatus(orderId, "CANCELLED")
     }
 
     fun completeOrder(orderId: String) {
-        updateOrderStatus(orderId, OrderStatus.DELIVERING)
+        updateOrderStatus(orderId, "DELIVERING")
     }
 
     fun deliverOrder(orderId: String) {
-        updateOrderStatus(orderId, OrderStatus.DELIVERED)
+        updateOrderStatus(orderId, "DELIVERED")
     }
 
     fun cancelOrder(orderId: String) {
-        updateOrderStatus(orderId, OrderStatus.CANCELLED)
+        updateOrderStatus(orderId, "CANCELLED")
     }
 
-    private fun updateOrderStatus(orderId: String, newStatus: OrderStatus) {
-        val updatedOrders = _state.value.orders.map { order ->
-            if (order.id == orderId) order.copy(status = newStatus) else order
-        }
-        _state.value = _state.value.copy(orders = updatedOrders)
-    }
+    private fun loadOrders() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
 
-    private fun loadMockOrders() {
-        _state.value = _state.value.copy(
-            orders = listOf(
-                OrderModel(
-                    id = "#12345",
-                    orderTime = "10:30 AM",
-                    customerName = "Nguyễn Văn Anh",
-                    customerPhone = "0901.234.567",
-                    status = OrderStatus.PENDING,
-                    items = listOf(
-                        OrderItem("Classic Burger", 2, 45000.0),
-                        OrderItem("Cheese Pizza (M)", 1, 120000.0)
-                    )
-                ),
-                OrderModel(
-                    id = "#12346",
-                    orderTime = "09:15 AM",
-                    customerName = "Trần Thị Bích",
-                    customerPhone = "0988.777.666",
-                    status = OrderStatus.PREPARING,
-                    items = listOf(
-                        OrderItem("Thai Biriyani", 1, 65000.0),
-                        OrderItem("Iced Tea", 3, 15000.0)
-                    )
-                ),
-                OrderModel(
-                    id = "#12347",
-                    orderTime = "Yesterday",
-                    customerName = "Lê Hoàng Nam",
-                    customerPhone = "0912.333.444",
-                    status = OrderStatus.DELIVERED,
-                    items = listOf(
-                        OrderItem("Fried Chicken", 4, 35000.0)
-                    )
+            val ongoingDeferred = async {
+                orderRepository.getOrders(status = "ongoing", limit = 100, offset = 0)
+            }
+            val confirmedDeferred = async {
+                orderRepository.getOrders(status = "confirmed", limit = 100, offset = 0)
+            }
+            val historyDeferred = async {
+                orderRepository.getOrders(status = "history", limit = 100, offset = 0)
+            }
+
+            val ongoingResult = ongoingDeferred.await()
+            val confirmedResult = confirmedDeferred.await()
+            val historyResult = historyDeferred.await()
+            val listError = ongoingResult.exceptionOrNull()
+                ?: confirmedResult.exceptionOrNull()
+                ?: historyResult.exceptionOrNull()
+
+            if (listError != null) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = listError.message ?: "Failed to load orders"
                 )
+                return@launch
+            }
+
+            val orderIds = (
+                ongoingResult.getOrDefault(emptyList()) +
+                    confirmedResult.getOrDefault(emptyList()) +
+                    historyResult.getOrDefault(emptyList())
+                )
+                .mapNotNull { it.id.toIntOrNull() }
+                .distinct()
+
+            val orders = orderIds.map { orderId ->
+                async { orderRepository.getOrderDetail(orderId) }
+            }.mapNotNull { deferred ->
+                deferred.await().getOrNull()
+            }.map { detail ->
+                detail.toOrderModel()
+            }
+
+            _state.value = _state.value.copy(
+                orders = orders,
+                isLoading = false,
+                error = null
             )
+        }
+    }
+
+    private fun updateOrderStatus(orderId: String, backendStatus: String) {
+        val numericOrderId = orderId.toIntOrNull() ?: return
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(updatingOrderId = orderId, error = null)
+
+            orderRepository.updateOrderStatus(numericOrderId, backendStatus)
+                .onSuccess {
+                    _state.value = _state.value.copy(updatingOrderId = null)
+                    loadOrders()
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        updatingOrderId = null,
+                        error = error.message ?: "Failed to update order"
+                    )
+                }
+        }
+    }
+
+    private fun OrderDetail.toOrderModel(): OrderModel {
+        return OrderModel(
+            id = id,
+            orderTime = paymentDate ?: expectedArrival ?: "",
+            customerName = customerName.ifBlank { "Customer #$id" },
+            customerPhone = customerPhone.orEmpty(),
+            status = backendStatus.toRestaurantOrderStatus(status),
+            items = items.map { item ->
+                OrderItem(
+                    name = buildString {
+                        append(item.name)
+                        if (!item.size.isNullOrBlank()) append(" (${item.size})")
+                    },
+                    quantity = item.quantity,
+                    price = item.price
+                )
+            }
         )
+    }
+
+    private fun String.toRestaurantOrderStatus(frontendStatus: String): OrderStatus {
+        return when (uppercase().ifBlank { frontendStatus.uppercase() }) {
+            "PENDING" -> OrderStatus.PENDING
+            "CONFIRMED", "PREPARING" -> OrderStatus.PREPARING
+            "DELIVERING" -> OrderStatus.DELIVERING
+            "DELIVERED", "COMPLETED" -> OrderStatus.DELIVERED
+            "CANCELLED", "CANCELED" -> OrderStatus.CANCELLED
+            else -> OrderStatus.PENDING
+        }
     }
 }

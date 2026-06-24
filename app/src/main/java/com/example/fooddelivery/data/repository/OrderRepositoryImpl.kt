@@ -72,6 +72,14 @@ class OrderRepositoryImpl @Inject constructor(
                         Result.failure(Exception(response.parseErrorMessage("Failed to fetch history orders")))
                     }
                 }
+                "confirmed" -> {
+                    val response = api.getConfirmedOrders(limit, offset)
+                    if (response.isSuccessful && response.body() != null) {
+                        Result.success(response.body()!!.map { it.toOrder() })
+                    } else {
+                        Result.failure(Exception(response.parseErrorMessage("Failed to fetch confirmed orders")))
+                    }
+                }
                 else -> {
                     Result.failure(Exception("Status parameter is required for this API version (ongoing/history)"))
                 }
@@ -123,8 +131,8 @@ class OrderRepositoryImpl @Inject constructor(
     override suspend fun updateOrderStatus(orderId: Int, status: String): Result<String> {
         return try {
             val response = api.updateOrderStatus(orderId, UpdateOrderStatusRequest(status))
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!.message)
+            if (response.isSuccessful) {
+                Result.success("Order status updated")
             } else {
                 Result.failure(Exception(response.parseErrorMessage("Failed to update order status")))
             }
@@ -166,9 +174,9 @@ class OrderRepositoryImpl @Inject constructor(
             items = orderFoods.map { foodBrief ->
                 OrderItemDetail(
                     id = foodBrief.id,
-                    foodId = foodBrief.food?.id ?: 0,
-                    name = foodBrief.food?.name ?: "Unknown",
-                    image = foodBrief.food?.image ?: "",
+                    foodId = foodBrief.food?.id ?: foodBrief.id,
+                    name = foodBrief.food?.name ?: foodBrief.name ?: "Unknown",
+                    image = foodBrief.food?.image ?: foodBrief.image ?: "",
                     quantity = foodBrief.quantity,
                     price = foodBrief.price,
                     size = foodBrief.sizeName,

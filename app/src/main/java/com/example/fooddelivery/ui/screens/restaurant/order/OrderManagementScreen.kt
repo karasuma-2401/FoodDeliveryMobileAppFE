@@ -50,7 +50,20 @@ fun OrderManagementScreen(
                 }
             }
 
-            if (filteredOrders.isEmpty()) {
+            state.error?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+
+            if (state.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (filteredOrders.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = "No orders here", style = MaterialTheme.typography.bodyLarge)
                 }
@@ -63,6 +76,7 @@ fun OrderManagementScreen(
                     items(filteredOrders) { order ->
                         OrderCard(
                             order = order,
+                            isUpdating = state.updatingOrderId == order.id,
                             onAccept = { viewModel.acceptOrder(order.id) },
                             onDeny = { viewModel.denyOrder(order.id) },
                             onDone = { viewModel.completeOrder(order.id) },
