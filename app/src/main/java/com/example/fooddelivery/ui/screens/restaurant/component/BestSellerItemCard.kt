@@ -18,7 +18,10 @@ import androidx.compose.material.icons.filled.Star
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
+import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.BestSellerItem
 
 @Composable
@@ -31,14 +34,28 @@ fun BestSellerItemCard(item: BestSellerItem) {
             .padding(12.dp)
     ) {
 
-        Image(
-            painter = painterResource(id = item.imageRes),
-            contentDescription = "${item.name} image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .clip(RoundedCornerShape(12.dp))
-        )
+        if (!item.imageUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = item.imageUrl,
+                contentDescription = "${item.name} image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Image(
+                painter = painterResource(
+                    id = if (item.imageRes != 0) item.imageRes else R.drawable.ic_launcher_background
+                ),
+                contentDescription = "${item.name} image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 

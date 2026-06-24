@@ -17,7 +17,9 @@ interface RestaurantRepository {
 
     suspend fun getMyRestaurants(): Result<List<RestaurantResponse>>
 
-    suspend fun getDashboard(restaurantId: Int): Result<DashboardResponse>
+    suspend fun getDashboard(restaurantId: Int): Result<RestaurantDashboardRangeResponse>
+
+    suspend fun generateDashboard(restaurantId: Int): Result<RestaurantDashboardResponse>
 
     suspend fun toggleFavorite(restaurantId: Int): Result<LikeStatusResponse>
 

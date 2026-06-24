@@ -76,7 +76,9 @@ fun DashboardContent(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                HeaderSection("TP HCM")
+                HeaderSection(
+                    location = state.restaurantName.ifBlank { "My Restaurant" }
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -119,19 +121,17 @@ fun DashboardContent(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 BestSellerSection(
-                    items = listOf(
-                        BestSellerItem("Burger", "$5.99", 4.5f, 120, R.drawable.ic_launcher_background),
-                        BestSellerItem("Pizza", "$8.99", 4.8f, 200, R.drawable.ic_launcher_background),
-                        BestSellerItem("Chicken", "$6.49", 4.6f, 150, R.drawable.ic_launcher_background)
-                    ),
+                    items = state.bestSellers,
                     onSeeAllClick = onSeeAllClick
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 ActiveVouchersPreviewCard(
+                    activeVouchers = state.activeVouchers,
+                    vouchers = state.voucherPreviews,
                     onSeeDetailClick = {
-                        onNavigate("coupon")
+                        onNavigate("coupons")
                     }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -269,6 +269,15 @@ fun DashboardPreview() {
                     RecentOrder("1", "9842", "Nguyen Van A", 24.50, "Delivered", "10:30 AM"),
                     RecentOrder("2", "9841", "Tran Thi B", 12.99, "Delivered", "09:15 AM"),
                     RecentOrder("3", "9840", "Le Van C", 45.00, "Cancelled", "Yesterday")
+                ),
+                bestSellers = listOf(
+                    BestSellerItem("Burger", "$5.99", 4.5f, 120),
+                    BestSellerItem("Pizza", "$8.99", 4.8f, 200)
+                ),
+                activeVouchers = 2,
+                voucherPreviews = listOf(
+                    VoucherPreviewItem("SUMMER25", "45/100 used"),
+                    VoucherPreviewItem("FREESHIP", "212 used")
                 )
             )
         )

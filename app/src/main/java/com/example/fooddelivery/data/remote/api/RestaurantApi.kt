@@ -25,7 +25,12 @@ interface RestaurantApi {
     suspend fun getDashboard(
         @Path("restaurantId") restaurantId: Int,
         @Query("range") range: String = "day"
-    ): Response<DashboardResponse>
+    ): Response<BaseResponse<RestaurantDashboardRangeResponse>>
+
+    @GET("restaurant/generate-dashboard")
+    suspend fun generateDashboard(
+        @Query("restaurantId") restaurantId: Int
+    ): Response<BaseResponse<RestaurantDashboardResponse>>
 
     @POST("restaurant/{restaurantId}/like")
     suspend fun toggleFavorite(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<LikeStatusResponse>>

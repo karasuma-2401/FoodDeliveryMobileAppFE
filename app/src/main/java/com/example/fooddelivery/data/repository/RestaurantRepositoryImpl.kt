@@ -82,11 +82,25 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getDashboard(restaurantId: Int): Result<DashboardResponse> {
+    override suspend fun getDashboard(restaurantId: Int): Result<RestaurantDashboardRangeResponse> {
         return try {
             val response = api.getDashboard(restaurantId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                Result.failure(Exception(response.parseErrorMessage("Failed to load dashboard")))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun generateDashboard(restaurantId: Int): Result<RestaurantDashboardResponse> {
+        return try {
+            val response = api.generateDashboard(restaurantId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
             } else {
                 Result.failure(Exception(response.parseErrorMessage("Failed to load dashboard")))
             }

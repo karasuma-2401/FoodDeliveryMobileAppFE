@@ -1,4 +1,5 @@
 package com.example.fooddelivery.ui.screens.restaurant.component.dashboard
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,9 +17,12 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import com.example.fooddelivery.ui.screens.restaurant.dashboard.VoucherPreviewItem
 
 @Composable
 fun ActiveVouchersPreviewCard(
+    activeVouchers: Int = 0,
+    vouchers: List<VoucherPreviewItem> = emptyList(),
     onSeeDetailClick: () -> Unit
 ) {
     Card(
@@ -50,6 +54,22 @@ fun ActiveVouchersPreviewCard(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    if (activeVouchers > 0) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        ) {
+                            Text(
+                                text = activeVouchers.toString(),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
                 }
 
                 TextButton(
@@ -72,15 +92,34 @@ fun ActiveVouchersPreviewCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            VoucherPreviewItem(code = "SUMMER25", usage = "45/100 used", color = MaterialTheme.colorScheme.primary)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-            VoucherPreviewItem(code = "FREESHIP", usage = "212 used", color = MaterialTheme.colorScheme.surfaceVariant)
+            if (vouchers.isEmpty()) {
+                Text(
+                    text = if (activeVouchers > 0) {
+                        "$activeVouchers active voucher(s)"
+                    } else {
+                        "No active vouchers"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                vouchers.forEachIndexed { index, voucher ->
+                    VoucherPreviewRow(code = voucher.code, usage = voucher.usage, color = MaterialTheme.colorScheme.primary)
+                    if (index < vouchers.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun VoucherPreviewItem(code: String, usage: String, color: Color) {
+private fun VoucherPreviewRow(code: String, usage: String, color: Color) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
