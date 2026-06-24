@@ -13,23 +13,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.card.AddressCard
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.screens.profile.ProfileEvent
-import com.example.fooddelivery.ui.screens.profile.ProfileState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerAddressScreen(
     onNavigateBack: () -> Unit,
     onAddNewAddress: () -> Unit,
-    onEditAddress: (String) -> Unit = {},
+    onEditAddress: (Int) -> Unit = {}, // Chuyển sang Int
     viewModel: CustomerAddressViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var addressIdToDelete by remember { mutableStateOf<String?>(null) }
+    var addressIdToDelete by remember { mutableStateOf<Int?>(null) } // Chuyển sang Int?
+
     if (addressIdToDelete != null) {
         AlertDialog(
             onDismissRequest = { addressIdToDelete = null },
@@ -52,23 +50,7 @@ fun CustomerAddressScreen(
             }
         )
     }
-    CustomerAddressContent(
-        state = state,
-        onEvent = viewModel::onEvent,
-        onNavigateBack = onNavigateBack,
-        onAddNewAddress = onAddNewAddress,
-        onEditAddress = onEditAddress,
-    )
-}
-@OptIn( ExperimentalMaterial3Api::class)
-@Composable
-fun CustomerAddressContent(
-    state: CustomerAddressState,
-    onEvent: (CustomerAddressEvent) -> Unit,
-    onNavigateBack: () -> Unit,
-    onAddNewAddress: () -> Unit,
-    onEditAddress: (String) -> Unit
-) {
+
     Scaffold(
         topBar = {
             DFoodTopBar(
@@ -118,7 +100,7 @@ fun CustomerAddressContent(
                         AddressCard(
                             address = address,
                             onEdit = { onEditAddress(address.id) },
-                            onDelete = { onEvent(CustomerAddressEvent.DeleteAddress(address.id)) }
+                            onDelete = { addressIdToDelete = address.id }
                         )
                     }
                 }

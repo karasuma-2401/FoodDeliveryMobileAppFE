@@ -1,11 +1,12 @@
 package com.example.fooddelivery.domain.model
 
 data class Address(
-    val id: String = "",
-    val type: String = "",
-    val title: String = "",
+    val id: Int = 0,
+    val type: String = "", // Label (e.g., "Home", "Work")
+    val title: String = "", // Physical address title
     val streetName: String = "",
     val city: String = "",
-    val detail: String = "",
-    val isDefault: Boolean = false
+    val detail: String = "", // Full address text
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )

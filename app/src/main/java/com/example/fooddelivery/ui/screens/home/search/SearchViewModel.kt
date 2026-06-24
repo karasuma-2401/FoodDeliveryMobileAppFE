@@ -2,11 +2,16 @@ package com.example.fooddelivery.ui.screens.home.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fooddelivery.R
+import com.example.fooddelivery.domain.location.LocationTracker
+import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.domain.model.SearchHistory
+import com.example.fooddelivery.domain.model.SearchSortOption
 import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.CategoryRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
+import com.example.fooddelivery.domain.repository.SearchRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,41 +25,63 @@ import javax.inject.Inject
 
 data class SearchState(
     val searchQuery: String = "",
-    val recentKeyWords: List<String> = listOf("Burger", "Pizza"),
+    val recentKeyWords: List<SearchHistory> = emptyList(),
     val suggestedRestaurants: List<Restaurant> = emptyList(),
     val popularFood: List<FoodItem> = emptyList(),
+    val categories: List<Category> = emptyList(),
     val cartItemCount: Int = 0,
     val unreadMessageCount: Int = 0,
     val isLoading: Boolean = false,
-    val selectedLocation: String = "Home",
-    val availableLocations: List<String> = listOf("Home", "Work", "Other")
+    val error: String? = null,
+    val selectedLocation: String = "Current Location",
+    val lat: Double? = null,
+    val lng: Double? = null,
+    val availableLocations: List<String> = listOf("Home", "Work", "Other"),
+    val selectedSort: SearchSortOption? = null,
+    val selectedCategoryId: String? = null
 )
 
 sealed interface SearchEvent {
     data class QueryChanged(val query: String): SearchEvent
     data class KeywordClicked(val keyword: String): SearchEvent
+    object PerformSearch: SearchEvent
     object ClearSearch: SearchEvent
     object LoadSearchData: SearchEvent
     data class LocationSelected(val location: String) : SearchEvent
+    data class DeleteHistoryItem(val id: Int) : SearchEvent
+    object ClearAllHistory : SearchEvent
+    data class SortSelected(val sort: SearchSortOption?) : SearchEvent
+    data class CategorySelected(val categoryId: String?) : SearchEvent
 }
+
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val cartRepository: CartRepository,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val categoryRepository: CategoryRepository,
+    private val searchRepository: SearchRepository,
+    private val locationTracker: LocationTracker
 ) : ViewModel() {
     private val _state = MutableStateFlow(SearchState())
     val state: StateFlow<SearchState> = _state.asStateFlow()
 
-    private var allRestaurants: List<Restaurant> = emptyList()
-    private var allFoodItems: List<FoodItem> = emptyList()
-
     private var searchJob: Job? = null
 
     init {
-        onEvent(SearchEvent.LoadSearchData)
+        loadInitialData()
         observeCart()
         observeUnreadMessages()
+        loadCategories()
     }
+
+    private fun loadCategories() {
+        viewModelScope.launch {
+            categoryRepository.getCategories().onSuccess { cats ->
+                _state.update { it.copy(categories = cats) }
+            }
+        }
+    }
+
     private fun observeCart() {
         viewModelScope.launch {
             cartRepository.cartItems.collectLatest { items ->
@@ -76,80 +103,121 @@ class SearchViewModel @Inject constructor(
     fun onEvent(event: SearchEvent) {
         when(event) {
             is SearchEvent.QueryChanged -> {
-                _state.update { it.copy(searchQuery = event.query, isLoading = true) }
+                _state.update { it.copy(searchQuery = event.query) }
                 searchJob?.cancel()
                 searchJob = viewModelScope.launch {
-                    delay(500L)
-                    filterData(event.query)
-
-                    if (event.query.isNotBlank() && !state.value.recentKeyWords.contains(event.query)) {
-                        _state.update {
-                            val newList = (listOf(event.query) + it.recentKeyWords).take(5)
-                            it.copy(recentKeyWords = newList)
-                        }
+                    if (event.query.isBlank()) {
+                        loadInitialData()
+                    } else {
+                        delay(500L)
+                        performSearch()
                     }
                 }
             }
             is SearchEvent.KeywordClicked -> {
-                _state.update { it.copy(searchQuery = event.keyword, isLoading = true) }
-                filterData(event.keyword)
+                _state.update { it.copy(searchQuery = event.keyword) }
+                performSearch()
             }
+            SearchEvent.PerformSearch -> performSearch()
             SearchEvent.ClearSearch -> {
                 searchJob?.cancel()
                 _state.update { it.copy(searchQuery = "") }
-                filterData("")
+                loadInitialData()
             }
             SearchEvent.LoadSearchData -> loadInitialData()
             is SearchEvent.LocationSelected -> {
                 _state.update { it.copy(selectedLocation = event.location) }
+                // In real app, you would update lat/lng here
+            }
+            is SearchEvent.DeleteHistoryItem -> {
+                viewModelScope.launch {
+                    searchRepository.deleteHistoryItem(event.id).onSuccess {
+                        _state.update { s ->
+                            s.copy(recentKeyWords = s.recentKeyWords.filter { it.id != event.id })
+                        }
+                    }
+                }
+            }
+            SearchEvent.ClearAllHistory -> {
+                viewModelScope.launch {
+                    searchRepository.clearAllHistory().onSuccess {
+                        _state.update { it.copy(recentKeyWords = emptyList()) }
+                    }
+                }
+            }
+            is SearchEvent.SortSelected -> {
+                _state.update { it.copy(selectedSort = event.sort) }
+                if (state.value.searchQuery.isNotBlank()) performSearch()
+            }
+            is SearchEvent.CategorySelected -> {
+                val newCategoryId = if (state.value.selectedCategoryId == event.categoryId) null else event.categoryId
+                _state.update { it.copy(selectedCategoryId = newCategoryId) }
+                if (state.value.searchQuery.isNotBlank()) performSearch()
             }
         }
     }
 
-    private fun filterRestaurants(query: String): List<Restaurant> {
-        if (query.isEmpty()) return allRestaurants.take(3)
-        return allRestaurants.filter { restaurant ->
-            restaurant.name.contains(query, ignoreCase = true) ||
-            restaurant.tags.any { it.contains(query, ignoreCase = true) }
+    private fun performSearch() {
+        val query = state.value.searchQuery
+        if (query.isBlank()) return
+
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            
+            searchRepository.unifiedSearch(
+                query = query,
+                lat = state.value.lat,
+                lng = state.value.lng,
+                sort = state.value.selectedSort,
+                categoryId = state.value.selectedCategoryId
+            ).onSuccess { (foods, restaurants) ->
+                _state.update { it.copy(
+                    popularFood = foods,
+                    suggestedRestaurants = restaurants,
+                    isLoading = false
+                ) }
+                // Save to history after successful search
+                searchRepository.saveHistory(query)
+                refreshHistory()
+            }.onFailure { e ->
+                _state.update { it.copy(isLoading = false, error = e.message) }
+            }
         }
     }
 
-    private fun filterPopularFood(query: String): List<FoodItem> {
-        if (query.isEmpty()) return allFoodItems.take(4)
-        return allFoodItems.filter { food ->
-            food.name.contains(query, ignoreCase = true) ||
-            food.restaurantName.contains(query, ignoreCase = true)
-        }
-    }
-
-    private fun filterData(query: String) {
-        _state.update {
-            it.copy(
-                suggestedRestaurants = filterRestaurants(query),
-                popularFood = filterPopularFood(query),
-                isLoading = false
-            )
+    private fun refreshHistory() {
+        viewModelScope.launch {
+            searchRepository.getHistory().onSuccess { history ->
+                _state.update { it.copy(recentKeyWords = history) }
+            }
         }
     }
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update { it.copy(isLoading = true, error = null) }
+            
+            // 1. Get Location
+            val location = locationTracker.getCurrentLocation()
+            _state.update { it.copy(lat = location?.latitude, lng = location?.longitude) }
 
-            delay(500)
+            // 2. Fetch History
+            refreshHistory()
 
-            allRestaurants = listOf(
-                Restaurant(id = "1", name = "Spicy Restaurant", tags = listOf("Burger", "Chicken"), rating = 4.7f, deliveryFee = 0.0, imageRes = R.drawable.food_bowl),
-                Restaurant(id = "2", name = "KFC - Ho Chi Minh", tags = listOf("Fast Food", "Fried Chicken"), rating = 4.5f, deliveryFee = 1.5, imageRes = R.drawable.food_bowl),
-                Restaurant(id = "3", name = "Pizza Hut Deli", tags = listOf("Pizza", "Italian"), rating = 4.8f, deliveryFee = 0.0, imageRes = R.drawable.food_bowl)
-            )
-
-            allFoodItems = listOf(
-                FoodItem(id = "1", name = "Burger Ferguson", restaurantId = "1", restaurantName = "Spicy Restaurant", price = 15.0, imageRes = R.drawable.food_bowl, promoTag = "PROMOTION"),
-                FoodItem(id = "2", name = "Rockin' Burgers", restaurantId = "4", restaurantName = "Cafecafachino", price = 12.0, imageRes = R.drawable.food_bowl, promoTag = "GIẢM 20%"),
-                FoodItem(id = "5", name = "Margherita Pizza", restaurantId = "3", restaurantName = "Pizza Hut Deli", price = 20.0, imageRes = R.drawable.food_bowl)
-            )
-            filterData("")
+            // 3. Fetch Suggestions
+            searchRepository.getSuggestions(
+                lat = state.value.lat,
+                lng = state.value.lng
+            ).onSuccess { (foods, restaurants) ->
+                _state.update { it.copy(
+                    popularFood = foods,
+                    suggestedRestaurants = restaurants,
+                    isLoading = false
+                ) }
+            }.onFailure { e ->
+                _state.update { it.copy(isLoading = false, error = e.message) }
+            }
         }
     }
 }

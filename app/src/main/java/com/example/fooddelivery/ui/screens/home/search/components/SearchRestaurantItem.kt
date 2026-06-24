@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowRight
+import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -33,15 +34,33 @@ fun SearchRestaurantItem(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = restaurant.imageUrl ?: restaurant.imageRes,
-            contentDescription = null,
-            modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentScale = ContentScale.Crop
-        )
+        Box {
+            AsyncImage(
+                model = restaurant.imageUrl ?: restaurant.imageRes,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentScale = ContentScale.Crop
+            )
+            if (restaurant.hasVoucher) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(x = (-4).dp, y = (-4).dp),
+                    color = MaterialTheme.colorScheme.error,
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocalOffer,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp).padding(2.dp),
+                        tint = MaterialTheme.colorScheme.onError
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -68,6 +87,15 @@ fun SearchRestaurantItem(
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                
+                restaurant.distance?.let {
+                    Text(
+                        text = " • ${String.format("%.1f", it)} km",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 val tag = restaurant.tags.firstOrNull()
                 if (!tag.isNullOrBlank()) {
                     Text(

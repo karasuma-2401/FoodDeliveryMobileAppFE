@@ -2,6 +2,8 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.PhotonService
+import com.example.fooddelivery.data.remote.dto.toAddress
+import com.example.fooddelivery.data.remote.dto.toAddressRequest
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.repository.AddressRepository
 import javax.inject.Inject
@@ -16,7 +18,10 @@ class AddressRepositoryImpl @Inject constructor(
         return try {
             val response = addressApi.getAddresses()
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val activeAddresses = response.body()!!
+                    .filter { it.address.deleteAt == null }
+                    .map { it.toAddress() }
+                Result.success(activeAddresses)
             } else {
                 Result.failure(Exception("Failed to get addresses: ${response.message()}"))
             }
@@ -26,9 +31,23 @@ class AddressRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getAddressById(addressId: Int): Result<Address> {
+        return try {
+            val response = addressApi.getAddress(addressId)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!.toAddress())
+            } else {
+                Result.failure(Exception("Failed to get address: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
     override suspend fun addAddress(address: Address): Result<Unit> {
         return try {
-            val response = addressApi.addAddress(address)
+            val response = addressApi.addAddress(address.toAddressRequest())
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
@@ -42,7 +61,7 @@ class AddressRepositoryImpl @Inject constructor(
 
     override suspend fun updateAddress(address: Address): Result<Unit> {
         return try {
-            val response = addressApi.updateAddress(address.id, address)
+            val response = addressApi.updateAddress(address.id, address.toAddressRequest())
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
@@ -54,7 +73,7 @@ class AddressRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteAddress(addressId: String): Result<Unit> {
+    override suspend fun deleteAddress(addressId: Int): Result<Unit> {
         return try {
             val response = addressApi.deleteAddress(addressId)
             if (response.isSuccessful) {
@@ -76,7 +95,9 @@ class AddressRepositoryImpl @Inject constructor(
                     title = feature.properties.name ?: "",
                     streetName = feature.properties.street ?: feature.properties.name ?: "",
                     city = feature.properties.city ?: "",
-                    detail = feature.properties.getDisplayName()
+                    detail = feature.properties.getDisplayName(),
+                    latitude = feature.geometry.coordinates[1],
+                    longitude = feature.geometry.coordinates[0]
                 )
             }
             Result.success(addresses)

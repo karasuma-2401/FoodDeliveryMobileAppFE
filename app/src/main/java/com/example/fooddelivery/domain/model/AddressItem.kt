@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 
 data class AddressItem(
-    val id: String,
+    val id: Int, // Chuyển từ String sang Int
     val type: String,
     val title: String,
     val detail: String,

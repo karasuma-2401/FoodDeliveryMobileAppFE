@@ -1,19 +1,24 @@
 package com.example.fooddelivery.data.remote.api
 
-import com.example.fooddelivery.domain.model.Address
+import com.example.fooddelivery.data.remote.dto.AddressRequest
+import com.example.fooddelivery.data.remote.dto.AddressResponse
+import com.example.fooddelivery.data.remote.dto.DeleteAddressResponse
 import retrofit2.Response
 import retrofit2.http.*
 
 interface AddressApi {
-    @GET("user/addresses")
-    suspend fun getAddresses(): Response<List<Address>>
+    @GET("user/address/all")
+    suspend fun getAddresses(): Response<List<AddressResponse>>
 
-    @POST("user/addresses")
-    suspend fun addAddress(@Body address: Address): Response<Unit>
+    @GET("user/address/{addressId}")
+    suspend fun getAddress(@Path("addressId") addressId: Int): Response<AddressResponse>
 
-    @PUT("user/addresses/{id}")
-    suspend fun updateAddress(@Path("id") id: String, @Body address: Address): Response<Unit>
+    @POST("user/address")
+    suspend fun addAddress(@Body address: AddressRequest): Response<AddressResponse>
 
-    @DELETE("user/addresses/{id}")
-    suspend fun deleteAddress(@Path("id") id: String): Response<Unit>
+    @PUT("user/address/{id}")
+    suspend fun updateAddress(@Path("id") id: Int, @Body address: AddressRequest): Response<AddressResponse>
+
+    @DELETE("user/address/{addressId}")
+    suspend fun deleteAddress(@Path("addressId") addressId: Int): Response<DeleteAddressResponse>
 }
