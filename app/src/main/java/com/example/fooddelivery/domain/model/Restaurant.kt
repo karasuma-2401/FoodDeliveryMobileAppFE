@@ -12,5 +12,7 @@ data class Restaurant(
     val imageRes: Int? = null,
     val promoTags: List<String> = emptyList(),
     val isLiked: Boolean = false,
-    val totalLikes: Int = 0
+    val totalLikes: Int = 0,
+    val distance: Double? = null,
+    val estimatedDeliveryTime: Int? = null
 )

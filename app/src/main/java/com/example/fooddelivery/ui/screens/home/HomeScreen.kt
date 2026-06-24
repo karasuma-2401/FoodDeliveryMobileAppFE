@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +48,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -63,6 +65,16 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            snackbarHostState.showSnackbar(
+                message = it,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.onEvent(HomeEvent.ErrorDismissed)
+        }
+    }
+
     if (state.isPhoneMissing) {
         PhoneRequiredDialog(
             onDismiss = { viewModel.onEvent(HomeEvent.PhoneUpdateDismissed) },
@@ -72,6 +84,7 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
+        snackbarHostState = snackbarHostState,
         onEvent = viewModel::onEvent,
         onNavigateToProfile = onNavigateToProfile,
         onNavigateToOrders = onNavigateToOrders,
@@ -145,9 +158,11 @@ fun PhoneRequiredDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     state: HomeState,
+    snackbarHostState: SnackbarHostState,
     onEvent: (HomeEvent) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToOrders: () -> Unit,
@@ -172,134 +187,142 @@ fun HomeContent(
                 onMessageClick = { onEvent(HomeEvent.MessageClicked) }
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { onEvent(HomeEvent.Refresh) },
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(bottom = 0.dp)
+                .padding(innerPadding)
         ) {
-            item {
-                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                    Text(
-                        text = "Hey ${state.user.fullName.ifEmpty { "Customer" }}, $greeting!",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-
-            if (state.isLoading) {
-                item { Box(modifier = Modifier.padding(horizontal = 24.dp)) { SearchBarSkeleton() }; Spacer(modifier = Modifier.height(24.dp)) }
-                item { Box(modifier = Modifier.padding(horizontal = 24.dp)) { PromoBannerSkeleton() }; Spacer(modifier = Modifier.height(32.dp)) }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 24.dp)
+            ) {
                 item {
-                    SectionHeader(title = "All Categories", onSeeAllClick = { })
-                    LazyRow(contentPadding = PaddingValues(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp, bottom = 32.dp), userScrollEnabled = false) { items(5) { CategoryItemSkeleton() } }
-                }
-                item { SectionHeader(title = "Open Restaurants", onSeeAllClick = { }) }
-                items(3) { RestaurantItemSkeleton() }
-            } else {
-                item {
-                    Surface(
-                        modifier = Modifier
-                            .padding(horizontal = 24.dp)
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .bounceClick { onNavigateToSearch() },
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = "Search dishes, restaurants",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
+                    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        Text(
+                            text = "Hey ${state.user.fullName.ifEmpty { "Customer" }}, $greeting!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
                 }
-                item {
-                    if (state.banners.isNotEmpty()) {
-                        val pagerState = rememberPagerState(pageCount = { state.banners.size })
 
-                        HorizontalPager(
-                            state = pagerState,
-                            contentPadding = PaddingValues(horizontal = 24.dp),
-                            pageSpacing = 16.dp,
-                            modifier = Modifier.fillMaxWidth()
-                        ) { pagerIndex ->
-                            val banner = state.banners[pagerIndex]
-                            PromoBanner(
-                                banner = banner,
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
-                            )
+                if (state.isLoading) {
+                    item { Box(modifier = Modifier.padding(horizontal = 24.dp)) { SearchBarSkeleton() }; Spacer(modifier = Modifier.height(24.dp)) }
+                    item { Box(modifier = Modifier.padding(horizontal = 24.dp)) { PromoBannerSkeleton() }; Spacer(modifier = Modifier.height(32.dp)) }
+                    item {
+                        SectionHeader(title = "All Categories", onSeeAllClick = { })
+                        LazyRow(contentPadding = PaddingValues(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp, bottom = 32.dp), userScrollEnabled = false) { items(5) { CategoryItemSkeleton() } }
+                    }
+                    item { SectionHeader(title = "Open Restaurants", onSeeAllClick = { }) }
+                    items(3) { RestaurantItemSkeleton() }
+                } else {
+                    item {
+                        Surface(
+                            modifier = Modifier
+                                .padding(horizontal = 24.dp)
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .bounceClick { onNavigateToSearch() },
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Search dishes, restaurants",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
-                        with(pagerState) {
-                            LaunchedEffect(key1 = currentPage) {
-                                delay(2500)
-                                animateScrollToPage(
-                                    page = (currentPage + 1).mod(pageCount)
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    item {
+                        if (state.banners.isNotEmpty()) {
+                            val pagerState = rememberPagerState(pageCount = { state.banners.size })
+
+                            HorizontalPager(
+                                state = pagerState,
+                                contentPadding = PaddingValues(horizontal = 24.dp),
+                                pageSpacing = 16.dp,
+                                modifier = Modifier.fillMaxWidth()
+                            ) { pagerIndex ->
+                                val banner = state.banners[pagerIndex]
+                                PromoBanner(
+                                    banner = banner,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
+                                )
+                            }
+                            with(pagerState) {
+                                LaunchedEffect(key1 = currentPage) {
+                                    delay(2500)
+                                    animateScrollToPage(
+                                        page = (currentPage + 1).mod(pageCount)
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+
+                    item {
+                        SectionHeader(
+                            title = "All Categories",
+                            onSeeAllClick = { onEvent(HomeEvent.SeeAllCategoriesClicked) }
+                        )
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.padding(top = 16.dp, bottom = 32.dp)
+                        ) {
+                            items(state.categories) { category ->
+                                CategoryItem(
+                                    category = category,
+                                    onClick = { onEvent(HomeEvent.CategoryClicked(category.id)) }
                                 )
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
-                }
-
-                item {
-                    SectionHeader(
-                        title = "All Categories",
-                        onSeeAllClick = { onEvent(HomeEvent.SeeAllCategoriesClicked) }
-                    )
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.padding(top = 16.dp, bottom = 32.dp)
-                    ) {
-                        items(state.categories) { category ->
-                            CategoryItem(
-                                category = category,
-                                onClick = { onEvent(HomeEvent.CategoryClicked(category.id)) }
-                            )
-                        }
+                    item {
+                        SectionHeader(
+                            title = "Open Restaurants",
+                            onSeeAllClick = { onEvent(HomeEvent.SeeAllRestaurantsClicked) }
+                        )
                     }
-                }
-                item {
-                    SectionHeader(
-                        title = "Open Restaurants",
-                        onSeeAllClick = { onEvent(HomeEvent.SeeAllRestaurantsClicked) }
-                    )
-                }
-                items(state.restaurants) { restaurant ->
-                    RestaurantItem(
-                        restaurant = restaurant,
-                        onClick = { onEvent(HomeEvent.RestaurantClicked(restaurant.id)) }
-                    )
+                    items(state.restaurants) { restaurant ->
+                        RestaurantItem(
+                            restaurant = restaurant,
+                            onClick = { onEvent(HomeEvent.RestaurantClicked(restaurant.id)) }
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
     DFoodTheme(darkTheme = false) {
         HomeContent(
             state = HomeState(),
+            snackbarHostState = remember { SnackbarHostState() },
             onEvent = {},
             onNavigateToProfile = {},
             onNavigateToOrders = {},
             onNavigateToSearch = {},
-
         )
     }
 }

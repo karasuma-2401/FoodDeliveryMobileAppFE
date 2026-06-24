@@ -3,7 +3,9 @@ package com.example.fooddelivery.ui.screens.home.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -126,15 +128,38 @@ fun RestaurantItem(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
+                val ratingText = buildString {
+                    append(if (restaurant.rating > 0) String.format("%.1f", restaurant.rating) else "New")
+                    if (restaurant.reviewCount > 0) {
+                        append(" (${restaurant.reviewCount})")
+                    }
+                }
                 InfoItem(
-                    icon = Icons.Default.Star, 
-                    text = if (restaurant.rating > 0) String.format("%.1f", restaurant.rating) else "New", 
+                    icon = Icons.Default.Star,
+                    text = ratingText,
                     color = MaterialTheme.colorScheme.primary
                 )
+
+                restaurant.distance?.let {
+                    InfoItem(
+                        icon = Icons.Default.LocationOn,
+                        text = String.format("%.1f km", it),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                restaurant.estimatedDeliveryTime?.let {
+                    InfoItem(
+                        icon = Icons.Default.AccessTime,
+                        text = "$it min",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 val deliveryFeeText = if (restaurant.deliveryFee == 0.0) "Free" else "$${String.format("%.2f", restaurant.deliveryFee)}"
                 InfoItem(
-                    icon = Icons.Outlined.DirectionsRun, 
-                    text = deliveryFeeText, 
+                    icon = Icons.Outlined.DirectionsRun,
+                    text = deliveryFeeText,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

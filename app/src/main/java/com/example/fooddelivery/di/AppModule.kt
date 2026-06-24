@@ -15,6 +15,7 @@ import com.example.fooddelivery.data.remote.api.CategoryApi
 import com.example.fooddelivery.data.remote.api.ChatApi
 import com.example.fooddelivery.data.remote.api.DeviceApi
 import com.example.fooddelivery.data.remote.api.FoodApi
+import com.example.fooddelivery.data.remote.api.HomeApi
 import com.example.fooddelivery.data.remote.api.NotificationApi
 import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.api.PhotonService
@@ -27,6 +28,7 @@ import com.example.fooddelivery.data.repository.CategoryRepositoryImpl
 import com.example.fooddelivery.data.repository.ChatRepositoryImpl
 import com.example.fooddelivery.data.repository.DeviceRepositoryImpl
 import com.example.fooddelivery.data.repository.FoodRepositoryImpl
+import com.example.fooddelivery.data.repository.HomeRepositoryImpl
 import com.example.fooddelivery.data.repository.NotificationRepositoryImpl
 import com.example.fooddelivery.data.repository.OrderRepositoryImpl
 import com.example.fooddelivery.data.repository.RestaurantRepositoryImpl
@@ -38,6 +40,7 @@ import com.example.fooddelivery.domain.repository.CategoryRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.repository.DeviceRepository
 import com.example.fooddelivery.domain.repository.FoodRepository
+import com.example.fooddelivery.domain.repository.HomeRepository
 import com.example.fooddelivery.domain.repository.NotificationRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
@@ -162,6 +165,14 @@ object AppModule {
         api: FoodApi
     ): FoodRepository {
         return FoodRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideHomeRepository(
+        api: HomeApi
+    ): HomeRepository {
+        return HomeRepositoryImpl(api)
     }
 
     @Provides

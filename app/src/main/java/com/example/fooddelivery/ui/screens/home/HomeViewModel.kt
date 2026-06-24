@@ -8,11 +8,8 @@ import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
-import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
-import com.example.fooddelivery.domain.usecase.GetCategoriesUseCase
-import com.example.fooddelivery.domain.usecase.GetRestaurantsUseCase
+import com.example.fooddelivery.domain.usecase.GetHomeDashboardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -49,12 +46,14 @@ data class HomeState(
     val availableLocations: List<String> = listOf("Home", "Work", "Other"),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val isPhoneMissing: Boolean = false,
     val errorMessage: String? = null
 )
 
 sealed interface HomeEvent {
     object LoadHomeData : HomeEvent
+    object Refresh : HomeEvent
     object CartClicked : HomeEvent
     object MessageClicked : HomeEvent
     data class LocationSelected(val location: String) : HomeEvent
@@ -64,6 +63,7 @@ sealed interface HomeEvent {
     object SeeAllCategoriesClicked : HomeEvent
     object SeeAllRestaurantsClicked : HomeEvent
     object PhoneUpdateDismissed : HomeEvent
+    object ErrorDismissed : HomeEvent
 }
 
 sealed interface HomeUiEffect {
@@ -79,9 +79,7 @@ sealed interface HomeUiEffect {
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val getRestaurantsUseCase: GetRestaurantsUseCase,
+    private val getHomeDashboardUseCase: GetHomeDashboardUseCase,
     private val cartRepository: CartRepository,
     private val chatRepository: ChatRepository
 ) : ViewModel() {
@@ -120,6 +118,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             when (event) {
                 HomeEvent.LoadHomeData -> loadData()
+                HomeEvent.Refresh -> loadData(isRefresh = true)
                 HomeEvent.CartClicked -> _effect.emit(HomeUiEffect.NavigateToCart)
                 HomeEvent.MessageClicked -> _effect.emit(HomeUiEffect.NavigateToConversations)
                 is HomeEvent.LocationSelected -> {
@@ -137,66 +136,50 @@ class HomeViewModel @Inject constructor(
                 HomeEvent.SeeAllCategoriesClicked -> _effect.emit(HomeUiEffect.NavigateToAllCategories)
                 HomeEvent.SeeAllRestaurantsClicked -> _effect.emit(HomeUiEffect.NavigateToAllRestaurants)
                 HomeEvent.PhoneUpdateDismissed -> _state.update { it.copy(isPhoneMissing = false) }
+                HomeEvent.ErrorDismissed -> _state.update { it.copy(errorMessage = null) }
             }
         }
     }
 
-    private fun loadData() {
+    private fun loadData(isRefresh: Boolean = false) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, errorMessage = null) }
-
-            // Fetch user profile
-            launch {
-                getUserProfileUseCase().onSuccess { user ->
-                    _state.update { 
-                        it.copy(
-                            user = user,
-                            isPhoneMissing = user.phone.isBlank()
-                        ) 
-                    }
-                    if (user.phone.isBlank()) {
-                        // Tự động nhắc nhở người dùng cập nhật SĐT
-                        // Hoặc có thể dùng hiệu ứng để chuyển màn hình
-                        // _effect.emit(HomeUiEffect.NavigateToEditProfile)
-                    }
-                }
+            if (isRefresh) {
+                _state.update { it.copy(isRefreshing = true, errorMessage = null) }
+            } else {
+                _state.update { it.copy(isLoading = true, errorMessage = null) }
             }
 
-            // Fetch categories
-            launch {
-                getCategoriesUseCase(limit = 10).onSuccess { categories ->
-                    _state.update { it.copy(categories = categories) }
+            getHomeDashboardUseCase().onSuccess { data ->
+                val mockBanners = listOf(
+                    HomeBanner("1", "Flash Sale 50%", "Pizza Hut Special Deal", R.drawable.food_bowl, BannerTarget.RESTAURANT, "3", 0xFFFF8142),
+                    HomeBanner("2", "Burger Day", "Buy 1 Get 1 Free Today", R.drawable.food_bowl, BannerTarget.CATEGORY, "2", 0xFF4CAF50),
+                    HomeBanner("3", "Pasta Lovers", "New Italian Dishes in Town", R.drawable.food_bowl, BannerTarget.FOOD, "9", 0xFF2196F3),
+                    HomeBanner("4", "Drink Free", "Orders above $20 get Free Coke", R.drawable.food_bowl, BannerTarget.CATEGORY, "4", 0xFF9C27B0),
+                    HomeBanner("5", "Spicy Chicken", "Spicy Restaurant Promo 30%", R.drawable.food_bowl, BannerTarget.RESTAURANT, "1", 0xFFF44336),
+                    HomeBanner("6", "Healthy Salads", "Fresh & Green Veggie Mix", R.drawable.food_bowl, BannerTarget.CATEGORY, "5", 0xFF009688),
+                    HomeBanner("7", "Family Deal", "Pizza & Drinks for 4 People", R.drawable.food_bowl, BannerTarget.FOOD, "10", 0xFFFFC107),
+                    HomeBanner("8", "KFC Special", "Crunchy Fried Chicken Bucket", R.drawable.food_bowl, BannerTarget.RESTAURANT, "2", 0xFF795548),
+                    HomeBanner("9", "Dessert Night", "20% off on all Sweet Cakes", R.drawable.food_bowl, BannerTarget.FOOD, "11", 0xFFE91E63),
+                    HomeBanner("10", "Seafood Fest", "New Seafood Menu Available", R.drawable.food_bowl, BannerTarget.RESTAURANT, "1", 0xFF607D8B)
+                )
+
+                _state.update {
+                    it.copy(
+                        user = data.user ?: User(),
+                        categories = data.categories,
+                        restaurants = data.restaurants,
+                        banners = mockBanners,
+                        availableLocations = data.addresses.map { addr -> addr.type }.ifEmpty { listOf("Home", "Work", "Other") },
+                        cartItemCount = data.cartItemCount,
+                        unreadMessageCount = data.unreadMessageCount,
+                        isPhoneMissing = data.user?.phone?.isBlank() ?: false,
+                        isLoading = false,
+                        isRefreshing = false
+                    )
                 }
+            }.onFailure { e ->
+                _state.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = e.message) }
             }
-
-            // Fetch restaurants
-            launch {
-                getRestaurantsUseCase(limit = 10).onSuccess { restaurants ->
-                    _state.update { it.copy(restaurants = restaurants) }
-                }.onFailure { e ->
-                    _state.update { it.copy(errorMessage = e.message) }
-                }
-            }
-
-            delay(1500)
-
-            val mockBanners = listOf(
-                HomeBanner("1", "Flash Sale 50%", "Pizza Hut Special Deal", R.drawable.food_bowl, BannerTarget.RESTAURANT, "3", 0xFFFF8142),
-                HomeBanner("2", "Burger Day", "Buy 1 Get 1 Free Today", R.drawable.food_bowl, BannerTarget.CATEGORY, "2", 0xFF4CAF50),
-                HomeBanner("3", "Pasta Lovers", "New Italian Dishes in Town", R.drawable.food_bowl, BannerTarget.FOOD, "9", 0xFF2196F3),
-                HomeBanner("4", "Drink Free", "Orders above $20 get Free Coke", R.drawable.food_bowl, BannerTarget.CATEGORY, "4", 0xFF9C27B0),
-                HomeBanner("5", "Spicy Chicken", "Spicy Restaurant Promo 30%", R.drawable.food_bowl, BannerTarget.RESTAURANT, "1", 0xFFF44336),
-                HomeBanner("6", "Healthy Salads", "Fresh & Green Veggie Mix", R.drawable.food_bowl, BannerTarget.CATEGORY, "5", 0xFF009688),
-                HomeBanner("7", "Family Deal", "Pizza & Drinks for 4 People", R.drawable.food_bowl, BannerTarget.FOOD, "10", 0xFFFFC107),
-                HomeBanner("8", "KFC Special", "Crunchy Fried Chicken Bucket", R.drawable.food_bowl, BannerTarget.RESTAURANT, "2", 0xFF795548),
-                HomeBanner("9", "Dessert Night", "20% off on all Sweet Cakes", R.drawable.food_bowl, BannerTarget.FOOD, "11", 0xFFE91E63),
-                HomeBanner("10", "Seafood Fest", "New Seafood Menu Available", R.drawable.food_bowl, BannerTarget.RESTAURANT, "1", 0xFF607D8B)
-            )
-
-            _state.update { it.copy(
-                banners = mockBanners,
-                isLoading = false
-            ) }
         }
     }
 }
