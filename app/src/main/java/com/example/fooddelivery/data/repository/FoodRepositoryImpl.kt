@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.FoodApi
 import com.example.fooddelivery.data.remote.dto.FoodResponse
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.domain.repository.FoodRepository
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -26,7 +27,7 @@ class FoodRepositoryImpl @Inject constructor(
                     Result.failure(Exception(baseResponse.message ?: "Failed to load foods"))
                 }
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load foods")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -46,7 +47,7 @@ class FoodRepositoryImpl @Inject constructor(
                     Result.failure(Exception(baseResponse.message ?: "Food does not exist"))
                 }
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Food does not exist")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

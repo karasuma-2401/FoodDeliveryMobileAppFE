@@ -54,7 +54,7 @@ fun LoginScreen(
     onNavigateBack: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
-    onNavigateHome: () -> Unit,
+    onNavigateAfterLogin: (Any) -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -79,9 +79,10 @@ fun LoginScreen(
             }
         }
     }
-    LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess)
-            onNavigateHome()
+    LaunchedEffect(state.isSuccess, state.postLoginDestination) {
+        if (state.isSuccess) {
+            state.postLoginDestination?.let(onNavigateAfterLogin)
+        }
     }
     LoginScreenContent(
         state = state,

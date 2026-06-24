@@ -2,6 +2,7 @@ package com.example.fooddelivery.domain.repository
 
 import com.example.fooddelivery.data.remote.dto.AuthResponse
 import com.example.fooddelivery.data.remote.dto.LoginResponse
+import com.example.fooddelivery.data.remote.dto.MeResponse
 import com.example.fooddelivery.data.remote.dto.RegisterResponse
 import com.example.fooddelivery.data.remote.dto.VerifyResetOtpResponse
 
@@ -11,6 +12,7 @@ interface AuthRepository {
     suspend fun loginGoogle(accessToken: String? = null, code: String? = null) : Result<LoginResponse>
     suspend fun loginSocial(provider: String, accessToken: String? = null, code: String? = null) : Result<LoginResponse>
     suspend fun refreshToken(refreshToken: String) : Result<LoginResponse>
+    suspend fun getMe(): Result<MeResponse>
     suspend fun register (name: String, email: String, phone: String, password: String, birthday: String? = null): Result<RegisterResponse>
     suspend fun verifyAccount(otp: String): Result<AuthResponse>
     suspend fun sendResetPasswordCode(email: String): Result<Unit>

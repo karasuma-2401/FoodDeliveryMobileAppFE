@@ -139,12 +139,22 @@ class VerificationViewModel @Inject constructor(
                     otp = currentState.otpCode
                 )
                 result.onSuccess { response ->
-                    _state.update { 
-                        it.copy(
-                            isLoading = false, 
-                            isSuccess = true, 
-                            resetToken = response.resetToken 
-                        ) 
+                    val resetToken = response.getFinalResetToken()
+                    if (resetToken != null) {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isSuccess = true,
+                                resetToken = resetToken
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "Invalid response from server"
+                            )
+                        }
                     }
                 }.onFailure { exception ->
                     _state.update {

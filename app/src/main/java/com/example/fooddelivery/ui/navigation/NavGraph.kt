@@ -83,6 +83,18 @@ fun RootNavigationGraph(
 
     val showCustomerBottomBar = customerBottomBarRoutes.any { currentDestination?.hasRoute(it) == true }
 
+    val rootStartDestination = when (startDestination) {
+        CustomerGraph, HomeRoute -> CustomerGraph
+        RestaurantGraph -> RestaurantGraph
+        AdminGraph -> AdminGraph
+        else -> AuthGraph
+    }
+
+    val authStartDestination = when (startDestination) {
+        OnboardingRoute -> OnboardingRoute
+        else -> LoginRoute
+    }
+
     Scaffold(
         bottomBar = {
             if (showCustomerBottomBar) {
@@ -115,7 +127,7 @@ fun RootNavigationGraph(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = RestaurantGraph,
+            startDestination = rootStartDestination,
             modifier = Modifier.padding(innerPadding),
             enterTransition = {
                 fadeIn(animationSpec = tween(300)) +
@@ -133,7 +145,7 @@ fun RootNavigationGraph(
         ) {
             authNavGraph(
                 navController = navController,
-                startDestination = if (startDestination is HomeRoute) LoginRoute else startDestination
+                startDestination = authStartDestination
             )
             userNavGraph(navController = navController)
             vendorNavGraph(navController = navController)
@@ -167,8 +179,8 @@ fun NavGraphBuilder.authNavGraph(
                 },
                 onNavigateToSignUp = { navController.navigate(RegisterRoute) },
                 onNavigateToForgotPassword = { navController.navigate(ForgotPasswordRoute) },
-                onNavigateHome = {
-                    navController.navigate(CustomerGraph) {
+                onNavigateAfterLogin = { destination ->
+                    navController.navigate(destination) {
                         popUpTo<AuthGraph> { inclusive = true }
                     }
                 }

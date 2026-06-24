@@ -6,6 +6,7 @@ import com.example.fooddelivery.domain.usecase.LoginUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithGoogleUseCase
 import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
+import com.example.fooddelivery.ui.navigation.resolveStartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +23,7 @@ data class LoginState (
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSuccess: Boolean = false,
+    val postLoginDestination: Any? = null,
 )
 sealed interface LoginEvent {
     data class PhoneChanged (val phone: String): LoginEvent
@@ -83,8 +85,14 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = loginWithFacebookUseCase(facebookToken)
-            result.onSuccess {
-                _state.update { it.copy(isLoading = false, isSuccess = true) }
+            result.onSuccess { roles ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        postLoginDestination = resolveStartDestination(roles)
+                    )
+                }
             }.onFailure { exception ->
                 _state.update {
                     it.copy(
@@ -100,8 +108,14 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = loginWithGoogleUseCase(googleToken)
-            result.onSuccess {
-                _state.update { it.copy(isLoading = false, isSuccess = true) }
+            result.onSuccess { roles ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        postLoginDestination = resolveStartDestination(roles)
+                    )
+                }
             }.onFailure { exception ->
                 _state.update {
                     it.copy(
@@ -131,8 +145,14 @@ class LoginViewModel @Inject constructor(
                 rememberMe = currentState.rememberMe
             )
             
-            result.onSuccess {
-                _state.update { it.copy(isLoading = false, isSuccess = true) }
+            result.onSuccess { roles ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        postLoginDestination = resolveStartDestination(roles)
+                    )
+                }
             }.onFailure { exception ->
                 _state.update {
                     it.copy(

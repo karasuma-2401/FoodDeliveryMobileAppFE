@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.RestaurantApi
 import com.example.fooddelivery.data.remote.dto.*
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -43,7 +44,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                 } ?: emptyList()
                 Result.success(restaurants)
             } else {
-                Result.failure(Exception("Failed to load restaurants: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load restaurants")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -57,7 +58,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception("Failed to load restaurant details: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load restaurant details")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -72,7 +73,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                 val baseResponse = response.body()!!
                 Result.success(baseResponse.data ?: emptyList())
             } else {
-                Result.failure(Exception("Failed to load my restaurants: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load my restaurants")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -86,7 +87,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load dashboard")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -104,7 +105,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                     401 -> "Unauthorized: Please login again"
                     403 -> "Forbidden: You don't have permission"
                     404 -> "Restaurant not found"
-                    else -> "Failed to update favorite status: ${response.message()}"
+                    else -> response.parseErrorMessage("Failed to update favorite status")
                 }
                 Result.failure(Exception(errorMsg))
             }
@@ -120,7 +121,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body()?.data != null) {
                 Result.success(response.body()!!.data!!)
             } else {
-                Result.failure(Exception("Failed to get like status: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to get like status")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -139,7 +140,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                     Result.failure(Exception("Failed to load foods: data is null"))
                 }
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load foods")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -185,7 +186,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception("Failed to add food: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to add food")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -205,7 +206,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                     Result.failure(Exception(baseResponse.message ?: "Food is not exists"))
                 }
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load food")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -250,7 +251,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception("Failed to update food: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to update food")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -264,7 +265,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to delete food: ${response.message()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to delete food")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -278,7 +279,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Failed to rate restaurant")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -292,7 +293,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Failed to update review")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -306,7 +307,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Failed to delete review")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
