@@ -52,7 +52,7 @@ interface RestaurantApi {
     ): Response<FoodResponse>
 
     @GET("food/{id}")
-    suspend fun getFoodById(@Path("id") id: Int): Response<FoodResponse>
+    suspend fun getFoodById(@Path("id") id: Int): Response<BaseResponse<FoodResponse>>
 
     @Multipart
     @PATCH("food/manage/{id}")

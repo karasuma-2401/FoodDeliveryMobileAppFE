@@ -28,6 +28,36 @@ data class FoodSizeRequest(
 )
 
 @Serializable
+data class FoodSizeOptionDto(
+    val foodSizeId: Int,
+    val sizeId: Int,
+    val name: String,
+    val price: Double,
+    val isDefault: Boolean = false
+)
+
+@Serializable
+data class IngredientDto(
+    val id: Int,
+    val name: String,
+    val icon: String? = null
+)
+
+@Serializable
+data class FoodRestaurantDto(
+    val id: Int,
+    val name: String,
+    val image: String? = null,
+    val coverImage: String? = null
+)
+
+@Serializable
+data class FoodCategoryDto(
+    val id: Int,
+    val name: String
+)
+
+@Serializable
 data class FoodResponse(
     val id: Int,
     val name: String,
@@ -39,7 +69,11 @@ data class FoodResponse(
     val isAvailable: Boolean = true,
     val image: String? = null,
     val rating: Float? = null,
-    val reviewCount: Int? = null
+    val reviewCount: Int? = null,
+    val category: FoodCategoryDto? = null,
+    val restaurant: FoodRestaurantDto? = null,
+    val foodIngredients: List<IngredientDto>? = null,
+    val sizes: List<FoodSizeOptionDto>? = null
 )
 
 @Serializable

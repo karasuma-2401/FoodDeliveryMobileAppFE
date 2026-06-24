@@ -8,13 +8,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface FoodApi {
-    @GET("api/food")
+    @GET("food")
     suspend fun getFoods(
         @Query("categoryId") categoryId: Int? = null,
         @Query("restaurantId") restaurantId: Int? = null,
         @Query("keyword") keyword: String? = null
-    ): Response<List<FoodResponse>>
+    ): Response<BaseResponse<List<FoodResponse>>>
 
-    @GET("api/food/{id}")
-    suspend fun getFoodById(@Path("id") id: Int): Response<FoodResponse>
+    @GET("food/{id}")
+    suspend fun getFoodById(@Path("id") id: Int): Response<BaseResponse<FoodResponse>>
 }

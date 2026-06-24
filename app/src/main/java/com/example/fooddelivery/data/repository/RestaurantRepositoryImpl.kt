@@ -197,7 +197,13 @@ class RestaurantRepositoryImpl @Inject constructor(
         return try {
             val response = api.getFoodById(id)
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val baseResponse = response.body()!!
+
+                if (baseResponse.success && baseResponse.data != null) {
+                    Result.success(baseResponse.data)
+                } else {
+                    Result.failure(Exception(baseResponse.message ?: "Food is not exists"))
+                }
             } else {
                 Result.failure(Exception(response.message()))
             }

@@ -19,14 +19,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.ui.screens.food.FoodSizeOption
 
 @Composable
 fun SizeSelection(
-    selectedSize: String,
-    onSizeSelected: (String) -> Unit,
+    sizes: List<FoodSizeOption>,
+    selectedFoodSizeId: Int?,
+    onSizeSelected: (FoodSizeOption) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sizes = listOf("Small", "Medium", "Large")
+    if (sizes.isEmpty()) return
 
     Column(modifier = modifier) {
         Text(
@@ -39,7 +41,7 @@ fun SizeSelection(
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             sizes.forEach { size ->
-                val isSelected = size == selectedSize
+                val isSelected = size.foodSizeId == selectedFoodSizeId
                 Box(
                     modifier = Modifier
                         .size(50.dp)
@@ -52,12 +54,7 @@ fun SizeSelection(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = when(size) {
-                            "Small" -> "S"
-                            "Medium" -> "M"
-                            "Large" -> "L"
-                            else -> size
-                        },
+                        text = size.name.firstOrNull()?.uppercaseChar()?.toString() ?: size.name,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = if (isSelected) MaterialTheme.colorScheme.onPrimary
                                     else MaterialTheme.colorScheme.onSurface,

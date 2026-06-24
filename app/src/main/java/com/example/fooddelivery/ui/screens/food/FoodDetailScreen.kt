@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.food.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
@@ -66,7 +65,7 @@ fun FoodDetailContent(
         bottomBar = {
             state.food?.let { food ->
                 BottomCartBar(
-                    price = String.format(Locale.US,"%.0f", state.totalPrice),
+                    price = String.format(Locale.US, "%.0f", state.totalPrice),
                     quantity = state.quantity,
                     onUpdateQuantity = { onEvent(FoodDetailEvent.UpdateQuantity(it)) },
                     onAddToCart = { onEvent(FoodDetailEvent.AddToCart) }
@@ -92,7 +91,21 @@ fun FoodDetailContent(
                 item { SizeSelectionSkeleton() }
                 item { Spacer(modifier = Modifier.height(24.dp)) }
             }
+        } else if (state.food == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = state.errorMessage ?: "Food not found",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         } else {
+            val food = state.food ?: return@Scaffold
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -101,13 +114,13 @@ fun FoodDetailContent(
             ) {
                 item {
                     FoodImageHeader(
-                        imageRes = state.food?.imageRes ?: R.drawable.food_bowl
+                        imageUrl = food.imageUrl
                     )
                 }
                 item { Spacer(modifier = Modifier.height(24.dp)) }
                 item {
                     RestaurantChip(
-                        name = state.food?.restaurantName ?: "Uttora Coffee House",
+                        name = food.restaurantName,
                         onClick = {
                             state.restaurant?.id?.let(onNavigateToRestaurant) ?: onNavigateBack()
                         }
@@ -117,7 +130,7 @@ fun FoodDetailContent(
                 item { Spacer(modifier = Modifier.height(16.dp)) }
                 item {
                     Text(
-                        text = state.food?.name ?: "Pizza Calzone European",
+                        text = food.name,
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 22.sp,
@@ -126,7 +139,7 @@ fun FoodDetailContent(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = state.restaurant?.description ?: "Prosciutto e funghi is a pizza variety that is topped with tomato sauce.",
+                        text = state.foodDescription,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 22.sp
@@ -136,20 +149,31 @@ fun FoodDetailContent(
                 item { Spacer(modifier = Modifier.height(16.dp)) }
                 item {
                     FoodInfoRow(
-                        rating = state.restaurant?.rating ?: 4.7f,
+                        rating = food.rating.takeIf { it > 0f }
+                            ?: state.restaurant?.rating
+                            ?: 0f,
                         deliveryFee = state.restaurant?.deliveryFee ?: 0.0
                     )
                 }
                 item { Spacer(modifier = Modifier.height(24.dp)) }
                 item {
                     SizeSelection(
-                        selectedSize = state.selectedSize,
-                        onSizeSelected = { onEvent(FoodDetailEvent.SelectSize(it)) }
+                        sizes = state.sizes,
+                        selectedFoodSizeId = state.selectedFoodSizeId,
+                        onSizeSelected = { size ->
+                            onEvent(
+                                FoodDetailEvent.SelectSize(
+                                    foodSizeId = size.foodSizeId,
+                                    sizeName = size.name,
+                                    price = size.price
+                                )
+                            )
+                        }
                     )
                 }
                 item { Spacer(modifier = Modifier.height(24.dp)) }
                 item {
-                    IngredientsSection()
+                    IngredientsSection(ingredients = state.ingredients)
                 }
                 item { Spacer(modifier = Modifier.height(120.dp)) }
             }
