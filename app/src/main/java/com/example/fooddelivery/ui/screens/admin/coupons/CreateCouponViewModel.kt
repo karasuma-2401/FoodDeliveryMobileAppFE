@@ -5,11 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.ui.navigation.CreateCouponRoute
+import com.example.fooddelivery.domain.repository.VoucherRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
 data class CreateCouponUiState(
     val couponCode: String = "",
@@ -28,7 +33,9 @@ data class CreateCouponUiState(
     val errorMessage: String? = null
 )
 
-class CreateCouponViewModel(
+@HiltViewModel
+class CreateCouponViewModel @Inject constructor(
+    private val voucherRepository: VoucherRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -56,6 +63,17 @@ class CreateCouponViewModel(
         _uiState.update { it.copy(neverExpires = value) }
     }
 
+    private fun toIsoDateTimeOrNull(mmddyyyy: String): String? {
+        return try {
+            val formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy")
+            val date = LocalDate.parse(mmddyyyy.trim(), formatter)
+            // Backend expects ISO 8601 date string (IsDateString). We send Zulu midnight.
+            "${date}T00:00:00.000Z"
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun saveCoupon() {
         val currentState = _uiState.value
         if (currentState.couponCode.isBlank()) {
@@ -66,7 +84,42 @@ class CreateCouponViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             try {
-                _uiState.update { it.copy(isSaving = false, isSavedSuccessfully = true) }
+                val type = if (currentState.discountType.contains("percent", ignoreCase = true)) {
+                    "PERCENT"
+                } else {
+                    "MONEY"
+                }
+
+                val sale = currentState.discountValue.toDoubleOrNull() ?: 0.0
+                val minOrder = currentState.minOrder.toDoubleOrNull() ?: 0.0
+                val maxDiscount = currentState.maxDiscount.toDoubleOrNull()?.takeIf { it > 0 }
+
+                val startAt = toIsoDateTimeOrNull(currentState.startDate)
+                val endAt = if (currentState.neverExpires) null else toIsoDateTimeOrNull(currentState.endDate)
+
+                val name = currentState.couponCode.trim().uppercase()
+                val code = currentState.couponCode.trim().uppercase()
+                val description = currentState.description.trim().ifBlank { null }
+
+                val result = voucherRepository.createVoucher(
+                    name = name,
+                    code = code,
+                    description = description,
+                    sale = sale,
+                    type = type,
+                    status = "APPLYING",
+                    restaurantId = restaurantId,
+                    minimumOrderAmount = minOrder,
+                    maximumDiscountAmount = maxDiscount,
+                    startAt = startAt,
+                    endAt = endAt
+                )
+
+                result.onSuccess {
+                    _uiState.update { it.copy(isSaving = false, isSavedSuccessfully = true) }
+                }.onFailure { e ->
+                    _uiState.update { it.copy(isSaving = false, errorMessage = e.localizedMessage ?: "Failed to save coupon") }
+                }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSaving = false, errorMessage = e.localizedMessage ?: "Failed to save coupon") }
             }

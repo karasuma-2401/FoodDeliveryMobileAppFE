@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.ActiveRestaurantCoupon
@@ -30,7 +30,7 @@ import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponIte
 fun RestaurantCouponScreen(
     onNavigateBack: () -> Unit,
     onCreateCouponClick: () -> Unit,
-    viewModel: RestaurantCouponViewModel = viewModel()
+    viewModel: RestaurantCouponViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

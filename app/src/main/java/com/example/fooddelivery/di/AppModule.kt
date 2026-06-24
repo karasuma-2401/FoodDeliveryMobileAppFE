@@ -22,6 +22,7 @@ import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.SearchApi
 import com.example.fooddelivery.data.remote.api.UserApi
 import com.example.fooddelivery.data.remote.api.RestaurantApi
+import com.example.fooddelivery.data.remote.api.VoucherApi
 import com.example.fooddelivery.data.repository.AddressRepositoryImpl
 import com.example.fooddelivery.data.repository.AuthRepositoryImpl
 import com.example.fooddelivery.data.repository.CartRepositoryImpl
@@ -35,6 +36,7 @@ import com.example.fooddelivery.data.repository.OrderRepositoryImpl
 import com.example.fooddelivery.data.repository.RestaurantRepositoryImpl
 import com.example.fooddelivery.data.repository.SearchRepositoryImpl
 import com.example.fooddelivery.data.repository.UserRepositoryImpl
+import com.example.fooddelivery.data.repository.VoucherRepositoryImpl
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.AuthRepository
 import com.example.fooddelivery.domain.repository.CartRepository
@@ -48,6 +50,7 @@ import com.example.fooddelivery.domain.repository.OrderRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.domain.repository.SearchRepository
 import com.example.fooddelivery.domain.repository.UserRepository
+import com.example.fooddelivery.domain.repository.VoucherRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -196,5 +199,13 @@ object AppModule {
         socket: Socket
     ): ChatRepository {
         return ChatRepositoryImpl(chatApi, conversationDao, messageDao, socket)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVoucherRepository(
+        api: VoucherApi
+    ): VoucherRepository {
+        return VoucherRepositoryImpl(api)
     }
 }
