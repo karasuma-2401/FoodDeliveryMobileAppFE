@@ -125,8 +125,13 @@ class AuthRepositoryImpl @Inject constructor(
             val response = api.getMe()
             when {
                 response.isSuccessful -> {
-                    response.body()?.let { Result.success(it) }
-                        ?: Result.failure(Exception("Empty response body"))
+                    response.body()?.let {
+                        if (it.getFinalId() != null && !it.getFinalEmail().isNullOrBlank()) {
+                            Result.success(it)
+                        } else {
+                            Result.failure(Exception("Invalid user response from server"))
+                        }
+                    } ?: Result.failure(Exception("Empty response body"))
                 }
                 response.code() == 401 -> {
                     Result.failure(UnauthorizedException("Token không hợp lệ hoặc đã hết hạn"))
@@ -151,7 +156,11 @@ class AuthRepositoryImpl @Inject constructor(
             val response = api.register(request)
             if (response.isSuccessful) {
                 response.body()?.let {
-                    Result.success(it)
+                    if (it.getFinalEmail().isNullOrBlank()) {
+                        Result.failure(Exception("Invalid register response from server"))
+                    } else {
+                        Result.success(it)
+                    }
                 } ?: Result.failure(Exception("Empty response body"))
             } else {
                 val errorMsg = response.parseErrorMessage("Registration failed")
@@ -274,7 +283,7 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val response = api.requestResetEmail(ResetEmailRequest(phone, password))
             if (response.isSuccessful) {
-                Result.success(response.body()?.otp)
+                Result.success(response.body()?.getFinalOtp())
             } else {
                 val errorMsg = response.parseErrorMessage("Request failed")
                 Result.failure(Exception(errorMsg))

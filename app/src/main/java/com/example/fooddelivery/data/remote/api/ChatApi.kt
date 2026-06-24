@@ -4,6 +4,7 @@ import com.example.fooddelivery.data.remote.dto.ConversationDetailDto
 import com.example.fooddelivery.data.remote.dto.ConversationDto
 import com.example.fooddelivery.data.remote.dto.ConversationListResponse
 import com.example.fooddelivery.data.remote.dto.CreateConversationRequest
+import com.example.fooddelivery.data.remote.dto.BaseResponse
 import com.example.fooddelivery.data.remote.dto.MessageDto
 import com.example.fooddelivery.data.remote.dto.UploadImageResponse
 import okhttp3.MultipartBody
@@ -19,42 +20,42 @@ import retrofit2.http.Query
 
 interface ChatApi {
     @GET("api/conversation/me")
-    suspend fun getConversations(): Response<ConversationListResponse>
+    suspend fun getConversations(): Response<BaseResponse<ConversationListResponse>>
 
     @POST("api/conversation")
     suspend fun createConversation(
         @Body request: CreateConversationRequest
-    ): Response<ConversationDto>
+    ): Response<BaseResponse<ConversationDto>>
 
     @GET("api/conversation/detail")
     suspend fun getConversationDetailByOrder(
         @Query("orderId") orderId: Int,
         @Query("limit") limit: Int,
         @Query("offset") offset: Int
-    ): Response<ConversationDetailDto>
+    ): Response<BaseResponse<ConversationDetailDto>>
 
     @GET("api/conversation/{conversationId}")
     suspend fun getConversationDetail(
         @Path("conversationId") conversationId: Int,
         @Query("limit") limit: Int,
         @Query("offset") offset: Int
-    ): Response<ConversationDetailDto>
+    ): Response<BaseResponse<ConversationDetailDto>>
 
     @GET("chat/messages/{conversationId}")
     suspend fun getMessages(
         @Path("conversationId") conversationId: String,
         @Query("limit") limit: Int,
         @Query("offset") offset: Int
-    ): Response<List<MessageDto>>
+    ): Response<BaseResponse<List<MessageDto>>>
 
     @Multipart
     @POST("api/conversation/upload-image")
     suspend fun uploadImage(
         @Part file: MultipartBody.Part
-    ): Response<UploadImageResponse>
+    ): Response<BaseResponse<UploadImageResponse>>
 
     @PATCH("api/conversation/{conversationId}/read")
     suspend fun markAsRead(
         @Path("conversationId") conversationId: Int
-    ): Response<Unit>
+    ): Response<BaseResponse<Unit>>
 }

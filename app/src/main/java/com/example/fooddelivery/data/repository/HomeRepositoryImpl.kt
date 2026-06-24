@@ -16,7 +16,7 @@ class HomeRepositoryImpl @Inject constructor(
     override suspend fun getHomeDashboard(lat: Double?, lng: Double?): Result<HomeDashboardData> {
         return try {
             val response = homeApi.getDashboard(lat, lng)
-            if (response.success && response.data != null) {
+            if (response.success != false && response.data != null) {
                 Result.success(response.data.toDomain())
             } else {
                 Result.failure(Exception(response.message ?: "Unknown error"))

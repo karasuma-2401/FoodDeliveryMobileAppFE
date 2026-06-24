@@ -80,7 +80,7 @@ data class FoodResponse(
 data class BaseResponse<T>(
     val data: T? = null,
     val message: String? = null,
-    val success: Boolean
+    val success: Boolean? = null
 )
 
 @Serializable

@@ -16,7 +16,7 @@ interface RestaurantApi {
     ): Response<BaseListResponse<RestaurantResponse>>
 
     @GET("restaurant/{id}")
-    suspend fun getRestaurantById(@Path("id") id: Int): Response<RestaurantResponse>
+    suspend fun getRestaurantById(@Path("id") id: Int): Response<BaseResponse<RestaurantResponse>>
 
     @GET("restaurant/my")
     suspend fun getMyRestaurants(): Response<BaseListResponse<RestaurantResponse>>
@@ -25,7 +25,7 @@ interface RestaurantApi {
     suspend fun getDashboard(
         @Path("restaurantId") restaurantId: Int,
         @Query("range") range: String = "day"
-    ): Response<DashboardResponse>
+    ): Response<BaseResponse<DashboardResponse>>
 
     @POST("restaurant/{restaurantId}/like")
     suspend fun toggleFavorite(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<LikeStatusResponse>>
@@ -49,7 +49,7 @@ interface RestaurantApi {
         @Part("sizes") sizes: RequestBody,         // JSON string
         @Part("ingredientIds") ingredientIds: RequestBody?, // CSV string
         @Part image: MultipartBody.Part?
-    ): Response<FoodResponse>
+    ): Response<BaseResponse<FoodResponse>>
 
     @GET("food/{id}")
     suspend fun getFoodById(@Path("id") id: Int): Response<BaseResponse<FoodResponse>>
@@ -65,25 +65,25 @@ interface RestaurantApi {
         @Part("sizes") sizes: RequestBody,         // JSON string
         @Part("ingredientIds") ingredientIds: RequestBody?, // CSV string
         @Part image: MultipartBody.Part?
-    ): Response<FoodResponse>
+    ): Response<BaseResponse<FoodResponse>>
 
     @DELETE("food/manage/{id}")
-    suspend fun deleteFood(@Path("id") id: Int): Response<Unit>
+    suspend fun deleteFood(@Path("id") id: Int): Response<BaseResponse<Unit>>
 
     @POST("restaurant/reviews/{id}")
     suspend fun rateRestaurant(
         @Path("id") restaurantId: Int,
         @Body request: RestaurantRatingRequest
-    ): Response<FoodRatingResponse>
+    ): Response<BaseResponse<FoodRatingResponse>>
 
     @PATCH("restaurant/reviews/{reviewId}")
     suspend fun updateReview(
         @Path("reviewId") reviewId: Int,
         @Body request: UpdateReviewRequest
-    ): Response<FoodRatingResponse>
+    ): Response<BaseResponse<FoodRatingResponse>>
 
     @DELETE("restaurant/reviews/{reviewId}")
     suspend fun deleteReview(
         @Path("reviewId") reviewId: Int
-    ): Response<FoodRatingResponse>
+    ): Response<BaseResponse<FoodRatingResponse>>
 }
