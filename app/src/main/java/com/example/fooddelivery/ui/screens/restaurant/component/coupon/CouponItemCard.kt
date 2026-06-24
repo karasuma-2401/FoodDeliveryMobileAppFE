@@ -39,7 +39,7 @@ fun CouponItemCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (voucher.type == VoucherType.FREESHIP) "🚚" else "🎟️",
+                    text = if (voucher.type == VoucherType.FREE_SHIPPING) "🚚" else "🎟️",
                     fontSize = 24.sp
                 )
             }

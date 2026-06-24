@@ -51,13 +51,13 @@ class RestaurantCouponViewModel @Inject constructor(
 
     private fun VoucherDto.toDomainVoucher(): Voucher {
         val discountType = when (type.uppercase()) {
-            "MONEY" -> VoucherType.DISCOUNT
-            "PERCENT" -> VoucherType.DISCOUNT
-            else -> VoucherType.DISCOUNT
+            "MONEY" -> VoucherType.MONEY
+            "PERCENT" -> VoucherType.PERCENT
+            else -> VoucherType.FREE_SHIPPING
         }
         val discountAmount = sale
         return Voucher(
-            id = id.toString(),
+            id = id,
             code = code,
             title = name,
             description = description ?: "",

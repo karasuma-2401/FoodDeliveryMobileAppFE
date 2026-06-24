@@ -90,24 +90,24 @@ class CartViewModel @Inject constructor(
     private fun loadMockVouchers() {
         val mockVouchers = listOf(
             Voucher(
-                id = "1",
+                id = 1,
                 code = "SALE20",
                 title = "Giảm 20% tối đa $15",
                 description = "Cho đơn hàng từ $50",
                 discountAmount = 15.0,
                 minOrderAmount = 50.0,
                 expiryText = "Hết hạn trong 2 ngày",
-                type = VoucherType.DISCOUNT,
+                type = VoucherType.PERCENT,
                 isApplicable = true
             ),
             Voucher(
-                id = "2",
+                id = 2,
                 code = "FREESHIP",
                 title = "Free Ship tối đa $5",
                 description = "Cho đơn hàng từ $100",
                 discountAmount = 5.0,
                 minOrderAmount = 100.0,
-                type = VoucherType.FREESHIP,
+                type = VoucherType.FREE_SHIPPING,
                 isApplicable = false,
                 conditionMessage = "Mua thêm $12 nữa để áp dụng mã này"
             )

@@ -15,6 +15,7 @@ import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
+import com.example.fooddelivery.domain.repository.PaymentRepository
 import com.example.fooddelivery.domain.repository.VoucherRepository
 import com.example.fooddelivery.ui.navigation.CheckoutRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -78,6 +79,7 @@ class CheckoutViewModel @Inject constructor(
     private val cartRepository: CartRepository,
     private val orderRepository: OrderRepository,
     private val voucherRepository: VoucherRepository,
+    private val paymentRepository: PaymentRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -93,7 +95,8 @@ class CheckoutViewModel @Inject constructor(
 
     private val _uiEffect = MutableSharedFlow<CheckoutUiEffect>()
     val uiEffect = _uiEffect.asSharedFlow()
-    private var pendingOrderId: String? = null
+    
+    private var pendingOrderId: Int? = null
 
     init {
         loadInitialData()
@@ -273,11 +276,11 @@ class CheckoutViewModel @Inject constructor(
             val result = orderRepository.createOrder(orderRequest)
 
             result.onSuccess { response ->
+                pendingOrderId = response.order.id
                 if (currentState.paymentMethod is PaymentMethod.Cash) {
                     _state.update { it.copy(isLoading = false) }
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
                 } else {
-                    pendingOrderId = response.order.id.toString()
                     _state.update { it.copy(isLoading = false) }
                     response.momoPayment?.deeplink?.let {
                         _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(it, currentState.total))
@@ -300,13 +303,14 @@ class CheckoutViewModel @Inject constructor(
             _state.update { it.copy(isLoading = false, isPolling = true) }
             var isPaid = false
             var attempts = 0
-            val maxAttempts = 10
+            val maxAttempts = 15
+            
             while (attempts < maxAttempts && !isPaid) {
-                delay(3000)
-                val statusResult = orderRepository.checkOrderStatus(orderId)
+                delay(6000)
+                val paymentResult = paymentRepository.getPaymentDetail(orderId)
 
-                statusResult.onSuccess { summary ->
-                    if (summary.statusStep >= 2 || summary.backendStatus == "CONFIRMED") {
+                paymentResult.onSuccess { payment ->
+                    if (payment.paymentStatus == "DONE") {
                         isPaid = true
                     }
                 }
@@ -319,7 +323,7 @@ class CheckoutViewModel @Inject constructor(
                 pendingOrderId = null
                 _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
             } else {
-                _uiEffect.emit(CheckoutUiEffect.ShowError("Payment failed or timed out"))
+                _uiEffect.emit(CheckoutUiEffect.ShowError("Payment confirmation is taking longer than expected. Please check your order tracking."))
             }
         }
     }

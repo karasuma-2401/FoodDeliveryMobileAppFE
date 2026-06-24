@@ -32,13 +32,15 @@ fun VoucherDetailBottomSheet(
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        dragHandle = null,
-        containerColor = MaterialTheme.colorScheme.surface
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = { WindowInsets.navigationBars }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -51,52 +53,70 @@ fun VoucherDetailBottomSheet(
                 )
                 IconButton(
                     onClick = onDismissRequest,
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                ) {
-                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(20.dp))
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
                     modifier = Modifier
-                        .size(64.dp)
-                        .background(
-                            if (voucher.type == VoucherType.PERCENT) MaterialTheme.colorScheme.primary 
-                            else MaterialTheme.colorScheme.secondary,
-                            RoundedCornerShape(12.dp)
-                        ),
-                    contentAlignment = Alignment.Center
+                        .size(32.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                 ) {
                     Icon(
-                        imageVector = if (voucher.type == VoucherType.PERCENT) Icons.Default.Percent else Icons.Default.LocalShipping,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(
-                        text = voucher.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Code: ${voucher.code}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
+                        imageVector = Icons.Default.Close, 
+                        contentDescription = null, 
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            // Voucher Header Card
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(
+                                if (voucher.type == VoucherType.PERCENT) MaterialTheme.colorScheme.primary 
+                                else MaterialTheme.colorScheme.secondary,
+                                RoundedCornerShape(12.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (voucher.type == VoucherType.PERCENT) Icons.Default.Percent else Icons.Default.LocalShipping,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = voucher.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Code: ${voucher.code}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Detail Sections
             DetailSection(
                 icon = Icons.Default.Info,
                 title = "Description",
@@ -104,7 +124,7 @@ fun VoucherDetailBottomSheet(
             )
 
             if (voucher.restaurantName != null) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 DetailSection(
                     icon = Icons.Default.Store,
                     title = "Applied for",
@@ -112,24 +132,24 @@ fun VoucherDetailBottomSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             DetailSection(
                 icon = Icons.Default.Percent,
                 title = "Condition",
                 content = buildString {
-                    append("Min. Order: $${voucher.minOrderAmount}")
+                    append("Minimum Order: $${voucher.minOrderAmount}")
                     if (voucher.maxDiscountAmount != null) {
-                        append("\nMax. Discount: $${voucher.maxDiscountAmount}")
+                        append("\nMaximum Discount: $${voucher.maxDiscountAmount}")
                     }
                 }
             )
 
             if (voucher.expiryText != null) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 DetailSection(
                     icon = Icons.Default.Close,
                     title = "Expiry",
-                    content = "Ends on: ${voucher.expiryText}"
+                    content = "Valid until: ${voucher.expiryText}"
                 )
             }
 
@@ -145,13 +165,15 @@ fun VoucherDetailBottomSheet(
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    enabled = voucher.isApplicable
+                    enabled = voucher.isApplicable,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
                     Text("Apply this Voucher", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -159,13 +181,21 @@ fun VoucherDetailBottomSheet(
 @Composable
 fun DetailSection(icon: ImageVector, title: String, content: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
+        Surface(
+            modifier = Modifier.size(36.dp),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+            shape = CircleShape
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(16.dp))
         Column {
             Text(
                 text = title,
@@ -173,10 +203,12 @@ fun DetailSection(icon: ImageVector, title: String, content: String) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = content,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 20.sp
             )
         }
     }

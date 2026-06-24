@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.cart.components.BillBreakdown
@@ -21,6 +22,7 @@ import com.example.fooddelivery.ui.screens.customer.cart.components.CartItemCard
 import com.example.fooddelivery.ui.screens.customer.cart.components.EmptyCartView
 import com.example.fooddelivery.ui.screens.customer.cart.components.RestaurantHeader
 import com.example.fooddelivery.ui.screens.customer.cart.components.SwipeToDeleteContainer
+import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherDetailBottomSheet
 import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSection
 import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSelectionSheet
 import kotlinx.coroutines.flow.collectLatest
@@ -34,6 +36,7 @@ fun CartScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showVoucherSheet by remember { mutableStateOf(false) }
+    var selectedDetailVoucher by remember { mutableStateOf<Voucher?>(null) }
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -70,11 +73,25 @@ fun CartScreen(
                 promoError = state.promoError,
                 onPromoCodeChange = { viewModel.onEvent(CartEvent.PromoCodeChanged(it)) },
                 onApplyPromoCode = { viewModel.onEvent(CartEvent.ApplyPromoCode) },
-                onVoucherSelected = { viewModel.onEvent(CartEvent.ApplyVoucher(it)) },
-                onConfirm = { showVoucherSheet = false },
+                onVoucherDetailClick = { selectedDetailVoucher = it },
+                onConfirm = { voucher ->
+                    voucher?.let { viewModel.onEvent(CartEvent.ApplyVoucher(it)) }
+                    showVoucherSheet = false
+                },
                 onDismiss = { showVoucherSheet = false }
             )
         }
+    }
+
+    selectedDetailVoucher?.let { voucher ->
+        VoucherDetailBottomSheet(
+            voucher = voucher,
+            onDismissRequest = { selectedDetailVoucher = null },
+            onApplyVoucher = {
+                viewModel.onEvent(CartEvent.ApplyVoucher(it))
+                showVoucherSheet = false
+            }
+        )
     }
 }
 

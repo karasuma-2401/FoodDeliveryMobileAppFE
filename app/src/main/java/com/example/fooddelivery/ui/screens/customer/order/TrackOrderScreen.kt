@@ -12,12 +12,14 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -52,7 +54,8 @@ fun TrackOrderScreen(
         state = state,
         onNavigateBack = onNavigateBack,
         onChatWithRestaurant = onChatWithRestaurant,
-        onConfirmReceived = { viewModel.onEvent(TrackOrderEvent.ConfirmReceived) }
+        onConfirmReceived = { viewModel.onEvent(TrackOrderEvent.ConfirmReceived) },
+        onCheckPayment = { viewModel.onEvent(TrackOrderEvent.CheckPaymentStatus) }
     )
 }
 
@@ -62,7 +65,8 @@ fun TrackOrderContent(
     state: TrackOrderState,
     onNavigateBack: () -> Unit,
     onChatWithRestaurant: (Int, Int, String, String) -> Unit,
-    onConfirmReceived: () -> Unit = {}
+    onConfirmReceived: () -> Unit = {},
+    onCheckPayment: () -> Unit = {}
 ) {
     val context = LocalContext.current
     Scaffold(
@@ -88,6 +92,34 @@ fun TrackOrderContent(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // Payment Pending Notice for MoMo
+                if (state.paymentMethod == "MOMO" && state.paymentStatus != "DONE" && state.trackingStatus != TrackingStatus.CANCELLED) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)), // Light Amber
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color(0xFFFFA000))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Waiting for payment confirmation...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF827717)
+                                )
+                            }
+                            IconButton(onClick = onCheckPayment) {
+                                Icon(Icons.Default.Refresh, contentDescription = "Refresh Payment", tint = Color(0xFFFFA000))
+                            }
+                        }
+                    }
+                }
 
                 // Status Banner for Terminal States
                 AnimatedVisibility(visible = state.trackingStatus == TrackingStatus.CANCELLED) {
