@@ -16,6 +16,23 @@ interface VoucherApi {
         @Query("status") status: String? = null
     ): Response<List<VoucherDto>>
 
+    @GET("vouchers/suitable/{restaurantId}")
+    suspend fun getSuitableVouchers(
+        @Path("restaurantId") restaurantId: Int,
+        @Query("cost") cost: Double? = null
+    ): Response<List<VoucherDto>>
+
+    @GET("vouchers/code/{code}")
+    suspend fun getVoucherByCode(
+        @Path("code") code: String,
+        @Query("restaurantId") restaurantId: Int? = null
+    ): Response<VoucherDto>
+
+    @GET("vouchers/{id}")
+    suspend fun getVoucherById(
+        @Path("id") id: Int
+    ): Response<VoucherDto>
+
     @Multipart
     @POST("vouchers")
     suspend fun createVoucher(

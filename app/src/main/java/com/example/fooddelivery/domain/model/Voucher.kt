@@ -1,18 +1,22 @@
 package com.example.fooddelivery.domain.model
 
 data class Voucher(
-    val id: String,
+    val id: Int,
     val code: String,
     val title: String,
     val description: String,
+    val image: String? = null,
     val discountAmount: Double,
     val minOrderAmount: Double = 0.0,
+    val maxDiscountAmount: Double? = null,
     val expiryText: String? = null,
-    val type: VoucherType = VoucherType.DISCOUNT,
+    val startAt: String? = null,
+    val type: VoucherType = VoucherType.MONEY,
     val isApplicable: Boolean = true,
-    val conditionMessage: String? = null
+    val conditionMessage: String? = null,
+    val restaurantName: String? = null
 )
 
 enum class VoucherType {
-    DISCOUNT, FREESHIP
+    MONEY, PERCENT
 }

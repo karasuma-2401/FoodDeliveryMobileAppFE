@@ -8,12 +8,14 @@ import androidx.navigation.toRoute
 import com.example.fooddelivery.R
 import com.example.fooddelivery.data.remote.dto.OrderItemRequest
 import com.example.fooddelivery.data.remote.dto.OrderRequest
+import com.example.fooddelivery.data.remote.dto.toDomain
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
+import com.example.fooddelivery.domain.repository.VoucherRepository
 import com.example.fooddelivery.ui.navigation.CheckoutRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -37,6 +39,8 @@ data class CheckoutState(
     val discount: Double = 0.0,
     val selectedVoucher: Voucher? = null,
     val availableVouchers: List<Voucher> = emptyList(),
+    val promoCode: String = "",
+    val promoError: String? = null,
     val isLoading: Boolean = false,
     val isPolling: Boolean = false,
     val errorMessage: String? = null
@@ -57,6 +61,8 @@ sealed interface CheckoutEvent {
     data object PlaceOrder : CheckoutEvent
     data object ReturnFromMoMo : CheckoutEvent
     data class ApplyVoucher(val voucher: Voucher?) : CheckoutEvent
+    data class PromoCodeChanged(val code: String) : CheckoutEvent
+    data object ApplyPromoCode : CheckoutEvent
 }
 
 sealed interface CheckoutUiEffect {
@@ -71,6 +77,7 @@ class CheckoutViewModel @Inject constructor(
     private val addressRepository: AddressRepository,
     private val cartRepository: CartRepository,
     private val orderRepository: OrderRepository,
+    private val voucherRepository: VoucherRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -91,14 +98,12 @@ class CheckoutViewModel @Inject constructor(
     init {
         loadInitialData()
         observeCart()
-        loadMockVouchers()
     }
 
     private fun loadInitialData() {
         viewModelScope.launch {
             val result = addressRepository.getAddresses()
             result.onSuccess { addresses ->
-                // Chọn địa chỉ đầu tiên làm mặc định thay vì tìm isDefault
                 val defaultAddress = addresses.firstOrNull()
                 _state.update { it.copy(address = defaultAddress) }
             }
@@ -111,26 +116,45 @@ class CheckoutViewModel @Inject constructor(
                 val subtotal = items
                     .filter { it.restaurantId == checkoutArgs.restaurantId }
                     .sumOf { it.totalPrice }
+                
                 _state.update { it.copy(subtotal = subtotal) }
+                loadSuitableVouchers(subtotal)
             }
         }
     }
 
-    private fun loadMockVouchers() {
-        val mockVouchers = listOf(
-            Voucher(
-                id = "1",
-                code = "SALE20",
-                title = "Giảm 20% tối đa $15",
-                description = "Cho đơn hàng từ $50",
-                discountAmount = 15.0,
-                minOrderAmount = 50.0,
-                expiryText = "Hết hạn trong 2 ngày",
-                type = VoucherType.DISCOUNT,
-                isApplicable = true
-            )
-        )
-        _state.update { it.copy(availableVouchers = mockVouchers) }
+    private fun loadSuitableVouchers(cost: Double) {
+        viewModelScope.launch {
+            val restaurantId = checkoutArgs.restaurantId.toIntOrNull() ?: return@launch
+            val result = voucherRepository.getSuitableVouchers(restaurantId, cost)
+            result.onSuccess { vouchersDto ->
+                val domainVouchers = vouchersDto.map { it.toDomain() }
+                _state.update { currentState ->
+                    val updatedSelectedVoucher = domainVouchers.find { it.id == currentState.selectedVoucher?.id }
+                    val newDiscount = updatedSelectedVoucher?.let { calculateDiscount(it, currentState.subtotal) } ?: 0.0
+                    
+                    currentState.copy(
+                        availableVouchers = domainVouchers,
+                        selectedVoucher = updatedSelectedVoucher,
+                        discount = if (updatedSelectedVoucher != null) newDiscount else 0.0
+                    )
+                }
+            }
+        }
+    }
+
+    private fun calculateDiscount(voucher: Voucher, subtotal: Double): Double {
+        val rawDiscount = if (voucher.type == VoucherType.PERCENT) {
+            (subtotal * (voucher.discountAmount / 100.0))
+        } else {
+            voucher.discountAmount
+        }
+        
+        return if (voucher.maxDiscountAmount != null) {
+            rawDiscount.coerceAtMost(voucher.maxDiscountAmount)
+        } else {
+            rawDiscount
+        }
     }
 
     fun onEvent(event: CheckoutEvent) {
@@ -156,9 +180,51 @@ class CheckoutViewModel @Inject constructor(
                 startPolling()
             }
             is CheckoutEvent.ApplyVoucher -> {
+                val discount = event.voucher?.let { calculateDiscount(it, _state.value.subtotal) } ?: 0.0
                 _state.update { it.copy(
                     selectedVoucher = event.voucher,
-                    discount = event.voucher?.discountAmount ?: checkoutArgs.discount
+                    discount = discount
+                ) }
+            }
+            is CheckoutEvent.PromoCodeChanged -> {
+                _state.update { it.copy(promoCode = event.code, promoError = null) }
+            }
+            is CheckoutEvent.ApplyPromoCode -> {
+                handleApplyPromoCode()
+            }
+        }
+    }
+
+    private fun handleApplyPromoCode() {
+        val code = _state.value.promoCode
+        if (code.isBlank()) return
+
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, promoError = null) }
+            val restaurantId = checkoutArgs.restaurantId.toIntOrNull()
+            
+            val result = voucherRepository.getVoucherByCode(code, restaurantId)
+            
+            result.onSuccess { voucherDto ->
+                val voucher = voucherDto.toDomain()
+                if (voucher.minOrderAmount > _state.value.subtotal) {
+                    _state.update { it.copy(
+                        isLoading = false, 
+                        promoError = "Min. Order: $${voucher.minOrderAmount}"
+                    ) }
+                } else {
+                    val discount = calculateDiscount(voucher, _state.value.subtotal)
+                    _state.update { it.copy(
+                        isLoading = false,
+                        selectedVoucher = voucher,
+                        discount = discount,
+                        promoCode = ""
+                    ) }
+                }
+            }.onFailure {
+                _state.update { it.copy(
+                    isLoading = false, 
+                    promoError = "Invalid or expired code"
                 ) }
             }
         }
@@ -188,8 +254,8 @@ class CheckoutViewModel @Inject constructor(
 
             val orderRequest = OrderRequest(
                 restaurantId = cartItems.first().restaurantId.toIntOrNull() ?: 0,
-                voucherId = currentState.selectedVoucher?.id?.toIntOrNull(),
-                savedAddressId = currentState.address.id, // ID hiện tại đã là Int
+                voucherId = currentState.selectedVoucher?.id,
+                savedAddressId = currentState.address.id,
                 orderFoods = cartItems.map { item ->
                     OrderItemRequest(
                         foodId = item.food.id.toIntOrNull() ?: 0,

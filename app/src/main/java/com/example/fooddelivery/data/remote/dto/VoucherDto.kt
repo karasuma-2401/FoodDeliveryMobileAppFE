@@ -1,5 +1,7 @@
 package com.example.fooddelivery.data.remote.dto
 
+import com.example.fooddelivery.domain.model.Voucher
+import com.example.fooddelivery.domain.model.VoucherType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -22,7 +24,28 @@ data class VoucherDto(
     val maximumDiscountAmount: Double? = null,
     val startAt: String? = null,
     val endAt: String? = null,
-    val restaurant: VoucherRestaurantDto? = null,
-    val restaurantId: Int? = null
+    val restaurantId: Int? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deleteAt: String? = null,
+    val restaurant: VoucherRestaurantDto? = null
 )
 
+fun VoucherDto.toDomain(): Voucher {
+    return Voucher(
+        id = id,
+        code = code,
+        title = name,
+        description = description ?: "",
+        image = image,
+        discountAmount = sale,
+        minOrderAmount = minimumOrderAmount,
+        maxDiscountAmount = maximumDiscountAmount,
+        expiryText = endAt,
+        startAt = startAt,
+        type = if (type == "PERCENT") VoucherType.PERCENT else VoucherType.MONEY,
+        isApplicable = true,
+        conditionMessage = null,
+        restaurantName = restaurant?.name
+    )
+}
