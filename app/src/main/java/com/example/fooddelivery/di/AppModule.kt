@@ -98,9 +98,10 @@ object AppModule {
     fun provideUserRepository(
         api: UserApi,
         tokenManager: TokenManager,
-        database: AppDatabase
+        database: AppDatabase,
+        @ApplicationContext context: Context
     ): UserRepository {
-        return UserRepositoryImpl(api, tokenManager, database)
+        return UserRepositoryImpl(api, tokenManager, database, context)
     }
 
     @Provides

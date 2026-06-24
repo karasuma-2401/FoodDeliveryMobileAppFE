@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.screens.home.components.CategoryItem
+import com.example.fooddelivery.ui.screens.customer.home.components.CategoryItem
 
 @Composable
 fun AllCategoriesScreen(
