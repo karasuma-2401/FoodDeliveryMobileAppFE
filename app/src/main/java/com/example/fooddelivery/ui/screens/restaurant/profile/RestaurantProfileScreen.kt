@@ -31,7 +31,6 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun RestaurantProfileScreen(
     onNavigateToPersonalInfo: () -> Unit,
-    onNavigateToWithdrawalHistory: () -> Unit,
     onNavigateToReviews: () -> Unit,
     onLogout: () -> Unit,
     onNavigateToResetPassword: () -> Unit,
@@ -47,8 +46,7 @@ fun RestaurantProfileScreen(
             .verticalScroll(rememberScrollState())
     ) {
         BalanceHeader(
-            balance = uiState.balance,
-            onWithdrawClick = { viewModel.handleWithdraw() }
+            balance = uiState.balance
         )
 
         Column(
@@ -118,7 +116,6 @@ fun RestaurantProfilePreview() {
     DFoodTheme {
         RestaurantProfileScreen(
             onNavigateToPersonalInfo = {},
-            onNavigateToWithdrawalHistory = {},
             onNavigateToReviews = {},
             onLogout = {},
             onNavigateToResetPassword = {}

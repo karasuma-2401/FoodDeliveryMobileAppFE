@@ -3,12 +3,53 @@ package com.example.fooddelivery.data.remote.dto
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DashboardResponse(
+data class RestaurantDashboardRangeResponse(
+    val deliveredRevenue: Double,
+    val deliveredOrderCount: Int,
+    val cancelledOrderCount: Int,
+    val topFoods: List<RestaurantDashboardTopFoodDto> = emptyList()
+)
+
+@Serializable
+data class RestaurantDashboardTopFoodDto(
+    val id: Int,
+    val name: String,
+    val image: String? = null,
+    val quantity: Int,
+    val revenue: Double
+)
+
+@Serializable
+data class DashboardRecentOrderDto(
+    val id: String,
+    val orderNumber: String,
+    val customerName: String,
+    val totalPrice: Double,
+    val status: String,
+    val time: String
+)
+
+@Serializable
+data class DashboardBestSellerDto(
+    val id: Int,
+    val name: String,
+    val price: Double,
+    val rating: Double,
+    val soldCount: Int,
+    val imageUrl: String? = null
+)
+
+@Serializable
+data class RestaurantDashboardResponse(
     val runningOrders: Int,
     val orderRequest: Int,
     val revenue: Double,
     val rating: Double,
-    val totalReviews: Int
+    val totalReviews: Int,
+    val totalOrders: Int,
+    val activeVouchers: Int,
+    val recentOrders: List<DashboardRecentOrderDto> = emptyList(),
+    val bestSellers: List<DashboardBestSellerDto> = emptyList()
 )
 
 @Serializable

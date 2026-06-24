@@ -16,15 +16,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.screens.admin.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminCreateCouponScreen(
+fun CreateCouponScreen(
     onNavigateBack: () -> Unit,
-    viewModel: AdminCreateCouponViewModel = viewModel()
+    viewModel: CreateCouponViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -35,7 +34,48 @@ fun AdminCreateCouponScreen(
         }
     }
 
+    CreateCouponContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onSaveCoupon = { viewModel.saveCoupon() },
+        onCouponCodeChange = viewModel::onCouponCodeChange,
+        onDescriptionChange = viewModel::onDescriptionChange,
+        onDiscountTypeChange = viewModel::onDiscountTypeChange,
+        onDiscountValueChange = viewModel::onDiscountValueChange,
+        onMaxDiscountChange = viewModel::onMaxDiscountChange,
+        onMinOrderChange = viewModel::onMinOrderChange,
+        onPerUserLimitChange = viewModel::onPerUserLimitChange,
+        onTotalUsageLimitChange = viewModel::onTotalUsageLimitChange,
+        onNeverExpiresChange = viewModel::onNeverExpiresChange
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateCouponContent(
+    uiState: CreateCouponUiState,
+    onNavigateBack: () -> Unit,
+    onSaveCoupon: () -> Unit,
+    onCouponCodeChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onDiscountTypeChange: (String) -> Unit,
+    onDiscountValueChange: (String) -> Unit,
+    onMaxDiscountChange: (String) -> Unit,
+    onMinOrderChange: (String) -> Unit,
+    onPerUserLimitChange: (String) -> Unit,
+    onTotalUsageLimitChange: (String) -> Unit,
+    onNeverExpiresChange: (Boolean) -> Unit
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Create Coupon", fontWeight = FontWeight.Bold) },
@@ -46,7 +86,7 @@ fun AdminCreateCouponScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { viewModel.saveCoupon() },
+                        onClick = onSaveCoupon,
                         enabled = !uiState.isSaving,
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
@@ -73,31 +113,31 @@ fun AdminCreateCouponScreen(
                 ) {
                     GeneralInfoSection(
                         code = uiState.couponCode,
-                        onCodeChange = { viewModel.onCouponCodeChange(it) },
+                        onCodeChange = onCouponCodeChange,
                         description = uiState.description,
-                        onDescriptionChange = { viewModel.onDescriptionChange(it) }
+                        onDescriptionChange = onDescriptionChange
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     DiscountDetailsSection(
                         discountType = uiState.discountType,
-                        onTypeChange = { viewModel.onDiscountTypeChange(it) },
+                        onTypeChange = onDiscountTypeChange,
                         discountValue = uiState.discountValue,
-                        onValueChange = { viewModel.onDiscountValueChange(it) },
+                        onValueChange = onDiscountValueChange,
                         maxDiscount = uiState.maxDiscount,
-                        onMaxDiscountChange = { viewModel.onMaxDiscountChange(it) }
+                        onMaxDiscountChange = onMaxDiscountChange
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     UsageRulesSection(
                         minOrder = uiState.minOrder,
-                        onMinOrderChange = { viewModel.onMinOrderChange(it) },
+                        onMinOrderChange = onMinOrderChange,
                         perUserLimit = uiState.perUserLimit,
-                        onPerUserChange = { viewModel.onPerUserLimitChange(it) },
+                        onPerUserChange = onPerUserLimitChange,
                         totalLimit = uiState.totalUsageLimit,
-                        onTotalLimitChange = { viewModel.onTotalUsageLimitChange(it) }
+                        onTotalLimitChange = onTotalUsageLimitChange
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -106,7 +146,7 @@ fun AdminCreateCouponScreen(
                         startDate = uiState.startDate,
                         endDate = uiState.endDate,
                         neverExpires = uiState.neverExpires,
-                        onNeverExpiresChange = { viewModel.onNeverExpiresChange(it) },
+                        onNeverExpiresChange = onNeverExpiresChange,
                         onStartDateClick = { /* Tích hợp DatePickerDialog nếu cần chỉnh sửa date */ },
                         onEndDateClick = { /* Tích hợp DatePickerDialog nếu cần chỉnh sửa date */ }
                     )
@@ -121,7 +161,7 @@ fun AdminCreateCouponScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        onClick = { viewModel.saveCoupon() },
+                        onClick = onSaveCoupon,
                         enabled = !uiState.isSaving,
                         modifier = Modifier.fillMaxWidth().height(54.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -164,10 +204,24 @@ fun AdminCreateCouponScreen(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun AdminCreateCouponScreenReview() {
+fun CreateCouponScreenReview() {
     DFoodTheme {
-        AdminCreateCouponScreen(
+        CreateCouponContent(
+            uiState = CreateCouponUiState(
+                couponCode = "WELCOME50",
+                description = "Get 50% off on your first order"
+            ),
             onNavigateBack = {},
+            onSaveCoupon = {},
+            onCouponCodeChange = {},
+            onDescriptionChange = {},
+            onDiscountTypeChange = {},
+            onDiscountValueChange = {},
+            onMaxDiscountChange = {},
+            onMinOrderChange = {},
+            onPerUserLimitChange = {},
+            onTotalUsageLimitChange = {},
+            onNeverExpiresChange = {}
         )
     }
 }

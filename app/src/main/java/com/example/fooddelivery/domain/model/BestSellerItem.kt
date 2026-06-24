@@ -5,5 +5,6 @@ data class BestSellerItem(
     val price: String,
     val rating: Float,
     val soldCount: Int,
-    val imageRes: Int
+    val imageRes: Int? = null,
+    val imageUrl: String? = null
 )

@@ -40,6 +40,8 @@ import com.example.fooddelivery.ui.screens.restaurant.food_management.AddFoodScr
 import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
+import com.example.fooddelivery.ui.screens.admin.coupons.CreateCouponScreen
+import com.example.fooddelivery.ui.screens.admin.coupons.AdminCouponScreen
 import com.example.fooddelivery.ui.screens.admin.restaurantmanagement.AdminRestaurantScreen
 import com.example.fooddelivery.ui.screens.auth.changePassword.ChangePasswordScreen
 import com.example.fooddelivery.ui.screens.customer.profile.EditProfileScreen
@@ -65,6 +67,8 @@ import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
 import com.example.fooddelivery.ui.screens.admin.notification.AdminNotificationScreen
+import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScreen
+
 @Composable
 fun RootNavigationGraph(
     navController: NavHostController,
@@ -583,6 +587,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 "profile" -> vendorNavController.navigate(RestaurantProfileRoute)
                 "coupons" -> vendorNavController.navigate(RestaurantCouponRoute)
                 "messages" -> vendorNavController.navigate(ConversationRoute)
+                "order_management" -> vendorNavController.navigate(RestaurantOrderManagementRoute)
             }
         }
 
@@ -652,8 +657,11 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     }
                 }
 
-                composable<RestaurantWalletRoute> { Text("Wallet") }
-                composable<RestaurantWithdrawRoute> { Text("Withdraw") }
+                composable<RestaurantOrderManagementRoute> {
+                    OrderManagementScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
+                }
 
                 composable<RestaurantReviewsRoute> {
                     ReviewScreen(onNavigateBack = { vendorNavController.popBackStack() })
@@ -685,7 +693,18 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 composable<RestaurantProfileRoute> { Text("Profile") }
 
                 composable<RestaurantCouponRoute> {
-                    RestaurantCouponScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                    RestaurantCouponScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onCreateCouponClick = {
+                            vendorNavController.navigate(CreateCouponRoute())
+                        }
+                    )
+                }
+
+                composable<CreateCouponRoute> {
+                    CreateCouponScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
                 }
             }
         }
@@ -740,7 +759,17 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
 
         composable<AdminCouponRoute> {
-            RestaurantCouponScreen(
+            AdminCouponScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEditCoupon = { /* TODO */ },
+                onNavigateToCreateCoupon = {
+                    navController.navigate(CreateCouponRoute())
+                }
+            )
+        }
+
+        composable<CreateCouponRoute> {
+            CreateCouponScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

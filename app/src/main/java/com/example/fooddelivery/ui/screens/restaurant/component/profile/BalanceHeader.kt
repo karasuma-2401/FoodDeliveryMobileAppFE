@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun BalanceHeader(
     balance: String,
-    onWithdrawClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -42,20 +41,5 @@ fun BalanceHeader(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedButton(
-            onClick = onWithdrawClick,
-            border = ButtonDefaults.outlinedButtonBorder.copy(
-                brush = SolidColor(MaterialTheme.colorScheme.onPrimary)
-            ),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary),
-            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
-        ) {
-            Text(
-                text = "Withdraw",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
     }
 }

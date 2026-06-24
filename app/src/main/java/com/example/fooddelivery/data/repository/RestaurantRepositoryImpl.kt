@@ -69,9 +69,18 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getDashboard(restaurantId: Int): Result<DashboardResponse> {
+    override suspend fun getDashboard(restaurantId: Int): Result<RestaurantDashboardRangeResponse> {
         return try {
             api.getDashboard(restaurantId).unwrapData("Failed to load dashboard")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun generateDashboard(restaurantId: Int): Result<RestaurantDashboardResponse> {
+        return try {
+            api.generateDashboard(restaurantId).unwrapData("Failed to generate dashboard")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)

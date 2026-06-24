@@ -1,4 +1,5 @@
 package com.example.fooddelivery.ui.screens.restaurant.component.dashboard
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
@@ -18,9 +19,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import java.text.NumberFormat
 import java.util.Locale
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RevenueSection(revenue: Double) {
+fun RevenueSection(
+    revenue: Double,
+    onSeeDetailsClick: () -> Unit = {}
+) {
 
     val options = listOf("Daily", "Monthly", "Yearly")
     var expanded by remember { mutableStateOf(false) }
@@ -86,14 +91,13 @@ fun RevenueSection(revenue: Double) {
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-
-
-
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        "See Details",
-                        color = MaterialTheme.colorScheme.primary
+                        text = "See Details",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { onSeeDetailsClick() }
                     )
                 }
             }
