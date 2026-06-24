@@ -148,6 +148,13 @@ data class LoginData(
     val user: UserDto? = null
 )
 
+@Serializable
+data class MeResponse(
+    val id: Int,
+    val email: String,
+    val roles: List<String> = emptyList()
+)
+
 typealias ForgotPasswordResponse = AuthResponse
 typealias ResetPasswordResponse = AuthResponse
 typealias ChangePasswordResponse = AuthResponse

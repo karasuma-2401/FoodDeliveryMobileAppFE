@@ -8,7 +8,7 @@ class LoginWithFacebookUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val tokenManager: TokenManager
 ) {
-    suspend operator fun invoke(accessToken: String? = null, code: String? = null): Result<Unit> {
+    suspend operator fun invoke(accessToken: String? = null, code: String? = null): Result<List<String>> {
         val result = authRepository.loginFacebook(accessToken = accessToken, code = code)
 
         return result.mapCatching { response ->
@@ -24,6 +24,8 @@ class LoginWithFacebookUseCase @Inject constructor(
                 email = user.email,
                 rememberMe = true
             )
+            tokenManager.saveMeInfo(user.id, user.email, user.roles)
+            user.roles
         }
     }
 }

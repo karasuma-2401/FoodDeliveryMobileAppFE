@@ -8,6 +8,7 @@ import com.example.fooddelivery.data.remote.dto.GoogleLoginRequest
 import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
 import com.example.fooddelivery.data.remote.dto.LoginRequest
 import com.example.fooddelivery.data.remote.dto.LoginResponse
+import com.example.fooddelivery.data.remote.dto.MeResponse
 import com.example.fooddelivery.data.remote.dto.RefreshRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.RegisterResponse
@@ -18,6 +19,8 @@ import com.example.fooddelivery.data.remote.dto.VerifyCodeRequest
 import com.example.fooddelivery.data.remote.dto.VerifyResetOtpRequest
 import com.example.fooddelivery.data.remote.dto.VerifyResetOtpResponse
 import com.example.fooddelivery.domain.repository.AuthRepository
+import com.example.fooddelivery.domain.exception.UnauthorizedException
+import com.example.fooddelivery.domain.exception.UserNotFoundException
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
@@ -109,6 +112,31 @@ class AuthRepositoryImpl @Inject constructor(
             } else {
                 val errorMsg = response.errorBody()?.string() ?: "Refresh token failed"
                 Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error, please try again. ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun getMe(): Result<MeResponse> {
+        return try {
+            val response = api.getMe()
+            when {
+                response.isSuccessful -> {
+                    response.body()?.let { Result.success(it) }
+                        ?: Result.failure(Exception("Empty response body"))
+                }
+                response.code() == 401 -> {
+                    Result.failure(UnauthorizedException("Token không hợp lệ hoặc đã hết hạn"))
+                }
+                response.code() == 404 -> {
+                    Result.failure(UserNotFoundException("Tài khoản không tồn tại hoặc chưa được kích hoạt"))
+                }
+                else -> {
+                    val errorMsg = response.errorBody()?.string() ?: "Get me failed: ${response.code()}"
+                    Result.failure(Exception(errorMsg))
+                }
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

@@ -12,7 +12,7 @@ class LoginSocialUseCase @Inject constructor(
         provider: String,
         accessToken: String? = null,
         code: String? = null
-    ): Result<Unit> {
+    ): Result<List<String>> {
         val result = authRepository.loginSocial(
             provider = provider,
             accessToken = accessToken,
@@ -32,6 +32,8 @@ class LoginSocialUseCase @Inject constructor(
                 email = user.email,
                 rememberMe = true
             )
+            tokenManager.saveMeInfo(user.id, user.email, user.roles)
+            user.roles
         }
     }
 }
