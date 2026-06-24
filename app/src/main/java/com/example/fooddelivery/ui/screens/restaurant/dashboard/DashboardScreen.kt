@@ -100,7 +100,10 @@ fun DashboardContent(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                RevenueSection(state.revenue)
+                RevenueSection(
+                    revenue = state.revenue,
+                    onSeeDetailsClick = onSeeAllOrdersClick
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 

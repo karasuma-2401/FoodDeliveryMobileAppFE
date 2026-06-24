@@ -66,6 +66,8 @@ import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
 import com.example.fooddelivery.ui.screens.admin.notification.AdminNotificationScreen
+import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScreen
+
 @Composable
 fun RootNavigationGraph(
     navController: NavHostController,
@@ -584,6 +586,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 "profile" -> vendorNavController.navigate(RestaurantProfileRoute)
                 "coupons" -> vendorNavController.navigate(RestaurantCouponRoute)
                 "messages" -> vendorNavController.navigate(ConversationRoute)
+                "order_management" -> vendorNavController.navigate(RestaurantOrderManagementRoute)
             }
         }
 
@@ -653,8 +656,11 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     }
                 }
 
-                composable<RestaurantWalletRoute> { Text("Wallet") }
-                composable<RestaurantWithdrawRoute> { Text("Withdraw") }
+                composable<RestaurantOrderManagementRoute> {
+                    OrderManagementScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
+                }
 
                 composable<RestaurantReviewsRoute> {
                     ReviewScreen(onNavigateBack = { vendorNavController.popBackStack() })

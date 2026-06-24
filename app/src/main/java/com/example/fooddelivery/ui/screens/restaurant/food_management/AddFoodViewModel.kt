@@ -71,7 +71,7 @@ class AddFoodViewModel @Inject constructor(
     private val _state = mutableStateOf(AddFoodState())
     val state: State<AddFoodState> = _state
 
-    private var dynamicCategories: List<Category> = emptyList()
+    private var dynamicCategories: List<Category> = emptyList() 
 
     init {
         loadCategoriesAndIngredients()
