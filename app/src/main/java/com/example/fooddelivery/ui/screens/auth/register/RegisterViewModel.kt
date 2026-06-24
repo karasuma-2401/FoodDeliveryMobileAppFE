@@ -51,6 +51,11 @@ class RegisterViewModel @Inject constructor(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val validateInputUseCase: ValidateAuthInputUseCase
 ) : ViewModel() {
+
+    companion object {
+        private const val DEFAULT_BIRTHDAY = "2006-01-24"
+    }
+
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
 
@@ -140,7 +145,8 @@ class RegisterViewModel @Inject constructor(
                 email = currentState.email,
                 phone = currentState.phone,
                 password = currentState.password,
-                agreeToTerms = currentState.agreeToTerms
+                agreeToTerms = currentState.agreeToTerms,
+                birthday = DEFAULT_BIRTHDAY
             )
             
             result.onSuccess {

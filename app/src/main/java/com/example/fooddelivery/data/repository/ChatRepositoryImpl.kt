@@ -5,6 +5,7 @@ import com.example.fooddelivery.data.local.room.dao.MessageDao
 import com.example.fooddelivery.data.local.room.entity.ConversationEntity
 import com.example.fooddelivery.data.local.room.entity.MessageEntity
 import com.example.fooddelivery.data.remote.api.ChatApi
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.ConversationDto
 import com.example.fooddelivery.data.remote.dto.CreateConversationRequest
 import com.example.fooddelivery.data.remote.dto.OtherUserDto
@@ -35,7 +36,7 @@ class ChatRepositoryImpl @Inject constructor(
                 val entities = response.body()!!.conversations.map { dto -> mapToEntity(dto) }
                 entities.forEach { conversationDao.updateConversation(it) }
                 Result.success(Unit)
-            } else Result.failure(Exception("Sync failed"))
+            } else Result.failure(Exception(response.parseErrorMessage("Sync failed")))
         } catch (e: Exception) { Result.failure(e) }
     }
 
@@ -47,7 +48,7 @@ class ChatRepositoryImpl @Inject constructor(
                 val entity = mapToEntity(dto)
                 conversationDao.updateConversation(entity)
                 Result.success(entity)
-            } else Result.failure(Exception("Create conversation failed"))
+            } else Result.failure(Exception(response.parseErrorMessage("Create conversation failed")))
         } catch (e: Exception) { Result.failure(e) }
     }
 
@@ -71,7 +72,7 @@ class ChatRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Mark as read failed"))
+                Result.failure(Exception(response.parseErrorMessage("Mark as read failed")))
             }
         } catch (e: Exception) { Result.failure(e) }
     }
@@ -106,7 +107,7 @@ class ChatRepositoryImpl @Inject constructor(
                 }
                 messageDao.insertMessages(messageEntities)
                 Result.success(Unit)
-            } else Result.failure(Exception("Sync detail failed"))
+            } else Result.failure(Exception(response.parseErrorMessage("Sync detail failed")))
         } catch (e: Exception) { Result.failure(e) }
     }
 
@@ -134,7 +135,7 @@ class ChatRepositoryImpl @Inject constructor(
                 }
                 messageDao.insertMessages(messageEntities)
                 Result.success(Unit)
-            } else Result.failure(Exception("Sync detail by order failed"))
+            } else Result.failure(Exception(response.parseErrorMessage("Sync detail by order failed")))
         } catch (e: Exception) { Result.failure(e) }
     }
 
@@ -198,7 +199,7 @@ class ChatRepositoryImpl @Inject constructor(
             val body = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody("image/*".toMediaTypeOrNull()))
             val response = chatApi.uploadImage(body)
             if (response.isSuccessful && response.body() != null) Result.success(response.body()!!.imageUrl)
-            else Result.failure(Exception("Upload failed"))
+            else Result.failure(Exception(response.parseErrorMessage("Upload failed")))
         } catch (e: Exception) { Result.failure(e) }
     }
 

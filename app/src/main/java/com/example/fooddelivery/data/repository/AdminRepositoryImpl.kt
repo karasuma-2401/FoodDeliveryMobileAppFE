@@ -1,6 +1,7 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AdminApi
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.AdminDashboardResponse
 import com.example.fooddelivery.domain.repository.AdminRepository
 import javax.inject.Inject
@@ -16,7 +17,7 @@ class AdminRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.parseErrorMessage("Failed to load admin dashboard")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

@@ -74,7 +74,7 @@ class SearchRepositoryImpl @Inject constructor(
             if (response.success) {
                 Result.success(response.data.toDomain())
             } else {
-                Result.failure(Exception(response.message))
+                Result.failure(Exception(response.message ?: "Failed to save history"))
             }
         } catch (e: Exception) {
             Result.failure(e)

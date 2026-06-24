@@ -4,6 +4,7 @@ import com.example.fooddelivery.data.local.room.dao.CartDao
 import com.example.fooddelivery.data.local.room.entity.CartEntity
 import com.example.fooddelivery.data.local.room.entity.toDomain
 import com.example.fooddelivery.data.remote.api.CartApi
+import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.AddToCartRequest
 import com.example.fooddelivery.data.remote.dto.CartResponse
 import com.example.fooddelivery.data.remote.dto.UpdateCartItemRequest
@@ -32,7 +33,7 @@ class CartRepositoryImpl @Inject constructor(
                 updateLocalCart(response.body()!!)
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to sync cart: ${response.code()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to sync cart")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -82,7 +83,7 @@ class CartRepositoryImpl @Inject constructor(
                 updateLocalCart(response.body()!!)
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to add to cart: ${response.code()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to add to cart")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -97,7 +98,7 @@ class CartRepositoryImpl @Inject constructor(
                 updateLocalCart(response.body()!!)
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to update cart: ${response.code()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to update cart")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -112,7 +113,7 @@ class CartRepositoryImpl @Inject constructor(
                 updateLocalCart(response.body()!!)
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to remove item: ${response.code()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to remove item")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -127,7 +128,7 @@ class CartRepositoryImpl @Inject constructor(
                 cartDao.clearCart()
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to clear cart: ${response.code()}"))
+                Result.failure(Exception(response.parseErrorMessage("Failed to clear cart")))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

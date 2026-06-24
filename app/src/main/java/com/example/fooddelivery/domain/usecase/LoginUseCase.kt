@@ -8,7 +8,7 @@ class LoginUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val tokenManager: TokenManager
 ) {
-    suspend operator fun invoke(phone: String, password: String, rememberMe: Boolean): Result<Unit> {
+    suspend operator fun invoke(phone: String, password: String, rememberMe: Boolean): Result<List<String>> {
         val result = authRepository.login(phone, password)
         
         return result.mapCatching { response ->
@@ -24,6 +24,8 @@ class LoginUseCase @Inject constructor(
                 email = user.email,
                 rememberMe = rememberMe
             )
+            tokenManager.saveMeInfo(user.id, user.email, user.roles)
+            user.roles
         }
     }
 }

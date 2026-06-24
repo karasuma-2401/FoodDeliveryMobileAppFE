@@ -6,9 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.local.datastore.DataStoreManager
 import com.example.fooddelivery.data.local.datastore.TokenManager
-import com.example.fooddelivery.ui.navigation.HomeRoute
+import com.example.fooddelivery.domain.usecase.ValidateSessionUseCase
 import com.example.fooddelivery.ui.navigation.LoginRoute
 import com.example.fooddelivery.ui.navigation.OnboardingRoute
+import com.example.fooddelivery.ui.navigation.toStartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val validateSessionUseCase: ValidateSessionUseCase
 ) : ViewModel() {
     private val _isLoading = mutableStateOf(true)
     val isLoading: State<Boolean> = _isLoading
@@ -40,11 +42,16 @@ class MainViewModel @Inject constructor(
 
             if (!hasCompletedOnboarding) {
                 _startDestination.value = OnboardingRoute
-            }
-            else if (!token.isNullOrBlank()) {
-                _startDestination.value = HomeRoute
-            }
-            else {
+            } else if (!token.isNullOrBlank()) {
+                validateSessionUseCase().fold(
+                    onSuccess = { me ->
+                        _startDestination.value = me.toStartDestination()
+                    },
+                    onFailure = {
+                        _startDestination.value = LoginRoute
+                    }
+                )
+            } else {
                 _startDestination.value = LoginRoute
             }
             delay(3000)

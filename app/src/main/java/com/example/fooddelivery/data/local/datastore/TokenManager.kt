@@ -43,6 +43,8 @@ class TokenManager @Inject constructor (
         val PHONE_KEY = stringPreferencesKey("saved_phone")
         val USER_NAME_KEY = stringPreferencesKey("user_name")
         val USER_EMAIL_KEY = stringPreferencesKey("user_email")
+        val USER_ID_KEY = intPreferencesKey("user_id")
+        val USER_ROLES_KEY = stringPreferencesKey("user_roles")
         val RESTAURANT_ID_KEY = intPreferencesKey("restaurant_id")
     }
 
@@ -75,6 +77,22 @@ class TokenManager @Inject constructor (
         }
     }
 
+    suspend fun saveMeInfo(id: Int, email: String, roles: List<String>) {
+        context.userPrefDataStore.edit { preferences ->
+            preferences[USER_ID_KEY] = id
+            preferences[USER_EMAIL_KEY] = email
+            preferences[USER_ROLES_KEY] = roles.joinToString(",")
+        }
+    }
+
+    suspend fun updateTokens(accessToken: String, refreshToken: String) {
+        securePrefs.edit().apply {
+            putString(ACCESS_TOKEN, accessToken)
+            putString(REFRESH_TOKEN, refreshToken)
+            apply()
+        }
+    }
+
     suspend fun saveRestaurantId(restaurantId: Int) {
         context.userPrefDataStore.edit { preferences ->
             preferences[RESTAURANT_ID_KEY] = restaurantId
@@ -86,6 +104,8 @@ class TokenManager @Inject constructor (
         context.userPrefDataStore.edit { preferences ->
             preferences.remove(USER_NAME_KEY)
             preferences.remove(USER_EMAIL_KEY)
+            preferences.remove(USER_ID_KEY)
+            preferences.remove(USER_ROLES_KEY)
             preferences.remove(RESTAURANT_ID_KEY)
         }
     }
@@ -105,6 +125,17 @@ class TokenManager @Inject constructor (
 
     val getUserEmail: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
         preferences[USER_EMAIL_KEY]
+    }
+
+    val getUserId: Flow<Int?> = context.userPrefDataStore.data.map { preferences ->
+        preferences[USER_ID_KEY]
+    }
+
+    val getUserRoles: Flow<List<String>> = context.userPrefDataStore.data.map { preferences ->
+        preferences[USER_ROLES_KEY]
+            ?.split(",")
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
     }
     
     val getPhone: Flow<String?> = context.userPrefDataStore.data.map { preferences ->

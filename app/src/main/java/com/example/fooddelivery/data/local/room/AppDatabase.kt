@@ -20,7 +20,7 @@ import com.example.fooddelivery.data.local.room.entity.NotificationEntity
         ConversationEntity::class,
         CartEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

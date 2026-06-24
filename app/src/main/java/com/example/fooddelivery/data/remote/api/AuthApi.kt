@@ -7,6 +7,7 @@ import com.example.fooddelivery.data.remote.dto.GoogleLoginRequest
 import com.example.fooddelivery.data.remote.dto.ForgotPasswordRequest
 import com.example.fooddelivery.data.remote.dto.LoginRequest
 import com.example.fooddelivery.data.remote.dto.LoginResponse
+import com.example.fooddelivery.data.remote.dto.MeResponse
 import com.example.fooddelivery.data.remote.dto.RefreshRequest
 import com.example.fooddelivery.data.remote.dto.RegisterRequest
 import com.example.fooddelivery.data.remote.dto.RegisterResponse
@@ -37,6 +38,9 @@ interface AuthApi {
 
     @POST("auth/refresh")
     suspend fun refreshToken(@Body request: RefreshRequest): Response<LoginResponse>
+
+    @GET("auth/me")
+    suspend fun getMe(): Response<MeResponse>
 
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>

@@ -74,9 +74,18 @@ data class VerifyResetOtpRequest(
 )
 
 @Serializable
-data class VerifyResetOtpResponse(
+data class VerifyResetOtpData(
     val resetToken: String
 )
+
+@Serializable
+data class VerifyResetOtpResponse(
+    val resetToken: String? = null,
+    val success: Boolean? = null,
+    val data: VerifyResetOtpData? = null
+) {
+    fun getFinalResetToken(): String? = resetToken ?: data?.resetToken
+}
 
 @Serializable
 data class ResetPasswordRequest(
@@ -146,6 +155,13 @@ data class LoginData(
     @SerialName("refresh_token")
     val refreshTokenSnake: String? = null,
     val user: UserDto? = null
+)
+
+@Serializable
+data class MeResponse(
+    val id: Int,
+    val email: String,
+    val roles: List<String> = emptyList()
 )
 
 typealias ForgotPasswordResponse = AuthResponse
