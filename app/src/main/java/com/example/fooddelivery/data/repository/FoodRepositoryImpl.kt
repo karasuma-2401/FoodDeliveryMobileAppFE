@@ -18,7 +18,13 @@ class FoodRepositoryImpl @Inject constructor(
         return try {
             val response = foodApi.getFoods(categoryId, restaurantId, keyword)
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val baseResponse = response.body()!!
+
+                if (baseResponse.success == true && baseResponse.data != null) {
+                    Result.success(baseResponse.data)
+                } else {
+                    Result.failure(Exception(baseResponse.message ?: "Failed to load foods"))
+                }
             } else {
                 Result.failure(Exception(response.message()))
             }
@@ -32,7 +38,13 @@ class FoodRepositoryImpl @Inject constructor(
         return try {
             val response = foodApi.getFoodById(id)
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val baseResponse = response.body()!!
+
+                if (baseResponse.success == true && baseResponse.data != null) {
+                    Result.success(baseResponse.data)
+                } else {
+                    Result.failure(Exception(baseResponse.message ?: "Food does not exist"))
+                }
             } else {
                 Result.failure(Exception(response.message()))
             }
