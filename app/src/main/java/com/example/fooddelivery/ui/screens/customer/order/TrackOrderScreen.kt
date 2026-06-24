@@ -2,11 +2,13 @@ package com.example.fooddelivery.ui.screens.customer.order
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Receipt
@@ -49,7 +51,8 @@ fun TrackOrderScreen(
     TrackOrderContent(
         state = state,
         onNavigateBack = onNavigateBack,
-        onChatWithRestaurant = onChatWithRestaurant
+        onChatWithRestaurant = onChatWithRestaurant,
+        onConfirmReceived = { viewModel.onEvent(TrackOrderEvent.ConfirmReceived) }
     )
 }
 
@@ -58,7 +61,8 @@ fun TrackOrderScreen(
 fun TrackOrderContent(
     state: TrackOrderState,
     onNavigateBack: () -> Unit,
-    onChatWithRestaurant: (Int, Int, String, String) -> Unit
+    onChatWithRestaurant: (Int, Int, String, String) -> Unit,
+    onConfirmReceived: () -> Unit = {}
 ) {
     val context = LocalContext.current
     Scaffold(
@@ -85,53 +89,114 @@ fun TrackOrderContent(
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Arrival Time Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Status Banner for Terminal States
+                AnimatedVisibility(visible = state.trackingStatus == TrackingStatus.CANCELLED) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Cancel, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "EXPECTED ARRIVAL",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = state.expectedArrival,
-                                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.primary
+                                text = "This order has been cancelled.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer
                             )
                         }
                     }
                 }
 
+                // Arrival Time Card (Hidden if Cancelled or Completed)
+                if (state.trackingStatus != TrackingStatus.CANCELLED && state.trackingStatus != TrackingStatus.CONFIRMED) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(20.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (state.trackingStatus == TrackingStatus.DELIVERED) "ARRIVED AT" else "EXPECTED ARRIVAL",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = if (state.trackingStatus == TrackingStatus.DELIVERED) state.orderDetail?.deliveredAt ?: "--:--" else state.expectedArrival,
+                                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // Tracking Section
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    SectionTitle(
-                        title = "Live Tracking",
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    val statuses = TrackingStatus.entries
-                    statuses.forEachIndexed { index, status ->
-                        val isCompleted = state.trackingStatus.step > status.step
-                        val isActive = state.trackingStatus == status
-
-                        TimelineItem(
-                            title = status.title,
-                            subtitle = status.subtitle,
-                            icon = getTrackingIcon(status),
-                            isCompleted = isCompleted,
-                            isActive = isActive,
-                            isLast = index == statuses.size - 1
+                if (state.trackingStatus != TrackingStatus.CANCELLED) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        SectionTitle(
+                            title = "Live Tracking",
+                            modifier = Modifier.padding(bottom = 16.dp)
                         )
+
+                        val stepsToShow = TrackingStatus.entries.filter { it.step >= 0 }
+                        stepsToShow.forEachIndexed { index, status ->
+                            val isCompleted = state.trackingStatus.step > status.step
+                            val isActive = state.trackingStatus == status
+
+                            TimelineItem(
+                                title = status.title,
+                                subtitle = status.subtitle,
+                                icon = getTrackingIcon(status),
+                                isCompleted = isCompleted,
+                                isActive = isActive,
+                                isLast = index == stepsToShow.size - 1
+                            )
+                        }
+                    }
+                }
+
+                // Confirm Received Action
+                if (state.trackingStatus == TrackingStatus.DELIVERED) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Have you received your order?",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                            state.hoursUntilAutoConfirm?.let { hours ->
+                                Text(
+                                    text = "Order will be auto-confirmed in ${hours.toInt()} hours.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = onConfirmReceived,
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !state.isConfirming,
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                if (state.isConfirming) {
+                                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                                } else {
+                                    Text("Confirm Received")
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -205,10 +270,11 @@ fun TrackOrderContent(
 private fun getTrackingIcon(status: TrackingStatus): ImageVector {
     return when (status) {
         TrackingStatus.PENDING -> Icons.Default.Receipt
-        TrackingStatus.CONFIRMED -> Icons.Default.ThumbUp
         TrackingStatus.PREPARING -> Icons.Default.RestaurantMenu
         TrackingStatus.DELIVERING -> Icons.Default.DirectionsBike
-        TrackingStatus.COMPLETED -> Icons.Default.CheckCircle
+        TrackingStatus.DELIVERED -> Icons.Default.ThumbUp
+        TrackingStatus.CONFIRMED -> Icons.Default.CheckCircle
+        TrackingStatus.CANCELLED -> Icons.Default.Cancel
     }
 }
 

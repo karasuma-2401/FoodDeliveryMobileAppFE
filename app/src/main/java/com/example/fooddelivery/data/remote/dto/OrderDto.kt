@@ -89,7 +89,12 @@ data class OrderStatusSummaryResponse(
     val status: String,
     val status_step: Int,
     val updated_at: String,
-    val backend_status: String
+    val backend_status: String,
+    val delivered_at: String? = null,
+    val auto_confirm_at: String? = null,
+    val hours_until_auto_confirm: Double? = null,
+    val confirmed_at: String? = null,
+    val confirmed_by: String? = null
 )
 
 @Serializable
@@ -134,6 +139,11 @@ data class OrderDetailResponse(
     val backend_status: String? = null,
     val note: String? = null,
     val expected_arrival: String? = null,
+    val delivered_at: String? = null,
+    val auto_confirm_at: String? = null,
+    val hours_until_auto_confirm: Double? = null,
+    val confirmed_at: String? = null,
+    val confirmed_by: String? = null,
     val user: OrderUserDto? = null,
     val address: OrderAddressDto? = null,
     val restaurant: OrderRestaurantBriefDto? = null,

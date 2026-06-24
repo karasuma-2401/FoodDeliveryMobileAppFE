@@ -42,4 +42,7 @@ interface OrderApi {
         @Path("orderId") orderId: Int,
         @Body request: UpdateOrderStatusRequest
     ): Response<BaseResponse<MessageResponse>>
+
+    @POST("orders/{orderId}/confirm-received")
+    suspend fun confirmReceived(@Path("orderId") orderId: Int): Response<BaseResponse<MessageResponse>>
 }

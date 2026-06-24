@@ -127,7 +127,6 @@ class SearchViewModel @Inject constructor(
             SearchEvent.LoadSearchData -> loadInitialData()
             is SearchEvent.LocationSelected -> {
                 _state.update { it.copy(selectedLocation = event.location) }
-                // In real app, you would update lat/lng here
             }
             is SearchEvent.DeleteHistoryItem -> {
                 viewModelScope.launch {
@@ -177,7 +176,6 @@ class SearchViewModel @Inject constructor(
                     suggestedRestaurants = restaurants,
                     isLoading = false
                 ) }
-                // Save to history after successful search
                 searchRepository.saveHistory(query)
                 refreshHistory()
             }.onFailure { e ->
@@ -197,18 +195,16 @@ class SearchViewModel @Inject constructor(
     private fun loadInitialData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            
-            // 1. Get Location
+
             val location = locationTracker.getCurrentLocation()
-            _state.update { it.copy(lat = location?.latitude, lng = location?.longitude) }
+            val lat = location?.latitude
+            val lng = location?.longitude
+            _state.update { it.copy(lat = lat, lng = lng) }
 
-            // 2. Fetch History
             refreshHistory()
-
-            // 3. Fetch Suggestions
             searchRepository.getSuggestions(
-                lat = state.value.lat,
-                lng = state.value.lng
+                lat = lat,
+                lng = lng
             ).onSuccess { (foods, restaurants) ->
                 _state.update { it.copy(
                     popularFood = foods,

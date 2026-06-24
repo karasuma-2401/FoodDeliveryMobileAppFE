@@ -15,4 +15,5 @@ interface OrderRepository {
     suspend fun cancelOrder(orderId: Int): Result<String>
     suspend fun cancelOrderPost(orderId: Int): Result<String>
     suspend fun updateOrderStatus(orderId: Int, status: String): Result<String>
+    suspend fun confirmReceived(orderId: Int): Result<String>
 }
