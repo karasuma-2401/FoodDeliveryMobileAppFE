@@ -26,8 +26,14 @@ class ValidateSessionUseCase @Inject constructor(
 
         if (result.isSuccess) {
             val me = result.getOrThrow()
-            tokenManager.saveMeInfo(me.id, me.email, me.roles)
-            return Result.success(me)
+            val id = me.getFinalId()
+            val email = me.getFinalEmail()
+            val roles = me.getFinalRoles()
+            if (id != null && !email.isNullOrBlank()) {
+                tokenManager.saveMeInfo(id, email, roles)
+                return Result.success(me)
+            }
+            return Result.failure(Exception("Invalid user profile from server"))
         }
 
         val error = result.exceptionOrNull()
@@ -43,8 +49,13 @@ class ValidateSessionUseCase @Inject constructor(
                         val retryResult = authRepository.getMe()
                         if (retryResult.isSuccess) {
                             val me = retryResult.getOrThrow()
-                            tokenManager.saveMeInfo(me.id, me.email, me.roles)
-                            return Result.success(me)
+                            val id = me.getFinalId()
+                            val email = me.getFinalEmail()
+                            val roles = me.getFinalRoles()
+                            if (id != null && !email.isNullOrBlank()) {
+                                tokenManager.saveMeInfo(id, email, roles)
+                                return Result.success(me)
+                            }
                         }
                     }
                 }

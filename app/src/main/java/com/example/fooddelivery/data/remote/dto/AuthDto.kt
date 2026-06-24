@@ -99,14 +99,45 @@ data class AuthResponse (
     val otp: String? = null,
     val message: String? = null,
     val isSuccess: Boolean = false,
+    val success: Boolean? = null,
+    val data: AuthData? = null
+) {
+    fun getFinalToken(): String? = token ?: data?.token
+    fun getFinalOtp(): String? = otp ?: data?.otp
+    fun getFinalMessage(): String? = message ?: data?.message
+}
+
+@Serializable
+data class AuthData(
+    val token: String? = null,
+    val otp: String? = null,
+    val message: String? = null
 )
 
 @Serializable
 data class RegisterResponse(
-    val id: Int,
-    val name: String,
-    val phone: String,
-    val email: String,
+    val id: Int? = null,
+    val name: String? = null,
+    val phone: String? = null,
+    val email: String? = null,
+    val otp: String? = null,
+    val success: Boolean? = null,
+    val message: String? = null,
+    val data: RegisterData? = null
+) {
+    fun getFinalId(): Int? = id ?: data?.id
+    fun getFinalName(): String? = name ?: data?.name
+    fun getFinalPhone(): String? = phone ?: data?.phone
+    fun getFinalEmail(): String? = email ?: data?.email
+    fun getFinalOtp(): String? = otp ?: data?.otp
+}
+
+@Serializable
+data class RegisterData(
+    val id: Int? = null,
+    val name: String? = null,
+    val phone: String? = null,
+    val email: String? = null,
     val otp: String? = null
 )
 
@@ -130,17 +161,14 @@ data class LoginResponse(
     val refreshToken: String? = null,
     @SerialName("user")
     val user: UserDto? = null,
-    
-    // Hỗ trợ nếu BE trả về snake_case
+
     @SerialName("access_token")
     val accessTokenSnake: String? = null,
     @SerialName("refresh_token")
     val refreshTokenSnake: String? = null,
 
-    // Hỗ trợ nếu BE bọc trong object "data"
     val data: LoginData? = null
 ) {
-    // Helper để lấy token dù BE trả về kiểu gì
     fun getFinalAccessToken(): String? = accessToken ?: accessTokenSnake ?: data?.accessToken ?: data?.accessTokenSnake
     fun getFinalRefreshToken(): String? = refreshToken ?: refreshTokenSnake ?: data?.refreshToken ?: data?.refreshTokenSnake
     fun getFinalUser(): UserDto? = user ?: data?.user
@@ -159,9 +187,23 @@ data class LoginData(
 
 @Serializable
 data class MeResponse(
-    val id: Int,
-    val email: String,
-    val roles: List<String> = emptyList()
+    val id: Int? = null,
+    val email: String? = null,
+    val roles: List<String>? = null,
+    val success: Boolean? = null,
+    val message: String? = null,
+    val data: MeData? = null
+) {
+    fun getFinalId(): Int? = id ?: data?.id
+    fun getFinalEmail(): String? = email ?: data?.email
+    fun getFinalRoles(): List<String> = roles ?: data?.roles ?: emptyList()
+}
+
+@Serializable
+data class MeData(
+    val id: Int? = null,
+    val email: String? = null,
+    val roles: List<String>? = null
 )
 
 typealias ForgotPasswordResponse = AuthResponse

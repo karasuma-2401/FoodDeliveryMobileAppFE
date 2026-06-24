@@ -4,6 +4,34 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserProfileResponse(
+    val success: Boolean? = null,
+    val message: String? = null,
+    val data: UserProfileData? = null,
+    val id: Int? = null,
+    val name: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val birthday: String? = null,
+    val avatar: String? = null
+) {
+    fun getFinalData(): UserProfileData? {
+        return data ?: if (name != null && email != null && phone != null) {
+            UserProfileData(
+                id = id,
+                name = name,
+                email = email,
+                phone = phone,
+                birthday = birthday,
+                avatar = avatar
+            )
+        } else {
+            null
+        }
+    }
+}
+
+@Serializable
+data class UserProfileData(
     val id: Int? = null,
     val name: String,
     val email: String,

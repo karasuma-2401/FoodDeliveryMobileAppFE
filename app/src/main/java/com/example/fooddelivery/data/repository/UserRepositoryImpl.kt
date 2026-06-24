@@ -4,28 +4,29 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.data.local.room.AppDatabase
 import com.example.fooddelivery.data.remote.api.UserApi
+import com.example.fooddelivery.data.remote.dto.UserProfileData
+import com.example.fooddelivery.data.remote.dto.UserProfileResponse
 import com.example.fooddelivery.data.remote.parseErrorMessage
+import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.model.UserReview
 import com.example.fooddelivery.domain.repository.UserRepository
-import javax.inject.Inject
-import kotlin.coroutines.cancellation.CancellationException
-import com.example.fooddelivery.data.local.datastore.TokenManager
-import com.example.fooddelivery.data.local.room.AppDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.time.ZonedDateTime
+import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 class UserRepositoryImpl @Inject constructor(
     private val api: UserApi,
@@ -33,25 +34,16 @@ class UserRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
     @ApplicationContext private val context: Context
 ) : UserRepository {
+
     override suspend fun getUserProfile(): Result<User> {
         return try {
             val response = api.getUserProfile()
             if (response.isSuccessful && response.body() != null) {
-                val dto = response.body()!!
-                Result.success(
-                    User(
-                        fullName = dto.name,
-                        email = dto.email,
-                        phone = dto.phone,
-                        birthday = dto.birthday ?: "",
-                        profileImage = dto.avatar
-                    )
-                )
-            }
-            else {
+                response.body()!!.toUser()
+            } else {
                 Result.failure(Exception(response.parseErrorMessage("Failed to load profile")))
             }
-        } catch (e : Exception){
+        } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error: ${e.localizedMessage}"))
         }
@@ -60,9 +52,6 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun updateUserProfile(user: User, imageUri: String?): Result<User> {
         var tempFile: File? = null
         return try {
-            val namePart = user.fullName.toRequestBody("text/plain".toMediaTypeOrNull())
-            val phonePart = user.phone.toRequestBody("text/plain".toRequestBody("text/plain".toMediaTypeOrNull()).contentType())
-            
             var imagePart: MultipartBody.Part? = null
             if (imageUri != null && imageUri.startsWith("content://")) {
                 tempFile = getCompressedFileFromUri(context, Uri.parse(imageUri))
@@ -73,22 +62,13 @@ class UserRepositoryImpl @Inject constructor(
             }
 
             val response = api.updateUserProfile(
-                name = namePart,
+                name = user.fullName.toRequestBody("text/plain".toMediaTypeOrNull()),
                 phone = user.phone.toRequestBody("text/plain".toMediaTypeOrNull()),
                 avatar = imagePart
             )
 
             if (response.isSuccessful && response.body() != null) {
-                val dto = response.body()!!
-                Result.success(
-                    User(
-                        fullName = dto.name,
-                        email = dto.email,
-                        phone = dto.phone,
-                        birthday = dto.birthday ?: "",
-                        profileImage = dto.avatar
-                    )
-                )
+                response.body()!!.toUser()
             } else {
                 Result.failure(Exception(response.parseErrorMessage("Failed to update profile")))
             }
@@ -100,6 +80,25 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
+    private fun UserProfileResponse.toUser(): Result<User> {
+        val dto = getFinalData()
+        return if (dto != null) {
+            Result.success(dto.toUser())
+        } else {
+            Result.failure(Exception("Invalid profile response from server"))
+        }
+    }
+
+    private fun UserProfileData.toUser(): User {
+        return User(
+            fullName = name,
+            email = email,
+            phone = phone,
+            birthday = birthday ?: "",
+            profileImage = avatar
+        )
+    }
+
     private fun getCompressedFileFromUri(context: Context, uri: Uri): File? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null
@@ -108,7 +107,7 @@ class UserRepositoryImpl @Inject constructor(
                 inSampleSize = 2
             }
             val bitmap = BitmapFactory.decodeStream(inputStream, null, options) ?: return null
-            
+
             val file = File(context.cacheDir, "compressed_avatar_${System.currentTimeMillis()}.jpg")
             val outputStream = FileOutputStream(file)
 
@@ -143,29 +142,27 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun getUserReviews(limit: Int, offset: Int): Result<List<UserReview>> {
         return try {
-            val response = api.getUserReviews(limit, offset)
-            if (response.isSuccessful && response.body() != null) {
-                val reviews = response.body()!!.map { dto ->
-                    UserReview(
-                        id = dto.id.toString(),
-                        restaurantId = dto.restaurantId.toString(),
-                        restaurantName = dto.restaurantName,
-                        restaurantImage = dto.restaurantImage ?: "",
-                        rating = dto.vote,
-                        comment = dto.comment ?: "",
-                        tags = dto.tags,
-                        createdAt = try {
-                            ZonedDateTime.parse(dto.createdAt).toInstant().toEpochMilli()
-                        } catch (e: Exception) {
-                            System.currentTimeMillis()
-                        },
-                        orderId = dto.orderId.toString()
-                    )
+            api.getUserReviews(limit, offset)
+                .unwrapData("Failed to load reviews")
+                .map { reviews ->
+                    reviews.map { dto ->
+                        UserReview(
+                            id = dto.id.toString(),
+                            restaurantId = dto.restaurantId.toString(),
+                            restaurantName = dto.restaurantName,
+                            restaurantImage = dto.restaurantImage ?: "",
+                            rating = dto.vote,
+                            comment = dto.comment ?: "",
+                            tags = dto.tags,
+                            createdAt = try {
+                                ZonedDateTime.parse(dto.createdAt).toInstant().toEpochMilli()
+                            } catch (e: Exception) {
+                                System.currentTimeMillis()
+                            },
+                            orderId = dto.orderId.toString()
+                        )
+                    }
                 }
-                Result.success(reviews)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load reviews")))
-            }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -175,8 +172,17 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getFavoriteRestaurants(limit: Int, offset: Int): Result<List<Restaurant>> {
         return try {
             val response = api.getFavoriteRestaurants(limit, offset)
-            if (response.isSuccessful && response.body() != null) {
-                val restaurants = response.body()!!.data.map { dto ->
+            val result = response.unwrapData("Failed to load favorite restaurants")
+            if (result.isFailure) {
+                val errorMsg = when (response.code()) {
+                    401 -> "Unauthorized: Please login again"
+                    403 -> "Forbidden: You don't have permission"
+                    else -> response.parseErrorMessage("Failed to load favorite restaurants")
+                }
+                return Result.failure(Exception(errorMsg, result.exceptionOrNull()))
+            }
+            result.map { favoriteResponse ->
+                favoriteResponse.data.map { dto ->
                     Restaurant(
                         id = dto.id.toString(),
                         name = dto.name,
@@ -190,14 +196,6 @@ class UserRepositoryImpl @Inject constructor(
                         totalLikes = dto.totalLikes ?: 0
                     )
                 }
-                Result.success(restaurants)
-            } else {
-                val errorMsg = when (response.code()) {
-                    401 -> "Unauthorized: Please login again"
-                    403 -> "Forbidden: You don't have permission"
-                    else -> response.parseErrorMessage("Failed to load favorite restaurants")
-                }
-                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

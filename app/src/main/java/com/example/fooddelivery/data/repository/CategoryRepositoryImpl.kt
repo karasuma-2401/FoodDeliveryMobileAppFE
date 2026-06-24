@@ -1,7 +1,7 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.CategoryApi
-import com.example.fooddelivery.data.remote.parseErrorMessage
+import com.example.fooddelivery.data.remote.unwrapList
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.repository.CategoryRepository
 import javax.inject.Inject
@@ -16,24 +16,19 @@ class CategoryRepositoryImpl @Inject constructor(
         offset: Int?
     ): Result<List<Category>> {
         return try {
-            val response = api.getCategories(keyword, limit, offset)
-            if (response.isSuccessful && response.body() != null) {
-                val baseResponse = response.body()!!
-
-                val categories = baseResponse.data?.map { dto ->
-                    Category(
-                        id = dto.id.toString(),
-                        name = dto.name,
-                        imageUrl = dto.image,
-                        description = dto.description,
-                        foodCount = dto.foodCount ?: 0
-                    )
-                } ?: emptyList()
-
-                Result.success(categories)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load categories")))
-            }
+            api.getCategories(keyword, limit, offset)
+                .unwrapList("Failed to load categories")
+                .map { list ->
+                    list.map { dto ->
+                        Category(
+                            id = dto.id.toString(),
+                            name = dto.name,
+                            imageUrl = dto.image,
+                            description = dto.description,
+                            foodCount = dto.foodCount ?: 0
+                        )
+                    }
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error: ${e.localizedMessage}"))

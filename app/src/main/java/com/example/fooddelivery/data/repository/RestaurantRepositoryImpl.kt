@@ -3,11 +3,13 @@ package com.example.fooddelivery.data.repository
 import com.example.fooddelivery.data.remote.api.RestaurantApi
 import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.data.remote.parseErrorMessage
+import com.example.fooddelivery.data.remote.unwrapData
+import com.example.fooddelivery.data.remote.unwrapList
+import com.example.fooddelivery.data.remote.unwrapUnit
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
@@ -25,27 +27,24 @@ class RestaurantRepositoryImpl @Inject constructor(
         categoryId: Int?
     ): Result<List<Restaurant>> {
         return try {
-            val response = api.getRestaurants(limit, offset, keyword, categoryId)
-            if (response.isSuccessful && response.body() != null) {
-                val baseResponse = response.body()!!
-                val restaurants = baseResponse.data?.map { dto ->
-                    Restaurant(
-                        id = dto.id.toString(),
-                        name = dto.name,
-                        description = dto.description ?: "",
-                        tags = dto.categories?.map { it.name } ?: emptyList(),
-                        rating = dto.averageRating?.toFloat() ?: 0f,
-                        deliveryFee = dto.deliveryFee ?: 0.0,
-                        imageUrl = dto.image,
-                        promoTags = if (dto.deliveryFee == 0.0) listOf("Free Delivery") else emptyList(),
-                        isLiked = dto.isLiked ?: false,
-                        totalLikes = dto.totalLikes ?: 0
-                    )
-                } ?: emptyList()
-                Result.success(restaurants)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load restaurants")))
-            }
+            api.getRestaurants(limit, offset, keyword, categoryId)
+                .unwrapList("Failed to load restaurants")
+                .map { list ->
+                    list.map { dto ->
+                        Restaurant(
+                            id = dto.id.toString(),
+                            name = dto.name,
+                            description = dto.description ?: "",
+                            tags = dto.categories?.map { it.name } ?: emptyList(),
+                            rating = dto.averageRating?.toFloat() ?: 0f,
+                            deliveryFee = dto.deliveryFee ?: 0.0,
+                            imageUrl = dto.image,
+                            promoTags = if (dto.deliveryFee == 0.0) listOf("Free Delivery") else emptyList(),
+                            isLiked = dto.isLiked ?: false,
+                            totalLikes = dto.totalLikes ?: 0
+                        )
+                    }
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error: ${e.localizedMessage}"))
@@ -54,12 +53,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun getRestaurantById(id: Int): Result<RestaurantResponse> {
         return try {
-            val response = api.getRestaurantById(id)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load restaurant details")))
-            }
+            api.getRestaurantById(id).unwrapData("Failed to load restaurant details")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -68,13 +62,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun getMyRestaurants(): Result<List<RestaurantResponse>> {
         return try {
-            val response = api.getMyRestaurants()
-            if (response.isSuccessful && response.body() != null) {
-                val baseResponse = response.body()!!
-                Result.success(baseResponse.data ?: emptyList())
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load my restaurants")))
-            }
+            api.getMyRestaurants().unwrapList("Failed to load my restaurants")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -83,12 +71,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun getDashboard(restaurantId: Int): Result<DashboardResponse> {
         return try {
-            val response = api.getDashboard(restaurantId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load dashboard")))
-            }
+            api.getDashboard(restaurantId).unwrapData("Failed to load dashboard")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -98,8 +81,9 @@ class RestaurantRepositoryImpl @Inject constructor(
     override suspend fun toggleFavorite(restaurantId: Int): Result<LikeStatusResponse> {
         return try {
             val response = api.toggleFavorite(restaurantId)
-            if (response.isSuccessful && response.body()?.data != null) {
-                Result.success(response.body()!!.data!!)
+            val result = response.unwrapData("Failed to update favorite status")
+            if (result.isSuccess) {
+                result
             } else {
                 val errorMsg = when (response.code()) {
                     401 -> "Unauthorized: Please login again"
@@ -107,7 +91,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                     404 -> "Restaurant not found"
                     else -> response.parseErrorMessage("Failed to update favorite status")
                 }
-                Result.failure(Exception(errorMsg))
+                Result.failure(Exception(errorMsg, result.exceptionOrNull()))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -117,12 +101,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun getLikeStatus(restaurantId: Int): Result<LikeStatusResponse> {
         return try {
-            val response = api.getLikeStatus(restaurantId)
-            if (response.isSuccessful && response.body()?.data != null) {
-                Result.success(response.body()!!.data!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to get like status")))
-            }
+            api.getLikeStatus(restaurantId).unwrapData("Failed to get like status")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -131,17 +110,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun getFoods(restaurantId: Int): Result<List<FoodResponse>> {
         return try {
-            val response = api.getFoods(restaurantId)
-            if (response.isSuccessful && response.body() != null) {
-                val body = response.body()!!
-                if (body.data != null) {
-                    Result.success(body.data)
-                } else {
-                    Result.failure(Exception("Failed to load foods: data is null"))
-                }
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load foods")))
-            }
+            api.getFoods(restaurantId).unwrapList("Failed to load foods")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -159,35 +128,20 @@ class RestaurantRepositoryImpl @Inject constructor(
         imageFile: File?
     ): Result<FoodResponse> {
         return try {
-            val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
-            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
-            val categoryIdBody = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-            val restaurantIdBody = restaurantId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-            val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-            val sizesBody = sizesJson.toRequestBody("application/json".toMediaTypeOrNull())
-            val ingredientIdsBody = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull())
-
-            val imagePart = imageFile?.let {
-                val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
-                MultipartBody.Part.createFormData("image", it.name, requestFile)
-            }
-
             val response = api.addFood(
-                name = nameBody,
-                description = descriptionBody,
-                categoryId = categoryIdBody,
-                restaurantId = restaurantIdBody,
-                price = priceBody,
-                sizes = sizesBody,
-                ingredientIds = ingredientIdsBody,
-                image = imagePart
+                name = name.toRequestBody("text/plain".toMediaTypeOrNull()),
+                description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
+                categoryId = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                restaurantId = restaurantId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                price = price.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                sizes = sizesJson.toRequestBody("application/json".toMediaTypeOrNull()),
+                ingredientIds = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull()),
+                image = imageFile?.let {
+                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("image", it.name, requestFile)
+                }
             )
-
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to add food")))
-            }
+            response.unwrapData("Failed to add food")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -196,18 +150,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun getFoodById(id: Int): Result<FoodResponse> {
         return try {
-            val response = api.getFoodById(id)
-            if (response.isSuccessful && response.body() != null) {
-                val baseResponse = response.body()!!
-
-                if (baseResponse.success && baseResponse.data != null) {
-                    Result.success(baseResponse.data)
-                } else {
-                    Result.failure(Exception(baseResponse.message ?: "Food is not exists"))
-                }
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to load food")))
-            }
+            api.getFoodById(id).unwrapData("Failed to load food")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -225,34 +168,20 @@ class RestaurantRepositoryImpl @Inject constructor(
         imageFile: File?
     ): Result<FoodResponse> {
         return try {
-            val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
-            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
-            val categoryIdBody = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-            val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-            val sizesBody = sizesJson.toRequestBody("application/json".toMediaTypeOrNull())
-            val ingredientIdsBody = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull())
-
-            val imagePart = imageFile?.let {
-                val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
-                MultipartBody.Part.createFormData("image", it.name, requestFile)
-            }
-
             val response = api.updateFood(
                 id = id,
-                name = nameBody,
-                description = descriptionBody,
-                categoryId = categoryIdBody,
-                price = priceBody,
-                sizes = sizesBody,
-                ingredientIds = ingredientIdsBody,
-                image = imagePart
+                name = name.toRequestBody("text/plain".toMediaTypeOrNull()),
+                description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
+                categoryId = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                price = price.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                sizes = sizesJson.toRequestBody("application/json".toMediaTypeOrNull()),
+                ingredientIds = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull()),
+                image = imageFile?.let {
+                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("image", it.name, requestFile)
+                }
             )
-
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to update food")))
-            }
+            response.unwrapData("Failed to update food")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -261,12 +190,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun deleteFood(id: Int): Result<Unit> {
         return try {
-            val response = api.deleteFood(id)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to delete food")))
-            }
+            api.deleteFood(id).unwrapUnit("Failed to delete food")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -275,12 +199,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun rateRestaurant(restaurantId: Int, request: RestaurantRatingRequest): Result<FoodRatingResponse> {
         return try {
-            val response = api.rateRestaurant(restaurantId, request)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to rate restaurant")))
-            }
+            api.rateRestaurant(restaurantId, request).unwrapData("Failed to rate restaurant")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -289,12 +208,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun updateReview(reviewId: Int, request: UpdateReviewRequest): Result<FoodRatingResponse> {
         return try {
-            val response = api.updateReview(reviewId, request)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to update review")))
-            }
+            api.updateReview(reviewId, request).unwrapData("Failed to update review")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -303,12 +217,7 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun deleteReview(reviewId: Int): Result<FoodRatingResponse> {
         return try {
-            val response = api.deleteReview(reviewId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to delete review")))
-            }
+            api.deleteReview(reviewId).unwrapData("Failed to delete review")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)

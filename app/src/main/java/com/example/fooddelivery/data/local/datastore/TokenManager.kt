@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.local.datastore
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -14,6 +15,7 @@ import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,13 +30,24 @@ class TokenManager @Inject constructor (
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
-    private val securePrefs: SharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        "secure_user_prefs",
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    private val securePrefs: SharedPreferences = try {
+        createEncryptedSharedPreferences()
+    } catch (e: Exception) {
+        Log.e("TokenManager", "Error creating EncryptedSharedPreferences, clearing and retrying", e)
+        // Clear the corrupted SharedPreferences
+        context.deleteSharedPreferences("secure_user_prefs")
+        createEncryptedSharedPreferences()
+    }
+
+    private fun createEncryptedSharedPreferences(): SharedPreferences {
+        return EncryptedSharedPreferences.create(
+            context,
+            "secure_user_prefs",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     companion object {
         private const val ACCESS_TOKEN = "access_token"

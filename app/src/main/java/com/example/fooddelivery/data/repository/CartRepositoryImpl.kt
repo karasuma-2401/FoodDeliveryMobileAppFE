@@ -4,10 +4,11 @@ import com.example.fooddelivery.data.local.room.dao.CartDao
 import com.example.fooddelivery.data.local.room.entity.CartEntity
 import com.example.fooddelivery.data.local.room.entity.toDomain
 import com.example.fooddelivery.data.remote.api.CartApi
-import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.dto.AddToCartRequest
 import com.example.fooddelivery.data.remote.dto.CartResponse
 import com.example.fooddelivery.data.remote.dto.UpdateCartItemRequest
+import com.example.fooddelivery.data.remote.unwrapData
+import com.example.fooddelivery.data.remote.unwrapUnit
 import com.example.fooddelivery.domain.model.CartItem
 import com.example.fooddelivery.domain.repository.CartRepository
 import kotlinx.coroutines.flow.Flow
@@ -28,13 +29,11 @@ class CartRepositoryImpl @Inject constructor(
 
     override suspend fun syncCart(): Result<Unit> {
         return try {
-            val response = cartApi.getCart()
-            if (response.isSuccessful && response.body() != null) {
-                updateLocalCart(response.body()!!)
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to sync cart")))
-            }
+            cartApi.getCart()
+                .unwrapData("Failed to sync cart")
+                .mapCatching {
+                    updateLocalCart(it)
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -78,13 +77,11 @@ class CartRepositoryImpl @Inject constructor(
                 foodSizeId = foodSizeId,
                 fullText = note
             )
-            val response = cartApi.addToCart(request)
-            if (response.isSuccessful && response.body() != null) {
-                updateLocalCart(response.body()!!)
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to add to cart")))
-            }
+            cartApi.addToCart(request)
+                .unwrapData("Failed to add to cart")
+                .mapCatching {
+                    updateLocalCart(it)
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -93,13 +90,11 @@ class CartRepositoryImpl @Inject constructor(
 
     override suspend fun updateQuantity(cartItemId: Int, quantity: Int): Result<Unit> {
         return try {
-            val response = cartApi.updateCartItem(cartItemId, UpdateCartItemRequest(quantity))
-            if (response.isSuccessful && response.body() != null) {
-                updateLocalCart(response.body()!!)
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to update cart")))
-            }
+            cartApi.updateCartItem(cartItemId, UpdateCartItemRequest(quantity))
+                .unwrapData("Failed to update cart")
+                .mapCatching {
+                    updateLocalCart(it)
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -108,13 +103,11 @@ class CartRepositoryImpl @Inject constructor(
 
     override suspend fun removeItem(cartItemId: Int): Result<Unit> {
         return try {
-            val response = cartApi.deleteCartItem(cartItemId)
-            if (response.isSuccessful && response.body() != null) {
-                updateLocalCart(response.body()!!)
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to remove item")))
-            }
+            cartApi.deleteCartItem(cartItemId)
+                .unwrapData("Failed to remove item")
+                .mapCatching {
+                    updateLocalCart(it)
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
@@ -123,13 +116,11 @@ class CartRepositoryImpl @Inject constructor(
 
     override suspend fun clearCart(): Result<Unit> {
         return try {
-            val response = cartApi.clearCart()
-            if (response.isSuccessful) {
-                cartDao.clearCart()
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.parseErrorMessage("Failed to clear cart")))
-            }
+            cartApi.clearCart()
+                .unwrapUnit("Failed to clear cart")
+                .mapCatching {
+                    cartDao.clearCart()
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
