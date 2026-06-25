@@ -70,6 +70,14 @@ import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScree
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonalInfoScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantProfileScreen
 import com.example.fooddelivery.ui.screens.restaurant.revenue.RestaurantRevenueScreen
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 
 @Composable
 fun RootNavigationGraph(
@@ -800,84 +808,122 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
 
 // admin graph
 fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
-    val onAdminNavigate: (String) -> Unit = { route ->
-        when (route) {
-            "dashboard" -> navController.navigate(AdminDashboardRoute) {
-                launchSingleTop = true
-                popUpTo<AdminDashboardRoute> { inclusive = false }
-            }
-            "categories" -> navController.navigate(AdminCategoriesRoute) {
-                launchSingleTop = true
-            }
-            "coupons" -> navController.navigate(AdminCouponRoute) {
-                launchSingleTop = true
-            }
-            "settings" -> navController.navigate(AdminSettingsRoute) {
-                launchSingleTop = true
-            }
-            "notifications" -> navController.navigate(AdminNotificationRoute) {
-                launchSingleTop = true
-            }
-        }
-    }
+    composable<AdminGraph> {
+        val adminNavController = rememberNavController()
+        val navBackStackEntry by adminNavController.currentBackStackEntryAsState()
+        val currentRouteStr = navBackStackEntry?.destination?.route ?: ""
 
-    navigation<AdminGraph>(startDestination = AdminDashboardRoute) {
-
-        composable<AdminDashboardRoute> {
-            AdminDashboardScreen()
+        val currentTabRoute = when {
+            currentRouteStr.contains("AdminDashboardRoute") -> "dashboard"
+            currentRouteStr.contains("AdminCouponRoute") -> "coupons"
+            currentRouteStr.contains("AdminCategoriesRoute") -> "categories"
+            currentRouteStr.contains("AdminNotificationRoute") -> "notification"
+            currentRouteStr.contains("AdminSettingsRoute") -> "settings"
+            else -> ""
         }
 
-        composable<AdminRestaurantsRoute> {
-            AdminRestaurantScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToAdd = { /* TODO */ },
-                onNavigateToEdit = { /* TODO */ },
-                onNavigate = onAdminNavigate
-            )
+        val showBottomBar = currentTabRoute.isNotEmpty()
+
+        val onAdminNavigate: (String) -> Unit = { route ->
+            when (route) {
+                "dashboard" -> adminNavController.navigate(AdminDashboardRoute)
+                "categories" -> adminNavController.navigate(AdminCategoriesRoute)
+                "coupons" -> adminNavController.navigate(AdminCouponRoute)
+                "settings" -> adminNavController.navigate(AdminSettingsRoute)
+                "notifications" -> adminNavController.navigate(AdminNotificationRoute)
+            }
         }
 
-        composable<AdminCategoriesRoute> {
-            AdminCategoryScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToAdd = { /* TODO: navController.navigate(CreateCategoryRoute) */ },
-                onNavigateToEdit = { /* TODO */ },
-                onNavigate = onAdminNavigate
-            )
-        }
-
-        composable<AdminCouponRoute> {
-            AdminCouponScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToEditCoupon = { /* TODO */ },
-                onNavigateToCreateCoupon = {
-                    navController.navigate(CreateCouponRoute())
+        Scaffold(
+            bottomBar = {
+                if (showBottomBar) {
+                    AdminBottomBar(
+                        currentRoute = currentTabRoute,
+                        onTabSelected = { tab ->
+                            val targetRoute = when (tab.route) {
+                                "dashboard" -> AdminDashboardRoute
+                                "coupons" -> AdminCouponRoute
+                                "categories" -> AdminCategoriesRoute
+                                "notification" -> AdminNotificationRoute
+                                "settings" -> AdminSettingsRoute
+                                else -> AdminDashboardRoute
+                            }
+                            adminNavController.navigate(targetRoute) {
+                                popUpTo(adminNavController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
                 }
-            )
-        }
-
-        composable<CreateCouponRoute> {
-            CreateCouponScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-        composable<AdminNotificationRoute> {
-            AdminNotificationScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-        composable<AdminSettingsRoute> {
-            AdminSettingScreen(
-                onNavigateToResetPassword = {
-                    navController.navigate(ChangePasswordRoute)
-                },
-                onLogoutSuccess = {
-                    navController.navigate(AuthGraph) {
-                        popUpTo(0) { inclusive = true }
-                    }
+            }
+        ) { paddingValues ->
+            NavHost(
+                navController = adminNavController,
+                startDestination = AdminDashboardRoute,
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable<AdminDashboardRoute> {
+                    AdminDashboardScreen()
                 }
-            )
+
+                composable<AdminRestaurantsRoute> {
+                    AdminRestaurantScreen(
+                        onNavigateBack = { adminNavController.popBackStack() },
+                        onNavigateToAdd = { /* TODO */ },
+                        onNavigateToEdit = { /* TODO */ },
+                        onNavigate = onAdminNavigate
+                    )
+                }
+
+                composable<AdminCategoriesRoute> {
+                    AdminCategoryScreen(
+                        onNavigateBack = { adminNavController.popBackStack() },
+                        onNavigateToAdd = { /* TODO: adminNavController.navigate(CreateCategoryRoute) */ },
+                        onNavigateToEdit = { /* TODO */ },
+                        onNavigate = onAdminNavigate
+                    )
+                }
+
+                composable<AdminCouponRoute> {
+                    AdminCouponScreen(
+                        onNavigateBack = { adminNavController.popBackStack() },
+                        onNavigateToEditCoupon = { /* TODO */ },
+                        onNavigateToCreateCoupon = {
+                            adminNavController.navigate(CreateCouponRoute())
+                        }
+                    )
+                }
+
+                composable<CreateCouponRoute> {
+                    CreateCouponScreen(
+                        onNavigateBack = { adminNavController.popBackStack() }
+                    )
+                }
+
+                composable<AdminNotificationRoute> {
+                    AdminNotificationScreen(
+                        onNavigateBack = { adminNavController.popBackStack() }
+                    )
+                }
+
+                composable<AdminSettingsRoute> {
+                    AdminSettingScreen(
+                        onNavigateToResetPassword = {
+                            // 🌟 Chú ý: Vẫn dùng navController (parent) để nhảy ra ngoài luồng auth/app
+                            navController.navigate(ChangePasswordRoute)
+                        },
+                        onLogoutSuccess = {
+                            // 🌟 Vẫn dùng navController (parent) để văng ra ngoài màn hình Login
+                            navController.navigate(AuthGraph) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }
