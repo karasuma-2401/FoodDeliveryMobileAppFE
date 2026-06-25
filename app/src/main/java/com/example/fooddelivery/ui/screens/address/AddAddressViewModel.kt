@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.customer.address
+package com.example.fooddelivery.ui.screens.address
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

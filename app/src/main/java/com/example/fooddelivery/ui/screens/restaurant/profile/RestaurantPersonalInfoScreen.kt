@@ -95,12 +95,14 @@ fun RestaurantPersonalInfoContent(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 SectionHeader("GENERAL INFORMATION")
+
                 RestaurantInputField(
                     label = "Restaurant Name",
                     placeholder = "e.g. King Burger",
                     value = state.name,
                     onValueChange = { onEvent(RestaurantPersonalInfoEvent.NameChanged(it)) }
                 )
+
                 RestaurantInputField(
                     label = "Hotline Phone Number",
                     placeholder = "090xxxxxxx",
@@ -108,34 +110,13 @@ fun RestaurantPersonalInfoContent(
                     onValueChange = { onEvent(RestaurantPersonalInfoEvent.PhoneChanged(it)) }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                Spacer(modifier = Modifier.height(16.dp))
 
-                SectionHeader("BUSINESS ADDRESS")
                 RestaurantInputField(
-                    label = "Street Address",
-                    placeholder = "e.g. 123 Main Street",
-                    value = state.street,
-                    onValueChange = { onEvent(RestaurantPersonalInfoEvent.StreetChanged(it)) }
+                    label = "Restaurant Description",
+                    placeholder = "Describe your restaurant specialties, opening atmosphere...",
+                    value = state.description,
+                    onValueChange = { onEvent(RestaurantPersonalInfoEvent.DescriptionChanged(it)) }
                 )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    RestaurantInputField(
-                        label = "District",
-                        placeholder = "District 1",
-                        value = state.district,
-                        onValueChange = { onEvent(RestaurantPersonalInfoEvent.DistrictChanged(it)) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    RestaurantInputField(
-                        label = "City",
-                        placeholder = "HCMC",
-                        value = state.city,
-                        onValueChange = { onEvent(RestaurantPersonalInfoEvent.CityChanged(it)) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -148,7 +129,6 @@ fun RestaurantPersonalInfoContent(
                     if (state.isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
-                        // Tự động đổi chữ nút bấm theo luồng
                         val buttonText = if (state.isFromSignUp) "Complete Setup" else "Save Changes"
                         Text(text = buttonText, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                     }
@@ -177,11 +157,9 @@ fun RestaurantPersonalInfoPreview() {
             state = RestaurantPersonalInfoState(
                 isLoading = false,
                 isFromSignUp = true,
-                name = "",
-                phone = "",
-                street = "",
-                district = "",
-                city = ""
+                name = "McDonald's",
+                phone = "0123456789",
+                description = "Fast food chain serving burgers, fries & shakes."
             ),
             onEvent = {},
             onNavigateBack = {}

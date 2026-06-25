@@ -14,6 +14,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
+import com.example.fooddelivery.domain.model.RestaurantRevenue
+import com.example.fooddelivery.domain.model.RevenueDetailItem
 
 class RestaurantRepositoryImpl @Inject constructor(
     private val api: RestaurantApi
@@ -235,15 +237,56 @@ class RestaurantRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
-
-    override suspend fun getRestaurantReviews(restaurantId: Int): Result<List<RestaurantReviewDto>> {
+    override suspend fun updateRestaurantProfile(
+        restaurantId: Int,
+        name: String,
+        phone: String,
+        description: String
+    ): Result<RestaurantResponse> {
         return try {
-            api.getRestaurantReviews(restaurantId).unwrapData("Failed to load restaurant reviews")
+            val request = UpdateRestaurantProfileRequest(
+                name = name,
+                phone = phone,
+                description = description
+            )
+            api.updateRestaurantProfile(restaurantId, request).unwrapData("Failed to update restaurant profile")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
         }
     }
+
+    override suspend fun getRestaurantRevenue(restaurantId: Int): Result<RestaurantRevenue> {
+        return try {
+            api.getRestaurantRevenue(restaurantId = restaurantId)
+                .unwrapData("Failed to load revenue data")
+                .map { wrapper ->
+                    val orderList = wrapper.data
+
+                    RestaurantRevenue(
+                        grossRevenue = orderList.sumOf { it.totalAmount },
+                        platformFee = orderList.sumOf { it.platformCommission },
+                        netRevenue = orderList.sumOf { it.restaurantNetRevenue },
+                        totalOrders = wrapper.total,
+                        orderHistory = orderList.map { dto ->
+                            RevenueDetailItem(
+                                orderId = dto.orderId,
+                                totalAmount = dto.totalAmount,
+                                platformCommission = dto.platformCommission,
+                                restaurantNetRevenue = dto.restaurantNetRevenue,
+                                completedAt = dto.completedAt,
+                                paymentMethod = dto.paymentMethod,
+                                customerName = dto.customerName
+                            )
+                        }
+                    )
+                }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
 
     override suspend fun updateReview(reviewId: Int, request: UpdateReviewRequest): Result<FoodRatingResponse> {
         return try {

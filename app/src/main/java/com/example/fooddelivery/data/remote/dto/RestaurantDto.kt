@@ -11,6 +11,13 @@ data class RestaurantDashboardRangeResponse(
 )
 
 @Serializable
+data class UpdateRestaurantProfileRequest(
+    val name: String,
+    val phone: String,
+    val description: String
+)
+
+@Serializable
 data class RestaurantDashboardTopFoodDto(
     val id: Int,
     val name: String,

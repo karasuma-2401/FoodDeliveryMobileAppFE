@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.customer.address
+package com.example.fooddelivery.ui.screens.address
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
@@ -27,10 +28,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.header.LocationPickerHeader
-import com.example.fooddelivery.ui.screens.customer.address.components.AddressSearchDialog
-import com.example.fooddelivery.ui.screens.customer.address.components.CustomAddressTextField
+import com.example.fooddelivery.ui.screens.address.components.AddressSearchDialog
+import com.example.fooddelivery.ui.screens.address.components.CustomAddressTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.screens.customer.address.components.AddressTypeItem
+import com.example.fooddelivery.ui.screens.address.components.AddressTypeItem
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import org.osmdroid.util.GeoPoint
 
@@ -127,7 +128,7 @@ fun AddAddressContent(
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.EditLocationAlt,

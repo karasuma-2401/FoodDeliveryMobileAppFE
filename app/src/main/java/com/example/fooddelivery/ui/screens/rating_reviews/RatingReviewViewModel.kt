@@ -42,7 +42,7 @@ data class RatingReviewState(
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,
     val availableTags: List<String> = REVIEW_TAG_LABELS,
-    val selectedTags: Set<String> = emptySet()
+    val selectedTags: Set<String> = emptySet(),
     val reviews: List<VendorReviewResponse> = emptyList()
 )
 

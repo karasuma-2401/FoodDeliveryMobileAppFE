@@ -2,6 +2,7 @@ package com.example.fooddelivery.domain.repository
 
 import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.domain.model.RestaurantRevenue
 import java.io.File
 
 interface RestaurantRepository {
@@ -52,7 +53,7 @@ interface RestaurantRepository {
     ): Result<FoodResponse>
 
     suspend fun deleteFood(id: Int): Result<Unit>
-
+    suspend fun getRestaurantRevenue(restaurantId: Int): Result<RestaurantRevenue>
     suspend fun getRestaurantReviews(
         restaurantId: Int,
         limit: Int? = 20,
@@ -64,14 +65,17 @@ interface RestaurantRepository {
         request: RestaurantRatingRequest
     ): Result<FoodRatingResponse>
 
-    suspend fun getRestaurantReviews(
-        restaurantId: Int
-    ): Result<List<RestaurantReviewDto>>
-
     suspend fun updateReview(
         reviewId: Int,
         request: UpdateReviewRequest
     ): Result<FoodRatingResponse>
+
+    suspend fun updateRestaurantProfile(
+        restaurantId: Int,
+        name: String,
+        phone: String,
+        description: String
+    ): Result<RestaurantResponse>
 
     suspend fun deleteReview(reviewId: Int): Result<FoodRatingResponse>
 

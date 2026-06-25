@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.BestSellerItem
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ActiveVouchersPreviewCard
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.BestSellerSection
@@ -32,6 +31,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     onSeeAllClick: () -> Unit = {},
     onSeeAllReviewsClick: (Int) -> Unit = {},
+    onSeeRevenueClick: (Int) -> Unit = {},
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
 ) {
@@ -45,6 +45,11 @@ fun DashboardScreen(
                 onSeeAllReviewsClick(id)
             }
         },
+        onSeeRevenueClick = {
+            state.restaurantId?.let { id ->
+                onSeeRevenueClick(id)
+            }
+        },
         onAddFoodClick = onAddFoodClick,
         onSeeAllOrdersClick = { onNavigate("order_management") },
         onNavigate = onNavigate
@@ -56,6 +61,7 @@ fun DashboardContent(
     state: DashboardState,
     onSeeAllClick: () -> Unit = {},
     onSeeAllReviewsClick: () -> Unit = {},
+    onSeeRevenueClick: () -> Unit = {},
     onAddFoodClick: () -> Unit = {},
     onSeeAllOrdersClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
@@ -106,7 +112,7 @@ fun DashboardContent(
 
                 RevenueSection(
                     revenue = state.revenue,
-                    onSeeDetailsClick = onSeeAllOrdersClick
+                    onSeeDetailsClick = onSeeRevenueClick
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))

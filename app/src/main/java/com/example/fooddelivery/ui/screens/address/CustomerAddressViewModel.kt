@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.customer.address
+package com.example.fooddelivery.ui.screens.address
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home

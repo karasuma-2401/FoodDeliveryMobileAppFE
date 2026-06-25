@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.customer.address
+package com.example.fooddelivery.ui.screens.address
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
