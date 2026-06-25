@@ -34,6 +34,8 @@ import javax.inject.Inject
 data class CheckoutState(
     val restaurantName: String = "",
     val address: Address? = null,
+    val addresses: List<Address> = emptyList(),
+    val showAddressSheet: Boolean = false,
     val paymentMethod: PaymentMethod = PaymentMethod.MoMo,
     val orderNote: String = "",
     val subtotal: Double = 0.0,
@@ -57,6 +59,10 @@ sealed class PaymentMethod(@StringRes val titleRes: Int, val value: String) {
 sealed interface CheckoutEvent {
     data class NoteChanged(val note: String) : CheckoutEvent
     data object ChangeAddress : CheckoutEvent
+    data object RefreshAddresses : CheckoutEvent
+    data class AddressSelected(val address: Address) : CheckoutEvent
+    data object DismissAddressSheet : CheckoutEvent
+    data object AddNewAddress : CheckoutEvent
     data class PaymentMethodSelected(val method: PaymentMethod) : CheckoutEvent
     data object ChangePaymentMethod : CheckoutEvent
     data object PlaceOrder : CheckoutEvent
@@ -69,7 +75,7 @@ sealed interface CheckoutEvent {
 sealed interface CheckoutUiEffect {
     data object NavigateToAddAddress : CheckoutUiEffect
     data class OpenMoMoApp(val deeplink: String, val total: Double) : CheckoutUiEffect
-    data object NavigateToPaymentSuccessful : CheckoutUiEffect
+    data class NavigateToPaymentSuccessful(val orderId: Int) : CheckoutUiEffect
     data class ShowError(val message: String) : CheckoutUiEffect
 }
 
@@ -84,6 +90,7 @@ class CheckoutViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val checkoutArgs = savedStateHandle.toRoute<CheckoutRoute>()
+    private val preselectedVoucherId: Int? = checkoutArgs.voucherId
 
     private val _state = MutableStateFlow(
         CheckoutState(
@@ -99,16 +106,23 @@ class CheckoutViewModel @Inject constructor(
     private var pendingOrderId: Int? = null
 
     init {
-        loadInitialData()
+        loadAddresses()
         observeCart()
     }
 
-    private fun loadInitialData() {
+    private fun loadAddresses(preserveSelection: Boolean = false) {
         viewModelScope.launch {
             val result = addressRepository.getAddresses()
             result.onSuccess { addresses ->
-                val defaultAddress = addresses.firstOrNull()
-                _state.update { it.copy(address = defaultAddress) }
+                _state.update { state ->
+                    val selected = when {
+                        preserveSelection && state.address != null -> {
+                            addresses.find { it.id == state.address.id } ?: addresses.firstOrNull()
+                        }
+                        else -> addresses.firstOrNull()
+                    }
+                    state.copy(address = selected, addresses = addresses)
+                }
             }
         }
     }
@@ -133,13 +147,16 @@ class CheckoutViewModel @Inject constructor(
             result.onSuccess { vouchersDto ->
                 val domainVouchers = vouchersDto.map { it.toDomain() }
                 _state.update { currentState ->
-                    val updatedSelectedVoucher = domainVouchers.find { it.id == currentState.selectedVoucher?.id }
-                    val newDiscount = updatedSelectedVoucher?.let { calculateDiscount(it, currentState.subtotal) } ?: 0.0
-                    
+                    val targetVoucherId = currentState.selectedVoucher?.id ?: preselectedVoucherId
+                    val updatedSelectedVoucher = domainVouchers.find { it.id == targetVoucherId }
+                    val newDiscount = updatedSelectedVoucher?.let {
+                        calculateDiscount(it, currentState.subtotal)
+                    } ?: 0.0
+
                     currentState.copy(
                         availableVouchers = domainVouchers,
                         selectedVoucher = updatedSelectedVoucher,
-                        discount = if (updatedSelectedVoucher != null) newDiscount else 0.0
+                        discount = newDiscount
                     )
                 }
             }
@@ -165,7 +182,18 @@ class CheckoutViewModel @Inject constructor(
             is CheckoutEvent.NoteChanged -> {
                 _state.update { it.copy(orderNote = event.note) }
             }
-            is CheckoutEvent.ChangeAddress -> {
+            is CheckoutEvent.ChangeAddress -> handleChangeAddress()
+            is CheckoutEvent.RefreshAddresses -> loadAddresses(preserveSelection = true)
+            is CheckoutEvent.AddressSelected -> {
+                _state.update {
+                    it.copy(address = event.address, showAddressSheet = false)
+                }
+            }
+            is CheckoutEvent.DismissAddressSheet -> {
+                _state.update { it.copy(showAddressSheet = false) }
+            }
+            is CheckoutEvent.AddNewAddress -> {
+                _state.update { it.copy(showAddressSheet = false) }
                 viewModelScope.launch {
                     _uiEffect.emit(CheckoutUiEffect.NavigateToAddAddress)
                 }
@@ -194,6 +222,30 @@ class CheckoutViewModel @Inject constructor(
             }
             is CheckoutEvent.ApplyPromoCode -> {
                 handleApplyPromoCode()
+            }
+        }
+    }
+
+    private fun handleChangeAddress() {
+        viewModelScope.launch {
+            val result = addressRepository.getAddresses()
+            result.onSuccess { addresses ->
+                when {
+                    addresses.isEmpty() -> _uiEffect.emit(CheckoutUiEffect.NavigateToAddAddress)
+                    addresses.size == 1 -> {
+                        _state.update { it.copy(address = addresses.first(), addresses = addresses) }
+                    }
+                    else -> {
+                        _state.update {
+                            it.copy(
+                                addresses = addresses,
+                                showAddressSheet = true
+                            )
+                        }
+                    }
+                }
+            }.onFailure { error ->
+                _uiEffect.emit(CheckoutUiEffect.ShowError(error.message ?: "Failed to load addresses"))
             }
         }
     }
@@ -279,7 +331,7 @@ class CheckoutViewModel @Inject constructor(
                 pendingOrderId = response.order.id
                 if (currentState.paymentMethod is PaymentMethod.Cash) {
                     _state.update { it.copy(isLoading = false) }
-                    _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
+                    _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(response.order.id))
                 } else {
                     _state.update { it.copy(isLoading = false) }
                     response.momoPayment?.deeplink?.let {
@@ -320,8 +372,9 @@ class CheckoutViewModel @Inject constructor(
             _state.update { it.copy(isPolling = false) }
 
             if (isPaid) {
+                val completedOrderId = orderId
                 pendingOrderId = null
-                _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful)
+                _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(completedOrderId))
             } else {
                 _uiEffect.emit(CheckoutUiEffect.ShowError("Payment confirmation is taking longer than expected. Please check your order tracking."))
             }

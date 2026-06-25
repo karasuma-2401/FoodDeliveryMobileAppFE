@@ -36,7 +36,8 @@ data class PolicyRoute(val type: String)
 data class CheckoutRoute(
     val restaurantId: String,
     val restaurantName: String,
-    val discount: Double = 0.0
+    val discount: Double = 0.0,
+    val voucherId: Int? = null
 )
 @Serializable object AllCategoriesRoute
 @Serializable object AllRestaurantsRoute
@@ -45,7 +46,7 @@ data class CheckoutRoute(
 @Serializable data class CategoryFilterRoute(val categoryId: String = "")
 @Serializable data class RestaurantDetailRoute(val restaurantId: String = "")
 @Serializable object PaymentSuccessfulRoute
-@Serializable object CheckoutSuccessRoute
+@Serializable data class CheckoutSuccessRoute(val orderId: String)
 
 @Serializable object MyOrdersRoute
 @Serializable data class TrackOrderRoute(val orderId: String = "")
@@ -68,7 +69,6 @@ data class RatingReviewRoute(
 @Serializable data class AddAddressRoute(val addressId: Int? = null)
 @Serializable object FavouriteRoute
 @Serializable object NotificationRoute
-@Serializable object PaymentMethodRoute
 @Serializable object UserReviewRoute
 @Serializable object ConversationRoute
 @Serializable data class ChatRoute(

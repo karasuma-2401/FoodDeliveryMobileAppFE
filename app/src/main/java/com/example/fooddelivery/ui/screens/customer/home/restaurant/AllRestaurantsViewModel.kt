@@ -2,11 +2,10 @@ package com.example.fooddelivery.ui.screens.customer.home.restaurant
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.RestaurantSortOption
+import com.example.fooddelivery.domain.repository.RestaurantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,98 +17,106 @@ data class AllRestaurantsState(
     val restaurants: List<Restaurant> = emptyList(),
     val isLoading: Boolean = false,
     val isPaginating: Boolean = false,
-    val page: Int = 1,
-    val isEndReached: Boolean = false ,
+    val isEndReached: Boolean = false,
     val currentSortOption: RestaurantSortOption = RestaurantSortOption.RATING,
-    val showSortSheet: Boolean = false
+    val showSortSheet: Boolean = false,
+    val errorMessage: String? = null
 )
+
 sealed interface AllRestaurantsEvent {
-    object LoadMore: AllRestaurantsEvent
+    object LoadMore : AllRestaurantsEvent
     data class SortChanged(val option: RestaurantSortOption) : AllRestaurantsEvent
     data class ToggleSortSheet(val show: Boolean) : AllRestaurantsEvent
 }
+
 @HiltViewModel
-class AllRestaurantsViewModel @Inject constructor() : ViewModel() {
+class AllRestaurantsViewModel @Inject constructor(
+    private val restaurantRepository: RestaurantRepository
+) : ViewModel() {
+
     private val _state = MutableStateFlow(AllRestaurantsState())
     val state: StateFlow<AllRestaurantsState> = _state.asStateFlow()
+
+    private val pageSize = 10
 
     init {
         loadInitialRestaurants()
     }
+
     fun onEvent(event: AllRestaurantsEvent) {
-        when(event) {
+        when (event) {
             is AllRestaurantsEvent.LoadMore -> loadMoreRestaurants()
             is AllRestaurantsEvent.SortChanged -> applySorting(event.option)
             is AllRestaurantsEvent.ToggleSortSheet -> _state.update { it.copy(showSortSheet = event.show) }
         }
     }
+
     private fun loadInitialRestaurants() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            delay(800)
-            val initialData = getMockRestaurants(1)
-            _state.update {
-                it.copy(
-                    restaurants = initialData,
-                    isLoading = false,
-                    page = 1,
-                    isEndReached = initialData.isEmpty()
-                )
-            }
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            restaurantRepository.getRestaurants(limit = pageSize, offset = 0)
+                .onSuccess { data ->
+                    _state.update {
+                        it.copy(
+                            restaurants = sortList(data, it.currentSortOption),
+                            isLoading = false,
+                            isEndReached = data.size < pageSize
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _state.update {
+                        it.copy(isLoading = false, errorMessage = error.message ?: "Failed to load restaurants")
+                    }
+                }
         }
     }
+
     private fun loadMoreRestaurants() {
         val currentState = _state.value
         if (currentState.isPaginating || currentState.isEndReached || currentState.isLoading) return
 
         viewModelScope.launch {
             _state.update { it.copy(isPaginating = true) }
-            delay(800)
+            val offset = currentState.restaurants.size
 
-            val nextPage = currentState.page + 1
-            val newData = getMockRestaurants(nextPage)
-
-            _state.update { state ->
-                val combinedList = state.restaurants + newData
-                val sortedList = when(state.currentSortOption) {
-                    RestaurantSortOption.RATING -> combinedList.sortedByDescending { it.rating }
-                    RestaurantSortOption.DELIVERY_FEE -> combinedList.sortedBy { it.deliveryFee }
+            restaurantRepository.getRestaurants(limit = pageSize, offset = offset)
+                .onSuccess { newData ->
+                    _state.update { state ->
+                        val combinedList = state.restaurants + newData
+                        state.copy(
+                            restaurants = sortList(combinedList, state.currentSortOption),
+                            isPaginating = false,
+                            isEndReached = newData.size < pageSize
+                        )
+                    }
                 }
-                state.copy(
-                    restaurants = sortedList,
-                    page = nextPage,
-                    isPaginating = false,
-                    isEndReached = newData.isEmpty()
-                )
-            }
+                .onFailure { error ->
+                    _state.update {
+                        it.copy(
+                            isPaginating = false,
+                            errorMessage = error.message ?: "Failed to load more restaurants"
+                        )
+                    }
+                }
         }
     }
+
     private fun applySorting(option: RestaurantSortOption) {
         val currentList = _state.value.restaurants
-        val sortedList = when(option) {
-            RestaurantSortOption.RATING -> currentList.sortedByDescending { it.rating }
-            RestaurantSortOption.DELIVERY_FEE -> currentList.sortedBy { it.deliveryFee }
+        _state.update {
+            it.copy(
+                restaurants = sortList(currentList, option),
+                currentSortOption = option,
+                showSortSheet = false
+            )
         }
-        _state.update { it.copy(
-            restaurants = sortedList,
-            currentSortOption = option,
-            showSortSheet = false
-        ) }
     }
 
-    private fun getMockRestaurants(page: Int): List<Restaurant> {
-        if (page > 3) return emptyList()
-        return List(5) { index ->
-            val id = "p${page}_$index"
-            Restaurant(
-                id = id,
-                name = "Restaurant Page $page - #$index",
-                tags = listOf("Fast Food", "Burger"),
-                rating = 4.0f + (index * 0.1f),
-                deliveryFee = if (index % 2 == 0) 0.0 else 1.5,
-                imageRes = R.drawable.food_bowl,
-                promoTags = if (index % 3 == 0) listOf("PROMO", "Freeship") else emptyList()
-            )
+    private fun sortList(list: List<Restaurant>, option: RestaurantSortOption): List<Restaurant> {
+        return when (option) {
+            RestaurantSortOption.RATING -> list.sortedByDescending { it.rating }
+            RestaurantSortOption.DELIVERY_FEE -> list.sortedBy { it.deliveryFee }
         }
     }
 }

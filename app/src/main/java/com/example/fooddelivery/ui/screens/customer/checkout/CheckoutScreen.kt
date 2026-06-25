@@ -30,6 +30,7 @@ import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherDetailBottomSheet
 import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSelectionSheet
 import com.example.fooddelivery.ui.screens.customer.checkout.components.AddressCard
+import com.example.fooddelivery.ui.screens.customer.checkout.components.AddressSelectionBottomSheet
 import com.example.fooddelivery.ui.screens.customer.checkout.components.CheckoutBillBreakdown
 import com.example.fooddelivery.ui.screens.customer.checkout.components.OrderNotesCard
 import com.example.fooddelivery.ui.screens.customer.checkout.components.PaymentMethodBottomSheet
@@ -45,7 +46,7 @@ import java.util.Locale
 fun CheckoutScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAddAddress: () -> Unit,
-    onNavigateToPaymentSuccessful: () -> Unit,
+    onNavigateToPaymentSuccessful: (String) -> Unit,
     viewModel: CheckoutViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -56,6 +57,8 @@ fun CheckoutScreen(
     
     val voucherSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showVoucherSheet by remember { mutableStateOf(false) }
+
+    val addressSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     
     var selectedVoucherForDetail by remember { mutableStateOf<Voucher?>(null) }
     
@@ -64,6 +67,7 @@ fun CheckoutScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onEvent(CheckoutEvent.RefreshAddresses)
                 if (state.paymentMethod is PaymentMethod.MoMo && !state.isPolling && !state.isLoading) {
                     viewModel.onEvent(CheckoutEvent.ReturnFromMoMo)
                 }
@@ -76,7 +80,7 @@ fun CheckoutScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
-                is CheckoutUiEffect.NavigateToPaymentSuccessful -> onNavigateToPaymentSuccessful()
+                is CheckoutUiEffect.NavigateToPaymentSuccessful -> onNavigateToPaymentSuccessful(effect.orderId.toString())
                 is CheckoutUiEffect.NavigateToAddAddress -> onNavigateToAddAddress()
                 is CheckoutUiEffect.OpenMoMoApp -> {
                     val formattedTotal = String.format(Locale.US,"$%.2f", effect.total)
@@ -197,6 +201,17 @@ fun CheckoutScreen(
         }
     }
 
+    if (state.showAddressSheet) {
+        AddressSelectionBottomSheet(
+            addresses = state.addresses,
+            selectedAddressId = state.address?.id,
+            onDismissRequest = { viewModel.onEvent(CheckoutEvent.DismissAddressSheet) },
+            onAddressSelected = { viewModel.onEvent(CheckoutEvent.AddressSelected(it)) },
+            onAddNewAddress = { viewModel.onEvent(CheckoutEvent.AddNewAddress) },
+            sheetState = addressSheetState
+        )
+    }
+
     if (showPaymentSheet) {
         PaymentMethodBottomSheet(
             onDismissRequest = { showPaymentSheet = false },
@@ -265,6 +280,6 @@ fun CheckoutScreenPreview() {
     CheckoutScreen(
         onNavigateBack = {},
         onNavigateToAddAddress = {},
-        onNavigateToPaymentSuccessful = {}
+        onNavigateToPaymentSuccessful = { _ -> }
     )
 }

@@ -26,10 +26,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.header.LocationPickerHeader
+import com.example.fooddelivery.ui.screens.customer.address.components.AddressSearchDialog
 import com.example.fooddelivery.ui.screens.customer.address.components.CustomAddressTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.address.components.AddressTypeItem
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import org.osmdroid.util.GeoPoint
 
 @Composable
 fun AddAddressScreen(
@@ -72,6 +74,25 @@ fun AddAddressContent(
     var showSearchDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val isEditMode = state.isEditMode
+    val mapLocation = remember(state.selectedAddress) {
+        val selected = state.selectedAddress
+        if (selected != null && selected.latitude != 0.0 && selected.longitude != 0.0) {
+            GeoPoint(selected.latitude, selected.longitude)
+        } else {
+            GeoPoint(10.762622, 106.660172)
+        }
+    }
+
+    AddressSearchDialog(
+        showDialog = showSearchDialog,
+        onDismissRequest = { showSearchDialog = false },
+        searchQuery = state.searchQuery,
+        onSearchQueryChange = { onEvent(AddAddressEvent.SearchQueryChanged(it)) },
+        isSearching = state.isSearching,
+        searchResults = state.searchResults,
+        noResultsFound = state.noResultsFound,
+        onSearchResultSelected = { onEvent(AddAddressEvent.SearchResultSelected(it)) }
+    )
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
@@ -90,7 +111,10 @@ fun AddAddressContent(
                 .verticalScroll(rememberScrollState())
         ) {
             if (!isEditMode) {
-                LocationPickerHeader(onSearchClick = { showSearchDialog = true })
+                LocationPickerHeader(
+                    initialLocation = mapLocation,
+                    onSearchClick = { showSearchDialog = true }
+                )
             } else {
                 Spacer(modifier = Modifier.height(24.dp))
             }

@@ -62,7 +62,7 @@ fun AddressCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = if (address != null) "${address.streetName}, ${address.city}" else "Please add a delivery address",
+                    text = if (address != null) formatAddressLine(address) else "Please add a delivery address",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1

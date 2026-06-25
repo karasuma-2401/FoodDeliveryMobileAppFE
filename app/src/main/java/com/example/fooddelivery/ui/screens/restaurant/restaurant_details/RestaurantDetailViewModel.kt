@@ -7,9 +7,11 @@ import androidx.navigation.toRoute
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.data.remote.dto.toDomain
 import com.example.fooddelivery.domain.model.Voucher
-import com.example.fooddelivery.domain.model.VoucherType
+import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
+import com.example.fooddelivery.domain.repository.VoucherRepository
 import com.example.fooddelivery.ui.navigation.RestaurantDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,6 +46,8 @@ sealed interface RestaurantDetailUiEffect {
 @HiltViewModel
 class RestaurantDetailViewModel @Inject constructor(
     private val restaurantRepository: RestaurantRepository,
+    private val voucherRepository: VoucherRepository,
+    private val cartRepository: CartRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val restaurantId: String = savedStateHandle.toRoute<RestaurantDetailRoute>().restaurantId
@@ -99,8 +103,17 @@ class RestaurantDetailViewModel @Inject constructor(
     }
 
     private fun addToCart(foodItem: FoodItem) {
+        val foodId = foodItem.id.toIntOrNull() ?: return
         viewModelScope.launch {
-            _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar("${foodItem.name} added to cart"))
+            cartRepository.addToCart(foodId = foodId, quantity = 1, size = null, note = null)
+                .onSuccess {
+                    _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar("${foodItem.name} added to cart"))
+                }
+                .onFailure { error ->
+                    _uiEffect.emit(
+                        RestaurantDetailUiEffect.ShowSnackBar(error.message ?: "Failed to add to cart")
+                    )
+                }
         }
     }
 
@@ -152,6 +165,13 @@ class RestaurantDetailViewModel @Inject constructor(
             }
 
             launch {
+                voucherRepository.getVouchers(restaurantId = idInt)
+                    .onSuccess { vouchersDto ->
+                        _state.update { it.copy(vouchers = vouchersDto.map { dto -> dto.toDomain() }) }
+                    }
+            }
+
+            launch {
                 restaurantRepository.getRestaurantById(idInt).onSuccess { dto ->
                     val restaurant = Restaurant(
                         id = dto.id.toString(),
@@ -175,7 +195,7 @@ class RestaurantDetailViewModel @Inject constructor(
                 }
             }
 
-            _state.update { it.copy(vouchers = getMockVouchers(), isLoading = false) }
+            _state.update { it.copy(isLoading = false) }
         }
     }
 
@@ -199,29 +219,6 @@ class RestaurantDetailViewModel @Inject constructor(
         deliveryFee = 2.0,
         isLiked = false,
         imageRes = R.drawable.food_bowl
-    )
-
-    private fun getMockVouchers() = listOf(
-        Voucher(
-            id = 1,
-            code = "OFF15",
-            title = "$15.00 OFF",
-            description = "Discount for your first order. Min spend $0.",
-            discountAmount = 15.0,
-            minOrderAmount = 0.0,
-            expiryText = "Exp. 30 Jun 2024",
-            type = VoucherType.MONEY
-        ),
-        Voucher(
-            id = 2,
-            code = "OFF16",
-            title = "$16.00 OFF",
-            description = "Special weekend offer. Min spend $0.",
-            discountAmount = 16.0,
-            minOrderAmount = 0.0,
-            expiryText = "Exp. 15 Jul 2024",
-            type = VoucherType.MONEY
-        )
     )
 
     private fun getSeedFoodItems(): List<FoodItem> {
