@@ -546,7 +546,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<ConversationRoute> {
             ConversationScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToChat = { id, name, image ->
                     navController.navigate(ChatRoute(conversationId = id, restaurantName = name, restaurantImage = image))
                 }

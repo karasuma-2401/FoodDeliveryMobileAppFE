@@ -91,6 +91,7 @@ class UserRepositoryImpl @Inject constructor(
 
     private fun UserProfileData.toUser(): User {
         return User(
+            id = id?.toString().orEmpty(),
             fullName = name,
             email = email,
             phone = phone,

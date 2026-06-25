@@ -53,7 +53,14 @@ fun ChatScreen(
             scope.launch {
                 try {
                     val filePath = withContext(Dispatchers.IO) {
-                        val file = File(context.cacheDir, "chat_image.jpg")
+                        val mimeType = context.contentResolver.getType(it)
+                        val extension = when {
+                            mimeType?.contains("png") == true -> "png"
+                            mimeType?.contains("webp") == true -> "webp"
+                            mimeType?.contains("gif") == true -> "gif"
+                            else -> "jpg"
+                        }
+                        val file = File(context.cacheDir, "chat_${System.currentTimeMillis()}.$extension")
                         val inputStream = context.contentResolver.openInputStream(it)
                         if (inputStream != null) {
                             inputStream.use { input ->
@@ -95,8 +102,8 @@ fun ChatContent(
     val listState = rememberLazyListState()
     val shouldLoadMore = remember {
         derivedStateOf {
-            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index >= listState.layoutInfo.totalItemsCount - 5
+            listState.firstVisibleItemIndex <= 1 &&
+                state.messages.isNotEmpty()
         }
     }
 
@@ -104,6 +111,13 @@ fun ChatContent(
         if (shouldLoadMore.value && state.hasMore && !state.isLoadMore && !state.isLoading) {
             onEvent(ChatEvent.LoadMoreHistory)
         }
+    }
+
+    LaunchedEffect(state.messages.lastOrNull()?.id, state.isLoading) {
+        if (state.isLoading || state.messages.isEmpty()) return@LaunchedEffect
+        val headerCount = 1 + if (state.isLoadMore) 1 else 0
+        val newestMessageIndex = headerCount + state.messages.size - 1
+        listState.animateScrollToItem(newestMessageIndex)
     }
 
     Scaffold(
@@ -135,37 +149,19 @@ fun ChatContent(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            ChatHeaderInfo(
-                restaurantName = state.restaurantName,
-                restaurantImage = state.restaurantImage,
-                isOnline = state.isOnline
-            )
-
             LazyColumn(
                 state = listState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                reverseLayout = true
+                    .padding(horizontal = 16.dp)
             ) {
-                item {
-                    SuggestedReplies(
-                        onReplyClick = { onEvent(ChatEvent.SelectSuggestedReply(it)) }
-                    )
-                }
-
-                items(state.messages, key = { it.id }) { message ->
-                    ChatBubble(
-                        message = message,
-                        currentUserId = state.currentUserId,
-                        restaurantImage = state.restaurantImage,
-                        restaurantName = state.restaurantName
-                    )
+                item(key = "date_divider") {
+                    ChatDateDivider(date = "Today")
                 }
 
                 if (state.isLoadMore) {
-                    item {
+                    item(key = "load_more") {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -177,7 +173,20 @@ fun ChatContent(
                     }
                 }
 
-                item { ChatDateDivider(date = "Today") }
+                items(state.messages, key = { it.id }) { message ->
+                    ChatBubble(
+                        message = message,
+                        currentUserId = state.currentUserId,
+                        restaurantImage = state.restaurantImage,
+                        restaurantName = state.restaurantName
+                    )
+                }
+
+                item(key = "suggested_replies") {
+                    SuggestedReplies(
+                        onReplyClick = { onEvent(ChatEvent.SelectSuggestedReply(it)) }
+                    )
+                }
             }
         }
     }

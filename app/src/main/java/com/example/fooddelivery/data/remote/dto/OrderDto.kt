@@ -120,9 +120,9 @@ data class OrderListDto(
     val status: String,
     val status_step: Int? = null,
     val backend_status: String? = null,
-    val item_count: Int,
-    val type: String,
-    val date: String,
+    val item_count: Int = 0,
+    val type: String = "FOOD",
+    val date: String = "",
     val address: OrderAddressDto? = null,
     val restaurant: OrderRestaurantBriefDto? = null,
     val orderFoods: List<OrderFoodBriefDto> = emptyList(),
@@ -165,9 +165,9 @@ data class OrderUserDto(
 data class OrderAddressDto(
     val id: Int,
     val title: String,
-    val latitude: Double,
-    val longitude: Double,
-    val fullText: String
+    val fullText: String,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )
 
 @Serializable

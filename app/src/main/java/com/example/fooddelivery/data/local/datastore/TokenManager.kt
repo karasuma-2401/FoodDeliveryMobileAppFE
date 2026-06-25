@@ -123,6 +123,12 @@ class TokenManager @Inject constructor (
         }
     }
 
+    fun getAccessTokenSync(): String? = securePrefs.getString(ACCESS_TOKEN, null)
+
+    fun getRefreshTokenSync(): String? = securePrefs.getString(REFRESH_TOKEN, null)
+
+    fun bearerToken(): String? = getAccessTokenSync()?.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
+
     // Lấy token từ kho mã hóa
     val getAccessToken: Flow<String?> = context.userPrefDataStore.data.map { 
         securePrefs.getString(ACCESS_TOKEN, null) 

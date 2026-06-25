@@ -25,8 +25,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.socket.client.Socket
 import io.socket.client.IO
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -67,14 +65,12 @@ object NetworkModule {
     @Singleton
     fun provideAuthInterceptor(tokenManager: TokenManager): Interceptor {
         return Interceptor { chain ->
-            val token = runBlocking {
-                tokenManager.getAccessToken.first()
+            val token = tokenManager.bearerToken()
+            val requestBuilder = chain.request().newBuilder()
+            if (!token.isNullOrBlank() && chain.request().header("Authorization") == null) {
+                requestBuilder.header("Authorization", token)
             }
-            val request = chain.request().newBuilder()
-            if (!token.isNullOrEmpty()) {
-                request.addHeader("Authorization", "Bearer $token")
-            }
-            chain.proceed(request.build())
+            chain.proceed(requestBuilder.build())
         }
     }
 
@@ -216,12 +212,12 @@ object NetworkModule {
     @Singleton
     fun provideSocket(tokenManager: TokenManager): Socket {
         return try {
-            val token = runBlocking {
-                tokenManager.getAccessToken.first()
-            }
+            val token = tokenManager.bearerToken()
             val options = IO.Options().apply {
                 reconnection = true
-                auth = mapOf("token" to "Bearer $token")
+                if (!token.isNullOrBlank()) {
+                    auth = mapOf("token" to token)
+                }
             }
             IO.socket(BuildConfig.SOCKET_URL, options)
         } catch (e: URISyntaxException) {
