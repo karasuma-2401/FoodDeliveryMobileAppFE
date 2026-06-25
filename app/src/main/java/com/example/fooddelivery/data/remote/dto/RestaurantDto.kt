@@ -129,7 +129,7 @@ data class BaseResponse<T>(
 data class RestaurantResponse(
     val id: Int,
     val name: String,
-    val image: String,
+    val image: String? = null,
     val coverImage: String? = null,
     val description: String? = null,
     val phone: String? = null,

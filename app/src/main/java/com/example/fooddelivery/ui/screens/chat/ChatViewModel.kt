@@ -3,11 +3,13 @@ package com.example.fooddelivery.ui.screens.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.local.room.entity.MessageEntity
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -45,7 +47,8 @@ sealed interface ChatEvent {
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
@@ -85,10 +88,17 @@ class ChatViewModel @Inject constructor(
 
     private fun getCurrentUser() {
         viewModelScope.launch {
+            tokenManager.getUserId.first()?.let { id ->
+                _state.update { it.copy(currentUserId = id.toString()) }
+            }
             userRepository.getUserProfile().onSuccess { user ->
-                _state.update { it.copy(currentUserId = user.id) }
+                if (user.id.isNotBlank()) {
+                    _state.update { it.copy(currentUserId = user.id) }
+                }
             }.onFailure { error ->
-                _state.update { it.copy(error = error.message) }
+                if (_state.value.currentUserId.isBlank()) {
+                    _state.update { it.copy(error = error.message) }
+                }
             }
         }
     }
@@ -188,19 +198,33 @@ class ChatViewModel @Inject constructor(
             }
             _state.update { it.copy(inputText = "") }
             chatRepository.sendMessage(conversationId, userId, content, imageUrl)
+                .onFailure { error ->
+                    _state.update { it.copy(error = error.message ?: "Failed to send message") }
+                }
         }
     }
 
     private fun uploadAndSendImage(path: String) {
         val conversationId = currentConversationId ?: return
         viewModelScope.launch {
-            _state.update { it.copy(isUploadingImage = true) }
-            chatRepository.uploadImage(path).onSuccess { imageUrl ->
-                _state.update { it.copy(isUploadingImage = false) }
-                sendMessage("", imageUrl)
-            }.onFailure { error ->
-                _state.update { it.copy(isUploadingImage = false, error = "Failed to upload image") }
+            val userId = _state.value.currentUserId
+            if (userId.isBlank()) {
+                _state.update { it.copy(error = "User not authenticated") }
+                return@launch
             }
+            _state.update { it.copy(isUploadingImage = true) }
+            chatRepository.uploadAndSendImage(conversationId, userId, path)
+                .onFailure { error ->
+                    _state.update {
+                        it.copy(
+                            isUploadingImage = false,
+                            error = error.message ?: "Failed to upload image"
+                        )
+                    }
+                }
+                .onSuccess {
+                    _state.update { it.copy(isUploadingImage = false) }
+                }
         }
     }
 

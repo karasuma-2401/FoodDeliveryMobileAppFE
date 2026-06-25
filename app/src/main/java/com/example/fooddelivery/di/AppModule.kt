@@ -208,9 +208,10 @@ object AppModule {
         chatApi: ChatApi,
         conversationDao: ConversationDao,
         messageDao: MessageDao,
-        socket: Socket
+        socket: Socket,
+        tokenManager: TokenManager
     ): ChatRepository {
-        return ChatRepositoryImpl(chatApi, conversationDao, messageDao, socket)
+        return ChatRepositoryImpl(chatApi, conversationDao, messageDao, socket, tokenManager)
     }
 
     @Provides

@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -34,20 +35,39 @@ fun AddressSearchDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surface
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Search Address",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Search Address",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
 
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = onSearchQueryChange,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 14.dp),
                         placeholder = { Text("Enter street, city...") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                         trailingIcon = {
@@ -84,29 +104,31 @@ fun AddressSearchDialog(
                         } else {
                             LazyColumn(modifier = Modifier.fillMaxSize()) {
                                 items(searchResults) { address ->
-                                    Column(
+                                    Surface(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
                                                 onSearchResultSelected(address)
                                                 onDismissRequest()
                                             }
-                                            .padding(vertical = 12.dp)
+                                            .padding(bottom = 10.dp),
+                                        shape = RoundedCornerShape(14.dp),
+                                        tonalElevation = 1.dp,
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
                                     ) {
-                                        Text(
-                                            text = address.title.ifBlank { "Location" },
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = address.detail,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(top = 12.dp),
-                                            color = MaterialTheme.colorScheme.outlineVariant
-                                        )
+                                        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                                            Text(
+                                                text = address.title.ifBlank { "Location" },
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = address.detail,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
                                 }
                             }

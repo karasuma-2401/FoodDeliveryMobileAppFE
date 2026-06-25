@@ -13,11 +13,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import com.example.fooddelivery.data.local.room.entity.MessageEntity
 import java.text.SimpleDateFormat
 import java.util.*
@@ -29,6 +31,7 @@ fun ChatBubble(
     restaurantImage: String,
     restaurantName: String = "Restaurant"
 ) {
+    val context = LocalContext.current
     val isMe = message.senderId == currentUserId
     
     val bubbleColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
@@ -47,8 +50,11 @@ fun ChatBubble(
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             if (!isMe) {
-                AsyncImage(
-                    model = restaurantImage,
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(restaurantImage)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "$restaurantName avatar",
                     modifier = Modifier
                         .size(32.dp)
@@ -60,7 +66,7 @@ fun ChatBubble(
             }
             
             Surface(
-                color = bubbleColor,
+                color = if (message.imageUrl.isNullOrBlank()) bubbleColor else MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(
                     topStart = 20.dp,
                     topEnd = 20.dp,
@@ -72,16 +78,46 @@ fun ChatBubble(
                 modifier = Modifier.widthIn(max = 280.dp)
             ) {
                 Column {
-                    if (message.imageUrl != null) {
-                        AsyncImage(
-                            model = message.imageUrl,
+                    if (!message.imageUrl.isNullOrBlank()) {
+                        SubcomposeAsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(message.imageUrl)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = "Image message",
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 200.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .padding(4.dp),
-                            contentScale = ContentScale.Fit
+                                .heightIn(min = 120.dp, max = 240.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop,
+                            loading = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(120.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            },
+                            error = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(120.dp)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Image unavailable",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                         )
                     }
                     if (message.content.isNotBlank()) {
@@ -89,7 +125,8 @@ fun ChatBubble(
                             text = message.content,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = textColor
+                            color = if (message.imageUrl.isNullOrBlank()) textColor
+                            else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

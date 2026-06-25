@@ -8,6 +8,7 @@ import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.NotificationRepository
 import com.example.fooddelivery.domain.usecase.GetUserProfileUseCase
 import com.example.fooddelivery.domain.usecase.LogoutUseCase
+import com.example.fooddelivery.domain.usecase.RegisterDeviceTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,7 +45,8 @@ class ProfileViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val cartRepository: CartRepository,
     private val notificationRepository: NotificationRepository,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    private val registerDeviceTokenUseCase: RegisterDeviceTokenUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
@@ -83,14 +85,11 @@ class ProfileViewModel @Inject constructor(
 
     private fun observeNotifications() {
         viewModelScope.launch {
-            notificationRepository.getUnreadCountFlow().collectLatest { count ->
-                _state.update { it.copy(unreadNotificationCount = count) }
+            notificationRepository.getUnreadCountFlow().collectLatest { localCount ->
+                _state.update { it.copy(unreadNotificationCount = localCount) }
             }
         }
-        // Fetch unread count from API initially
-        viewModelScope.launch {
-            notificationRepository.getUnreadCount()
-        }
+        refreshUnreadCount()
     }
 
     fun onEvent(event: ProfileEvent) {
@@ -110,6 +109,9 @@ class ProfileViewModel @Inject constructor(
             is ProfileEvent.ToggleNotifications -> {
                 viewModelScope.launch {
                     dataStoreManager.saveNotificationsState(event.enabled)
+                    if (event.enabled) {
+                        registerDeviceTokenUseCase()
+                    }
                 }
             }
         }
@@ -117,7 +119,9 @@ class ProfileViewModel @Inject constructor(
 
     private fun refreshUnreadCount() {
         viewModelScope.launch {
-            notificationRepository.getUnreadCount()
+            notificationRepository.getUnreadCount().onSuccess { count ->
+                _state.update { it.copy(unreadNotificationCount = count) }
+            }
         }
     }
 

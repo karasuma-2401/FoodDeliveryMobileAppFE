@@ -16,6 +16,7 @@ interface ChatRepository {
     suspend fun syncConversationDetailByOrder(orderId: Int, page: Int): Result<Unit>
     
     suspend fun sendMessage(conversationId: String, senderId: String, content: String, imageUrl: String? = null): Result<Unit>
+    suspend fun uploadAndSendImage(conversationId: String, senderId: String, localImagePath: String): Result<Unit>
     suspend fun joinRoom(conversationId: String)
     suspend fun leaveRoom(conversationId: String)
     suspend fun uploadImage(imagePath: String): Result<String>
