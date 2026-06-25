@@ -17,6 +17,9 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 data class CreateCouponUiState(
     val couponCode: String = "",
@@ -68,9 +71,17 @@ class CreateCouponViewModel @Inject constructor(
 
     private fun toIsoDateTimeOrNull(mmddyyyy: String): String? {
         return try {
-            val formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy")
-            val date = LocalDate.parse(mmddyyyy.trim(), formatter)
-            "${date}T00:00:00.000Z"
+            val inputFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+
+            val outputFormat = SimpleDateFormat("yyyy-MM-dd'T'00:00:00.000'Z'", Locale.US)
+            outputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+            val date = inputFormat.parse(mmddyyyy.trim())
+            if (date != null) {
+                outputFormat.format(date)
+            } else {
+                null
+            }
         } catch (_: Exception) {
             null
         }
@@ -78,7 +89,7 @@ class CreateCouponViewModel @Inject constructor(
 
     fun saveCoupon() {
         val currentState = _uiState.value
-        
+
         // Input Validation
         if (currentState.couponCode.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Coupon Code cannot be empty!") }
@@ -99,20 +110,20 @@ class CreateCouponViewModel @Inject constructor(
 
         val maxDiscount = currentState.maxDiscount.toDoubleOrNull()
         if (maxDiscount != null && maxDiscount < 0) {
-             _uiState.update { it.copy(errorMessage = "Invalid maximum discount amount") }
-             return
+            _uiState.update { it.copy(errorMessage = "Invalid maximum discount amount") }
+            return
         }
 
         val perUserLimit = currentState.perUserLimit.toIntOrNull()
         if (perUserLimit == null || perUserLimit <= 0) {
-             _uiState.update { it.copy(errorMessage = "Invalid per user limit") }
-             return
+            _uiState.update { it.copy(errorMessage = "Invalid per user limit") }
+            return
         }
 
         val totalUsageLimit = currentState.totalUsageLimit.toIntOrNull()
         if (totalUsageLimit == null || totalUsageLimit <= 0) {
-             _uiState.update { it.copy(errorMessage = "Invalid total usage limit") }
-             return
+            _uiState.update { it.copy(errorMessage = "Invalid total usage limit") }
+            return
         }
 
         val startAt = toIsoDateTimeOrNull(currentState.startDate)
@@ -163,6 +174,7 @@ class CreateCouponViewModel @Inject constructor(
                 )
 
                 result.onSuccess {
+                    // Cập nhật cờ thành công để giao diện bắt tín hiệu quay lại màn hình trước
                     _uiState.update { it.copy(isSaving = false, isSavedSuccessfully = true) }
                 }.onFailure { e ->
                     _uiState.update { it.copy(isSaving = false, errorMessage = e.localizedMessage ?: "Failed to save coupon") }
@@ -173,6 +185,7 @@ class CreateCouponViewModel @Inject constructor(
         }
     }
 
+    // Hàm dọn dẹp cờ sau khi đã điều hướng xong (Tránh lỗi vặt)
     fun clearNavigationFlag() {
         _uiState.update { it.copy(isSavedSuccessfully = false) }
     }

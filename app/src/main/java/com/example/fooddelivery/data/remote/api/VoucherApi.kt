@@ -50,7 +50,7 @@ interface VoucherApi {
         @Part("usageLimit") usageLimit: RequestBody? = null,
         @Part("userLimit") userLimit: RequestBody? = null,
         @Part image: MultipartBody.Part? = null
-    ): Response<VoucherDto>
+    ): Response<BaseResponse<VoucherDto>>
 
     @Multipart
     @PATCH("vouchers/{id}")

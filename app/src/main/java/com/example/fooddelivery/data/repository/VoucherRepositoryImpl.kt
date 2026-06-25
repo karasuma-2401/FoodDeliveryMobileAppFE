@@ -115,11 +115,13 @@ class VoucherRepositoryImpl @Inject constructor(
                 usageLimit = intOpt(usageLimit),
                 userLimit = intOpt(userLimit),
                 image = null
+
             )
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+            val responseData = response.body()?.data
+            if (response.isSuccessful && responseData != null) {
+                Result.success(responseData)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.message().ifEmpty { "Empty data" }))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

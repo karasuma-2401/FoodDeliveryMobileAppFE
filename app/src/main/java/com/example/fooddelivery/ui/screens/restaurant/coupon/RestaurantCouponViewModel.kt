@@ -34,6 +34,7 @@ data class RestaurantCouponUiState(
     val totalItems: Int = 0,
     val isLoading: Boolean = false
 )
+
 @HiltViewModel
 class RestaurantCouponViewModel @Inject constructor(
     private val voucherRepository: VoucherRepository,
@@ -112,7 +113,7 @@ class RestaurantCouponViewModel @Inject constructor(
             val systemResult = voucherRepository.getVouchers(
                 limit = pageSize,
                 offset = offset,
-                restaurantId = null,
+                restaurantId = 0,
                 code = _uiState.value.searchQuery.takeIf { it.isNotBlank() },
                 status = null
             )
@@ -124,8 +125,6 @@ class RestaurantCouponViewModel @Inject constructor(
                 state.copy(
                     restaurantVouchers = restaurantVouchers,
                     systemVouchers = systemVouchers,
-                    // If the list size is exactly pageSize, we assume there might be more. 
-                    // This is a workaround since the backend doesn't provide totalItems yet.
                     totalItems = if (systemVouchers.size == pageSize) (page * pageSize + 1) else (offset + systemVouchers.size),
                     isLoading = false
                 )
