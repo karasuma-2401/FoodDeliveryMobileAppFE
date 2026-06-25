@@ -67,7 +67,6 @@ fun LocationPickerHeader(
             .height(350.dp)
             .background(Color(0xFFC4C9AD))
     ) {
-        var initialized by remember { mutableStateOf(false) }
         AndroidView(
             factory = {
                 mapView.apply {
@@ -75,15 +74,11 @@ fun LocationPickerHeader(
                     setMultiTouchControls(true)
                     controller.setZoom(15.0)
                     controller.setCenter(initialLocation)
-                    initialized = true
                 }
             },
             modifier = Modifier.fillMaxSize(),
             update = { view ->
-                if (!initialized) {
-                    view.controller.setCenter(initialLocation)
-                    initialized = true
-                }
+                view.controller.setCenter(initialLocation)
             }
         )
 

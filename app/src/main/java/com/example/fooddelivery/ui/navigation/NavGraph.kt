@@ -368,8 +368,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<CartRoute> {
             CartScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCheckout = { restaurantId, restaurantName, discount ->
-                    navController.navigate(CheckoutRoute(restaurantId = restaurantId, restaurantName = restaurantName, discount = discount))
+                onNavigateToCheckout = { restaurantId, restaurantName, discount, voucherId ->
+                    navController.navigate(
+                        CheckoutRoute(
+                            restaurantId = restaurantId,
+                            restaurantName = restaurantName,
+                            discount = discount,
+                            voucherId = voucherId
+                        )
+                    )
                 }
             )
         }
@@ -378,15 +385,20 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             CheckoutScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAddAddress = { navController.navigate(AddAddressRoute()) },
-                onNavigateToPaymentSuccessful = { navController.navigate(CheckoutSuccessRoute) }
+                onNavigateToPaymentSuccessful = { orderId ->
+                    navController.navigate(CheckoutSuccessRoute(orderId = orderId)) {
+                        popUpTo<CheckoutRoute> { inclusive = true }
+                    }
+                }
             )
         }
 
-        composable<CheckoutSuccessRoute> {
+        composable<CheckoutSuccessRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<CheckoutSuccessRoute>()
             CheckoutSuccessScreen(
                 onTrackOrder = {
-                    navController.navigate(TrackOrderRoute(orderId = "162432")) {
-                        popUpTo<CheckoutRoute> { inclusive = true }
+                    navController.navigate(TrackOrderRoute(orderId = args.orderId)) {
+                        popUpTo<CheckoutSuccessRoute> { inclusive = true }
                     }
                 }
             )
@@ -417,7 +429,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToFavourite = { navController.navigate(FavouriteRoute) },
                 onNavigateToNotification = { navController.navigate(NotificationRoute) },
-                onNavigateToPaymentMethod = { navController.navigate(PaymentMethodRoute) },
                 onNavigateToReview = { navController.navigate(UserReviewRoute) },
                 onChangePassword = { navController.navigate(ChangePasswordRoute) },
                 onResetEmail = { navController.navigate(ResetEmailRoute) },
