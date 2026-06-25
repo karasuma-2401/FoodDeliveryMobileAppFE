@@ -1,6 +1,5 @@
 package com.example.fooddelivery.data.remote.dto
 
-import androidx.compose.ui.layout.LayoutCoordinates
 import kotlinx.serialization.Serializable
 
 @Serializable

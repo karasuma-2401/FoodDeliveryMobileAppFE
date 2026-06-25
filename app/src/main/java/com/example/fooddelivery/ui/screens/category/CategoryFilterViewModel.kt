@@ -3,9 +3,12 @@ package com.example.fooddelivery.ui.screens.category
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.model.FoodItem
+import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.usecase.GetCategoriesUseCase
+import com.example.fooddelivery.ui.navigation.CategoryFilterRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,24 +26,25 @@ data class CategoryFilterState(
 )
 
 sealed interface CategoryFilterEvent {
-    data class SelectCategory(val categoryId: String): CategoryFilterEvent
+    data class SelectCategory(val categoryId: String) : CategoryFilterEvent
 }
 
 @HiltViewModel
 class CategoryFilterViewModel @Inject constructor(
     private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val foodRepository: FoodRepository,
     savedStateHandle: SavedStateHandle
-): ViewModel() {
+) : ViewModel() {
     private val _state = MutableStateFlow(CategoryFilterState())
     val state: StateFlow<CategoryFilterState> = _state.asStateFlow()
 
     init {
-        val initialId = savedStateHandle.get<String>("categoryId") ?: ""
+        val initialId = savedStateHandle.toRoute<CategoryFilterRoute>().categoryId
         loadInitialData(initialId)
     }
 
-    fun onEvent (event: CategoryFilterEvent) {
-        when(event) {
+    fun onEvent(event: CategoryFilterEvent) {
+        when (event) {
             is CategoryFilterEvent.SelectCategory -> {
                 if (_state.value.selectedCategoryId != event.categoryId) {
                     _state.update { it.copy(selectedCategoryId = event.categoryId) }
@@ -53,46 +57,66 @@ class CategoryFilterViewModel @Inject constructor(
     private fun loadInitialData(initialId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            
-            val result = getCategoriesUseCase()
-            
-            result.onSuccess { categories ->
-                val actualSelectedId = initialId.ifEmpty { categories.firstOrNull()?.id ?: "" }
-                _state.update { it.copy(
-                    categories = categories, 
-                    selectedCategoryId = actualSelectedId 
-                ) }
-                loadFoodsByCategory(actualSelectedId)
-            }.onFailure { e ->
-                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
-            }
+
+            getCategoriesUseCase()
+                .onSuccess { categories ->
+                    val actualSelectedId = initialId.ifEmpty { categories.firstOrNull()?.id ?: "" }
+                    _state.update {
+                        it.copy(
+                            categories = categories,
+                            selectedCategoryId = actualSelectedId
+                        )
+                    }
+                    loadFoodsByCategory(actualSelectedId)
+                }
+                .onFailure { e ->
+                    _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+                }
         }
     }
 
     private fun loadFoodsByCategory(categoryId: String) {
-        if (categoryId.isEmpty()) return
-        
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            // NOTE: Here we would typically call a getFoodsByCategoryUseCase
-            // For now, keeping the mock food list but it will be filtered by real category IDs
-            val allFoods = listOf(
-                FoodItem(
-                    id = "f1", name = "Cheese Burger", restaurantId = "r1",
-                    restaurantName = "Burger King", categoryId = "1", price = 15.0, soldCount = 120
-                ),
-                FoodItem(
-                    id = "f2", name = "Pepperoni Pizza", restaurantId = "r2",
-                    restaurantName = "Pizza Hut", categoryId = "2", price = 20.0, soldCount = 85
-                ),
-                FoodItem(
-                    id = "f3", name = "Coca Cola", restaurantId = "r3",
-                    restaurantName = "Store A", categoryId = "3", price = 5.0, soldCount = 300
-                )
-            )
-            val filteredFoods = allFoods.filter { it.categoryId == categoryId }
+        if (categoryId.isEmpty()) {
+            _state.update { it.copy(foods = emptyList(), isLoading = false) }
+            return
+        }
 
-            _state.update { it.copy(foods = filteredFoods, isLoading = false) }
+        val categoryIdInt = categoryId.toIntOrNull()
+        if (categoryIdInt == null) {
+            _state.update { it.copy(foods = emptyList(), isLoading = false, errorMessage = "Invalid category") }
+            return
+        }
+
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
+
+            foodRepository.getFoods(categoryId = categoryIdInt)
+                .onSuccess { responses ->
+                    val foods = responses.map { dto ->
+                        FoodItem(
+                            id = dto.id.toString(),
+                            name = dto.name,
+                            restaurantId = dto.restaurantId.toString(),
+                            restaurantName = dto.restaurant?.name ?: "",
+                            categoryId = dto.categoryId.toString(),
+                            price = dto.price,
+                            rating = dto.rating ?: 0f,
+                            reviewCount = dto.reviewCount ?: 0,
+                            imageUrl = dto.image,
+                            promoTag = dto.label
+                        )
+                    }
+                    _state.update { it.copy(foods = foods, isLoading = false) }
+                }
+                .onFailure { e ->
+                    _state.update {
+                        it.copy(
+                            foods = emptyList(),
+                            isLoading = false,
+                            errorMessage = e.message ?: "Failed to load foods"
+                        )
+                    }
+                }
         }
     }
 }
