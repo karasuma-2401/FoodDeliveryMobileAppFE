@@ -4,7 +4,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.model.Category
+import com.example.fooddelivery.domain.repository.CategoryRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class CategoryItem(
     val id: Int,
@@ -21,7 +25,10 @@ data class CategoryListState(
     val error: String? = null
 )
 
-class CategoryListViewModel : ViewModel() {
+@HiltViewModel
+class CategoryListViewModel @Inject constructor(
+    private val categoryRepository: CategoryRepository
+) : ViewModel() {
     private val _state = mutableStateOf(CategoryListState())
     val state: State<CategoryListState> = _state
 
@@ -30,28 +37,52 @@ class CategoryListViewModel : ViewModel() {
     }
 
     fun loadCategories() {
-        _state.value = _state.value.copy(isLoading = true)
         viewModelScope.launch {
-            // Giả lập delay load dữ liệu
-            _state.value = _state.value.copy(
-                isLoading = false,
-                categories = listOf(
-                    CategoryItem(1, "Pizza", "", 1, true),
-                    CategoryItem(2, "Burgers", "", 2, true),
-                    CategoryItem(3, "Drinks", "", 3, false)
+            _state.value = _state.value.copy(isLoading = true, error = null)
+            categoryRepository.getCategories(
+                keyword = _state.value.searchQuery.takeIf { it.isNotBlank() },
+                limit = 100,
+                offset = 0
+            ).onSuccess { categories ->
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    categories = categories.map { it.toCategoryItem() }
                 )
-            )
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = error.message ?: "Failed to load categories"
+                )
+            }
         }
     }
 
     fun onSearchChange(query: String) {
         _state.value = _state.value.copy(searchQuery = query)
-        // Cập nhật danh sách hiển thị dựa trên query nếu cần
+        loadCategories()
     }
 
     fun deleteCategory(id: Int) {
-        val currentCategories = _state.value.categories.toMutableList()
-        currentCategories.removeIf { it.id == id }
-        _state.value = _state.value.copy(categories = currentCategories)
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
+            categoryRepository.deleteCategory(id)
+                .onSuccess { loadCategories() }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = error.message ?: "Failed to delete category"
+                    )
+                }
+        }
+    }
+
+    private fun Category.toCategoryItem(): CategoryItem {
+        return CategoryItem(
+            id = id.toIntOrNull() ?: 0,
+            name = name,
+            imageUrl = imageUrl.orEmpty(),
+            displayOrder = displayOrder,
+            isActive = isActive
+        )
     }
 }

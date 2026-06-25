@@ -22,7 +22,8 @@ class VoucherRepositoryImpl @Inject constructor(
         return try {
             val response = api.getVouchers(limit, offset, restaurantId, code, status)
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val voucherList = response.body()?.data?.data ?: emptyList()
+                Result.success(voucherList)
             } else {
                 Result.failure(Exception(response.message()))
             }
@@ -114,11 +115,13 @@ class VoucherRepositoryImpl @Inject constructor(
                 usageLimit = intOpt(usageLimit),
                 userLimit = intOpt(userLimit),
                 image = null
+
             )
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+            val responseData = response.body()?.data
+            if (response.isSuccessful && responseData != null) {
+                Result.success(responseData)
             } else {
-                Result.failure(Exception(response.message()))
+                Result.failure(Exception(response.message().ifEmpty { "Empty data" }))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

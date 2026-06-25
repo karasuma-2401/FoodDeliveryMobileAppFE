@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
@@ -28,7 +28,7 @@ fun AdminCategoryScreen(
     onNavigateToAdd: () -> Unit,
     onNavigateToEdit: (Int) -> Unit,
     onNavigate: (String) -> Unit,
-    viewModel: CategoryListViewModel = viewModel()
+    viewModel: CategoryListViewModel = hiltViewModel()
 ) {
     // Đổi tên thành uiState để tránh lỗi 'Unresolved' hoặc 'Candidate mismatch'
     val uiState by viewModel.state
@@ -70,6 +70,14 @@ fun AdminCategoryScreen(
 
             if (uiState.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = colorScheme.primary)
+            }
+
+            uiState.error?.let { error ->
+                Text(
+                    text = error,
+                    color = colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
             }
 
             LazyColumn(

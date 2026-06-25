@@ -5,5 +5,7 @@ data class Category(
     val name: String,
     val imageUrl: String? = null,
     val description: String? = null,
-    val foodCount: Int = 0
+    val foodCount: Int = 0,
+    val displayOrder: Int = 0,
+    val isActive: Boolean = true
 )

@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
 
+import coil.compose.rememberAsyncImagePainter
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -248,7 +249,7 @@ fun AddFoodScreenContent(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = item.icon,
+                                        painter = rememberAsyncImagePainter(model = item.iconUrl),
                                         contentDescription = null,
                                         tint = if (item.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(24.dp)

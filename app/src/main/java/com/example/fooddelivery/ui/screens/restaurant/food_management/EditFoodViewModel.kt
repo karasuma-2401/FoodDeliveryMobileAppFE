@@ -9,13 +9,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.remote.dto.FoodSizeRequest
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.repository.CategoryRepository
+import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
 import java.io.File
+import javax.inject.Inject
 
 data class EditFoodState(
     val foodId: Int = 0,
@@ -37,6 +39,7 @@ data class EditFoodState(
 class EditFoodViewModel @Inject constructor(
     private val repository: RestaurantRepository,
     private val categoryRepository: CategoryRepository,
+    private val foodRepository: FoodRepository, // 👈 Bơm FoodRepository để gọi API Ingredients động
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -54,41 +57,66 @@ class EditFoodViewModel @Inject constructor(
 
     private fun loadFoodDetails(id: Int) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, foodId = id)
-            
-            // Tải danh mục trước để mapping hiển thị
-            categoryRepository.getCategories()
-                .onSuccess { categories ->
+            _state.value = _state.value.copy(isLoading = true, foodId = id, error = null)
+
+            try {
+                // Chạy song song cả 3 API cho tốc độ tối đa
+                val categoriesDeferred = async { categoryRepository.getCategories() }
+                val ingredientsDeferred = async { foodRepository.getIngredients() }
+                val foodDeferred = async { repository.getFoodById(id) }
+
+                val categoriesResult = categoriesDeferred.await()
+                val ingredientsResult = ingredientsDeferred.await()
+                val foodResult = foodDeferred.await()
+
+                if (categoriesResult.isSuccess && ingredientsResult.isSuccess && foodResult.isSuccess) {
+                    val categories = categoriesResult.getOrNull() ?: emptyList()
                     dynamicCategories = categories
-                    repository.getFoodById(id)
-                        .onSuccess { food ->
-                            val matchedCategoryName = categories.find { it.id == food.categoryId.toString() }?.name ?: ""
-                            _state.value = _state.value.copy(
-                                isLoading = false,
-                                itemName = food.name,
-                                details = food.description,
-                                selectedCategory = matchedCategoryName,
-                                imageUrl = food.image,
-                                categories = categories.map { it.name },
-                                selectedSizes = mapOf("M" to food.price.toString()),
-                                ingredients = defaultIngredientItems(food.foodIngredients.orEmpty()
-                                                                        .map { it.id.toString() }
-                                                                        .toSet())
-                            )
-                        }
-                        .onFailure { error ->
-                            _state.value = _state.value.copy(
-                                isLoading = false,
-                                error = error.message
-                            )
-                        }
-                }
-                .onFailure { error ->
+
+                    val ingredientsDto = ingredientsResult.getOrNull() ?: emptyList()
+                    val food = foodResult.getOrNull()!!
+
+                    val savedIngredientIds = food.foodIngredients.orEmpty()
+                        .map { it.id.toString() }
+                        .toSet()
+
+                    val remoteIngredients = ingredientsDto.map { dto ->
+                        IngredientItemState(
+                            id = dto.id.toString(),
+                            name = dto.name,
+                            iconUrl = dto.icon,
+                            isSelected = dto.id.toString() in savedIngredientIds
+                        )
+                    }
+
+                    val initialSizes = food.sizes?.associate { sizeDto ->
+                        sizeDto.name to sizeDto.price.toString()
+                    } ?: mapOf("M" to food.price.toString())
+
+                    val matchedCategoryName = categories.find { it.id == food.categoryId.toString() }?.name ?: ""
+
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        error = error.message ?: "Failed to load categories"
+                        itemName = food.name,
+                        details = food.description,
+                        selectedCategory = matchedCategoryName,
+                        imageUrl = food.image,
+                        categories = categories.map { it.name },
+                        selectedSizes = initialSizes,
+                        ingredients = remoteIngredients
+                    )
+                } else {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = "Failed to load complete food data. Please try again."
                     )
                 }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.localizedMessage ?: "Unknown error occurred"
+                )
+            }
         }
     }
 
@@ -146,6 +174,16 @@ class EditFoodViewModel @Inject constructor(
         }
     }
 
+    private fun sizeOrder(size: String): Int {
+        return when (size.uppercase()) {
+            "S" -> 1
+            "M" -> 2
+            "L" -> 3
+            "XL" -> 4
+            else -> 99
+        }
+    }
+
     fun updateFoodItem() {
         val currentState = _state.value
 
@@ -166,14 +204,21 @@ class EditFoodViewModel @Inject constructor(
 
             val selectedIngredientIds = currentState.ingredients
                 .filter { it.isSelected }
-                .map { it.id }
-            val ingredientIdsCsv = if (selectedIngredientIds.isNotEmpty()) selectedIngredientIds.joinToString(",") else null
+                .mapNotNull { it.id.toIntOrNull() }
 
-            val sizesList = currentState.selectedSizes.entries.mapIndexed { index, entry ->
+            val ingredientIdsPayload = if (selectedIngredientIds.isNotEmpty()) {
+                selectedIngredientIds.joinToString(",")
+            } else {
+                null
+            }
+
+            val sortedSizes = currentState.selectedSizes.entries
+                .sortedBy { sizeOrder(it.key) }
+
+            val sizesList = sortedSizes.mapIndexed { index, entry ->
                 val sizeId = mapSizeToId(entry.key)
                 val price = entry.value.toDoubleOrNull() ?: 0.0
-                val isDefault = index == 0
-                FoodSizeRequest(sizeId = sizeId, price = price, isDefault = isDefault)
+                FoodSizeRequest(sizeId = sizeId, price = price, isDefault = index == 0)
             }
             val sizesJson = Json.encodeToString(sizesList)
             val defaultPrice = sizesList.firstOrNull { it.isDefault }?.price ?: 0.0
@@ -185,7 +230,7 @@ class EditFoodViewModel @Inject constructor(
                 categoryId = categoryId,
                 price = defaultPrice,
                 sizesJson = sizesJson,
-                ingredientIdsCsv = ingredientIdsCsv,
+                ingredientIdsCsv = ingredientIdsPayload,
                 imageFile = currentState.selectedImageFile
             )
                 .onSuccess {

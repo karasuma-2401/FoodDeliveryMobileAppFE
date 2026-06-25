@@ -34,7 +34,7 @@ interface RestaurantRepository {
         restaurantId: Int,
         price: Double,
         sizesJson: String,
-        ingredientIdsCsv: String?,
+        ingredientIds: List<Int>?,
         imageFile: File?
     ): Result<FoodResponse>
 
@@ -52,6 +52,12 @@ interface RestaurantRepository {
     ): Result<FoodResponse>
 
     suspend fun deleteFood(id: Int): Result<Unit>
+
+    suspend fun getRestaurantReviews(
+        restaurantId: Int,
+        limit: Int? = 20,
+        offset: Int? = 0
+    ): Result<List<VendorReviewResponse>>
 
     suspend fun rateRestaurant(
         restaurantId: Int,

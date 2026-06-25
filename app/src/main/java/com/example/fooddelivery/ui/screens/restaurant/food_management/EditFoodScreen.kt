@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun EditFoodScreen(
@@ -266,7 +267,7 @@ fun EditFoodContent(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            imageVector = item.icon,
+                                            painter = rememberAsyncImagePainter(model = item.iconUrl),
                                             contentDescription = null,
                                             tint = if (item.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(24.dp)

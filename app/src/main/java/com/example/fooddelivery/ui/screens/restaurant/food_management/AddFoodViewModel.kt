@@ -1,36 +1,29 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
 
 import android.net.Uri
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BakeryDining
-import androidx.compose.material.icons.filled.Cake
-import androidx.compose.material.icons.filled.Egg
-import androidx.compose.material.icons.filled.Grass
-import androidx.compose.material.icons.filled.LunchDining
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.SetMeal
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.remote.dto.FoodSizeRequest
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.repository.CategoryRepository
+import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
 import java.io.File
+import javax.inject.Inject
 
 data class IngredientItemState(
     val id: String,
     val name: String,
-    val icon: ImageVector,
+    val iconUrl: String? = null,
     val isSelected: Boolean = false
 )
 
@@ -48,30 +41,18 @@ data class AddFoodState(
     val selectedImageUri: Uri? = null
 )
 
-fun defaultIngredientItems(
-    selectedIds: Set<String> = emptySet()
-): List<IngredientItemState> = listOf(
-    IngredientItemState("9", "Beef Patty", Icons.Default.LunchDining, "9" in selectedIds),
-    IngredientItemState("10", "Cheddar", Icons.Default.BakeryDining, "10" in selectedIds),
-    IngredientItemState("11", "Cucumber", Icons.Default.Grass, "11" in selectedIds),
-    IngredientItemState("12", "Salmon", Icons.Default.SetMeal, "12" in selectedIds),
-    IngredientItemState("13", "Egg", Icons.Default.Egg, "13" in selectedIds),
-    IngredientItemState("14", "Seaweed", Icons.Default.Grass, "14" in selectedIds),
-    IngredientItemState("15", "Chicken", Icons.Default.Restaurant, "15" in selectedIds),
-    IngredientItemState("16", "Chocolate", Icons.Default.Cake, "16" in selectedIds)
-)
-
 @HiltViewModel
 class AddFoodViewModel @Inject constructor(
     private val repository: RestaurantRepository,
     private val categoryRepository: CategoryRepository,
+    private val foodRepository: FoodRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = mutableStateOf(AddFoodState())
     val state: State<AddFoodState> = _state
 
-    private var dynamicCategories: List<Category> = emptyList() 
+    private var dynamicCategories: List<Category> = emptyList()
 
     init {
         loadCategoriesAndIngredients()
@@ -79,23 +60,45 @@ class AddFoodViewModel @Inject constructor(
 
     private fun loadCategoriesAndIngredients() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-            categoryRepository.getCategories()
-                .onSuccess { categories ->
+            _state.value = _state.value.copy(isLoading = true, error = null)
+
+            try {
+                val categoriesDeferred = async { categoryRepository.getCategories() }
+                val ingredientsDeferred = async { foodRepository.getIngredients() }
+
+                val categoriesResult = categoriesDeferred.await()
+                val ingredientsResult = ingredientsDeferred.await()
+
+                if (categoriesResult.isSuccess && ingredientsResult.isSuccess) {
+                    val categories = categoriesResult.getOrNull() ?: emptyList()
                     dynamicCategories = categories
+                    val ingredientsDto = ingredientsResult.getOrNull() ?: emptyList()
+                    val remoteIngredients = ingredientsDto.map { dto ->
+                        IngredientItemState(
+                            id = dto.id.toString(),
+                            name = dto.name,
+                            iconUrl = dto.icon,
+                            isSelected = false
+                        )
+                    }
+
                     _state.value = _state.value.copy(
                         isLoading = false,
                         categories = categories.map { it.name },
-                        ingredients = defaultIngredientItems()
+                        ingredients = remoteIngredients
                     )
-                }
-                .onFailure { error ->
+                } else {
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        error = error.message ?: "Failed to load categories",
-                        ingredients = defaultIngredientItems()
+                        error = "Failed to load dynamic data. Please try again."
                     )
                 }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.localizedMessage ?: "Unknown error occurred"
+                )
+            }
         }
     }
 
@@ -190,23 +193,22 @@ class AddFoodViewModel @Inject constructor(
             val selectedIngredientIds = currentState.ingredients
                 .filter { it.isSelected }
                 .mapNotNull { it.id.toIntOrNull() }
-            // Send as JSON array string to satisfy backend IsArray/IsInt validation reliably.
-            val ingredientIdsPayload = if (selectedIngredientIds.isNotEmpty()) {
-                Json.encodeToString(selectedIngredientIds)
-            } else {
-                null
-            }
 
             val sortedSizes = currentState.selectedSizes.entries
                 .sortedBy { sizeOrder(it.key) }
 
-            // Map sizes with a deterministic single default (the smallest selected size).
             val sizesList = sortedSizes.mapIndexed { index, entry ->
                 val sizeId = mapSizeToId(entry.key)
                 val price = entry.value.toDoubleOrNull() ?: 0.0
                 FoodSizeRequest(sizeId = sizeId, price = price, isDefault = index == 0)
             }
-            val sizesJson = Json.encodeToString(sizesList)
+
+            val jsonStrict = Json {
+                encodeDefaults = true
+            }
+
+            val sizesJson = jsonStrict.encodeToString(sizesList)
+
             val defaultPrice = sizesList.firstOrNull { it.isDefault }?.price ?: 0.0
 
             repository.addFood(
@@ -216,7 +218,7 @@ class AddFoodViewModel @Inject constructor(
                 restaurantId = restaurantId,
                 price = defaultPrice,
                 sizesJson = sizesJson,
-                ingredientIdsCsv = ingredientIdsPayload,
+                ingredientIds = selectedIngredientIds,
                 imageFile = currentState.selectedImageFile
             )
                 .onSuccess {
