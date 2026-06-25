@@ -160,7 +160,7 @@ fun CheckoutScreen(
                     onClick = { showPaymentSheet = true }
                 )
 
-                SectionTitle("Voucher giảm giá")
+                SectionTitle("Discount Voucher")
                 VoucherEntryCard(
                     selectedVoucher = state.selectedVoucher,
                     availableCount = state.availableVouchers.count { it.isApplicable },

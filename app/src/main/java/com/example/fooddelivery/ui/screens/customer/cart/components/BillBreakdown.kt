@@ -15,6 +15,7 @@ fun BillBreakdown(
     subtotal: Double,
     discount: Double,
     total: Double,
+    deliveryFee: Double? = null,
     voucherLabel: String? = null,
     modifier: Modifier = Modifier
 ) {
@@ -37,13 +38,17 @@ fun BillBreakdown(
             )
             BillRow(label = "Subtotal", value = subtotal)
 
+            if (deliveryFee != null && deliveryFee > 0) {
+                BillRow(label = "Delivery fee (est.)", value = deliveryFee)
+            }
+
             if (discount > 0) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = if (voucherLabel != null) "Giảm giá ($voucherLabel)" else "Giảm giá",
+                        text = if (voucherLabel != null) "Discount ($voucherLabel)" else "Discount",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.primary
                     )

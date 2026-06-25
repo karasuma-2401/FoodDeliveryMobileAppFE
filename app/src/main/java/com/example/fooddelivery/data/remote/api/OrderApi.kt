@@ -13,7 +13,7 @@ interface OrderApi {
     suspend fun getOrderStatus(@Path("orderId") orderId: Int): Response<BaseResponse<OrderStatusSummaryResponse>>
 
     @POST("orders/{orderId}/reorder")
-    suspend fun reorder(@Path("orderId") orderId: String): Response<BaseResponse<MessageResponse>>
+    suspend fun reorder(@Path("orderId") orderId: String): Response<BaseResponse<ReorderResponse>>
 
     @GET("orders")
     suspend fun getOngoingOrders(

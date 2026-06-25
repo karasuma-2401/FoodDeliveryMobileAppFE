@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.remote.dto.toDomain
 import com.example.fooddelivery.domain.model.CartItem
+import com.example.fooddelivery.domain.model.CartRestaurantGroup
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.domain.repository.CartRepository
@@ -15,37 +16,79 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val MAX_CART_QUANTITY = 99
+
+data class CartRestaurantSection(
+    val group: CartRestaurantGroup,
+    val items: List<CartItem>,
+)
+
 data class CartState(
     val items: List<CartItem> = emptyList(),
+    val restaurantGroups: List<CartRestaurantGroup> = emptyList(),
     val availableVouchers: List<Voucher> = emptyList(),
     val selectedVoucher: Voucher? = null,
     val promoCode: String = "",
     val promoError: String? = null,
     val isLoading: Boolean = false,
-    val selectedRestaurantName: String? = null,
+    val selectedRestaurantId: String? = null,
     val discount: Double = 0.0
 ) {
-    val itemsByRestaurant: Map<String, List<CartItem>> get() = items.groupBy { it.restaurantName }
-    val selectedItems: List<CartItem> get() = items.filter { it.restaurantName == selectedRestaurantName }
+    val restaurantSections: List<CartRestaurantSection>
+        get() {
+            val groups = if (restaurantGroups.isNotEmpty()) {
+                restaurantGroups
+            } else {
+                items.groupBy { it.restaurantId }.map { (restaurantId, groupItems) ->
+                    CartRestaurantGroup(
+                        restaurantId = restaurantId,
+                        restaurantName = groupItems.first().restaurantName,
+                        itemCount = groupItems.sumOf { it.quantity },
+                        subtotal = groupItems.sumOf { it.totalPrice },
+                    )
+                }
+            }
+            return groups.map { group ->
+                CartRestaurantSection(
+                    group = group,
+                    items = items.filter { it.restaurantId == group.restaurantId },
+                )
+            }.filter { it.items.isNotEmpty() }
+        }
+
+    val selectedSection: CartRestaurantSection?
+        get() = restaurantSections.find { it.group.restaurantId == selectedRestaurantId }
+
+    val selectedItems: List<CartItem>
+        get() = selectedSection?.items.orEmpty()
+
+    val selectedRestaurantName: String?
+        get() = selectedSection?.group?.restaurantName
+
+    val selectedDeliveryFee: Double?
+        get() = selectedSection?.group?.deliveryFee
+
     val subTotal: Double get() = selectedItems.sumOf { it.totalPrice }
     val total: Double get() = (subTotal - discount).coerceAtLeast(0.0)
     val isCartEmpty: Boolean get() = items.isEmpty()
-    val canCheckout: Boolean get() = selectedItems.isNotEmpty() && selectedRestaurantName != null
+    val canCheckout: Boolean get() = selectedItems.isNotEmpty() && selectedRestaurantId != null
 }
 
 sealed interface CartEvent {
     data class UpdateQuantity(val cartItemId: Int, val newQuantity: Int) : CartEvent
     data class RemoveItem(val cartItemId: Int) : CartEvent
     data object ClearCart : CartEvent
+    data class ClearRestaurantGroup(val restaurantId: String) : CartEvent
     data class ApplyVoucher(val voucher: Voucher?) : CartEvent
     data class PromoCodeChanged(val code: String) : CartEvent
     data object ApplyPromoCode : CartEvent
     data object ProceedToCheckout : CartEvent
-    data class SelectRestaurant(val restaurantName: String) : CartEvent
+    data class SelectRestaurant(val restaurantId: String) : CartEvent
     data object SyncCart : CartEvent
 }
 
@@ -57,6 +100,7 @@ sealed interface CartUiEffect {
         val voucherId: Int? = null
     ) : CartUiEffect
     data class ShowError(val message: String) : CartUiEffect
+    data class ShowMessage(val message: String) : CartUiEffect
 }
 
 @HiltViewModel
@@ -78,16 +122,23 @@ class CartViewModel @Inject constructor(
 
     private fun observeCart() {
         viewModelScope.launch {
-            cartRepository.cartItems.collectLatest { items ->
+            combine(
+                cartRepository.cartItems,
+                cartRepository.restaurantGroups,
+            ) { items, groups ->
+                items to groups
+            }.collectLatest { (items, groups) ->
                 _state.update { currentState ->
-                    val newSelectedName = if (items.any { it.restaurantName == currentState.selectedRestaurantName }) {
-                        currentState.selectedRestaurantName
-                    } else {
-                        items.firstOrNull()?.restaurantName
+                    val resolvedGroups = if (groups.isNotEmpty()) groups else currentState.restaurantGroups
+                    val newSelectedId = when {
+                        items.any { it.restaurantId == currentState.selectedRestaurantId } ->
+                            currentState.selectedRestaurantId
+                        else -> items.firstOrNull()?.restaurantId
                     }
                     currentState.copy(
                         items = items,
-                        selectedRestaurantName = newSelectedName
+                        restaurantGroups = resolvedGroups,
+                        selectedRestaurantId = newSelectedId,
                     )
                 }
                 loadSuitableVouchers()
@@ -97,7 +148,7 @@ class CartViewModel @Inject constructor(
 
     private fun loadSuitableVouchers() {
         val currentState = _state.value
-        val restaurantId = currentState.selectedItems.firstOrNull()?.restaurantId?.toIntOrNull() ?: run {
+        val restaurantId = currentState.selectedRestaurantId?.toIntOrNull() ?: run {
             _state.update { it.copy(availableVouchers = emptyList(), selectedVoucher = null, discount = 0.0) }
             return
         }
@@ -136,6 +187,12 @@ class CartViewModel @Inject constructor(
     fun onEvent(event: CartEvent) {
         when (event) {
             is CartEvent.UpdateQuantity -> {
+                if (event.newQuantity > MAX_CART_QUANTITY) {
+                    viewModelScope.launch {
+                        _uiEffect.emit(CartUiEffect.ShowError("Maximum quantity is $MAX_CART_QUANTITY"))
+                    }
+                    return
+                }
                 viewModelScope.launch {
                     _state.update { it.copy(isLoading = true) }
                     cartRepository.updateQuantity(event.cartItemId, event.newQuantity)
@@ -153,6 +210,17 @@ class CartViewModel @Inject constructor(
                 viewModelScope.launch {
                     _state.update { it.copy(isLoading = true) }
                     cartRepository.clearCart()
+                    _state.update { it.copy(isLoading = false) }
+                }
+            }
+            is CartEvent.ClearRestaurantGroup -> {
+                val restaurantId = event.restaurantId.toIntOrNull() ?: return
+                viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
+                    cartRepository.clearCartByRestaurant(restaurantId)
+                        .onFailure { error ->
+                            _uiEffect.emit(CartUiEffect.ShowError(error.message ?: "Failed to remove restaurant items"))
+                        }
                     _state.update { it.copy(isLoading = false) }
                 }
             }
@@ -178,10 +246,10 @@ class CartViewModel @Inject constructor(
             is CartEvent.ApplyPromoCode -> handleApplyPromoCode()
             is CartEvent.ProceedToCheckout -> handleProceedToCheckout()
             is CartEvent.SelectRestaurant -> {
-                if (_state.value.selectedRestaurantName != event.restaurantName) {
+                if (_state.value.selectedRestaurantId != event.restaurantId) {
                     _state.update {
                         it.copy(
-                            selectedRestaurantName = event.restaurantName,
+                            selectedRestaurantId = event.restaurantId,
                             selectedVoucher = null,
                             promoCode = "",
                             promoError = null,
@@ -203,7 +271,7 @@ class CartViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, promoError = null) }
-            val restaurantId = _state.value.selectedItems.firstOrNull()?.restaurantId?.toIntOrNull()
+            val restaurantId = _state.value.selectedRestaurantId?.toIntOrNull()
 
             voucherRepository.getVoucherByCode(code, restaurantId)
                 .onSuccess { voucherDto ->
@@ -239,13 +307,13 @@ class CartViewModel @Inject constructor(
     private fun handleProceedToCheckout() {
         val currentState = _state.value
         viewModelScope.launch {
-            if (currentState.canCheckout && currentState.selectedRestaurantName != null) {
-                val restaurantId = currentState.selectedItems.firstOrNull()?.restaurantId
-                if (restaurantId != null) {
+            if (currentState.canCheckout && currentState.selectedRestaurantId != null) {
+                val restaurantName = currentState.selectedRestaurantName
+                if (restaurantName != null) {
                     _uiEffect.emit(
                         CartUiEffect.NavigateToCheckout(
-                            restaurantId = restaurantId,
-                            restaurantName = currentState.selectedRestaurantName,
+                            restaurantId = currentState.selectedRestaurantId,
+                            restaurantName = restaurantName,
                             discount = currentState.discount,
                             voucherId = currentState.selectedVoucher?.id
                         )
@@ -257,7 +325,7 @@ class CartViewModel @Inject constructor(
                 val errorMsg = if (currentState.isCartEmpty) {
                     "Your cart is empty"
                 } else {
-                    "Please select items to checkout"
+                    "Please select a restaurant to checkout"
                 }
                 _uiEffect.emit(CartUiEffect.ShowError(errorMsg))
             }

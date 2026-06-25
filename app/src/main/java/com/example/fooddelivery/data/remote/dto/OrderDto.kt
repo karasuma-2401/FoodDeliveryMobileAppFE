@@ -12,7 +12,7 @@ data class OrderRequest(
     val orderFoods: List<OrderItemRequest>,
     val note: String? = null,
     val paymentMethod: String,
-    val clearCartAfterOrder: Boolean = true,
+    val clearCartAfterOrder: Boolean = false,
     val totalAmount: Double? = null
 )
 
@@ -57,7 +57,7 @@ data class OrderDetailDto(
 @Serializable
 data class PaymentInformationDto(
     val id: Int? = null,
-    val orderId: Int? = null,
+    val orderId: String? = null,
     val amount: String? = null,
     val method: String? = null,
     val paymentStatus: String? = null,
@@ -226,4 +226,18 @@ data class OngoingOrdersResponse(
 @Serializable
 data class HistoryOrdersResponse(
     val history_orders: List<OrderListDto>
+)
+
+@Serializable
+data class ReorderResponse(
+    val cart: CartResponse,
+    val addedCount: Int,
+    val skippedItems: List<SkippedReorderItemResponse> = emptyList(),
+    val message: String? = null,
+)
+
+@Serializable
+data class SkippedReorderItemResponse(
+    val foodId: Int,
+    val reason: String,
 )

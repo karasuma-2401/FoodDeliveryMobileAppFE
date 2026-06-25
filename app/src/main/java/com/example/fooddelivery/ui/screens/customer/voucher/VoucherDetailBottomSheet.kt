@@ -48,7 +48,7 @@ fun VoucherDetailBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Chi tiết voucher",
+                    text = "Voucher Details",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 IconButton(
@@ -98,7 +98,7 @@ fun VoucherDetailBottomSheet(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Mã: ${voucher.code}",
+                            text = "Code: ${voucher.code}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
@@ -113,7 +113,7 @@ fun VoucherDetailBottomSheet(
 
             VoucherDetailSection(
                 icon = Icons.Default.Info,
-                title = "Mô tả",
+                title = "Description",
                 content = voucher.description
             )
 
@@ -121,7 +121,7 @@ fun VoucherDetailBottomSheet(
                 Spacer(modifier = Modifier.height(20.dp))
                 VoucherDetailSection(
                     icon = Icons.Default.Store,
-                    title = "Áp dụng cho",
+                    title = "Applied for",
                     content = voucher.restaurantName
                 )
             }
@@ -129,11 +129,11 @@ fun VoucherDetailBottomSheet(
             Spacer(modifier = Modifier.height(20.dp))
             VoucherDetailSection(
                 icon = Icons.Default.Percent,
-                title = "Điều kiện",
+                title = "Conditions",
                 content = buildString {
-                    append("Đơn tối thiểu: $${voucher.minOrderAmount}")
+                    append("Min. order: $${voucher.minOrderAmount}")
                     if (voucher.maxDiscountAmount != null) {
-                        append("\nGiảm tối đa: $${voucher.maxDiscountAmount}")
+                        append("\nMax. discount: $${voucher.maxDiscountAmount}")
                     }
                 }
             )
@@ -142,7 +142,7 @@ fun VoucherDetailBottomSheet(
                 Spacer(modifier = Modifier.height(20.dp))
                 VoucherDetailSection(
                     icon = Icons.Default.Close,
-                    title = "Hạn sử dụng",
+                    title = "Expiry",
                     content = voucher.expiryText
                 )
             }
@@ -151,7 +151,7 @@ fun VoucherDetailBottomSheet(
                 Spacer(modifier = Modifier.height(20.dp))
                 VoucherDetailSection(
                     icon = Icons.Default.Info,
-                    title = "Lý do không dùng được",
+                    title = "Why not eligible",
                     content = voucher.conditionMessage
                 )
             }
@@ -174,7 +174,7 @@ fun VoucherDetailBottomSheet(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("Áp dụng voucher", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Apply Voucher", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }

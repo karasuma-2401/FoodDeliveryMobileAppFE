@@ -15,8 +15,13 @@ fun CategoryTabRow(
     selectedCategoryId: String,
     onCategorySelected: (String) -> Unit,
 ) {
+    if (categories.isEmpty()) return
+
+    val selectedTabIndex = categories.indexOfFirst { it.id == selectedCategoryId }
+        .let { index -> if (index >= 0) index else 0 }
+
     ScrollableTabRow(
-        selectedTabIndex = categories.indexOfFirst { it.id == selectedCategoryId }.coerceAtLeast(0),
+        selectedTabIndex = selectedTabIndex,
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.primary,
         edgePadding = 16.dp,

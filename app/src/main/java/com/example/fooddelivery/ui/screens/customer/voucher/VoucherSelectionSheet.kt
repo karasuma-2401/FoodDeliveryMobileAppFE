@@ -63,13 +63,13 @@ fun VoucherSelectionSheet(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Voucher & Mã giảm giá",
+                    text = "Vouchers & Promo Codes",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 if (subtotal > 0) {
                     Text(
-                        text = "Đơn hàng: $${String.format("%.2f", subtotal)}",
+                        text = "Order: $${String.format("%.2f", subtotal)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -109,7 +109,7 @@ fun VoucherSelectionSheet(
                     onValueChange = onPromoCodeChange,
                     placeholder = {
                         Text(
-                            text = "Nhập mã giảm giá",
+                            text = "Enter promo code",
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             fontSize = 14.sp
                         )
@@ -138,7 +138,7 @@ fun VoucherSelectionSheet(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("Áp dụng", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Apply", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
             if (promoError != null) {
@@ -175,7 +175,7 @@ fun VoucherSelectionSheet(
                 onClick = { selectedTab = 0 },
                 text = {
                     Text(
-                        text = "Dùng được (${applicableVouchers.size})",
+                        text = "Available (${applicableVouchers.size})",
                         fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
                         fontSize = 13.sp
                     )
@@ -186,7 +186,7 @@ fun VoucherSelectionSheet(
                 onClick = { selectedTab = 1 },
                 text = {
                     Text(
-                        text = "Không đủ ĐK (${inapplicableVouchers.size})",
+                        text = "Not eligible (${inapplicableVouchers.size})",
                         fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
                         fontSize = 13.sp
                     )
@@ -215,12 +215,12 @@ fun VoucherSelectionSheet(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = if (selectedTab == 0) "Chưa có voucher khả dụng" else "Không có voucher không đủ điều kiện",
+                        text = if (selectedTab == 0) "No available vouchers" else "No ineligible vouchers",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Nhập mã giảm giá ở trên",
+                        text = "Enter a promo code above",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
@@ -260,7 +260,7 @@ fun VoucherSelectionSheet(
                     .padding(horizontal = 24.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "Không dùng voucher",
+                    text = "Don't use voucher",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )

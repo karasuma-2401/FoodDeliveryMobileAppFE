@@ -53,6 +53,9 @@ fun CartScreen(
                 is CartUiEffect.ShowError -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
+                is CartUiEffect.ShowMessage -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -166,19 +169,24 @@ fun CartContent(
                     .padding(innerPadding),
                 contentPadding = PaddingValues(bottom = 120.dp)
             ) {
-                state.itemsByRestaurant.forEach { (restaurantName, groupedItems) ->
+                state.restaurantSections.forEach { section ->
+                    val group = section.group
                     item {
                         RestaurantHeader(
-                            restaurantName = restaurantName,
-                            restaurantAddress = null,
-                            isSelected = state.selectedRestaurantName == restaurantName,
-                            onSelect = { onEvent(CartEvent.SelectRestaurant(restaurantName)) }
+                            restaurantName = group.restaurantName,
+                            deliveryFee = group.deliveryFee,
+                            estimatedDeliveryTime = group.estimatedDeliveryTime,
+                            isSelected = state.selectedRestaurantId == group.restaurantId,
+                            onSelect = { onEvent(CartEvent.SelectRestaurant(group.restaurantId)) },
+                            onClearGroup = {
+                                onEvent(CartEvent.ClearRestaurantGroup(group.restaurantId))
+                            }
                         )
                     }
 
                     items(
-                        items = groupedItems,
-                        key = { it.cartItemId ?: it.food.id }
+                        items = section.items,
+                        key = { it.cartItemId ?: "${it.food.id}_${it.foodSizeId}" }
                     ) { item ->
                         SwipeToDeleteContainer(
                             onDelete = {
@@ -189,6 +197,7 @@ fun CartContent(
                                 item = item,
                                 onIncrease = {
                                     item.cartItemId?.let {
+                                        if (item.quantity >= 99) return@let
                                         onEvent(
                                             CartEvent.UpdateQuantity(
                                                 it,
@@ -234,6 +243,7 @@ fun CartContent(
                     item {
                         BillBreakdown(
                             subtotal = state.subTotal,
+                            deliveryFee = state.selectedDeliveryFee,
                             discount = state.discount,
                             total = state.total,
                             voucherLabel = state.selectedVoucher?.code,

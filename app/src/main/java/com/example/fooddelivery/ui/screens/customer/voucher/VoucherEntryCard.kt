@@ -88,14 +88,14 @@ fun VoucherEntryCard(
                         maxLines = 1
                     )
                     Text(
-                        text = "Tiết kiệm $${String.format(Locale.US, "%.2f", discount)}",
+                        text = "Save $${String.format(Locale.US, "%.2f", discount)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold
                     )
                 } else {
                     Text(
-                        text = "Chọn voucher hoặc nhập mã",
+                        text = "Select voucher or enter code",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -103,9 +103,9 @@ fun VoucherEntryCard(
                     )
                     Text(
                         text = if (availableCount > 0) {
-                            "$availableCount voucher khả dụng"
+                            "$availableCount vouchers available"
                         } else {
-                            "Nhập mã giảm giá"
+                            "Enter promo code"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -120,7 +120,7 @@ fun VoucherEntryCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Gỡ voucher",
+                        contentDescription = "Remove voucher",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
                     )

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.R
+import com.example.fooddelivery.data.remote.dto.CheckPaymentRequest
 import com.example.fooddelivery.data.remote.dto.OrderItemRequest
 import com.example.fooddelivery.data.remote.dto.OrderRequest
 import com.example.fooddelivery.data.remote.dto.toDomain
@@ -208,7 +209,7 @@ class CheckoutViewModel @Inject constructor(
                 handlePlaceOrder()
             }
             is CheckoutEvent.ReturnFromMoMo -> {
-                startPolling()
+                confirmMoMoPayment()
             }
             is CheckoutEvent.ApplyVoucher -> {
                 val discount = event.voucher?.let { calculateDiscount(it, _state.value.subtotal) } ?: 0.0
@@ -325,25 +326,25 @@ class CheckoutViewModel @Inject constructor(
                 },
                 paymentMethod = currentState.paymentMethod.value,
                 note = currentState.orderNote,
-                clearCartAfterOrder = true,
+                clearCartAfterOrder = false,
                 totalAmount = null
             )
 
             val result = orderRepository.createOrder(orderRequest)
 
             result.onSuccess { response ->
+                cartRepository.syncCart()
                 pendingOrderId = response.order.id
                 if (currentState.paymentMethod is PaymentMethod.Cash) {
                     _state.update { it.copy(isLoading = false) }
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(response.order.id))
                 } else {
                     _state.update { it.copy(isLoading = false) }
-                    val paymentLink = response.paymentInformation.deeplink?.takeIf { it.isNotBlank() }
-                        ?: response.paymentInformation.payUrl?.takeIf { it.isNotBlank() }
-                    paymentLink?.let {
-                        _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(it, currentState.total))
-                    } ?: run {
-                        _uiEffect.emit(CheckoutUiEffect.ShowError("Failed to get payment link"))
+                    val deeplink = response.paymentInformation.deeplink?.takeIf { it.isNotBlank() }
+                    if (deeplink != null && isMoMoAppDeeplink(deeplink)) {
+                        _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(deeplink, currentState.total))
+                    } else {
+                        confirmMoMoPayment()
                     }
                 }
             }.onFailure { error ->
@@ -353,37 +354,56 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    private fun startPolling() {
+    private fun confirmMoMoPayment() {
         val orderId = pendingOrderId ?: return
         if (_state.value.isPolling) return
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = false, isPolling = true) }
-            var isPaid = false
-            var attempts = 0
-            val maxAttempts = 15
-            
-            while (attempts < maxAttempts && !isPaid) {
-                delay(6000)
-                val paymentResult = paymentRepository.getPaymentDetail(orderId)
 
-                paymentResult.onSuccess { payment ->
-                    if (payment.paymentStatus == "DONE") {
-                        isPaid = true
-                    }
-                }
-                attempts++
+            val momoOrderId = formatMomoOrderId(orderId)
+            val checkResult = paymentRepository.checkPayment(
+                CheckPaymentRequest(momoOrderId = momoOrderId, status = "DONE")
+            )
+
+            var isPaid = checkResult.getOrNull()?.paymentStatus == "DONE"
+
+            if (!isPaid) {
+                isPaid = pollPaymentStatus(orderId)
             }
 
             _state.update { it.copy(isPolling = false) }
 
             if (isPaid) {
-                val completedOrderId = orderId
+                cartRepository.syncCart()
                 pendingOrderId = null
-                _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(completedOrderId))
+                _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(orderId))
             } else {
-                _uiEffect.emit(CheckoutUiEffect.ShowError("Payment confirmation is taking longer than expected. Please check your order tracking."))
+                pendingOrderId = null
+                _uiEffect.emit(
+                    CheckoutUiEffect.ShowError(
+                        "Payment confirmation failed. Please check your order tracking."
+                    )
+                )
             }
         }
     }
+
+    private suspend fun pollPaymentStatus(orderId: Int): Boolean {
+        repeat(5) {
+            delay(3000)
+            val isDone = paymentRepository.getPaymentDetail(orderId)
+                .getOrNull()
+                ?.paymentStatus == "DONE"
+            if (isDone) return true
+        }
+        return false
+    }
+
+    private fun formatMomoOrderId(orderId: Int): String =
+        "MOMO-ORDER-${orderId.toString().padStart(3, '0')}"
+
+    private fun isMoMoAppDeeplink(link: String): Boolean =
+        !link.startsWith("http://", ignoreCase = true) &&
+            !link.startsWith("https://", ignoreCase = true)
 }

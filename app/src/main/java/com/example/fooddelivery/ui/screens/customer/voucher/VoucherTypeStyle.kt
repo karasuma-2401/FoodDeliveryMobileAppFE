@@ -28,7 +28,7 @@ fun Voucher.toVisual(calculatedDiscount: Double = discountAmount): VoucherVisual
         VoucherType.PERCENT -> VoucherVisual(
             icon = Icons.Default.Percent,
             accentColor = primary,
-            discountLabel = "Giảm ${discountAmount.toInt()}%"
+            discountLabel = "${discountAmount.toInt()}% OFF"
         )
         VoucherType.FREE_SHIPPING -> VoucherVisual(
             icon = Icons.Default.LocalShipping,

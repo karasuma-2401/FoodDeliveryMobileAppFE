@@ -122,7 +122,7 @@ fun VoucherTicketCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Info,
-                                    contentDescription = "Chi tiết",
+                                    contentDescription = "Details",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -151,7 +151,7 @@ fun VoucherTicketCard(
                     } else if (voucher.expiryText != null) {
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "HSD: ${voucher.expiryText}",
+                            text = "Exp: ${voucher.expiryText}",
                             fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium

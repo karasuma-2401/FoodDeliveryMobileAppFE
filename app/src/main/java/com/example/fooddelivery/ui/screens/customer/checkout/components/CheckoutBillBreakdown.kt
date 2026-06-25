@@ -45,7 +45,7 @@ fun CheckoutBillBreakdown(
             if (discount > 0) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
-                        text = if (voucherLabel != null) "Giảm giá ($voucherLabel)" else "Giảm giá",
+                        text = if (voucherLabel != null) "Discount ($voucherLabel)" else "Discount",
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text("-$${String.format(Locale.US, "%.2f",discount)}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
