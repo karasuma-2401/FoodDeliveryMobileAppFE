@@ -93,10 +93,12 @@ interface RestaurantApi {
         @Body request: RestaurantRatingRequest
     ): Response<BaseResponse<FoodRatingResponse>>
 
-    @GET("restaurant/reviews/{restaurantId}")
-    suspend fun getRestaurantReviews(
-        @Path("restaurantId") restaurantId: Int
-    ): Response<BaseResponse<List<RestaurantReviewDto>>>
+    @GET("restaurant/manage/{restaurantId}/revenue-details") // 🌟 Sửa lại đường dẫn endpoint chi tiết ở đây
+    suspend fun getRestaurantRevenue(
+        @Path("restaurantId") restaurantId: Int,
+        @Query("limit") limit: Int? = 20,
+        @Query("offset") offset: Int? = 0
+    ): Response<BaseResponse<RevenueDataWrapperDto>>
 
     @PATCH("restaurant/reviews/{reviewId}")
     suspend fun updateReview(
@@ -108,4 +110,5 @@ interface RestaurantApi {
     suspend fun deleteReview(
         @Path("reviewId") reviewId: Int
     ): Response<BaseResponse<FoodRatingResponse>>
+
 }

@@ -70,6 +70,7 @@ import com.example.fooddelivery.ui.screens.admin.notification.AdminNotificationS
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonalInfoScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantProfileScreen
+import com.example.fooddelivery.ui.screens.restaurant.revenue.RestaurantRevenueScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -660,6 +661,11 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                                 RestaurantReviewsRoute(restaurantId = resId)
                             )
                         },
+                        onSeeRevenueClick = { resId ->
+                            vendorNavController.navigate(
+                                RestaurantRevenueRoute(restaurantId = resId)
+                            )
+                        },
                         onAddFoodClick = onAddFood,
                         onNavigate = onVendorNavigate
                     )
@@ -695,6 +701,12 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     val route = backStackEntry.toRoute<RestaurantReviewsRoute>()
                     ReviewScreen(
                         restaurantId = route.restaurantId,
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
+                }
+                composable<RestaurantRevenueRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<RestaurantRevenueRoute>()
+                    RestaurantRevenueScreen(
                         onNavigateBack = { vendorNavController.popBackStack() }
                     )
                 }
