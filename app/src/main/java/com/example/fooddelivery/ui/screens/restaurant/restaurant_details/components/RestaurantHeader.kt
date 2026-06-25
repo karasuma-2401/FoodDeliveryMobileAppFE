@@ -40,7 +40,8 @@ fun RestaurantHeader(
     onBackClick: () -> Unit,
     onViewAllVouchers: () -> Unit,
     onFavoriteToggle: () -> Unit = {},
-    onShareClick: () -> Unit = {}
+    onShareClick: () -> Unit = {},
+    onReviewsClick: () -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
         Box(modifier = Modifier.fillMaxWidth().height(220.dp)) {
@@ -131,7 +132,10 @@ fun RestaurantHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { onReviewsClick() }
+                ) {
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = null,

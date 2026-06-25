@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 fun RestaurantDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFoodDetail: (String) -> Unit,
+    onNavigateToReviews: (String) -> Unit,
     viewModel: RestaurantDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -62,6 +63,7 @@ fun RestaurantDetailScreen(
         snackBarHostState = snackBarHostState,
         onNavigateBack = onNavigateBack,
         onNavigateToFoodDetail = onNavigateToFoodDetail,
+        onNavigateToReviews = onNavigateToReviews,
         onEvent = viewModel::onEvent
     )
 }
@@ -73,6 +75,7 @@ fun RestaurantDetailContent(
     snackBarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     onNavigateToFoodDetail: (String) -> Unit,
+    onNavigateToReviews: (String) -> Unit,
     onEvent: (RestaurantDetailEvent) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -172,8 +175,9 @@ fun RestaurantDetailContent(
                             vouchers = state.vouchers,
                             onBackClick = onNavigateBack,
                             onViewAllVouchers = { showVoucherSheet = true },
-                            onFavoriteToggle = { onEvent(RestaurantDetailEvent.ToggleFavorite) }
-                        )
+                                    onFavoriteToggle = { onEvent(RestaurantDetailEvent.ToggleFavorite) },
+                                    onReviewsClick = { onNavigateToReviews(restaurant.id) }
+                                )
                     }
                     stickyHeader {
                         Box(
@@ -430,7 +434,8 @@ fun RestaurantDetailScreenPreview() {
             snackBarHostState = SnackbarHostState(),
             onNavigateBack = {},
             onNavigateToFoodDetail = {},
-            onEvent = {}
+        onNavigateToReviews = {},
+        onEvent = {}
         )
     }
 }

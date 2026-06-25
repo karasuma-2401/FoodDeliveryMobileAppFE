@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 data class RestaurantDetailState(
@@ -120,82 +121,94 @@ class RestaurantDetailViewModel @Inject constructor(
     private fun loadRestaurantDetails() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            
+
             val idInt = restaurantId.toIntOrNull() ?: 1
-            
-            // Parallel loading
-            launch {
-                restaurantRepository.getFoods(idInt).onSuccess { foodResponses ->
-                    val apiFoodItems = foodResponses.map { dto ->
-                        FoodItem(
-                            id = dto.id.toString(),
-                            name = dto.name,
-                            restaurantId = restaurantId,
-                            restaurantName = _state.value.restaurant?.name ?: "",
-                            categoryId = dto.categoryId.toString(),
-                            price = dto.price,
-                            imageRes = R.drawable.food_bowl,
-                            imageUrl = dto.image
-                        )
+
+            try {
+                supervisorScope {
+                    // Foods
+                    launch {
+                        restaurantRepository.getFoods(idInt).onSuccess { foodResponses ->
+                            val apiFoodItems = foodResponses.map { dto ->
+                                FoodItem(
+                                    id = dto.id.toString(),
+                                    name = dto.name,
+                                    restaurantId = restaurantId,
+                                    restaurantName = _state.value.restaurant?.name ?: "",
+                                    categoryId = dto.category?.name ?: "Others",
+                                    price = dto.price,
+                                    imageRes = R.drawable.food_bowl,
+                                    imageUrl = dto.image
+                                )
+                            }
+
+                            val foodItems = if (apiFoodItems.isEmpty()) getSeedFoodItems() else apiFoodItems
+                            val categories = foodItems.map { it.categoryId }.distinct()
+
+                            _state.update {
+                                it.copy(
+                                    foodItems = foodItems,
+                                    categories = categories,
+                                    selectedCategory = categories.firstOrNull() ?: "",
+                                    categorizedFoodItem = foodItems.groupBy { item -> item.categoryId }
+                                )
+                            }
+                        }.onFailure {
+                            val foodItems = getSeedFoodItems()
+                            val categories = foodItems.map { it.categoryId }.distinct()
+                            _state.update {
+                                it.copy(
+                                    foodItems = foodItems,
+                                    categories = categories,
+                                    selectedCategory = categories.firstOrNull() ?: "",
+                                    categorizedFoodItem = foodItems.groupBy { item -> item.categoryId }
+                                )
+                            }
+                        }
                     }
-                    
-                    val foodItems = if (apiFoodItems.isEmpty()) getSeedFoodItems() else apiFoodItems
-                    val categories = foodItems.map { it.categoryId }.distinct()
-                    
-                    _state.update {
-                        it.copy(
-                            foodItems = foodItems,
-                            categories = categories,
-                            selectedCategory = categories.firstOrNull() ?: "",
-                            categorizedFoodItem = foodItems.groupBy { item -> item.categoryId }
-                        )
+
+                    // Vouchers
+                    launch {
+                        voucherRepository.getVouchers(restaurantId = idInt)
+                            .onSuccess { vouchersDto ->
+                                _state.update { it.copy(vouchers = vouchersDto.map { dto -> dto.toDomain() }) }
+                            }
                     }
-                }.onFailure {
-                    val foodItems = getSeedFoodItems()
-                    val categories = foodItems.map { it.categoryId }.distinct()
-                    _state.update {
-                        it.copy(
-                            foodItems = foodItems,
-                            categories = categories,
-                            selectedCategory = categories.firstOrNull() ?: "",
-                            categorizedFoodItem = foodItems.groupBy { item -> item.categoryId }
-                        )
+
+                    // Restaurant detail
+                    launch {
+                        restaurantRepository.getRestaurantById(idInt).onSuccess { dto ->
+                            val restaurant = Restaurant(
+                                id = dto.id.toString(),
+                                name = dto.name,
+                                description = dto.description ?: "",
+                                tags = dto.categories?.map { it.name } ?: emptyList(),
+                                rating = dto.averageRating?.toFloat() ?: 0f,
+                                reviewCount = dto.ratingCount ?: 0,
+                                deliveryFee = dto.deliveryFee ?: 0.0,
+                                imageUrl = dto.image,
+                                isLiked = dto.isLiked ?: false
+                            )
+                            _state.update { it.copy(restaurant = restaurant) }
+
+                            // After getting restaurant, check its specific like status
+                            checkLikeStatus(idInt)
+                        }.onFailure {
+                            if (_state.value.restaurant == null) {
+                                _state.update { it.copy(restaurant = getMockRestaurant()) }
+                                checkLikeStatus(idInt)
+                            }
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                // Surface error to UI
+                try {
+                    _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar(e.localizedMessage ?: "Failed to load restaurant details"))
+                } catch (_: Exception) {}
+            } finally {
+                _state.update { it.copy(isLoading = false) }
             }
-
-            launch {
-                voucherRepository.getVouchers(restaurantId = idInt)
-                    .onSuccess { vouchersDto ->
-                        _state.update { it.copy(vouchers = vouchersDto.map { dto -> dto.toDomain() }) }
-                    }
-            }
-
-            launch {
-                restaurantRepository.getRestaurantById(idInt).onSuccess { dto ->
-                    val restaurant = Restaurant(
-                        id = dto.id.toString(),
-                        name = dto.name,
-                        description = dto.description ?: "",
-                        tags = dto.categories?.map { it.name } ?: emptyList(),
-                        rating = dto.averageRating?.toFloat() ?: 0f,
-                        deliveryFee = dto.deliveryFee ?: 0.0,
-                        imageUrl = dto.image,
-                        isLiked = dto.isLiked ?: false
-                    )
-                    _state.update { it.copy(restaurant = restaurant) }
-                    
-                    // After getting restaurant, check its specific like status
-                    checkLikeStatus(idInt)
-                }.onFailure {
-                    if (_state.value.restaurant == null) {
-                        _state.update { it.copy(restaurant = getMockRestaurant()) }
-                        checkLikeStatus(idInt)
-                    }
-                }
-            }
-
-            _state.update { it.copy(isLoading = false) }
         }
     }
 
