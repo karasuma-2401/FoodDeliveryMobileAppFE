@@ -22,9 +22,9 @@ import com.example.fooddelivery.ui.screens.customer.cart.components.CartItemCard
 import com.example.fooddelivery.ui.screens.customer.cart.components.EmptyCartView
 import com.example.fooddelivery.ui.screens.customer.cart.components.RestaurantHeader
 import com.example.fooddelivery.ui.screens.customer.cart.components.SwipeToDeleteContainer
-import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherDetailBottomSheet
-import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSection
-import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSelectionSheet
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherDetailBottomSheet
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherEntryCard
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherSelectionSheet
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,15 +74,20 @@ fun CartScreen(
             VoucherSelectionSheet(
                 vouchers = state.availableVouchers,
                 selectedVoucherId = state.selectedVoucher?.id,
+                subtotal = state.subTotal,
                 promoCode = state.promoCode,
                 promoError = state.promoError,
                 onPromoCodeChange = { viewModel.onEvent(CartEvent.PromoCodeChanged(it)) },
                 onApplyPromoCode = { viewModel.onEvent(CartEvent.ApplyPromoCode) },
-                onVoucherDetailClick = { selectedDetailVoucher = it },
-                onConfirm = { voucher ->
-                    voucher?.let { viewModel.onEvent(CartEvent.ApplyVoucher(it)) }
+                onVoucherSelect = { voucher ->
+                    viewModel.onEvent(CartEvent.ApplyVoucher(voucher))
                     showVoucherSheet = false
                 },
+                onRemoveVoucher = {
+                    viewModel.onEvent(CartEvent.ApplyVoucher(null))
+                    showVoucherSheet = false
+                },
+                onVoucherDetailClick = { selectedDetailVoucher = it },
                 onDismiss = { showVoucherSheet = false }
             )
         }
@@ -216,11 +221,12 @@ fun CartContent(
                 }
                 if (state.canCheckout) {
                     item {
-                        VoucherSection(
-                            promoCode = state.promoCode,
-                            onPromoCodeChange = { onEvent(CartEvent.PromoCodeChanged(it)) },
-                            onApplyPromoCode = { onEvent(CartEvent.ApplyPromoCode) },
-                            onSelectVoucherClick = onShowVoucherSheet,
+                        VoucherEntryCard(
+                            selectedVoucher = state.selectedVoucher,
+                            availableCount = state.availableVouchers.count { it.isApplicable },
+                            discount = state.discount,
+                            onClick = onShowVoucherSheet,
+                            onRemove = { onEvent(CartEvent.ApplyVoucher(null)) },
                             modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                         )
                     }
@@ -230,6 +236,7 @@ fun CartContent(
                             subtotal = state.subTotal,
                             discount = state.discount,
                             total = state.total,
+                            voucherLabel = state.selectedVoucher?.code,
                             modifier = Modifier.padding(horizontal = 24.dp)
                         )
                     }

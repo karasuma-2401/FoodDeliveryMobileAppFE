@@ -27,8 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
-import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherDetailBottomSheet
-import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSelectionSheet
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherDetailBottomSheet
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherEntryCard
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherSelectionSheet
 import com.example.fooddelivery.ui.screens.customer.checkout.components.AddressCard
 import com.example.fooddelivery.ui.screens.customer.checkout.components.AddressSelectionBottomSheet
 import com.example.fooddelivery.ui.screens.customer.checkout.components.CheckoutBillBreakdown
@@ -36,7 +37,6 @@ import com.example.fooddelivery.ui.screens.customer.checkout.components.OrderNot
 import com.example.fooddelivery.ui.screens.customer.checkout.components.PaymentMethodBottomSheet
 import com.example.fooddelivery.ui.screens.customer.checkout.components.PaymentMethodCard
 import com.example.fooddelivery.ui.screens.customer.checkout.components.SectionTitle
-import com.example.fooddelivery.ui.screens.customer.checkout.components.VoucherCard
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -160,16 +160,20 @@ fun CheckoutScreen(
                     onClick = { showPaymentSheet = true }
                 )
 
-                SectionTitle("Discount Voucher")
-                VoucherCard(
+                SectionTitle("Voucher giảm giá")
+                VoucherEntryCard(
                     selectedVoucher = state.selectedVoucher,
-                    onClick = { showVoucherSheet = true }
+                    availableCount = state.availableVouchers.count { it.isApplicable },
+                    discount = state.discount,
+                    onClick = { showVoucherSheet = true },
+                    onRemove = { viewModel.onEvent(CheckoutEvent.ApplyVoucher(null)) }
                 )
 
                 CheckoutBillBreakdown(
                     subtotal = state.subtotal,
                     discount = state.discount,
-                    total = state.total
+                    total = state.total,
+                    voucherLabel = state.selectedVoucher?.code
                 )
 
                 Spacer(modifier = Modifier.height(120.dp))
@@ -232,24 +236,31 @@ fun CheckoutScreen(
         ModalBottomSheet(
             onDismissRequest = { showVoucherSheet = false },
             sheetState = voucherSheetState,
-            dragHandle = null,
+            dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface
         ) {
             VoucherSelectionSheet(
                 vouchers = state.availableVouchers,
                 selectedVoucherId = state.selectedVoucher?.id,
+                subtotal = state.subtotal,
                 promoCode = state.promoCode,
                 promoError = state.promoError,
                 onPromoCodeChange = { viewModel.onEvent(CheckoutEvent.PromoCodeChanged(it)) },
                 onApplyPromoCode = { viewModel.onEvent(CheckoutEvent.ApplyPromoCode) },
-                onVoucherDetailClick = { voucher ->
-                    selectedVoucherForDetail = voucher
-                },
-                onConfirm = { voucher ->
+                onVoucherSelect = { voucher ->
                     viewModel.onEvent(CheckoutEvent.ApplyVoucher(voucher))
                     scope.launch { voucherSheetState.hide() }.invokeOnCompletion {
                         showVoucherSheet = false
                     }
+                },
+                onRemoveVoucher = {
+                    viewModel.onEvent(CheckoutEvent.ApplyVoucher(null))
+                    scope.launch { voucherSheetState.hide() }.invokeOnCompletion {
+                        showVoucherSheet = false
+                    }
+                },
+                onVoucherDetailClick = { voucher ->
+                    selectedVoucherForDetail = voucher
                 },
                 onDismiss = {
                     scope.launch { voucherSheetState.hide() }.invokeOnCompletion {

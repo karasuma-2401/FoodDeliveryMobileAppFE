@@ -20,7 +20,7 @@ interface VoucherApi {
     suspend fun getSuitableVouchers(
         @Path("restaurantId") restaurantId: Int,
         @Query("cost") cost: Double? = null
-    ): Response<List<VoucherDto>>
+    ): Response<BaseResponse<List<VoucherDto>>>
 
     @GET("vouchers/code/{code}")
     suspend fun getVoucherByCode(

@@ -15,6 +15,7 @@ fun BillBreakdown(
     subtotal: Double,
     discount: Double,
     total: Double,
+    voucherLabel: String? = null,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -42,7 +43,7 @@ fun BillBreakdown(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Discount",
+                        text = if (voucherLabel != null) "Giảm giá ($voucherLabel)" else "Giảm giá",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.primary
                     )

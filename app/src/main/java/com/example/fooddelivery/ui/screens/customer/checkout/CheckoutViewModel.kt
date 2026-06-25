@@ -212,10 +212,14 @@ class CheckoutViewModel @Inject constructor(
             }
             is CheckoutEvent.ApplyVoucher -> {
                 val discount = event.voucher?.let { calculateDiscount(it, _state.value.subtotal) } ?: 0.0
-                _state.update { it.copy(
-                    selectedVoucher = event.voucher,
-                    discount = discount
-                ) }
+                _state.update {
+                    it.copy(
+                        selectedVoucher = event.voucher,
+                        discount = discount,
+                        promoCode = if (event.voucher != null) "" else it.promoCode,
+                        promoError = null
+                    )
+                }
             }
             is CheckoutEvent.PromoCodeChanged -> {
                 _state.update { it.copy(promoCode = event.code, promoError = null) }
@@ -334,7 +338,9 @@ class CheckoutViewModel @Inject constructor(
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(response.order.id))
                 } else {
                     _state.update { it.copy(isLoading = false) }
-                    response.momoPayment?.deeplink?.let {
+                    val paymentLink = response.paymentInformation.deeplink?.takeIf { it.isNotBlank() }
+                        ?: response.paymentInformation.payUrl?.takeIf { it.isNotBlank() }
+                    paymentLink?.let {
                         _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(it, currentState.total))
                     } ?: run {
                         _uiEffect.emit(CheckoutUiEffect.ShowError("Failed to get payment link"))

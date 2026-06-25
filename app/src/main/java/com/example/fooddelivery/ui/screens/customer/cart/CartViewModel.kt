@@ -41,7 +41,7 @@ sealed interface CartEvent {
     data class UpdateQuantity(val cartItemId: Int, val newQuantity: Int) : CartEvent
     data class RemoveItem(val cartItemId: Int) : CartEvent
     data object ClearCart : CartEvent
-    data class ApplyVoucher(val voucher: Voucher) : CartEvent
+    data class ApplyVoucher(val voucher: Voucher?) : CartEvent
     data class PromoCodeChanged(val code: String) : CartEvent
     data object ApplyPromoCode : CartEvent
     data object ProceedToCheckout : CartEvent
@@ -164,8 +164,15 @@ class CartViewModel @Inject constructor(
                 }
             }
             is CartEvent.ApplyVoucher -> {
-                val discount = calculateDiscount(event.voucher, _state.value.subTotal)
-                _state.update { it.copy(selectedVoucher = event.voucher, discount = discount) }
+                val discount = event.voucher?.let { calculateDiscount(it, _state.value.subTotal) } ?: 0.0
+                _state.update {
+                    it.copy(
+                        selectedVoucher = event.voucher,
+                        discount = discount,
+                        promoCode = if (event.voucher != null) "" else it.promoCode,
+                        promoError = null
+                    )
+                }
             }
             is CartEvent.PromoCodeChanged -> _state.update { it.copy(promoCode = event.code, promoError = null) }
             is CartEvent.ApplyPromoCode -> handleApplyPromoCode()

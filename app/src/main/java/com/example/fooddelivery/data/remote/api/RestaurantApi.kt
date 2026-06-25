@@ -34,7 +34,7 @@ interface RestaurantApi {
 
 
     @POST("restaurant/{restaurantId}/like")
-    suspend fun toggleFavorite(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<LikeStatusResponse>>
+    suspend fun toggleFavorite(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<ToggleFavoritePayload>>
 
     @GET("restaurant/{restaurantId}/like-status")
     suspend fun getLikeStatus(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<LikeStatusResponse>>
@@ -92,10 +92,6 @@ interface RestaurantApi {
         @Body request: RestaurantRatingRequest
     ): Response<BaseResponse<FoodRatingResponse>>
 
-    @GET("restaurant/reviews/{restaurantId}")
-    suspend fun getRestaurantReviews(
-        @Path("restaurantId") restaurantId: Int
-    ): Response<BaseResponse<List<RestaurantReviewDto>>>
 
     @PATCH("restaurant/reviews/{reviewId}")
     suspend fun updateReview(

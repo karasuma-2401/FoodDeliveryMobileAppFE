@@ -89,9 +89,18 @@ class RestaurantRepositoryImpl @Inject constructor(
     override suspend fun toggleFavorite(restaurantId: Int): Result<LikeStatusResponse> {
         return try {
             val response = api.toggleFavorite(restaurantId)
-            val result = response.unwrapData("Failed to update favorite status")
-            if (result.isSuccess) {
-                result
+            val payloadResult = response.unwrapData("Failed to update favorite status")
+            if (payloadResult.isSuccess) {
+                payloadResult.fold(
+                    onSuccess = { payload ->
+                        payload.toLikeStatusResponse()?.let { status ->
+                            Result.success(status)
+                        } ?: Result.failure(Exception("Invalid favorite response format"))
+                    },
+                    onFailure = { error ->
+                        Result.failure(error)
+                    }
+                )
             } else {
                 val errorMsg = when (response.code()) {
                     401 -> "Unauthorized: Please login again"
@@ -99,7 +108,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                     404 -> "Restaurant not found"
                     else -> response.parseErrorMessage("Failed to update favorite status")
                 }
-                Result.failure(Exception(errorMsg, result.exceptionOrNull()))
+                Result.failure(Exception(errorMsg, payloadResult.exceptionOrNull()))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -236,14 +245,6 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getRestaurantReviews(restaurantId: Int): Result<List<RestaurantReviewDto>> {
-        return try {
-            api.getRestaurantReviews(restaurantId).unwrapData("Failed to load restaurant reviews")
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            Result.failure(e)
-        }
-    }
 
     override suspend fun updateReview(reviewId: Int, request: UpdateReviewRequest): Result<FoodRatingResponse> {
         return try {
