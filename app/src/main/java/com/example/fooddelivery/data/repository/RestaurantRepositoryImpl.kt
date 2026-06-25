@@ -188,7 +188,9 @@ class RestaurantRepositoryImpl @Inject constructor(
                 categoryId = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                 price = price.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                 sizes = sizesJson.toRequestBody("text/plain".toMediaTypeOrNull()),
-                ingredientIds = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull()),
+                ingredientIds = ingredientIdsCsv?.split(",")?.map { id ->
+                    MultipartBody.Part.createFormData("ingredientIds", id.trim())
+                },
                 image = imageFile?.let {
                     val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
                     MultipartBody.Part.createFormData("image", it.name, requestFile)
