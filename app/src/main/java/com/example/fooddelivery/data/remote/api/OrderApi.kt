@@ -3,6 +3,7 @@ package com.example.fooddelivery.data.remote.api
 import com.example.fooddelivery.data.remote.dto.*
 import retrofit2.Response
 import retrofit2.http.*
+import kotlinx.serialization.json.JsonElement
 
 interface OrderApi {
     @POST("orders")
@@ -41,7 +42,7 @@ interface OrderApi {
     suspend fun updateOrderStatus(
         @Path("orderId") orderId: Int,
         @Body request: UpdateOrderStatusRequest
-    ): Response<BaseResponse<MessageResponse>>
+    ): Response<BaseResponse<JsonElement>>
 
     @POST("orders/{orderId}/confirm-received")
     suspend fun confirmReceived(@Path("orderId") orderId: Int): Response<BaseResponse<MessageResponse>>

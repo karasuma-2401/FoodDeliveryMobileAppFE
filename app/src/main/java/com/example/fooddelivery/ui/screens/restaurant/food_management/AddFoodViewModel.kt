@@ -208,7 +208,6 @@ class AddFoodViewModel @Inject constructor(
             }
 
             val sizesJson = jsonStrict.encodeToString(sizesList)
-            println("🔥🔥🔥 SIZE JSON GỬI LÊN: $sizesJson")
 
             val defaultPrice = sizesList.firstOrNull { it.isDefault }?.price ?: 0.0
 
