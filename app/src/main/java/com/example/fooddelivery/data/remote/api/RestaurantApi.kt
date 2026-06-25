@@ -93,7 +93,7 @@ interface RestaurantApi {
         @Body request: RestaurantRatingRequest
     ): Response<BaseResponse<FoodRatingResponse>>
 
-    @GET("restaurant/manage/{restaurantId}/revenue-details") // 🌟 Sửa lại đường dẫn endpoint chi tiết ở đây
+    @GET("restaurant/manage/{restaurantId}/revenue-details") 
     suspend fun getRestaurantRevenue(
         @Path("restaurantId") restaurantId: Int,
         @Query("limit") limit: Int? = 20,
