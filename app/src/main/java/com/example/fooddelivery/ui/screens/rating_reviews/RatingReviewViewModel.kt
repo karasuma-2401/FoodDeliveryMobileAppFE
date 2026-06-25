@@ -19,6 +19,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private val REVIEW_TAG_LABELS = listOf(
+    "Delicious food",
+    "Fast delivery",
+    "Careful packaging",
+    "Friendly attitude",
+    "Reasonable price",
+    "Food arrived hot",
+    "Fresh ingredients",
+    "Accurate order",
+    "Large portions"
+)
+
 data class RatingReviewState(
     val orderId: String = "",
     val restaurantId: String = "",
@@ -29,10 +41,8 @@ data class RatingReviewState(
     val comment: String = "",
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,
-    val availableTags: List<String> = listOf(
-        "Delicious food", "Fast delivery", "Carefully packed", "Good service", "Reasonable price",
-    ),
-    val selectedTags: Set<String> = emptySet(),
+    val availableTags: List<String> = REVIEW_TAG_LABELS,
+    val selectedTags: Set<String> = emptySet()
     val reviews: List<VendorReviewResponse> = emptyList()
 )
 
@@ -137,7 +147,7 @@ class RatingReviewViewModel @Inject constructor(
                     val updateRequest = UpdateReviewRequest(
                         vote = currentState.rating,
                         comment = currentState.comment,
-                        tags = currentState.selectedTags.toList()
+                        tags = currentState.selectedTags.toApiTagValues()
                     )
                     restaurantRepository.updateReview(currentState.reviewId.toInt(), updateRequest)
                 } else {
@@ -148,7 +158,7 @@ class RatingReviewViewModel @Inject constructor(
                         orderId = orderIdInt,
                         vote = currentState.rating,
                         comment = currentState.comment,
-                        tags = currentState.selectedTags.toList()
+                        tags = currentState.selectedTags.toApiTagValues()
                     )
                     restaurantRepository.rateRestaurant(restaurantIdInt, createRequest)
                 }
@@ -188,5 +198,10 @@ class RatingReviewViewModel @Inject constructor(
                 _state.update { it.copy(isSubmitting = false) }
             }
         }
+    }
+
+    private fun Set<String>.toApiTagValues(): List<String> {
+        // Backend expects exact allowed labels (not snake_case).
+        return this.filter { it.isNotBlank() }
     }
 }

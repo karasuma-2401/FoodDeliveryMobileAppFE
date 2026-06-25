@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.local.datastore.DataStoreManager
 import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.domain.usecase.RegisterDeviceTokenUseCase
 import com.example.fooddelivery.domain.usecase.ValidateSessionUseCase
 import com.example.fooddelivery.ui.navigation.LoginRoute
 import com.example.fooddelivery.ui.navigation.OnboardingRoute
@@ -24,7 +25,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
     private val tokenManager: TokenManager,
-    private val validateSessionUseCase: ValidateSessionUseCase
+    private val validateSessionUseCase: ValidateSessionUseCase,
+    private val registerDeviceTokenUseCase: RegisterDeviceTokenUseCase
 ) : ViewModel() {
     private val _isLoading = mutableStateOf(true)
     val isLoading: State<Boolean> = _isLoading
@@ -46,6 +48,7 @@ class MainViewModel @Inject constructor(
                 validateSessionUseCase().fold(
                     onSuccess = { me ->
                         _startDestination.value = me.toStartDestination()
+                        launch { registerDeviceTokenUseCase() }
                     },
                     onFailure = {
                         _startDestination.value = LoginRoute

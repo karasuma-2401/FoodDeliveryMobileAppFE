@@ -226,7 +226,7 @@ class FoodDetailViewModel @Inject constructor(
                             tags = dto.categories?.map { it.name } ?: current.restaurant.tags,
                             rating = dto.averageRating?.toFloat() ?: current.restaurant.rating,
                             deliveryFee = dto.deliveryFee ?: current.restaurant.deliveryFee,
-                            imageUrl = dto.image.ifBlank { current.restaurant.imageUrl },
+                            imageUrl = dto.image?.ifBlank { current.restaurant.imageUrl },
                             reviewCount = dto.ratingCount ?: current.restaurant.reviewCount
                         ),
                         food = current.food?.copy(

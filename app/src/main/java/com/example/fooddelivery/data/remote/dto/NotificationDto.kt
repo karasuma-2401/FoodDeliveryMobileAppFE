@@ -3,17 +3,13 @@ package com.example.fooddelivery.data.remote.dto
 import com.example.fooddelivery.domain.model.Notification
 import com.example.fooddelivery.domain.model.NotificationType
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
 @Serializable
-data class NotificationResponse(
-    val data: List<NotificationDto>
-)
-
-@Serializable
-data class UnreadCountResponse(
+data class UnreadCountData(
     val count: Int
 )
 
@@ -30,7 +26,7 @@ data class NotificationDto(
     val targetType: String? = null,
     val targetId: Int? = null,
     val actorId: Int? = null,
-    val metadata: Map<String, String>? = null,
+    val metadata: Map<String, JsonElement>? = null,
     val channels: List<NotificationChannelDto>? = null
 )
 
@@ -42,7 +38,7 @@ data class NotificationChannelDto(
     val sentAt: String? = null,
     val failedAt: String? = null,
     val error: String? = null,
-    val providerResult: String? = null
+    val providerResult: JsonElement? = null
 )
 
 @Serializable

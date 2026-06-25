@@ -1,7 +1,8 @@
 package com.example.fooddelivery.data.remote.api
 
-import com.example.fooddelivery.data.remote.dto.FavoriteRestaurantResponse
+import com.example.fooddelivery.data.remote.dto.BaseListResponse
 import com.example.fooddelivery.data.remote.dto.BaseResponse
+import com.example.fooddelivery.data.remote.dto.RestaurantResponse
 import com.example.fooddelivery.data.remote.dto.UserProfileResponse
 import com.example.fooddelivery.data.remote.dto.UserReviewDto
 import okhttp3.MultipartBody
@@ -29,11 +30,11 @@ interface UserApi {
     suspend fun getUserReviews(
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0
-    ): Response<BaseResponse<List<UserReviewDto>>>
+    ): Response<BaseResponse<BaseResponse<List<UserReviewDto>>>>
 
     @GET("user/favorites/restaurants")
     suspend fun getFavoriteRestaurants(
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0
-    ): Response<BaseResponse<FavoriteRestaurantResponse>>
+    ): Response<BaseListResponse<RestaurantResponse>>
 }

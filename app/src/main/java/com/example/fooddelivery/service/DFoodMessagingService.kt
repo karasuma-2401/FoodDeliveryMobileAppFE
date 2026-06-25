@@ -10,13 +10,15 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.fooddelivery.MainActivity
 import com.example.fooddelivery.R
-import com.example.fooddelivery.domain.repository.DeviceRepository
+import com.example.fooddelivery.data.local.datastore.DataStoreManager
+import com.example.fooddelivery.domain.usecase.RegisterDeviceTokenUseCase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,41 +26,51 @@ import javax.inject.Inject
 class DFoodMessagingService : FirebaseMessagingService() {
 
     @Inject
-    lateinit var deviceRepository: DeviceRepository
+    lateinit var registerDeviceTokenUseCase: RegisterDeviceTokenUseCase
+
+    @Inject
+    lateinit var dataStoreManager: DataStoreManager
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d("DFoodMessagingService", "Refreshed token: $token")
-        // Register token with server
+        Log.d(TAG, "Refreshed token: $token")
         serviceScope.launch {
-            deviceRepository.registerDevice(token)
+            registerDeviceTokenUseCase.registerToken(token)
         }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-        Log.d("DFoodMessagingService", "From: ${message.from}")
+        Log.d(TAG, "From: ${message.from}")
 
-        // Check if message contains a notification payload.
-        message.notification?.let {
-            Log.d("DFoodMessagingService", "Message Notification Body: ${it.body}")
-            sendNotification(it.title ?: "DFood", it.body ?: "")
-        }
+        serviceScope.launch {
+            val notificationsEnabled = dataStoreManager.readNotificationsState().first()
+            if (!notificationsEnabled) return@launch
 
-        // Check if message contains a data payload.
-        if (message.data.isNotEmpty()) {
-            Log.d("DFoodMessagingService", "Message data payload: ${message.data}")
-            val title = message.data["title"] ?: "DFood"
-            val body = message.data["body"] ?: ""
+            val title: String
+            val body: String
+            when {
+                message.notification != null -> {
+                    title = message.notification?.title ?: "DFood"
+                    body = message.notification?.body ?: ""
+                }
+                message.data.isNotEmpty() -> {
+                    title = message.data["title"] ?: "DFood"
+                    body = message.data["body"] ?: ""
+                }
+                else -> return@launch
+            }
+
             sendNotification(title, body)
         }
     }
 
     private fun sendNotification(title: String, messageBody: String) {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent,
             PendingIntent.FLAG_IMMUTABLE
@@ -66,7 +78,7 @@ class DFoodMessagingService : FirebaseMessagingService() {
 
         val channelId = "dfood_notifications"
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher) // Make sure you have a proper icon
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(messageBody)
             .setAutoCancel(true)
@@ -84,6 +96,10 @@ class DFoodMessagingService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        notificationManager.notify(0, notificationBuilder.build())
+        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+    }
+
+    companion object {
+        private const val TAG = "DFoodMessagingService"
     }
 }

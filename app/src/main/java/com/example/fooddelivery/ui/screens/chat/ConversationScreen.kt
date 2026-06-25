@@ -3,8 +3,6 @@ package com.example.fooddelivery.ui.screens.chat
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,13 +22,11 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 fun ConversationScreen(
     onNavigateBack: () -> Unit,
     onNavigateToChat: (String, String, String) -> Unit,
-    onNavigateToCart: (() -> Unit)? = null,
     viewModel: ConversationViewModel = hiltViewModel()
 ) {
     ConversationContent(
         onNavigateBack = onNavigateBack,
         onNavigateToChat = onNavigateToChat,
-        onNavigateToCart = onNavigateToCart,
         viewModel = viewModel
     )
 }
@@ -40,7 +36,6 @@ fun ConversationScreen(
 fun ConversationContent(
     onNavigateBack: () -> Unit,
     onNavigateToChat: (String, String, String) -> Unit,
-    onNavigateToCart: (() -> Unit)? = null,
     viewModel: ConversationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -49,18 +44,7 @@ fun ConversationContent(
         topBar = {
             DFoodTopBar(
                 title = "Messages",
-                onBackClick = onNavigateBack,
-                actions = {
-                    onNavigateToCart?.let {
-                        IconButton(onClick = it) {
-                            Icon(
-                                imageVector = Icons.Outlined.ShoppingCart,
-                                contentDescription = "Cart",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
+                onBackClick = onNavigateBack
             )
         },
         containerColor = MaterialTheme.colorScheme.background

@@ -11,7 +11,12 @@ class DeviceRepositoryImpl @Inject constructor(
 ) : DeviceRepository {
     override suspend fun registerDevice(deviceToken: String): Result<Unit> {
         return try {
-            api.registerDevice(DeviceRequest(deviceToken = deviceToken))
+            api.registerDevice(
+                DeviceRequest(
+                    deviceToken = deviceToken,
+                    platform = "android"
+                )
+            )
                 .unwrapData("Failed to register device")
                 .map { Unit }
         } catch (e: Exception) {

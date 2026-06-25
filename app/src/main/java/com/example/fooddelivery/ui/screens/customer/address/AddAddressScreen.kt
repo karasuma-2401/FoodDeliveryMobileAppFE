@@ -19,6 +19,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -108,6 +109,7 @@ fun AddAddressContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             if (!isEditMode) {
@@ -116,26 +118,59 @@ fun AddAddressContent(
                     onSearchClick = { showSearchDialog = true }
                 )
             } else {
-                Spacer(modifier = Modifier.height(24.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.EditLocationAlt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "Editing current address",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Update details and save your changes",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
 
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .offset(y = if (!isEditMode) (-24).dp else 0.dp),
+                    .offset(y = if (!isEditMode) (-24).dp else 16.dp)
+                    .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
                 color = MaterialTheme.colorScheme.background,
                 tonalElevation = 2.dp
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(24.dp)
-                        .padding(bottom = 24.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 24.dp)
                 ) {
                     Text(
                         text = if (isEditMode) "Update Location" else "Location Details",
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = if (isEditMode) "Edit your delivery information below" else "Confirm your delivery address to proceed",
@@ -146,83 +181,98 @@ fun AddAddressContent(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = "SAVE ADDRESS AS",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
+                    Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        shape = RoundedCornerShape(18.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
                     ) {
-                        AddressTypeItem(
-                            label = "Home",
-                            icon = Icons.Outlined.Home,
-                            isSelected = state.type == "Home",
-                            selectedColor = Color(0xFF4285F4),
-                            onClick = { onEvent(AddAddressEvent.TypeChanged("Home")) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        AddressTypeItem(
-                            label = "Work",
-                            icon = Icons.Outlined.WorkOutline,
-                            isSelected = state.type == "Work",
-                            selectedColor = Color(0xFF9C27B0),
-                            onClick = { onEvent(AddAddressEvent.TypeChanged("Work")) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        AddressTypeItem(
-                            label = "Other",
-                            icon = Icons.Outlined.MoreHoriz,
-                            isSelected = state.type == "Other",
-                            selectedColor = MaterialTheme.colorScheme.primary,
-                            onClick = { onEvent(AddAddressEvent.TypeChanged("Other")) },
-                            modifier = Modifier.weight(1f)
-                        )
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Text(
+                                text = "SAVE ADDRESS AS",
+                                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                AddressTypeItem(
+                                    label = "Home",
+                                    icon = Icons.Outlined.Home,
+                                    isSelected = state.type == "Home",
+                                    selectedColor = Color(0xFF4285F4),
+                                    onClick = { onEvent(AddAddressEvent.TypeChanged("Home")) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                AddressTypeItem(
+                                    label = "Work",
+                                    icon = Icons.Outlined.WorkOutline,
+                                    isSelected = state.type == "Work",
+                                    selectedColor = Color(0xFF9C27B0),
+                                    onClick = { onEvent(AddAddressEvent.TypeChanged("Work")) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                AddressTypeItem(
+                                    label = "Other",
+                                    icon = Icons.Outlined.MoreHoriz,
+                                    isSelected = state.type == "Other",
+                                    selectedColor = MaterialTheme.colorScheme.primary,
+                                    onClick = { onEvent(AddAddressEvent.TypeChanged("Other")) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            AnimatedVisibility(visible = state.type == "Other") {
+                                Column {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = "ADDRESS TITLE",
+                                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    CustomAddressTextField(
+                                        value = state.title,
+                                        onValueChange = { onEvent(AddAddressEvent.TitleChanged(it)) },
+                                        placeholder = "e.g. Gym, My Friend's House",
+                                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+                                    )
+                                }
+                            }
+                        }
                     }
 
-                    AnimatedVisibility(visible = state.type == "Other") {
-                        Column {
-                            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
                             Text(
-                                text = "ADDRESS TITLE",
+                                text = "DELIVERY ADDRESS",
                                 style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             CustomAddressTextField(
-                                value = state.title,
-                                onValueChange = { onEvent(AddAddressEvent.TitleChanged(it)) },
-                                placeholder = "e.g. Gym, My Friend's House",
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+                                value = state.fullAddress,
+                                onValueChange = { onEvent(AddAddressEvent.FullAddressChanged(it)) },
+                                leadingIcon = Icons.Default.LocationOn,
+                                placeholder = "Search or enter full address",
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(onDone = {
+                                    focusManager.clearFocus()
+                                    onEvent(AddAddressEvent.SaveAddressClicked)
+                                })
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = "DELIVERY ADDRESS",
-                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    CustomAddressTextField(
-                        value = state.fullAddress,
-                        onValueChange = { onEvent(AddAddressEvent.FullAddressChanged(it)) },
-                        leadingIcon = Icons.Default.LocationOn,
-                        placeholder = "Search or enter full address",
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = {
-                            focusManager.clearFocus()
-                            onEvent(AddAddressEvent.SaveAddressClicked)
-                        })
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
 
                     DFoodButton(
                         text = if (state.isLoading) "SAVING..." else if (isEditMode) "UPDATE ADDRESS" else "SAVE LOCATION",
@@ -230,6 +280,7 @@ fun AddAddressContent(
                             focusManager.clearFocus()
                             onEvent(AddAddressEvent.SaveAddressClicked)
                         },
+                        modifier = Modifier.fillMaxWidth(),
                         enabled = !state.isLoading,
                         leadingIcon = {
                             if (!state.isLoading) {

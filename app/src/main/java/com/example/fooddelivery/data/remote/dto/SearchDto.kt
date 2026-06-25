@@ -3,12 +3,15 @@ package com.example.fooddelivery.data.remote.dto
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.SearchHistory
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class UnifiedSearchResponse(
     val foods: List<FoodSearchDto>,
     val restaurants: List<RestaurantSearchDto>
 )
 
+@Serializable
 data class FoodSearchDto(
     val id: Int,
     val name: String,
@@ -21,6 +24,7 @@ data class FoodSearchDto(
     val promoTag: String?
 )
 
+@Serializable
 data class RestaurantSearchDto(
     val id: Int,
     val name: String,
@@ -32,24 +36,25 @@ data class RestaurantSearchDto(
     val hasVoucher: Boolean
 )
 
-data class SearchHistoryResponse(
-    val success: Boolean,
-    val data: List<SearchHistoryDto>
-)
-
+@Serializable
 data class SearchHistoryDto(
     val id: Int,
-    val keyword: String
+    val keyword: String,
+    val userId: Int? = null,
+    val createdAt: String? = null
 )
 
-data class SaveSearchHistoryResponse(
-    val success: Boolean,
-    val message: String,
-    val data: SearchHistoryDto
+@Serializable
+data class SearchNestedPayload<T>(
+    val success: Boolean? = null,
+    val message: String? = null,
+    val data: T? = null
 )
 
-data class CommonResponse(
-    val success: Boolean
+@Serializable
+data class TrendingKeywordDto(
+    val keyword: String,
+    val searchCount: Int
 )
 
 fun FoodSearchDto.toDomain() = FoodItem(

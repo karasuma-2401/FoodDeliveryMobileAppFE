@@ -63,7 +63,9 @@ class NotificationRepositoryImpl @Inject constructor(
         return try {
             val offset = (page - 1) * pageSize
             val response = api.getNotifications(limit = pageSize, offset = offset)
-            val notifications = response.data.map { it.toDomain() }
+            val items = response.data
+                ?: return Result.failure(Exception(response.message ?: "Failed to load notifications"))
+            val notifications = items.map { it.toDomain() }
             notifications.forEach { 
                 dao.insertNotification(it.toEntity())
             }
@@ -87,7 +89,7 @@ class NotificationRepositoryImpl @Inject constructor(
     override suspend fun getUnreadCount(): Result<Int> {
         return try {
             val response = api.getUnreadCount()
-            Result.success(response.count)
+            Result.success(response.data?.count ?: 0)
         } catch (e: Exception) {
             Result.failure(e)
         }
