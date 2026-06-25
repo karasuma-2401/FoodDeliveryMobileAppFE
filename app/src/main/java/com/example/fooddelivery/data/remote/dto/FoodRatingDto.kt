@@ -19,7 +19,17 @@ data class UpdateReviewRequest(
 
 @Serializable
 data class FoodRatingResponse(
-    val message: String
+    val id: Int,
+    val restaurantId: Int,
+    val userId: Int,
+    val vote: Int,
+    val comment: String? = null,
+    val reply: String? = null,
+    val replyCreatedAt: String? = null,
+    val createdAt: String,
+    val deleteAt: String? = null,
+    val orderId: Int,
+    val tags: List<String> = emptyList()
 )
 
 // ===== Vendor Review DTOs =====
