@@ -18,6 +18,7 @@ import com.example.fooddelivery.data.remote.api.FoodApi
 import com.example.fooddelivery.data.remote.api.HomeApi
 import com.example.fooddelivery.data.remote.api.NotificationApi
 import com.example.fooddelivery.data.remote.api.OrderApi
+import com.example.fooddelivery.data.remote.api.PaymentApi
 import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.SearchApi
 import com.example.fooddelivery.data.remote.api.UserApi
@@ -33,6 +34,7 @@ import com.example.fooddelivery.data.repository.FoodRepositoryImpl
 import com.example.fooddelivery.data.repository.HomeRepositoryImpl
 import com.example.fooddelivery.data.repository.NotificationRepositoryImpl
 import com.example.fooddelivery.data.repository.OrderRepositoryImpl
+import com.example.fooddelivery.data.repository.PaymentRepositoryImpl
 import com.example.fooddelivery.data.repository.RestaurantRepositoryImpl
 import com.example.fooddelivery.data.repository.SearchRepositoryImpl
 import com.example.fooddelivery.data.repository.UserRepositoryImpl
@@ -47,6 +49,7 @@ import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.repository.HomeRepository
 import com.example.fooddelivery.domain.repository.NotificationRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
+import com.example.fooddelivery.domain.repository.PaymentRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.domain.repository.SearchRepository
 import com.example.fooddelivery.domain.repository.UserRepository
@@ -148,6 +151,14 @@ object AppModule {
         api: OrderApi
     ): OrderRepository {
         return OrderRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun providePaymentRepository(
+        api: PaymentApi
+    ): PaymentRepository {
+        return PaymentRepositoryImpl(api)
     }
 
     @Provides

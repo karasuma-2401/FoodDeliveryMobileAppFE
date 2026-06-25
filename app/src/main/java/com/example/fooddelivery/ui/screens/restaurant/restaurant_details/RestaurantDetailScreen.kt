@@ -338,24 +338,24 @@ fun RestaurantDetailScreenPreview() {
 
     val mockVouchers = listOf(
         Voucher(
-            id = "1",
+            id = 1,
             code = "OFF15",
             title = "$15.00 OFF",
             description = "Discount for your first order. Min spend $0.",
             discountAmount = 15.0,
             minOrderAmount = 0.0,
             expiryText = "Exp. 30 Jun 2024",
-            type = VoucherType.DISCOUNT
+            type = VoucherType.MONEY
         ),
         Voucher(
-            id = "2",
+            id = 2,
             code = "OFF16",
             title = "$16.00 OFF",
             description = "Special weekend offer. Min spend $0.",
             discountAmount = 16.0,
             minOrderAmount = 0.0,
             expiryText = "Exp. 15 Jul 2024",
-            type = VoucherType.DISCOUNT
+            type = VoucherType.MONEY
         )
     )
 

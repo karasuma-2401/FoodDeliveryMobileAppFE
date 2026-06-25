@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material3.*
@@ -30,17 +31,21 @@ import com.example.fooddelivery.domain.model.VoucherType
 @Composable
 fun VoucherSelectionSheet(
     vouchers: List<Voucher>,
-    selectedVoucherId: String?,
+    selectedVoucherId: Int?,
     promoCode: String,
     promoError: String?,
     onPromoCodeChange: (String) -> Unit,
     onApplyPromoCode: () -> Unit,
-    onVoucherSelected: (Voucher) -> Unit,
+    onVoucherDetailClick: (Voucher) -> Unit,
     onConfirm: (Voucher?) -> Unit,
     onDismiss: () -> Unit
 ) {
     var tempSelectedId by remember { mutableStateOf(selectedVoucherId) }
     var tempSelectedVoucher by remember { mutableStateOf<Voucher?>(null) }
+
+    LaunchedEffect(selectedVoucherId, vouchers) {
+        tempSelectedVoucher = vouchers.find { it.id == selectedVoucherId }
+    }
 
     Column(
         modifier = Modifier
@@ -163,9 +168,9 @@ fun VoucherSelectionSheet(
                         if (voucher.isApplicable) {
                             tempSelectedId = voucher.id
                             tempSelectedVoucher = voucher
-                            onVoucherSelected(voucher)
                         }
-                    }
+                    },
+                    onDetailClick = { onVoucherDetailClick(voucher) }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -208,7 +213,8 @@ fun VoucherSelectionSheet(
 fun VoucherItemRow(
     voucher: Voucher,
     isSelected: Boolean,
-    onSelect: () -> Unit
+    onSelect: () -> Unit,
+    onDetailClick: () -> Unit
 ) {
     val alpha = if (voucher.isApplicable) 1f else 0.5f
     
@@ -234,8 +240,8 @@ fun VoucherItemRow(
                 modifier = Modifier
                     .size(100.dp)
                     .background(
-                        if (voucher.type == VoucherType.DISCOUNT) MaterialTheme.colorScheme.primary 
-                        else MaterialTheme.colorScheme.surfaceVariant
+                        if (voucher.type == VoucherType.PERCENT) MaterialTheme.colorScheme.primary 
+                        else MaterialTheme.colorScheme.secondary
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -246,9 +252,9 @@ fun VoucherItemRow(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (voucher.type == VoucherType.DISCOUNT) Icons.Default.Percent else Icons.Default.LocalShipping,
+                        imageVector = if (voucher.type == VoucherType.PERCENT) Icons.Default.Percent else Icons.Default.LocalShipping,
                         contentDescription = null,
-                        tint = if (voucher.type == VoucherType.DISCOUNT) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -258,17 +264,36 @@ fun VoucherItemRow(
                     .weight(1f)
                     .padding(16.dp)
             ) {
-                Text(
-                    text = voucher.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = voucher.title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = onDetailClick,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Details",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
                 Text(
                     text = voucher.description,
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                    lineHeight = 16.sp
+                    lineHeight = 16.sp,
+                    maxLines = 2
                 )
                 
                 if (voucher.expiryText != null) {
@@ -279,28 +304,10 @@ fun VoucherItemRow(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = voucher.expiryText, 
+                            text = "HSD: ${voucher.expiryText}", 
                             color = MaterialTheme.colorScheme.onPrimaryContainer, 
                             fontSize = 10.sp, 
                             fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-                
-                if (voucher.conditionMessage != null) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.ErrorOutline, 
-                            contentDescription = null, 
-                            tint = MaterialTheme.colorScheme.primary, 
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = voucher.conditionMessage, 
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
-                            fontSize = 11.sp
                         )
                     }
                 }

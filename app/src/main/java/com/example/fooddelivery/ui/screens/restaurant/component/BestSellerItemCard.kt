@@ -40,9 +40,10 @@ fun BestSellerItemCard(item: BestSellerItem) {
                 contentScale = ContentScale.Crop
             )
         } else {
-            val resId = item.imageRes?.takeIf { it != 0 } ?: R.drawable.ic_launcher_background
             Image(
-                painter = painterResource(id = resId),
+                painter = painterResource(
+                    id = if (item.imageRes != null && item.imageRes != 0) item.imageRes else R.drawable.ic_launcher_background
+                ),
                 contentDescription = "${item.name} image",
                 modifier = Modifier
                     .fillMaxWidth()

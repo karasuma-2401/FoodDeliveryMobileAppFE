@@ -12,6 +12,7 @@ import com.example.fooddelivery.data.remote.api.FoodApi
 import com.example.fooddelivery.data.remote.api.HomeApi
 import com.example.fooddelivery.data.remote.api.NotificationApi
 import com.example.fooddelivery.data.remote.api.OrderApi
+import com.example.fooddelivery.data.remote.api.PaymentApi
 import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.api.UserApi
 import com.example.fooddelivery.data.remote.api.RestaurantApi
@@ -198,6 +199,12 @@ object NetworkModule {
     @Singleton
     fun provideVoucherApi(@Named("MainRetrofit") retrofit: Retrofit): VoucherApi {
         return retrofit.create(VoucherApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providePaymentApi(@Named("MainRetrofit") retrofit: Retrofit): PaymentApi {
+        return retrofit.create(PaymentApi::class.java)
     }
 
     @Provides

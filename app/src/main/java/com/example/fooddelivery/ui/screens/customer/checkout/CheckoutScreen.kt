@@ -24,8 +24,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherDetailBottomSheet
 import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSelectionSheet
 import com.example.fooddelivery.ui.screens.customer.checkout.components.AddressCard
 import com.example.fooddelivery.ui.screens.customer.checkout.components.CheckoutBillBreakdown
@@ -54,6 +56,8 @@ fun CheckoutScreen(
     
     val voucherSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showVoucherSheet by remember { mutableStateOf(false) }
+    
+    var selectedVoucherForDetail by remember { mutableStateOf<Voucher?>(null) }
     
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -219,11 +223,13 @@ fun CheckoutScreen(
             VoucherSelectionSheet(
                 vouchers = state.availableVouchers,
                 selectedVoucherId = state.selectedVoucher?.id,
-                promoCode = "", // Can be implemented in ViewModel if needed
-                promoError = null,
-                onPromoCodeChange = {},
-                onApplyPromoCode = {},
-                onVoucherSelected = { /* Optional preview logic */ },
+                promoCode = state.promoCode,
+                promoError = state.promoError,
+                onPromoCodeChange = { viewModel.onEvent(CheckoutEvent.PromoCodeChanged(it)) },
+                onApplyPromoCode = { viewModel.onEvent(CheckoutEvent.ApplyPromoCode) },
+                onVoucherDetailClick = { voucher ->
+                    selectedVoucherForDetail = voucher
+                },
                 onConfirm = { voucher ->
                     viewModel.onEvent(CheckoutEvent.ApplyVoucher(voucher))
                     scope.launch { voucherSheetState.hide() }.invokeOnCompletion {
@@ -238,7 +244,21 @@ fun CheckoutScreen(
             )
         }
     }
+    
+    selectedVoucherForDetail?.let { voucher ->
+        VoucherDetailBottomSheet(
+            voucher = voucher,
+            onDismissRequest = { selectedVoucherForDetail = null },
+            onApplyVoucher = {
+                viewModel.onEvent(CheckoutEvent.ApplyVoucher(it))
+                scope.launch { voucherSheetState.hide() }.invokeOnCompletion {
+                    showVoucherSheet = false
+                }
+            }
+        )
+    }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun CheckoutScreenPreview() {
@@ -248,4 +268,3 @@ fun CheckoutScreenPreview() {
         onNavigateToPaymentSuccessful = {}
     )
 }
-
