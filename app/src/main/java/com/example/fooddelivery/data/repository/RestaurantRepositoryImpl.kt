@@ -133,18 +133,22 @@ class RestaurantRepositoryImpl @Inject constructor(
         restaurantId: Int,
         price: Double,
         sizesJson: String,
-        ingredientIdsCsv: String?,
+        ingredientIds: List<Int>?, // 👈 Đổi từ String? sang List<Int>?
         imageFile: File?
     ): Result<FoodResponse> {
         return try {
+            val ingredientParts = ingredientIds?.map { id ->
+                MultipartBody.Part.createFormData("ingredientIds", id.toString())
+            }
+
             val response = api.addFood(
                 name = name.toRequestBody("text/plain".toMediaTypeOrNull()),
                 description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
                 categoryId = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                 restaurantId = restaurantId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                 price = price.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-                sizes = sizesJson.toRequestBody("application/json".toMediaTypeOrNull()),
-                ingredientIds = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull()),
+                sizes = sizesJson.toRequestBody("text/plain".toMediaTypeOrNull()),
+                ingredientIds = ingredientParts,
                 image = imageFile?.let {
                     val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
                     MultipartBody.Part.createFormData("image", it.name, requestFile)
@@ -183,7 +187,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                 description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
                 categoryId = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                 price = price.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-                sizes = sizesJson.toRequestBody("application/json".toMediaTypeOrNull()),
+                sizes = sizesJson.toRequestBody("text/plain".toMediaTypeOrNull()),
                 ingredientIds = ingredientIdsCsv?.toRequestBody("text/plain".toMediaTypeOrNull()),
                 image = imageFile?.let {
                     val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())

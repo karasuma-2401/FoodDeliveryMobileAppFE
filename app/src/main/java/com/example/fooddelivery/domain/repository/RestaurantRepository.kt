@@ -34,7 +34,7 @@ interface RestaurantRepository {
         restaurantId: Int,
         price: Double,
         sizesJson: String,
-        ingredientIdsCsv: String?,
+        ingredientIds: List<Int>?,
         imageFile: File?
     ): Result<FoodResponse>
 

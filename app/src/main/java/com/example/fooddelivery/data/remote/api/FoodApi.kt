@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.remote.api
 
 import com.example.fooddelivery.data.remote.dto.BaseResponse
 import com.example.fooddelivery.data.remote.dto.FoodResponse
+import com.example.fooddelivery.data.remote.dto.IngredientDto
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -19,4 +20,6 @@ interface FoodApi {
 
     @GET("food/{id}")
     suspend fun getFoodById(@Path("id") id: Int): Response<BaseResponse<FoodResponse>>
+    @GET("food/ingredients")
+    suspend fun getIngredients(): Response<BaseResponse<List<IngredientDto>>>
 }

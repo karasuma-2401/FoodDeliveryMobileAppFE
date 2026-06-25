@@ -1,7 +1,7 @@
 package com.example.fooddelivery.data.remote.dto
 
 import kotlinx.serialization.Serializable
-
+import kotlinx.serialization.SerialName
 @Serializable
 data class RestaurantDashboardRangeResponse(
     val deliveredRevenue: Double,
@@ -65,6 +65,7 @@ data class FoodRequest(
 data class FoodSizeRequest(
     val sizeId: Int,
     val price: Double,
+    @SerialName("isDefault")
     val isDefault: Boolean = false
 )
 
