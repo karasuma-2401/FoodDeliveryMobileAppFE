@@ -21,9 +21,13 @@ import javax.inject.Inject
 private val REVIEW_TAG_LABELS = listOf(
     "Delicious food",
     "Fast delivery",
-    "Carefully packed",
-    "Good service",
-    "Reasonable price"
+    "Careful packaging",
+    "Friendly attitude",
+    "Reasonable price",
+    "Food arrived hot",
+    "Fresh ingredients",
+    "Accurate order",
+    "Large portions"
 )
 
 data class RatingReviewState(
@@ -59,14 +63,6 @@ class RatingReviewViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val restaurantRepository: RestaurantRepository
 ) : ViewModel() {
-    private val tagLabelToApiValue = mapOf(
-        "Delicious food" to "delicious_food",
-        "Fast delivery" to "fast_delivery",
-        "Carefully packed" to "carefully_packed",
-        "Good service" to "good_service",
-        "Reasonable price" to "reasonable_price"
-    )
-
     private val routeData = savedStateHandle.toRoute<RatingReviewRoute>()
 
     private val _state = MutableStateFlow(
@@ -181,8 +177,7 @@ class RatingReviewViewModel @Inject constructor(
     }
 
     private fun Set<String>.toApiTagValues(): List<String> {
-        return this.mapNotNull { tag ->
-            tagLabelToApiValue[tag] ?: tag.lowercase().replace(" ", "_").takeIf { it.isNotBlank() }
-        }
+        // Backend expects exact allowed labels (not snake_case).
+        return this.filter { it.isNotBlank() }
     }
 }

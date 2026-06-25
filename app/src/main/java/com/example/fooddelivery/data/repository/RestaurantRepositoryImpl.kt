@@ -215,6 +215,15 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getRestaurantReviews(restaurantId: Int): Result<List<RestaurantReviewDto>> {
+        return try {
+            api.getRestaurantReviews(restaurantId).unwrapData("Failed to load restaurant reviews")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
     override suspend fun updateReview(reviewId: Int, request: UpdateReviewRequest): Result<FoodRatingResponse> {
         return try {
             api.updateReview(reviewId, request).unwrapData("Failed to update review")

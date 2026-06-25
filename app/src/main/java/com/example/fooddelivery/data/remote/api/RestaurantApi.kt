@@ -82,6 +82,11 @@ interface RestaurantApi {
         @Body request: RestaurantRatingRequest
     ): Response<BaseResponse<FoodRatingResponse>>
 
+    @GET("restaurant/reviews/{restaurantId}")
+    suspend fun getRestaurantReviews(
+        @Path("restaurantId") restaurantId: Int
+    ): Response<BaseResponse<List<RestaurantReviewDto>>>
+
     @PATCH("restaurant/reviews/{reviewId}")
     suspend fun updateReview(
         @Path("reviewId") reviewId: Int,

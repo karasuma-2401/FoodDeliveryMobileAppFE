@@ -58,6 +58,10 @@ interface RestaurantRepository {
         request: RestaurantRatingRequest
     ): Result<FoodRatingResponse>
 
+    suspend fun getRestaurantReviews(
+        restaurantId: Int
+    ): Result<List<RestaurantReviewDto>>
+
     suspend fun updateReview(
         reviewId: Int,
         request: UpdateReviewRequest
