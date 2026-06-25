@@ -237,6 +237,24 @@ class RestaurantRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+    override suspend fun updateRestaurantProfile(
+        restaurantId: Int,
+        name: String,
+        phone: String,
+        description: String
+    ): Result<RestaurantResponse> {
+        return try {
+            val request = UpdateRestaurantProfileRequest(
+                name = name,
+                phone = phone,
+                description = description
+            )
+            api.updateRestaurantProfile(restaurantId, request).unwrapData("Failed to update restaurant profile")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
 
     override suspend fun getRestaurantRevenue(restaurantId: Int): Result<RestaurantRevenue> {
         return try {

@@ -111,4 +111,9 @@ interface RestaurantApi {
         @Path("reviewId") reviewId: Int
     ): Response<BaseResponse<FoodRatingResponse>>
 
+    @PATCH("restaurant/manage/{restaurantId}")
+    suspend fun updateRestaurantProfile(
+        @Path("restaurantId") restaurantId: Int,
+        @Body request: UpdateRestaurantProfileRequest
+    ): Response<BaseResponse<RestaurantResponse>>
 }

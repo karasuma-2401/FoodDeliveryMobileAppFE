@@ -70,6 +70,13 @@ interface RestaurantRepository {
         request: UpdateReviewRequest
     ): Result<FoodRatingResponse>
 
+    suspend fun updateRestaurantProfile(
+        restaurantId: Int,
+        name: String,
+        phone: String,
+        description: String
+    ): Result<RestaurantResponse>
+
     suspend fun deleteReview(reviewId: Int): Result<FoodRatingResponse>
 
 }

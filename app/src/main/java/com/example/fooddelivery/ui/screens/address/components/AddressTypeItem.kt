@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.customer.address.components
+package com.example.fooddelivery.ui.screens.address.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

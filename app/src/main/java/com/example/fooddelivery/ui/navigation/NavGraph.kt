@@ -7,7 +7,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -46,8 +45,8 @@ import com.example.fooddelivery.ui.screens.admin.restaurantmanagement.AdminResta
 import com.example.fooddelivery.ui.screens.auth.changePassword.ChangePasswordScreen
 import com.example.fooddelivery.ui.screens.customer.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.customer.profile.ProfileScreen
-import com.example.fooddelivery.ui.screens.customer.address.AddAddressScreen
-import com.example.fooddelivery.ui.screens.customer.address.CustomerAddressScreen
+import com.example.fooddelivery.ui.screens.address.AddAddressScreen
+import com.example.fooddelivery.ui.screens.address.CustomerAddressScreen
 import com.example.fooddelivery.ui.screens.customer.favourite.FavouriteScreen
 import com.example.fooddelivery.ui.screens.customer.review.UserReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.RestaurantDetailScreen
@@ -719,8 +718,14 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                         onNavigateToPersonalInfo = {
                             vendorNavController.navigate(RestaurantPersonalInfoRoute)
                         },
+                        onNavigateToAddress = {
+                            vendorNavController.navigate(AddAddressRoute())
+                        },
+                        onNavigateToOrders = {
+                            vendorNavController.navigate(RestaurantOrderManagementRoute)
+                        },
                         onNavigateToReviews = {
-                            vendorNavController.navigate(RestaurantReviewsRoute)
+                            vendorNavController.navigate(RestaurantReviewsRoute(restaurantId = 0))
                         },
                         onNavigateToResetPassword = {
                             vendorNavController.navigate(ChangePasswordRoute)
@@ -732,7 +737,26 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                         }
                     )
                 }
-                
+                composable<AddAddressRoute> { backStackEntry ->
+                    // 1. Lấy arguments từ Route (nếu addressId = null tức là thêm mới, có số tức là edit)
+                    val args = backStackEntry.toRoute<AddAddressRoute>()
+
+                    AddAddressScreen(
+                        onNavigateBack = {
+                            vendorNavController.popBackStack()
+                        },
+                        onAddressSaved = {
+                            vendorNavController.popBackStack()
+                        }
+                    )
+                }
+                composable<ChangePasswordRoute> {
+                    ChangePasswordScreen(
+                        onNavigateBack = {
+                            vendorNavController.popBackStack()
+                        }
+                    )
+                }
                 composable<ConversationRoute> {
                     ConversationScreen(
                         onNavigateBack = { vendorNavController.popBackStack() },

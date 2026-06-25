@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.HorizontalDivider
@@ -31,11 +32,13 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun RestaurantProfileScreen(
     onNavigateToPersonalInfo: () -> Unit,
-    onNavigateToReviews: () -> Unit,
-    onLogout: () -> Unit,
+    onNavigateToOrders: () -> Unit,      // 🌟 Thêm điều hướng cho Number of Orders
+    onNavigateToAddress: () -> Unit,     // 🌟 Thêm điều hướng cho Business Address
+    onNavigateToReviews: (Int) -> Unit,
     onNavigateToResetPassword: () -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RestaurantProfileViewModel = viewModel() 
+    viewModel: RestaurantProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -66,17 +69,19 @@ fun RestaurantProfileScreen(
 
             ProfileMenuGroup {
                 ProfileMenuItem(
+                    icon = Icons.Default.LocationOn,
+                    iconTint = MaterialTheme.colorScheme.primary,
+                    title = "Business Address",
+                    onClick = onNavigateToAddress
+                )
+            }
+
+            ProfileMenuGroup {
+                ProfileMenuItem(
                     icon = Icons.Default.List,
                     iconTint = MaterialTheme.colorScheme.secondary,
                     title = "Number of Orders",
-                    trailingContent = {
-                        Text(
-                            text = uiState.numberOfOrders,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                    onClick = onNavigateToOrders
                 )
             }
 
@@ -85,7 +90,7 @@ fun RestaurantProfileScreen(
                     icon = Icons.Default.Star,
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     title = "User Reviews",
-                    onClick = onNavigateToReviews
+                    onClick = { onNavigateToReviews(uiState.restaurantId) }
                 )
             }
 
@@ -116,6 +121,8 @@ fun RestaurantProfilePreview() {
     DFoodTheme {
         RestaurantProfileScreen(
             onNavigateToPersonalInfo = {},
+            onNavigateToOrders = {},
+            onNavigateToAddress = {},
             onNavigateToReviews = {},
             onLogout = {},
             onNavigateToResetPassword = {}
