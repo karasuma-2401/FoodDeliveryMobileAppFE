@@ -61,6 +61,7 @@ sealed interface TrackOrderEvent {
     data class Initialize(val orderId: String) : TrackOrderEvent
     data object Refresh : TrackOrderEvent
     data object ConfirmReceived : TrackOrderEvent
+    data object CheckPaymentStatus : TrackOrderEvent
 }
 
 @HiltViewModel
@@ -86,6 +87,9 @@ class TrackOrderViewModel @Inject constructor(
             }
             is TrackOrderEvent.ConfirmReceived -> {
                 confirmReceived()
+            }
+            is TrackOrderEvent.CheckPaymentStatus -> {
+                fetchOrderDetail(_state.value.orderId)
             }
         }
     }

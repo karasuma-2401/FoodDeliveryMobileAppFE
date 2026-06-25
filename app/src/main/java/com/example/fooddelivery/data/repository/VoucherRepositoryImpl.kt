@@ -32,6 +32,51 @@ class VoucherRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getSuitableVouchers(
+        restaurantId: Int,
+        cost: Double?
+    ): Result<List<VoucherDto>> {
+        return try {
+            val response = api.getSuitableVouchers(restaurantId, cost)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.message()))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception(e.localizedMessage ?: "Network error"))
+        }
+    }
+
+    override suspend fun getVoucherByCode(code: String, restaurantId: Int?): Result<VoucherDto> {
+        return try {
+            val response = api.getVoucherByCode(code, restaurantId)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.message()))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception(e.localizedMessage ?: "Network error"))
+        }
+    }
+
+    override suspend fun getVoucherById(id: Int): Result<VoucherDto> {
+        return try {
+            val response = api.getVoucherById(id)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.message()))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception(e.localizedMessage ?: "Network error"))
+        }
+    }
+
     override suspend fun createVoucher(
         name: String,
         code: String,

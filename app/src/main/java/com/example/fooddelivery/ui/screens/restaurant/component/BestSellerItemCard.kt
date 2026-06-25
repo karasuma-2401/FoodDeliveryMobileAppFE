@@ -47,7 +47,7 @@ fun BestSellerItemCard(item: BestSellerItem) {
         } else {
             Image(
                 painter = painterResource(
-                    id = if (item.imageRes != 0) item.imageRes else R.drawable.ic_launcher_background
+                    id = if (item.imageRes != null && item.imageRes != 0) item.imageRes else R.drawable.ic_launcher_background
                 ),
                 contentDescription = "${item.name} image",
                 modifier = Modifier
