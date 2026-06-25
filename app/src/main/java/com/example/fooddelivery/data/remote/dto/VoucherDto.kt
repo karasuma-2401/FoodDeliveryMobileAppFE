@@ -49,3 +49,11 @@ fun VoucherDto.toDomain(): Voucher {
         restaurantName = restaurant?.name
     )
 }
+@Serializable
+data class VoucherListResponseDto(
+    val success: Boolean? = null,
+    val data: List<VoucherDto> = emptyList(),
+    val total: Int? = 0,
+    val limit: Int? = 0,
+    val offset: Int? = 0
+)

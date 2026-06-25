@@ -1,6 +1,6 @@
 package com.example.fooddelivery.data.remote.api
 
-import com.example.fooddelivery.data.remote.dto.VoucherDto
+import com.example.fooddelivery.data.remote.dto.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -14,7 +14,7 @@ interface VoucherApi {
         @Query("restaurantId") restaurantId: Int? = null,
         @Query("code") code: String? = null,
         @Query("status") status: String? = null
-    ): Response<List<VoucherDto>>
+    ): Response<BaseResponse<VoucherListResponseDto>>
 
     @GET("vouchers/suitable/{restaurantId}")
     suspend fun getSuitableVouchers(
