@@ -53,6 +53,12 @@ interface RestaurantRepository {
 
     suspend fun deleteFood(id: Int): Result<Unit>
 
+    suspend fun getRestaurantReviews(
+        restaurantId: Int,
+        limit: Int? = 20,
+        offset: Int? = 0
+    ): Result<List<VendorReviewResponse>>
+
     suspend fun rateRestaurant(
         restaurantId: Int,
         request: RestaurantRatingRequest

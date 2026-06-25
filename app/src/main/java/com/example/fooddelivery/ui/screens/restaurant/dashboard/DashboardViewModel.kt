@@ -33,6 +33,7 @@ data class VoucherPreviewItem(
 )
 
 data class DashboardState(
+    val restaurantId: Int? = null,
     val isLoading: Boolean = false,
     val restaurantName: String = "",
     val runningOrders: Int = 0,
@@ -132,6 +133,7 @@ class DashboardViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isLoading = false,
+                            restaurantId = restaurantId,
                             restaurantName = restaurantName,
                             runningOrders = dashboard.runningOrders,
                             orderRequest = dashboard.orderRequest,

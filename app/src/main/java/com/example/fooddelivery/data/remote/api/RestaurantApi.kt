@@ -79,6 +79,13 @@ interface RestaurantApi {
     @DELETE("food/manage/{id}")
     suspend fun deleteFood(@Path("id") id: Int): Response<BaseResponse<Unit>>
 
+    @GET("restaurant/reviews/{restaurantId}")
+    suspend fun getReviews(
+        @Path("restaurantId") restaurantId: Int,
+        @Query("limit") limit: Int? = 20,
+        @Query("offset") offset: Int? = 0
+    ): Response<BaseResponse<RestaurantReviewDataDto>>
+
     @POST("restaurant/reviews/{id}")
     suspend fun rateRestaurant(
         @Path("id") restaurantId: Int,

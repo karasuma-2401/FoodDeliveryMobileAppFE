@@ -644,7 +644,11 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 composable<RestaurantDashboardRoute> {
                     DashboardScreen(
                         onSeeAllClick = { vendorNavController.navigate(RestaurantFoodListRoute) },
-                        onSeeAllReviewsClick = { vendorNavController.navigate(RestaurantReviewsRoute) },
+                        onSeeAllReviewsClick = { resId ->
+                            vendorNavController.navigate(
+                                RestaurantReviewsRoute(restaurantId = resId)
+                            )
+                        },
                         onAddFoodClick = onAddFood,
                         onNavigate = onVendorNavigate
                     )
@@ -676,8 +680,12 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     )
                 }
 
-                composable<RestaurantReviewsRoute> {
-                    ReviewScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                composable<RestaurantReviewsRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<RestaurantReviewsRoute>()
+                    ReviewScreen(
+                        restaurantId = route.restaurantId,
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
                 }
                 composable<RestaurantPersonalInfoRoute> {
                     RestaurantPersonalInfoScreen(onNavigateBack = { vendorNavController.popBackStack() })

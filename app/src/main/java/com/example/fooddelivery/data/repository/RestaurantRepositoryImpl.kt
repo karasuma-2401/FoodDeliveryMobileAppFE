@@ -210,6 +210,21 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getRestaurantReviews(
+        restaurantId: Int,
+        limit: Int?,
+        offset: Int?
+    ): Result<List<VendorReviewResponse>> {
+        return try {
+            api.getReviews(restaurantId = restaurantId, limit = limit, offset = offset)
+                .unwrapData("Failed to load restaurant reviews")
+                .map { it.ratings }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
     override suspend fun rateRestaurant(restaurantId: Int, request: RestaurantRatingRequest): Result<FoodRatingResponse> {
         return try {
             api.rateRestaurant(restaurantId, request).unwrapData("Failed to rate restaurant")
