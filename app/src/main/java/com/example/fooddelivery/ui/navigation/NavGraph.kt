@@ -344,11 +344,16 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<RestaurantDetailRoute> {
+        composable<RestaurantDetailRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<RestaurantDetailRoute>()
             RestaurantDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToFoodDetail = { foodId ->
                     navController.navigate(FoodDetailRoute(foodId = foodId))
+                },
+                onNavigateToReviews = { restaurantId ->
+                    val resId = restaurantId.toIntOrNull() ?: args.restaurantId.toIntOrNull() ?: return@RestaurantDetailScreen
+                    navController.navigate(RestaurantReviewsRoute(restaurantId = resId))
                 }
             )
         }
@@ -362,6 +367,13 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onShowSnackbar = { message ->
                     println(message)
                 }
+            )
+        }
+        composable<RestaurantReviewsRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<RestaurantReviewsRoute>()
+            ReviewScreen(
+                restaurantId = route.restaurantId,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

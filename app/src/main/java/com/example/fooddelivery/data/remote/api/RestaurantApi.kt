@@ -15,8 +15,9 @@ interface RestaurantApi {
         @Query("categoryId") categoryId: Int? = null
     ): Response<BaseResponse<List<RestaurantResponse>>>
 
-    @GET("restaurant/{id}")
+    @GET("restaurant/detail/{id}")
     suspend fun getRestaurantById(@Path("id") id: Int): Response<BaseResponse<RestaurantResponse>>
+
 
     @GET("restaurant/my")
     suspend fun getMyRestaurants(): Response<BaseResponse<List<RestaurantResponse>>>
