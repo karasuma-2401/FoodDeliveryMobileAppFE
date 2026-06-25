@@ -1,9 +1,9 @@
 package com.example.fooddelivery.data.remote.api
 
+import com.example.fooddelivery.data.remote.dto.BaseResponse
 import com.example.fooddelivery.data.remote.dto.MessageResponse
 import com.example.fooddelivery.data.remote.dto.NotificationDto
-import com.example.fooddelivery.data.remote.dto.NotificationResponse
-import com.example.fooddelivery.data.remote.dto.UnreadCountResponse
+import com.example.fooddelivery.data.remote.dto.UnreadCountData
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
@@ -17,13 +17,13 @@ interface NotificationApi {
         @Query("read") read: String? = null,
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0
-    ): NotificationResponse
+    ): BaseResponse<List<NotificationDto>>
 
     @GET("notification/me/unread-count")
-    suspend fun getUnreadCount(): UnreadCountResponse
+    suspend fun getUnreadCount(): BaseResponse<UnreadCountData>
 
     @PATCH("notification/{notificationId}/read")
-    suspend fun markAsRead(@Path("notificationId") notificationId: Int): NotificationDto
+    suspend fun markAsRead(@Path("notificationId") notificationId: Int): BaseResponse<NotificationDto>
 
     @PATCH("notification/read-all")
     suspend fun markAllRead(): MessageResponse

@@ -90,6 +90,19 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("PublicOkHttpClient")
+    fun providePublicOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor
+    ): OkHttpClient {
+        return OkHttpClient.Builder().apply {
+            if (BuildConfig.DEBUG) {
+                addInterceptor(loggingInterceptor)
+            }
+        }.build()
+    }
+
+    @Provides
+    @Singleton
     @Named("MainRetrofit")
     fun provideRetrofit(json: Json, okHttpClient: OkHttpClient): Retrofit {
         val contentType = "application/json".toMediaType()
@@ -104,11 +117,14 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("PhotonRetrofit")
-    fun providePhotonRetrofit(json: Json, okHttpClient: OkHttpClient): Retrofit {
+    fun providePhotonRetrofit(
+        json: Json,
+        @Named("PublicOkHttpClient") publicOkHttpClient: OkHttpClient
+    ): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             .baseUrl(PhotonService.BASE_URL)
-            .client(okHttpClient)
+            .client(publicOkHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
     }

@@ -49,7 +49,7 @@ data class UserReviewDto(
     val orderId: Int,
     val vote: Int,
     val comment: String? = null,
-    val tags: List<String> = emptyList(),
+    val tags: List<String>? = null,
     val createdAt: String
 )
 

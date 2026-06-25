@@ -18,6 +18,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private val REVIEW_TAG_LABELS = listOf(
+    "Delicious food",
+    "Fast delivery",
+    "Carefully packed",
+    "Good service",
+    "Reasonable price"
+)
+
 data class RatingReviewState(
     val orderId: String = "",
     val restaurantId: String = "",
@@ -28,9 +36,7 @@ data class RatingReviewState(
     val comment: String = "",
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,
-    val availableTags: List<String> = listOf(
-        "Delicious food", "Fast delivery", "Carefully packed", "Good service", "Reasonable price",
-    ),
+    val availableTags: List<String> = REVIEW_TAG_LABELS,
     val selectedTags: Set<String> = emptySet()
 )
 
@@ -53,6 +59,14 @@ class RatingReviewViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val restaurantRepository: RestaurantRepository
 ) : ViewModel() {
+    private val tagLabelToApiValue = mapOf(
+        "Delicious food" to "delicious_food",
+        "Fast delivery" to "fast_delivery",
+        "Carefully packed" to "carefully_packed",
+        "Good service" to "good_service",
+        "Reasonable price" to "reasonable_price"
+    )
+
     private val routeData = savedStateHandle.toRoute<RatingReviewRoute>()
 
     private val _state = MutableStateFlow(
@@ -113,7 +127,7 @@ class RatingReviewViewModel @Inject constructor(
                     val updateRequest = UpdateReviewRequest(
                         vote = currentState.rating,
                         comment = currentState.comment,
-                        tags = currentState.selectedTags.toList()
+                        tags = currentState.selectedTags.toApiTagValues()
                     )
                     restaurantRepository.updateReview(currentState.reviewId.toInt(), updateRequest)
                 } else {
@@ -124,7 +138,7 @@ class RatingReviewViewModel @Inject constructor(
                         orderId = orderIdInt,
                         vote = currentState.rating,
                         comment = currentState.comment,
-                        tags = currentState.selectedTags.toList()
+                        tags = currentState.selectedTags.toApiTagValues()
                     )
                     restaurantRepository.rateRestaurant(restaurantIdInt, createRequest)
                 }
@@ -163,6 +177,12 @@ class RatingReviewViewModel @Inject constructor(
             } finally {
                 _state.update { it.copy(isSubmitting = false) }
             }
+        }
+    }
+
+    private fun Set<String>.toApiTagValues(): List<String> {
+        return this.mapNotNull { tag ->
+            tagLabelToApiValue[tag] ?: tag.lowercase().replace(" ", "_").takeIf { it.isNotBlank() }
         }
     }
 }

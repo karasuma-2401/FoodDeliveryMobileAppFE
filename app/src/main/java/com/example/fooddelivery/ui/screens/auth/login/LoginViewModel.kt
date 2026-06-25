@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.usecase.LoginUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithGoogleUseCase
+import com.example.fooddelivery.domain.usecase.RegisterDeviceTokenUseCase
 import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
 import com.example.fooddelivery.ui.navigation.resolveStartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,7 +41,8 @@ class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val validateInputUseCase: ValidateAuthInputUseCase,
     private val loginWithFacebookUseCase: LoginWithFacebookUseCase,
-    private val loginWithGoogleUseCase: LoginWithGoogleUseCase
+    private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
+    private val registerDeviceTokenUseCase: RegisterDeviceTokenUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(LoginState())
     val state =  _state.asStateFlow()
@@ -86,6 +88,7 @@ class LoginViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = loginWithFacebookUseCase(facebookToken)
             result.onSuccess { roles ->
+                registerDeviceTokenUseCase()
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -109,6 +112,7 @@ class LoginViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = loginWithGoogleUseCase(googleToken)
             result.onSuccess { roles ->
+                registerDeviceTokenUseCase()
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -146,6 +150,7 @@ class LoginViewModel @Inject constructor(
             )
             
             result.onSuccess { roles ->
+                registerDeviceTokenUseCase()
                 _state.update {
                     it.copy(
                         isLoading = false,

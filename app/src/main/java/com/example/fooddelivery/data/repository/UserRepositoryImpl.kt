@@ -11,6 +11,7 @@ import com.example.fooddelivery.data.remote.dto.UserProfileData
 import com.example.fooddelivery.data.remote.dto.UserProfileResponse
 import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.unwrapData
+import com.example.fooddelivery.data.remote.unwrapList
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.model.UserReview
@@ -145,6 +146,10 @@ class UserRepositoryImpl @Inject constructor(
         return try {
             api.getUserReviews(limit, offset)
                 .unwrapData("Failed to load reviews")
+                .mapCatching { nestedResponse ->
+                    nestedResponse.data
+                        ?: throw Exception(nestedResponse.message ?: "Failed to load reviews")
+                }
                 .map { reviews ->
                     reviews.map { dto ->
                         UserReview(
@@ -154,7 +159,7 @@ class UserRepositoryImpl @Inject constructor(
                             restaurantImage = dto.restaurantImage ?: "",
                             rating = dto.vote,
                             comment = dto.comment ?: "",
-                            tags = dto.tags,
+                            tags = dto.tags ?: emptyList(),
                             createdAt = try {
                                 ZonedDateTime.parse(dto.createdAt).toInstant().toEpochMilli()
                             } catch (e: Exception) {
@@ -173,7 +178,7 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getFavoriteRestaurants(limit: Int, offset: Int): Result<List<Restaurant>> {
         return try {
             val response = api.getFavoriteRestaurants(limit, offset)
-            val result = response.unwrapData("Failed to load favorite restaurants")
+            val result = response.unwrapList("Failed to load favorite restaurants")
             if (result.isFailure) {
                 val errorMsg = when (response.code()) {
                     401 -> "Unauthorized: Please login again"
@@ -182,8 +187,8 @@ class UserRepositoryImpl @Inject constructor(
                 }
                 return Result.failure(Exception(errorMsg, result.exceptionOrNull()))
             }
-            result.map { favoriteResponse ->
-                favoriteResponse.data.map { dto ->
+            result.map { favoriteRestaurants ->
+                favoriteRestaurants.map { dto ->
                     Restaurant(
                         id = dto.id.toString(),
                         name = dto.name,

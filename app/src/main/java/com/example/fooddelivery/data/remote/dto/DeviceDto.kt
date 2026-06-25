@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DeviceRequest(
     val deviceToken: String,
-    val platform: String = "android"
+    val platform: String
 )
 
 @Serializable

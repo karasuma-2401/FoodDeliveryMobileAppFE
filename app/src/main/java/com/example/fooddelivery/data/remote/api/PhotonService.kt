@@ -9,7 +9,7 @@ interface PhotonService {
     suspend fun search(
         @Query("q") query: String,
         @Query("limit") limit: Int = 10,
-        @Query("lang") lang: String = "vi"
+        @Query("lang") lang: String = "default"
     ): PhotonResponse
 
     companion object {

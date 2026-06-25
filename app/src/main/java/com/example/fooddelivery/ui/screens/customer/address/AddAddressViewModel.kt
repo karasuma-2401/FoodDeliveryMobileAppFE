@@ -97,7 +97,16 @@ class AddAddressViewModel @Inject constructor(
                 _state.update { it.copy(title = event.title) }
             }
             is AddAddressEvent.FullAddressChanged -> {
-                _state.update { it.copy(fullAddress = event.address) }
+                _state.update { current ->
+                    val isManualAddressChange = current.selectedAddress != null &&
+                        current.selectedAddress.detail.trim() != event.address.trim()
+
+                    current.copy(
+                        fullAddress = event.address,
+                        // If user manually edits the text, old coordinates are no longer reliable.
+                        selectedAddress = if (isManualAddressChange) null else current.selectedAddress
+                    )
+                }
             }
             is AddAddressEvent.TypeChanged -> {
                 _state.update { it.copy(type = event.type) }

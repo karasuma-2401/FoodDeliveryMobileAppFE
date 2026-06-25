@@ -36,7 +36,7 @@ fun AddressTypeItem(
             .clip(RoundedCornerShape(16.dp))
             .background(containerColor)
             .border(
-                width = if (isSelected) 2.dp else 1.dp,
+                width = if (isSelected) 1.dp else 0.5.dp,
                 color = borderColor,
                 shape = RoundedCornerShape(16.dp)
             )
@@ -45,19 +45,19 @@ fun AddressTypeItem(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 12.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(12.dp)
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = label,
                 color = contentColor,
-                style = MaterialTheme.typography.labelLarge.copy(
+                style = MaterialTheme.typography.labelSmall.copy(
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                 )
             )
