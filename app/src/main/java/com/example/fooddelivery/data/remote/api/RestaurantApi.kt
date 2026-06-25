@@ -13,13 +13,13 @@ interface RestaurantApi {
         @Query("offset") offset: Int? = 0,
         @Query("keyword") keyword: String? = null,
         @Query("categoryId") categoryId: Int? = null
-    ): Response<BaseListResponse<RestaurantResponse>>
+    ): Response<BaseResponse<List<RestaurantResponse>>>
 
     @GET("restaurant/{id}")
     suspend fun getRestaurantById(@Path("id") id: Int): Response<BaseResponse<RestaurantResponse>>
 
     @GET("restaurant/my")
-    suspend fun getMyRestaurants(): Response<BaseListResponse<RestaurantResponse>>
+    suspend fun getMyRestaurants(): Response<BaseResponse<List<RestaurantResponse>>>
 
     @GET("restaurant/manage/{restaurantId}/dashboard")
     suspend fun getDashboard(
@@ -41,8 +41,11 @@ interface RestaurantApi {
 
     @GET("food")
     suspend fun getFoods(
-        @Query("restaurantId") restaurantId: Int
-    ): Response<BaseListResponse<FoodResponse>>
+        @Query("restaurantId") restaurantId: Int,
+        @Query("limit") limit: Int? = 100,
+        @Query("offset") offset: Int? = 0
+    ): Response<BaseResponse<List<FoodResponse>>>
+
 
     @Multipart
     @POST("food/manage")
@@ -52,8 +55,8 @@ interface RestaurantApi {
         @Part("categoryId") categoryId: RequestBody,
         @Part("restaurantId") restaurantId: RequestBody,
         @Part("price") price: RequestBody,
-        @Part("sizes") sizes: RequestBody,         // JSON string
-        @Part("ingredientIds") ingredientIds: RequestBody?, // CSV string
+        @Part("sizes") sizes: RequestBody,
+        @Part ingredientIds: List<MultipartBody.Part>?,
         @Part image: MultipartBody.Part?
     ): Response<BaseResponse<FoodResponse>>
 
@@ -69,12 +72,19 @@ interface RestaurantApi {
         @Part("categoryId") categoryId: RequestBody,
         @Part("price") price: RequestBody,
         @Part("sizes") sizes: RequestBody,         // JSON string
-        @Part("ingredientIds") ingredientIds: RequestBody?, // CSV string
+        @Part("ingredientIds") ingredientIds: List<MultipartBody.Part>?,
         @Part image: MultipartBody.Part?
     ): Response<BaseResponse<FoodResponse>>
 
     @DELETE("food/manage/{id}")
     suspend fun deleteFood(@Path("id") id: Int): Response<BaseResponse<Unit>>
+
+    @GET("restaurant/reviews/{restaurantId}")
+    suspend fun getReviews(
+        @Path("restaurantId") restaurantId: Int,
+        @Query("limit") limit: Int? = 20,
+        @Query("offset") offset: Int? = 0
+    ): Response<BaseResponse<RestaurantReviewDataDto>>
 
     @POST("restaurant/reviews/{id}")
     suspend fun rateRestaurant(

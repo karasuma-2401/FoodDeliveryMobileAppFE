@@ -68,6 +68,8 @@ import com.example.fooddelivery.ui.screens.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
 import com.example.fooddelivery.ui.screens.admin.notification.AdminNotificationScreen
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScreen
+import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonalInfoScreen
+import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantProfileScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -642,7 +644,11 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 composable<RestaurantDashboardRoute> {
                     DashboardScreen(
                         onSeeAllClick = { vendorNavController.navigate(RestaurantFoodListRoute) },
-                        onSeeAllReviewsClick = { vendorNavController.navigate(RestaurantReviewsRoute) },
+                        onSeeAllReviewsClick = { resId ->
+                            vendorNavController.navigate(
+                                RestaurantReviewsRoute(restaurantId = resId)
+                            )
+                        },
                         onAddFoodClick = onAddFood,
                         onNavigate = onVendorNavigate
                     )
@@ -674,11 +680,35 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     )
                 }
 
-                composable<RestaurantReviewsRoute> {
-                    ReviewScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                composable<RestaurantReviewsRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<RestaurantReviewsRoute>()
+                    ReviewScreen(
+                        restaurantId = route.restaurantId,
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
+                }
+                composable<RestaurantPersonalInfoRoute> {
+                    RestaurantPersonalInfoScreen(onNavigateBack = { vendorNavController.popBackStack() })
                 }
 
-                composable<RestaurantNotificationsRoute> { Text("Notifications") }
+                composable<RestaurantProfileRoute> {
+                    RestaurantProfileScreen(
+                        onNavigateToPersonalInfo = {
+                            vendorNavController.navigate(RestaurantPersonalInfoRoute)
+                        },
+                        onNavigateToReviews = {
+                            vendorNavController.navigate(RestaurantReviewsRoute)
+                        },
+                        onNavigateToResetPassword = {
+                            vendorNavController.navigate(ChangePasswordRoute)
+                        },
+                        onLogout = {
+                            navController.navigate(AuthGraph) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    )
+                }
                 
                 composable<ConversationRoute> {
                     ConversationScreen(
@@ -701,7 +731,6 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     )
                 }
 
-                composable<RestaurantProfileRoute> { Text("Profile") }
 
                 composable<RestaurantCouponRoute> {
                     RestaurantCouponScreen(

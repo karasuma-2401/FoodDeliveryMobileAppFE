@@ -31,7 +31,7 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     onSeeAllClick: () -> Unit = {},
-    onSeeAllReviewsClick: () -> Unit = {},
+    onSeeAllReviewsClick: (Int) -> Unit = {},
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
 ) {
@@ -40,7 +40,11 @@ fun DashboardScreen(
     DashboardContent(
         state = state,
         onSeeAllClick = onSeeAllClick,
-        onSeeAllReviewsClick = onSeeAllReviewsClick,
+        onSeeAllReviewsClick = {
+            state.restaurantId?.let { id ->
+                onSeeAllReviewsClick(id)
+            }
+        },
         onAddFoodClick = onAddFoodClick,
         onSeeAllOrdersClick = { onNavigate("order_management") },
         onNavigate = onNavigate

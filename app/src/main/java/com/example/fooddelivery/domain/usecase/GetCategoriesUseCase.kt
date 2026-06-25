@@ -10,8 +10,9 @@ class GetCategoriesUseCase @Inject constructor(
     suspend operator fun invoke(
         keyword: String? = null,
         limit: Int? = 50,
-        offset: Int? = 0
+        offset: Int? = 0,
+        isActive: Boolean? = null
     ): Result<List<Category>> {
-        return repository.getCategories(keyword, limit, offset)
+        return repository.getCategories(keyword, limit, offset, isActive)
     }
 }

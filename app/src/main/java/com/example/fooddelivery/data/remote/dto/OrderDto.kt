@@ -163,11 +163,11 @@ data class OrderUserDto(
 
 @Serializable
 data class OrderAddressDto(
-    val id: Int,
-    val title: String,
-    val latitude: Double,
-    val longitude: Double,
-    val fullText: String
+    val id: Int? = null,
+    val title: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val fullText: String? = null
 )
 
 @Serializable

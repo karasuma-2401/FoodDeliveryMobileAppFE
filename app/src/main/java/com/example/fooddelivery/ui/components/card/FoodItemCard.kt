@@ -31,14 +31,7 @@ fun FoodItemCard(
     val displayPrice = item.price.toInt()
     val formattedPrice = String.format("%,d", displayPrice).replace(',', '.') + "đ"
 
-    val categoryName = when (item.categoryId) {
-        1 -> "Burger"
-        2 -> "Rice"
-        3 -> "Sushi"
-        4 -> "Noodles"
-        5 -> "Dessert"
-        else -> "Food"
-    }
+    val categoryName = item.category?.name ?: "Food"
 
     Row(
         modifier = modifier

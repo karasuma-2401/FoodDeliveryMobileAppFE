@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.data.remote.dto.RestaurantRatingRequest
 import com.example.fooddelivery.data.remote.dto.UpdateReviewRequest
+import com.example.fooddelivery.data.remote.dto.VendorReviewResponse
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.ui.navigation.RatingReviewRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +32,8 @@ data class RatingReviewState(
     val availableTags: List<String> = listOf(
         "Delicious food", "Fast delivery", "Carefully packed", "Good service", "Reasonable price",
     ),
-    val selectedTags: Set<String> = emptySet()
+    val selectedTags: Set<String> = emptySet(),
+    val reviews: List<VendorReviewResponse> = emptyList()
 )
 
 sealed interface RatingReviewEvent {
@@ -70,6 +72,28 @@ class RatingReviewViewModel @Inject constructor(
 
     private val _uiEffect = MutableSharedFlow<RatingReviewUiEffect>()
     val uiEffect = _uiEffect.asSharedFlow()
+
+    init {
+        loadReviews()
+    }
+
+    private fun loadReviews() {
+        val restaurantIdInt = routeData.restaurantId.toIntOrNull() ?: return
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true) }
+                restaurantRepository.getRestaurantReviews(restaurantIdInt).onSuccess { reviews ->
+                    _state.update { it.copy(reviews = reviews) }
+                }.onFailure { e ->
+                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Failed to load reviews: ${'$'}{e.message}"))
+                }
+            } catch (e: Exception) {
+                _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar(e.localizedMessage ?: "An error occurred while loading reviews"))
+            } finally {
+                _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
 
     fun onEvent(event: RatingReviewEvent) {
         when (event) {

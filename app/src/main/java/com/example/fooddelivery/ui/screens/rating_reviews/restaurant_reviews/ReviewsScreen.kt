@@ -3,11 +3,13 @@ package com.example.fooddelivery.ui.screens.rating_reviews.restaurant_reviews
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,10 +23,15 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewScreen(
+    restaurantId: Int,
     onNavigateBack: () -> Unit,
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
+
+    LaunchedEffect(key1 = restaurantId) {
+        viewModel.loadReviews(restaurantId)
+    }
 
     Scaffold(
         topBar = {
@@ -35,7 +42,16 @@ fun ReviewScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        if (state.reviews.isEmpty() && !state.isLoading) {
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else if (state.reviews.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -75,6 +91,6 @@ fun ReviewScreen(
 @Composable
 fun ReviewScreenPreview() {
     DFoodTheme {
-        ReviewScreen(onNavigateBack = {})
+        ReviewScreen(restaurantId = 1, onNavigateBack = {})
     }
 }

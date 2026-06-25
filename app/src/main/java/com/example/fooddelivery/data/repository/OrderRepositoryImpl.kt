@@ -98,7 +98,7 @@ class OrderRepositoryImpl @Inject constructor(
         return try {
             api.updateOrderStatus(orderId, UpdateOrderStatusRequest(status))
                 .unwrapData("Failed to update order status")
-                .map { it.message }
+                .map { "Success" }
         } catch (e: Exception) {
             Result.failure(e)
         }
