@@ -18,9 +18,14 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun SuggestedReplies(
     onReplyClick: (String) -> Unit,
+    isBusinessUser: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val suggestions = listOf("Thank you!", "How long will it take?", "Okay, I'm waiting")
+    val suggestions = if (isBusinessUser) {
+        listOf("Order confirmed!", "We're preparing your food", "Your order is on the way")
+    } else {
+        listOf("Thank you!", "How long will it take?", "Okay, I'm waiting")
+    }
 
     LazyRow(
         modifier = modifier

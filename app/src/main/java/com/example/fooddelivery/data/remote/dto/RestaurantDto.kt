@@ -120,6 +120,7 @@ data class FoodResponse(
     val image: String? = null,
     val rating: Float? = null,
     val reviewCount: Int? = null,
+    val totalQuantity: Int = 0,
     val category: FoodCategoryDto? = null,
     val restaurant: FoodRestaurantDto? = null,
     val foodIngredients: List<IngredientDto>? = null,

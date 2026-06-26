@@ -10,6 +10,7 @@ import com.example.fooddelivery.domain.model.CartItem
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.Voucher
+import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
@@ -69,6 +70,25 @@ data class FoodDetailState(
     val discountBadge: DiscountBadgeVisual?
         get() = vouchers.pickBestDiscountBadgeVisual()
             ?: food?.promoTag?.toDiscountBadgeVisual()
+
+    val originalPrice: Double?
+        get() {
+            val percentDiscount = vouchers
+                .filter { it.type == VoucherType.PERCENT }
+                .maxByOrNull { it.discountAmount }
+                ?.discountAmount
+                ?: promoTagPercentDiscount()
+            if (percentDiscount == null || percentDiscount <= 0.0 || percentDiscount >= 100.0) {
+                return null
+            }
+            return unitPrice / (1.0 - percentDiscount / 100.0)
+        }
+
+    private fun promoTagPercentDiscount(): Double? {
+        val tag = food?.promoTag ?: return null
+        val match = Regex("""(\d+(?:\.\d+)?)\s*%""").find(tag) ?: return null
+        return match.groupValues[1].toDoubleOrNull()
+    }
 }
 
 sealed interface FoodDetailEvent {
@@ -306,6 +326,7 @@ class FoodDetailViewModel @Inject constructor(
                         price = unitPrice,
                         rating = dto.rating ?: 0f,
                         reviewCount = dto.reviewCount ?: 0,
+                        soldCount = dto.totalQuantity,
                         imageUrl = dto.image,
                         promoTag = dto.label
                     )

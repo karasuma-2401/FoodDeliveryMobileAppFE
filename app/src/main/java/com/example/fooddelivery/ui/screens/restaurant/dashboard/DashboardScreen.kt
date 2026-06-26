@@ -21,6 +21,7 @@ import com.example.fooddelivery.domain.model.BestSellerItem
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ActiveVouchersPreviewCard
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.BestSellerSection
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.HeaderSection
+import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.MessagesQuickAccessCard
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.RevenueSection
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.ReviewSection
 import com.example.fooddelivery.ui.screens.restaurant.component.dashboard.StatCard
@@ -33,7 +34,9 @@ fun DashboardScreen(
     onSeeAllReviewsClick: (Int) -> Unit = {},
     onSeeRevenueClick: (Int) -> Unit = {},
     onAddFoodClick: () -> Unit = {},
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    unreadMessageCount: Int = 0,
+    onNavigateToMessages: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -52,7 +55,9 @@ fun DashboardScreen(
         },
         onAddFoodClick = onAddFoodClick,
         onSeeAllOrdersClick = { onNavigate("order_management") },
-        onNavigate = onNavigate
+        onNavigate = onNavigate,
+        unreadMessageCount = unreadMessageCount,
+        onNavigateToMessages = onNavigateToMessages
     )
 }
 
@@ -64,7 +69,9 @@ fun DashboardContent(
     onSeeRevenueClick: () -> Unit = {},
     onAddFoodClick: () -> Unit = {},
     onSeeAllOrdersClick: () -> Unit = {},
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    unreadMessageCount: Int = 0,
+    onNavigateToMessages: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -88,6 +95,13 @@ fun DashboardContent(
             ) {
                 HeaderSection(
                     location = state.restaurantName.ifBlank { "My Restaurant" }
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                MessagesQuickAccessCard(
+                    unreadCount = unreadMessageCount,
+                    onClick = onNavigateToMessages
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))

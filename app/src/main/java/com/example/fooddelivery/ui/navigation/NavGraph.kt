@@ -7,8 +7,14 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -54,6 +60,7 @@ import com.example.fooddelivery.ui.screens.customer.order.OrdersScreen
 import com.example.fooddelivery.ui.screens.customer.order.TrackOrderScreen
 import com.example.fooddelivery.ui.screens.chat.ChatScreen
 import com.example.fooddelivery.ui.screens.chat.ConversationScreen
+import com.example.fooddelivery.ui.screens.chat.UnreadChatViewModel
 import com.example.fooddelivery.ui.screens.rating_reviews.RatingReviewScreen
 import com.example.fooddelivery.ui.screens.category.CategoryFilterScreen
 import com.example.fooddelivery.ui.screens.category.AllCategoriesScreen
@@ -65,7 +72,6 @@ import com.example.fooddelivery.ui.screens.rating_reviews.restaurant_reviews.Rev
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
-import com.example.fooddelivery.ui.screens.admin.notification.AdminNotificationScreen
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonalInfoScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantProfileScreen
@@ -508,6 +514,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToOrder = { orderId ->
                     navController.navigate(TrackOrderRoute(orderId = orderId))
+                },
+                onNavigateToChat = { conversationId ->
+                    navController.navigate(ChatRoute(conversationId = conversationId))
                 }
             )
         }
@@ -634,6 +643,20 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
     composable<RestaurantGraph> {
         val vendorNavController = androidx.navigation.compose.rememberNavController()
+        val unreadChatViewModel: UnreadChatViewModel = hiltViewModel()
+        val unreadMessageCount by unreadChatViewModel.unreadCount.collectAsStateWithLifecycle()
+        val lifecycleOwner = LocalLifecycleOwner.current
+
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    unreadChatViewModel.refresh()
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        }
+
         val navBackStackEntry by vendorNavController.currentBackStackEntryAsState()
         val currentRouteStr = navBackStackEntry?.destination?.route ?: ""
 
@@ -679,9 +702,9 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                             val targetRoute = when (tab) {
                                 "dashboard" -> RestaurantDashboardRoute
                                 "menu" -> RestaurantFoodListRoute
+                                "messages" -> ConversationRoute
                                 "notifications" -> RestaurantNotificationsRoute
                                 "profile" -> RestaurantProfileRoute
-                                "messages" -> ConversationRoute
                                 else -> RestaurantDashboardRoute
                             }
                             vendorNavController.navigate(targetRoute) {
@@ -692,7 +715,8 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                                 restoreState = true
                             }
                         },
-                        onAddClick = onAddFood
+                        onAddClick = onAddFood,
+                        unreadMessageCount = unreadMessageCount
                     )
                 }
             }
@@ -717,7 +741,9 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                             )
                         },
                         onAddFoodClick = onAddFood,
-                        onNavigate = onVendorNavigate
+                        onNavigate = onVendorNavigate,
+                        unreadMessageCount = unreadMessageCount,
+                        onNavigateToMessages = { vendorNavController.navigate(ConversationRoute) }
                     )
                 }
 
@@ -743,7 +769,24 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
 
                 composable<RestaurantOrderManagementRoute> {
                     OrderManagementScreen(
-                        onNavigateBack = { vendorNavController.popBackStack() }
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onChatWithCustomer = { orderId, conversationId, customerName ->
+                            if (conversationId != null) {
+                                vendorNavController.navigate(
+                                    ChatRoute(
+                                        conversationId = conversationId.toString(),
+                                        restaurantName = customerName
+                                    )
+                                )
+                            } else {
+                                vendorNavController.navigate(
+                                    ChatRoute(
+                                        orderId = orderId,
+                                        restaurantName = customerName
+                                    )
+                                )
+                            }
+                        }
                     )
                 }
 
@@ -760,6 +803,20 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                         onNavigateBack = { vendorNavController.popBackStack() }
                     )
                 }
+
+                composable<RestaurantNotificationsRoute> {
+                    NotificationScreen(
+                        showBackButton = false,
+                        onNavigateBack = {},
+                        onNavigateToOrder = {
+                            vendorNavController.navigate(RestaurantOrderManagementRoute)
+                        },
+                        onNavigateToChat = { conversationId ->
+                            vendorNavController.navigate(ChatRoute(conversationId = conversationId))
+                        }
+                    )
+                }
+
                 composable<RestaurantPersonalInfoRoute> {
                     RestaurantPersonalInfoScreen(
                         navController = vendorNavController,
@@ -820,6 +877,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 }
                 composable<ConversationRoute> {
                     ConversationScreen(
+                        screenTitle = "Customer Messages",
                         onNavigateBack = { vendorNavController.popBackStack() },
                         onNavigateToChat = { id, name, image ->
                             vendorNavController.navigate(ChatRoute(conversationId = id, restaurantName = name, restaurantImage = image))
@@ -979,8 +1037,12 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 }
 
                 composable<AdminNotificationRoute> {
-                    AdminNotificationScreen(
-                        onNavigateBack = { adminNavController.popBackStack() }
+                    NotificationScreen(
+                        showBackButton = false,
+                        onNavigateBack = {},
+                        onNavigateToOrder = {
+                            adminNavController.navigate(AdminOrdersRoute)
+                        }
                     )
                 }
 

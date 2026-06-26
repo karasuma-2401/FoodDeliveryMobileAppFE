@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.fooddelivery.data.local.room.entity.MessageEntity
+import com.example.fooddelivery.util.senderIdsMatch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,7 +33,7 @@ fun ChatBubble(
     restaurantName: String = "Restaurant"
 ) {
     val context = LocalContext.current
-    val isMe = message.senderId == currentUserId
+    val isMe = senderIdsMatch(message.senderId, currentUserId)
     
     val bubbleColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
     val textColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer

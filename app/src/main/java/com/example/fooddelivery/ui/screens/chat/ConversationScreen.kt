@@ -22,11 +22,13 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 fun ConversationScreen(
     onNavigateBack: () -> Unit,
     onNavigateToChat: (String, String, String) -> Unit,
+    screenTitle: String = "Messages",
     viewModel: ConversationViewModel = hiltViewModel()
 ) {
     ConversationContent(
         onNavigateBack = onNavigateBack,
         onNavigateToChat = onNavigateToChat,
+        screenTitle = screenTitle,
         viewModel = viewModel
     )
 }
@@ -36,6 +38,7 @@ fun ConversationScreen(
 fun ConversationContent(
     onNavigateBack: () -> Unit,
     onNavigateToChat: (String, String, String) -> Unit,
+    screenTitle: String = "Messages",
     viewModel: ConversationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -43,7 +46,7 @@ fun ConversationContent(
     Scaffold(
         topBar = {
             DFoodTopBar(
-                title = "Messages",
+                title = screenTitle,
                 onBackClick = onNavigateBack
             )
         },

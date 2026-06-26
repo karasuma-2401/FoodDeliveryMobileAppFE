@@ -171,6 +171,7 @@ class OrderRepositoryImpl @Inject constructor(
             confirmedAt = confirmed_at?.let { formatDate(it) },
             confirmedBy = confirmed_by,
             restaurantId = restaurant?.id ?: 0,
+            sellerId = restaurant?.ownerId ?: conversation?.sellerId ?: 0,
             restaurantName = restaurant?.name ?: "",
             restaurantImage = restaurant?.image ?: "",
             restaurantPhone = restaurant?.phone,

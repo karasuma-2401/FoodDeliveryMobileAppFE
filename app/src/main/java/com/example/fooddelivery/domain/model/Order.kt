@@ -36,6 +36,7 @@ data class OrderDetail(
     val confirmedAt: String? = null,
     val confirmedBy: String? = null,
     val restaurantId: Int,
+    val sellerId: Int,
     val restaurantName: String,
     val restaurantImage: String,
     val restaurantPhone: String?,

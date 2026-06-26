@@ -14,7 +14,9 @@ data class NotificationEntity(
     val timestamp: Long,
     val type: String,
     val isRead: Boolean,
-    val targetId: String?
+    val targetId: String?,
+    val targetType: String? = null,
+    val actions: String = ""
 )
 // mapper function
 fun NotificationEntity.toDomain(): Notification {
@@ -25,7 +27,9 @@ fun NotificationEntity.toDomain(): Notification {
         timestamp = timestamp,
         type = NotificationType.valueOf(type),
         isRead = isRead,
-        targetId = targetId
+        targetId = targetId,
+        targetType = targetType,
+        actions = actions.split(",").filter { it.isNotBlank() }
     )
 }
 fun Notification.toEntity(): NotificationEntity {
@@ -36,6 +40,8 @@ fun Notification.toEntity(): NotificationEntity {
         timestamp = timestamp,
         type = type.name,
         isRead = isRead,
-        targetId = targetId
+        targetId = targetId,
+        targetType = targetType,
+        actions = actions.joinToString(",")
     )
 }

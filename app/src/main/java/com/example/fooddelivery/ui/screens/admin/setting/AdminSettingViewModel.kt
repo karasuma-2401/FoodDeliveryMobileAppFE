@@ -2,21 +2,28 @@ package com.example.fooddelivery.ui.screens.admin.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.usecase.LogoutUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class AdminSettingUiState(
     val adminEmail: String = "",
     val totalEarnings: String = "$0.00",
     val isLoading: Boolean = false,
-    val isLoggedOutSuccessfully: Boolean = false
+    val isLoggedOutSuccessfully: Boolean = false,
+    val errorMessage: String? = null
 )
 
-class AdminSettingViewModel : ViewModel() {
+@HiltViewModel
+class AdminSettingViewModel @Inject constructor(
+    private val logoutUseCase: LogoutUseCase
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminSettingUiState())
     val uiState: StateFlow<AdminSettingUiState> = _uiState.asStateFlow()
@@ -42,13 +49,20 @@ class AdminSettingViewModel : ViewModel() {
     }
 
     fun logout() {
+        if (_uiState.value.isLoading) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    isLoggedOutSuccessfully = true
-                )
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            logoutUseCase().onSuccess {
+                _uiState.update {
+                    it.copy(isLoading = false, isLoggedOutSuccessfully = true)
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = error.message ?: "Failed to log out"
+                    )
+                }
             }
         }
     }

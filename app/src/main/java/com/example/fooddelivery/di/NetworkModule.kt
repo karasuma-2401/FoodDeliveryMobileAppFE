@@ -23,15 +23,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.socket.client.Socket
-import io.socket.client.IO
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import java.net.URISyntaxException
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -223,21 +220,5 @@ object NetworkModule {
     @Singleton
     fun providePhotonService(@Named("PhotonRetrofit") retrofit: Retrofit): PhotonService {
         return retrofit.create(PhotonService::class.java)
-    }
-    @Provides
-    @Singleton
-    fun provideSocket(tokenManager: TokenManager): Socket {
-        return try {
-            val token = tokenManager.bearerToken()
-            val options = IO.Options().apply {
-                reconnection = true
-                if (!token.isNullOrBlank()) {
-                    auth = mapOf("token" to token)
-                }
-            }
-            IO.socket(BuildConfig.SOCKET_URL, options)
-        } catch (e: URISyntaxException) {
-            throw RuntimeException(e)
-        }
     }
 }
