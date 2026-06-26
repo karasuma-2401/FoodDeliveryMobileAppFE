@@ -22,6 +22,7 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable
 fun AdminDashboardScreen(
+    onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AdminDashboardViewModel = hiltViewModel()
 ) {
@@ -30,6 +31,7 @@ fun AdminDashboardScreen(
     AdminDashboardContent(
         state = state,
         onEvent = { event -> viewModel.onEvent(event) },
+        onNavigate = onNavigate,
         modifier = modifier
     )
 }
@@ -39,6 +41,7 @@ fun AdminDashboardScreen(
 fun AdminDashboardContent(
     state: AdminDashboardState,
     onEvent: (AdminDashboardEvent) -> Unit,
+    onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -68,7 +71,10 @@ fun AdminDashboardContent(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                DashboardRevenueCard(revenue = state.stats.deliveredRevenue)
+                DashboardRevenueCard(
+                    revenue = state.stats.deliveredRevenue,
+                    onClick = { onNavigate("revenue") }
+                )
 
                 Text(
                     text = "System Overview",
@@ -77,7 +83,15 @@ fun AdminDashboardContent(
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                DashboardStatsGrid(stats = state.stats)
+                DashboardStatsGrid(
+                    stats = state.stats,
+                    onUsersClick = { onNavigate("users") },
+                    onRestaurantsClick = { onNavigate("restaurants") },
+                    onOrdersClick = { onNavigate("orders") },
+                    onPaymentsClick = { onNavigate("payments") },
+                    onCategoriesClick = { onNavigate("categories") },
+                    onVouchersClick = { onNavigate("coupons") }
+                )
             }
         }
 
@@ -111,7 +125,8 @@ fun AdminDashboardScreenReview() {
                 ),
                 isLoading = false
             ),
-            onEvent = {}
+            onEvent = {},
+            onNavigate = {}
         )
     }
 }
