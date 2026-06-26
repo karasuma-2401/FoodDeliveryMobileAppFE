@@ -27,7 +27,7 @@ fun DFoodBottomBar(
     currentRoute: String,
     onNavigate: (String) -> Unit,
     onAddClick: () -> Unit,
-    unreadNotificationCount: Int = 0 // 🌟 Đổi tên biến từ Message sang Notification cho đúng nghĩa
+    unreadNotificationCount: Int = 0
 ) {
     Surface(
         modifier = Modifier
@@ -53,7 +53,6 @@ fun DFoodBottomBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Nhóm 2 Icon bên trái: Dashboard & Menu
                 Row(
                     modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -70,7 +69,6 @@ fun DFoodBottomBar(
                     )
                 }
 
-                // Nút ADD chính giữa
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
@@ -89,12 +87,10 @@ fun DFoodBottomBar(
                     )
                 }
 
-                // Nhóm 2 Icon bên phải: Notifications & Profile
                 Row(
                     modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    // 🌟 Thay thế Chat bằng Notification ở đây
                     NavigationIcon(
                         iconId = R.drawable.ic_notification,
                         isSelected = currentRoute == "notifications",
