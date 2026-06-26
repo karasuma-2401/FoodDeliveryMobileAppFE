@@ -678,7 +678,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                                 restoreState = true
                             }
                         },
-                        onAddClick = onAddFood,
+                        onAddClick = onAddFood
                     )
                 }
             }
