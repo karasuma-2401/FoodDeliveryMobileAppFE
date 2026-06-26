@@ -82,6 +82,7 @@ fun AdminDashboardContent(
 
                 DashboardStatsGrid(
                     stats = state.stats,
+                    onUsersClick = { onNavigate("users") },
                     onRestaurantsClick = { onNavigate("restaurants") },
                     onOrdersClick = { onNavigate("orders") },
                     onPaymentsClick = { onNavigate("payments") },

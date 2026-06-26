@@ -79,6 +79,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 import com.example.fooddelivery.ui.screens.admin.order.AdminOrderScreen
+import com.example.fooddelivery.ui.screens.admin.user.UserListScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -832,7 +833,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 "coupons" -> adminNavController.navigate(AdminCouponRoute)
                 "settings" -> adminNavController.navigate(AdminSettingsRoute)
                 "notifications" -> adminNavController.navigate(AdminNotificationRoute)
-
+                "users" -> adminNavController.navigate(AdminUserListRoute)
                 "restaurants" -> adminNavController.navigate(AdminRestaurantsRoute)
                 "orders" -> adminNavController.navigate(AdminOrdersRoute)
                 "payments" -> {
@@ -890,7 +891,11 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                         onNavigate = onAdminNavigate
                     )
                 }
-
+                composable<AdminUserListRoute> {
+                    UserListScreen(
+                        onBackClick = { adminNavController.popBackStack() }
+                    )
+                }
                 composable<AdminCategoriesRoute> {
                     AdminCategoryScreen(
                         onNavigateBack = { adminNavController.popBackStack() },

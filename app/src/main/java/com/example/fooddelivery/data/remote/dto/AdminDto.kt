@@ -51,3 +51,26 @@ data class AdminRestaurantDto(
     val id: Int,
     val name: String
 )
+
+@Serializable
+data class AdminUserListResponse(
+    val success: Boolean,
+    val data: List<AdminUserItemDto>,
+    val total: Int,
+    val limit: Int,
+    val offset: Int
+)
+
+@Serializable
+data class AdminUserItemDto(
+    val id: Int,
+    val name: String,
+    val email: String,
+    val phone: String?,
+    val active: Boolean,
+    val isBlocked: Boolean,
+    val blockedReason: String?,
+    val blockedAt: String?,
+    val createdAt: String,
+    val roles: List<String>
+)

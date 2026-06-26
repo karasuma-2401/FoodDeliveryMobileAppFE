@@ -24,6 +24,7 @@ import com.example.fooddelivery.ui.screens.admin.dashboard.DashboardStats
 @Composable
 fun DashboardStatsGrid(
     stats: DashboardStats,
+    onUsersClick: () -> Unit,
     onRestaurantsClick: () -> Unit,
     onOrdersClick: () -> Unit,
     onPaymentsClick: () -> Unit,
@@ -42,7 +43,8 @@ fun DashboardStatsGrid(
                 icon = Icons.Default.People,
                 iconContainerColor = Color(0xFFE3F2FD),
                 iconColor = Color(0xFF1E88E5),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = onUsersClick
             )
             DashboardStatCard(
                 title = "Restaurants",
