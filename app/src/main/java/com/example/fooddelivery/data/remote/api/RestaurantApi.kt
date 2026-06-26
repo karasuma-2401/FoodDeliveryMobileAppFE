@@ -35,7 +35,7 @@ interface RestaurantApi {
 
 
     @POST("restaurant/{restaurantId}/like")
-    suspend fun toggleFavorite(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<LikeStatusResponse>>
+    suspend fun toggleFavorite(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<ToggleFavoritePayload>>
 
     @GET("restaurant/{restaurantId}/like-status")
     suspend fun getLikeStatus(@Path("restaurantId") restaurantId: Int): Response<BaseResponse<LikeStatusResponse>>
@@ -93,7 +93,7 @@ interface RestaurantApi {
         @Body request: RestaurantRatingRequest
     ): Response<BaseResponse<FoodRatingResponse>>
 
-    @GET("restaurant/manage/{restaurantId}/revenue-details") // 🌟 Sửa lại đường dẫn endpoint chi tiết ở đây
+    @GET("restaurant/manage/{restaurantId}/revenue-details")
     suspend fun getRestaurantRevenue(
         @Path("restaurantId") restaurantId: Int,
         @Query("limit") limit: Int? = 20,

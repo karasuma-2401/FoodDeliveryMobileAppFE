@@ -3,6 +3,7 @@ package com.example.fooddelivery.ui.screens.food.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -13,17 +14,47 @@ import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.ui.components.shimmerEffect
 
 @Composable
-fun FoodImageHeaderSkeleton() {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(250.dp)) {
+fun FoodDetailHeaderSkeleton(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.shimmerEffect())
+}
+
+@Composable
+fun FoodInfoSectionSkeleton() {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 30.dp)
-                .clip(RoundedCornerShape(32.dp))
+                .fillMaxWidth(0.75f)
+                .height(28.dp)
+                .clip(RoundedCornerShape(4.dp))
                 .shimmerEffect()
         )
+        Spacer(modifier = Modifier.height(12.dp))
+        Box(modifier = Modifier.fillMaxWidth().height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(modifier = Modifier.fillMaxWidth(0.85f).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Spacer(modifier = Modifier.height(20.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .shimmerEffect()
+            )
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .shimmerEffect()
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -54,6 +85,7 @@ fun RestaurantChipSkeleton() {
         }
     }
 }
+
 @Composable
 fun FoodTitleAndDescSkeleton() {
     Column {
@@ -68,24 +100,6 @@ fun FoodTitleAndDescSkeleton() {
         Box(modifier = Modifier.fillMaxWidth().height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
         Spacer(modifier = Modifier.height(6.dp))
         Box(modifier = Modifier.fillMaxWidth().height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-        Spacer(modifier = Modifier.height(6.dp))
-        Box(modifier = Modifier.fillMaxWidth(0.5f).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-    }
-}
-
-@Composable
-fun FoodInfoRowSkeleton() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        repeat(2) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(20.dp).shimmerEffect())
-                Spacer(modifier = Modifier.width(6.dp))
-                Box(modifier = Modifier.width(40.dp).height(14.dp).shimmerEffect())
-            }
-        }
     }
 }
 
@@ -136,3 +150,7 @@ fun IngredientsSectionSkeleton() {
         }
     }
 }
+
+// Backward-compatible alias
+@Composable
+fun FoodImageHeaderSkeleton() = FoodDetailHeaderSkeleton()

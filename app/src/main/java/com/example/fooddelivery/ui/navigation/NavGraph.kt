@@ -366,6 +366,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToReviews = { restaurantId ->
                     val resId = restaurantId.toIntOrNull() ?: args.restaurantId.toIntOrNull() ?: return@RestaurantDetailScreen
                     navController.navigate(RestaurantReviewsRoute(restaurantId = resId))
+                },
+                onNavigateToCart = { navController.navigate(CartRoute) },
+                onNavigateToCheckout = { restaurantId, restaurantName ->
+                    navController.navigate(
+                        CheckoutRoute(
+                            restaurantId = restaurantId,
+                            restaurantName = restaurantName
+                        )
+                    )
                 }
             )
         }
@@ -376,8 +385,14 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToRestaurant = { restaurantId ->
                     navController.navigate(RestaurantDetailRoute(restaurantId))
                 },
-                onShowSnackbar = { message ->
-                    println(message)
+                onNavigateToCart = { navController.navigate(CartRoute) },
+                onNavigateToCheckout = { restaurantId, restaurantName ->
+                    navController.navigate(
+                        CheckoutRoute(
+                            restaurantId = restaurantId,
+                            restaurantName = restaurantName
+                        )
+                    )
                 }
             )
         }

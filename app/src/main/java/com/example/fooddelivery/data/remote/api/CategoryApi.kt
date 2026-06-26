@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.remote.api
 
 import com.example.fooddelivery.data.remote.dto.BaseListResponse
 import com.example.fooddelivery.data.remote.dto.BaseResponse
+import com.example.fooddelivery.data.remote.dto.CategoryDetailResponse
 import com.example.fooddelivery.data.remote.dto.CategoryResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -25,7 +26,7 @@ interface CategoryApi {
     ): Response<BaseResponse<BaseListResponse<CategoryResponse>>>
 
     @GET("categories/{id}")
-    suspend fun getCategoryById(@Path("id") id: Int): Response<BaseResponse<CategoryResponse>>
+    suspend fun getCategoryById(@Path("id") id: Int): Response<BaseResponse<CategoryDetailResponse>>
 
     @Multipart
     @POST("categories")

@@ -162,6 +162,27 @@ data class LikeStatusResponse(
 )
 
 @Serializable
+data class ToggleFavoritePayload(
+    val success: Boolean? = null,
+    val message: String? = null,
+    val data: LikeStatusResponse? = null,
+    // Backward-compatible with flat payload shape if backend changes again
+    val restaurantId: Int? = null,
+    val isLiked: Boolean? = null,
+    val totalLikes: Int? = null
+)
+
+fun ToggleFavoritePayload.toLikeStatusResponse(): LikeStatusResponse? {
+    return data ?: isLiked?.let {
+        LikeStatusResponse(
+            restaurantId = restaurantId,
+            isLiked = it,
+            totalLikes = totalLikes
+        )
+    }
+}
+
+@Serializable
 data class RestaurantAddressDto(
     val id: Int,
     val title: String,

@@ -5,9 +5,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.ShoppingBag
+import androidx.compose.material.icons.rounded.ChatBubbleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.components.cart.CartIconWithBadge
 
 @Composable
 fun HomeTopBar(
@@ -90,32 +90,35 @@ fun HomeTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .bounceClick { onMessageClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.AutoMirrored.Outlined.Message, contentDescription = "Messages", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+            Box(modifier = Modifier.size(48.dp)) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .bounceClick { onMessageClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ChatBubbleOutline,
+                        contentDescription = "Messages",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
                 if (unreadMessageCount > 0) {
-                    BadgeIcon(count = unreadMessageCount, color = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)
+                    BadgeIcon(
+                        count = unreadMessageCount,
+                        color = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
                 }
             }
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .bounceClick { onCartClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.ShoppingBag, contentDescription = "Cart", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
-                if (cartItemCount > 0) {
-                    BadgeIcon(count = cartItemCount, color = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
-                }
-            }
+            CartIconWithBadge(
+                itemCount = cartItemCount,
+                onClick = onCartClick,
+                badgeBorderColor = MaterialTheme.colorScheme.background
+            )
         }
     }
 }
@@ -125,10 +128,10 @@ private fun BoxScope.BadgeIcon(count: Int, color: Color, contentColor: Color) {
     Box(
         modifier = Modifier
             .align(Alignment.TopEnd)
-            .offset(x = 2.dp, y = (-2).dp)
+            .offset(x = 4.dp, y = (-4).dp)
             .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
             .background(color, CircleShape)
-            .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
+            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
             .padding(horizontal = 4.dp),
         contentAlignment = Alignment.Center
     ) {

@@ -1,6 +1,7 @@
 package com.example.fooddelivery.domain.repository
 
 import com.example.fooddelivery.domain.model.Category
+import com.example.fooddelivery.domain.model.CategoryDetail
 
 interface CategoryRepository {
     suspend fun getCategories(
@@ -10,7 +11,7 @@ interface CategoryRepository {
         isActive: Boolean? = null
     ): Result<List<Category>>
 
-    suspend fun getCategoryById(id: Int): Result<Category>
+    suspend fun getCategoryById(id: Int): Result<CategoryDetail>
 
     suspend fun createCategory(
         name: String,

@@ -6,14 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.R
+import com.example.fooddelivery.data.remote.dto.CheckPaymentRequest
 import com.example.fooddelivery.data.remote.dto.OrderItemRequest
 import com.example.fooddelivery.data.remote.dto.OrderRequest
 import com.example.fooddelivery.data.remote.dto.toDomain
+import com.example.fooddelivery.data.remote.dto.toSuitableDomain
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
 import com.example.fooddelivery.domain.repository.PaymentRepository
 import com.example.fooddelivery.domain.repository.VoucherRepository
@@ -44,11 +47,13 @@ data class CheckoutState(
     val availableVouchers: List<Voucher> = emptyList(),
     val promoCode: String = "",
     val promoError: String? = null,
+    val deliveryFee: Double? = null,
+    val isDeliveryFeeLoading: Boolean = false,
     val isLoading: Boolean = false,
     val isPolling: Boolean = false,
     val errorMessage: String? = null
 ) {
-    val total: Double get() = (subtotal - discount).coerceAtLeast(0.0)
+    val total: Double get() = (subtotal + (deliveryFee ?: 0.0) - discount).coerceAtLeast(0.0)
 }
 
 sealed class PaymentMethod(@StringRes val titleRes: Int, val value: String) {
@@ -86,6 +91,7 @@ class CheckoutViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val voucherRepository: VoucherRepository,
     private val paymentRepository: PaymentRepository,
+    private val deliveryLocationRepository: DeliveryLocationRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -104,6 +110,7 @@ class CheckoutViewModel @Inject constructor(
     val uiEffect = _uiEffect.asSharedFlow()
     
     private var pendingOrderId: Int? = null
+    private var pendingMomoOrderId: String? = null
 
     init {
         loadAddresses()
@@ -112,6 +119,8 @@ class CheckoutViewModel @Inject constructor(
 
     private fun loadAddresses(preserveSelection: Boolean = false) {
         viewModelScope.launch {
+            deliveryLocationRepository.refreshAddresses()
+            val preferredId = deliveryLocationRepository.deliveryLocation.value.selectedAddressId
             val result = addressRepository.getAddresses()
             result.onSuccess { addresses ->
                 _state.update { state ->
@@ -119,11 +128,32 @@ class CheckoutViewModel @Inject constructor(
                         preserveSelection && state.address != null -> {
                             addresses.find { it.id == state.address.id } ?: addresses.firstOrNull()
                         }
+                        preferredId != null -> {
+                            addresses.find { it.id == preferredId } ?: addresses.firstOrNull()
+                        }
                         else -> addresses.firstOrNull()
                     }
                     state.copy(address = selected, addresses = addresses)
                 }
+                loadDeliveryFee()
             }
+        }
+    }
+
+    private fun loadDeliveryFee() {
+        val address = _state.value.address ?: return
+        val restaurantId = checkoutArgs.restaurantId.toIntOrNull() ?: return
+        if (address.latitude == 0.0 && address.longitude == 0.0) return
+
+        viewModelScope.launch {
+            _state.update { it.copy(isDeliveryFeeLoading = true) }
+            orderRepository.getDeliveryFee(restaurantId, address.latitude, address.longitude)
+                .onSuccess { fee ->
+                    _state.update { it.copy(deliveryFee = fee, isDeliveryFeeLoading = false) }
+                }
+                .onFailure {
+                    _state.update { it.copy(deliveryFee = null, isDeliveryFeeLoading = false) }
+                }
         }
     }
 
@@ -145,10 +175,12 @@ class CheckoutViewModel @Inject constructor(
             val restaurantId = checkoutArgs.restaurantId.toIntOrNull() ?: return@launch
             val result = voucherRepository.getSuitableVouchers(restaurantId, cost)
             result.onSuccess { vouchersDto ->
-                val domainVouchers = vouchersDto.map { it.toDomain() }
+                val domainVouchers = vouchersDto.map { it.toSuitableDomain() }
                 _state.update { currentState ->
                     val targetVoucherId = currentState.selectedVoucher?.id ?: preselectedVoucherId
-                    val updatedSelectedVoucher = domainVouchers.find { it.id == targetVoucherId }
+                    val updatedSelectedVoucher = domainVouchers
+                        .find { it.id == targetVoucherId }
+                        ?.takeIf { it.isApplicable }
                     val newDiscount = updatedSelectedVoucher?.let {
                         calculateDiscount(it, currentState.subtotal)
                     } ?: 0.0
@@ -185,8 +217,12 @@ class CheckoutViewModel @Inject constructor(
             is CheckoutEvent.ChangeAddress -> handleChangeAddress()
             is CheckoutEvent.RefreshAddresses -> loadAddresses(preserveSelection = true)
             is CheckoutEvent.AddressSelected -> {
-                _state.update {
-                    it.copy(address = event.address, showAddressSheet = false)
+                viewModelScope.launch {
+                    deliveryLocationRepository.selectById(event.address.id)
+                    _state.update {
+                        it.copy(address = event.address, showAddressSheet = false)
+                    }
+                    loadDeliveryFee()
                 }
             }
             is CheckoutEvent.DismissAddressSheet -> {
@@ -208,14 +244,18 @@ class CheckoutViewModel @Inject constructor(
                 handlePlaceOrder()
             }
             is CheckoutEvent.ReturnFromMoMo -> {
-                startPolling()
+                confirmMoMoPayment()
             }
             is CheckoutEvent.ApplyVoucher -> {
                 val discount = event.voucher?.let { calculateDiscount(it, _state.value.subtotal) } ?: 0.0
-                _state.update { it.copy(
-                    selectedVoucher = event.voucher,
-                    discount = discount
-                ) }
+                _state.update {
+                    it.copy(
+                        selectedVoucher = event.voucher,
+                        discount = discount,
+                        promoCode = if (event.voucher != null) "" else it.promoCode,
+                        promoError = null
+                    )
+                }
             }
             is CheckoutEvent.PromoCodeChanged -> {
                 _state.update { it.copy(promoCode = event.code, promoError = null) }
@@ -234,6 +274,7 @@ class CheckoutViewModel @Inject constructor(
                     addresses.isEmpty() -> _uiEffect.emit(CheckoutUiEffect.NavigateToAddAddress)
                     addresses.size == 1 -> {
                         _state.update { it.copy(address = addresses.first(), addresses = addresses) }
+                        loadDeliveryFee()
                     }
                     else -> {
                         _state.update {
@@ -321,23 +362,27 @@ class CheckoutViewModel @Inject constructor(
                 },
                 paymentMethod = currentState.paymentMethod.value,
                 note = currentState.orderNote,
-                clearCartAfterOrder = true,
+                clearCartAfterOrder = false,
                 totalAmount = null
             )
 
             val result = orderRepository.createOrder(orderRequest)
 
             result.onSuccess { response ->
+                cartRepository.syncCart()
                 pendingOrderId = response.order.id
+                pendingMomoOrderId = response.paymentInformation.orderId
+                    ?: formatMomoOrderId(response.order.id)
                 if (currentState.paymentMethod is PaymentMethod.Cash) {
                     _state.update { it.copy(isLoading = false) }
                     _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(response.order.id))
                 } else {
                     _state.update { it.copy(isLoading = false) }
-                    response.momoPayment?.deeplink?.let {
-                        _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(it, currentState.total))
-                    } ?: run {
-                        _uiEffect.emit(CheckoutUiEffect.ShowError("Failed to get payment link"))
+                    val deeplink = response.paymentInformation.deeplink?.takeIf { it.isNotBlank() }
+                    if (deeplink != null && isMoMoAppDeeplink(deeplink)) {
+                        _uiEffect.emit(CheckoutUiEffect.OpenMoMoApp(deeplink, currentState.total))
+                    } else {
+                        confirmMoMoPayment()
                     }
                 }
             }.onFailure { error ->
@@ -347,37 +392,58 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    private fun startPolling() {
+    private fun confirmMoMoPayment() {
         val orderId = pendingOrderId ?: return
         if (_state.value.isPolling) return
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = false, isPolling = true) }
-            var isPaid = false
-            var attempts = 0
-            val maxAttempts = 15
-            
-            while (attempts < maxAttempts && !isPaid) {
-                delay(6000)
-                val paymentResult = paymentRepository.getPaymentDetail(orderId)
 
-                paymentResult.onSuccess { payment ->
-                    if (payment.paymentStatus == "DONE") {
-                        isPaid = true
-                    }
-                }
-                attempts++
+            val momoOrderId = pendingMomoOrderId ?: formatMomoOrderId(orderId)
+            val checkResult = paymentRepository.checkPayment(
+                CheckPaymentRequest(momoOrderId = momoOrderId, status = "DONE")
+            )
+
+            var isPaid = checkResult.getOrNull()?.paymentStatus == "DONE"
+
+            if (!isPaid) {
+                isPaid = pollPaymentStatus(orderId)
             }
 
             _state.update { it.copy(isPolling = false) }
 
             if (isPaid) {
-                val completedOrderId = orderId
+                cartRepository.syncCart()
                 pendingOrderId = null
-                _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(completedOrderId))
+                pendingMomoOrderId = null
+                _uiEffect.emit(CheckoutUiEffect.NavigateToPaymentSuccessful(orderId))
             } else {
-                _uiEffect.emit(CheckoutUiEffect.ShowError("Payment confirmation is taking longer than expected. Please check your order tracking."))
+                pendingOrderId = null
+                pendingMomoOrderId = null
+                _uiEffect.emit(
+                    CheckoutUiEffect.ShowError(
+                        "Payment confirmation failed. Please check your order tracking."
+                    )
+                )
             }
         }
     }
+
+    private suspend fun pollPaymentStatus(orderId: Int): Boolean {
+        repeat(5) {
+            delay(3000)
+            val isDone = paymentRepository.getPaymentDetail(orderId)
+                .getOrNull()
+                ?.paymentStatus == "DONE"
+            if (isDone) return true
+        }
+        return false
+    }
+
+    private fun formatMomoOrderId(orderId: Int): String =
+        "MOMO-ORDER-${orderId.toString().padStart(3, '0')}"
+
+    private fun isMoMoAppDeeplink(link: String): Boolean =
+        !link.startsWith("http://", ignoreCase = true) &&
+            !link.startsWith("https://", ignoreCase = true)
 }

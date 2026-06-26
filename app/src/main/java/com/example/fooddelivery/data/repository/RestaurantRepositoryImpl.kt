@@ -40,7 +40,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                             rating = dto.averageRating?.toFloat() ?: 0f,
                             deliveryFee = dto.deliveryFee ?: 0.0,
                             imageUrl = dto.image,
-                            promoTags = if (dto.deliveryFee == 0.0) listOf("Free Delivery") else emptyList(),
+                            promoTags = emptyList(),
                             isLiked = dto.isLiked ?: false,
                             totalLikes = dto.totalLikes ?: 0
                         )
@@ -91,9 +91,18 @@ class RestaurantRepositoryImpl @Inject constructor(
     override suspend fun toggleFavorite(restaurantId: Int): Result<LikeStatusResponse> {
         return try {
             val response = api.toggleFavorite(restaurantId)
-            val result = response.unwrapData("Failed to update favorite status")
-            if (result.isSuccess) {
-                result
+            val payloadResult = response.unwrapData("Failed to update favorite status")
+            if (payloadResult.isSuccess) {
+                payloadResult.fold(
+                    onSuccess = { payload ->
+                        payload.toLikeStatusResponse()?.let { status ->
+                            Result.success(status)
+                        } ?: Result.failure(Exception("Invalid favorite response format"))
+                    },
+                    onFailure = { error ->
+                        Result.failure(error)
+                    }
+                )
             } else {
                 val errorMsg = when (response.code()) {
                     401 -> "Unauthorized: Please login again"
@@ -101,7 +110,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                     404 -> "Restaurant not found"
                     else -> response.parseErrorMessage("Failed to update favorite status")
                 }
-                Result.failure(Exception(errorMsg, result.exceptionOrNull()))
+                Result.failure(Exception(errorMsg, payloadResult.exceptionOrNull()))
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e

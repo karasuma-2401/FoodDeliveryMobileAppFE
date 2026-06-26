@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.VoucherApi
 import com.example.fooddelivery.data.remote.dto.VoucherDto
+import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.domain.repository.VoucherRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -33,17 +34,23 @@ class VoucherRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getCustomerVouchers(restaurantId: Int): Result<List<VoucherDto>> {
+        return try {
+            api.getCustomerVouchers(restaurantId)
+                .unwrapData("Failed to load restaurant vouchers")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception(e.localizedMessage ?: "Network error"))
+        }
+    }
+
     override suspend fun getSuitableVouchers(
         restaurantId: Int,
         cost: Double?
     ): Result<List<VoucherDto>> {
         return try {
-            val response = api.getSuitableVouchers(restaurantId, cost)
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
-            } else {
-                Result.failure(Exception(response.message()))
-            }
+            api.getSuitableVouchers(restaurantId, cost)
+                .unwrapData("Failed to load suitable vouchers")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception(e.localizedMessage ?: "Network error"))

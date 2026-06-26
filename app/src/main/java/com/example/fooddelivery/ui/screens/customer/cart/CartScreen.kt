@@ -22,9 +22,9 @@ import com.example.fooddelivery.ui.screens.customer.cart.components.CartItemCard
 import com.example.fooddelivery.ui.screens.customer.cart.components.EmptyCartView
 import com.example.fooddelivery.ui.screens.customer.cart.components.RestaurantHeader
 import com.example.fooddelivery.ui.screens.customer.cart.components.SwipeToDeleteContainer
-import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherDetailBottomSheet
-import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSection
-import com.example.fooddelivery.ui.screens.customer.cart.components.VoucherSelectionSheet
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherDetailBottomSheet
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherEntryCard
+import com.example.fooddelivery.ui.screens.customer.voucher.VoucherSelectionSheet
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,6 +53,9 @@ fun CartScreen(
                 is CartUiEffect.ShowError -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
+                is CartUiEffect.ShowMessage -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -74,15 +77,20 @@ fun CartScreen(
             VoucherSelectionSheet(
                 vouchers = state.availableVouchers,
                 selectedVoucherId = state.selectedVoucher?.id,
+                subtotal = state.subTotal,
                 promoCode = state.promoCode,
                 promoError = state.promoError,
                 onPromoCodeChange = { viewModel.onEvent(CartEvent.PromoCodeChanged(it)) },
                 onApplyPromoCode = { viewModel.onEvent(CartEvent.ApplyPromoCode) },
-                onVoucherDetailClick = { selectedDetailVoucher = it },
-                onConfirm = { voucher ->
-                    voucher?.let { viewModel.onEvent(CartEvent.ApplyVoucher(it)) }
+                onVoucherSelect = { voucher ->
+                    viewModel.onEvent(CartEvent.ApplyVoucher(voucher))
                     showVoucherSheet = false
                 },
+                onRemoveVoucher = {
+                    viewModel.onEvent(CartEvent.ApplyVoucher(null))
+                    showVoucherSheet = false
+                },
+                onVoucherDetailClick = { selectedDetailVoucher = it },
                 onDismiss = { showVoucherSheet = false }
             )
         }
@@ -161,19 +169,24 @@ fun CartContent(
                     .padding(innerPadding),
                 contentPadding = PaddingValues(bottom = 120.dp)
             ) {
-                state.itemsByRestaurant.forEach { (restaurantName, groupedItems) ->
+                state.restaurantSections.forEach { section ->
+                    val group = section.group
                     item {
                         RestaurantHeader(
-                            restaurantName = restaurantName,
-                            restaurantAddress = null,
-                            isSelected = state.selectedRestaurantName == restaurantName,
-                            onSelect = { onEvent(CartEvent.SelectRestaurant(restaurantName)) }
+                            restaurantName = group.restaurantName,
+                            deliveryFee = group.deliveryFee,
+                            estimatedDeliveryTime = group.estimatedDeliveryTime,
+                            isSelected = state.selectedRestaurantId == group.restaurantId,
+                            onSelect = { onEvent(CartEvent.SelectRestaurant(group.restaurantId)) },
+                            onClearGroup = {
+                                onEvent(CartEvent.ClearRestaurantGroup(group.restaurantId))
+                            }
                         )
                     }
 
                     items(
-                        items = groupedItems,
-                        key = { it.cartItemId ?: it.food.id }
+                        items = section.items,
+                        key = { it.cartItemId ?: "${it.food.id}_${it.foodSizeId}" }
                     ) { item ->
                         SwipeToDeleteContainer(
                             onDelete = {
@@ -184,6 +197,7 @@ fun CartContent(
                                 item = item,
                                 onIncrease = {
                                     item.cartItemId?.let {
+                                        if (item.quantity >= 99) return@let
                                         onEvent(
                                             CartEvent.UpdateQuantity(
                                                 it,
@@ -216,11 +230,12 @@ fun CartContent(
                 }
                 if (state.canCheckout) {
                     item {
-                        VoucherSection(
-                            promoCode = state.promoCode,
-                            onPromoCodeChange = { onEvent(CartEvent.PromoCodeChanged(it)) },
-                            onApplyPromoCode = { onEvent(CartEvent.ApplyPromoCode) },
-                            onSelectVoucherClick = onShowVoucherSheet,
+                        VoucherEntryCard(
+                            selectedVoucher = state.selectedVoucher,
+                            availableCount = state.availableVouchers.count { it.isApplicable },
+                            discount = state.discount,
+                            onClick = onShowVoucherSheet,
+                            onRemove = { onEvent(CartEvent.ApplyVoucher(null)) },
                             modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                         )
                     }
@@ -228,8 +243,10 @@ fun CartContent(
                     item {
                         BillBreakdown(
                             subtotal = state.subTotal,
+                            deliveryFee = state.selectedDeliveryFee,
                             discount = state.discount,
                             total = state.total,
+                            voucherLabel = state.selectedVoucher?.code,
                             modifier = Modifier.padding(horizontal = 24.dp)
                         )
                     }

@@ -4,6 +4,7 @@ import com.example.fooddelivery.data.remote.api.OrderApi
 import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.domain.model.*
+import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -11,8 +12,23 @@ import java.util.TimeZone
 import javax.inject.Inject
 
 class OrderRepositoryImpl @Inject constructor(
-    private val api: OrderApi
+    private val api: OrderApi,
+    private val cartRepository: CartRepository,
 ) : OrderRepository {
+    override suspend fun getDeliveryFee(
+        restaurantId: Int,
+        latitude: Double,
+        longitude: Double
+    ): Result<Double> {
+        return try {
+            api.getDeliveryFee(restaurantId, latitude, longitude)
+                .unwrapData("Failed to calculate delivery fee")
+                .map { it.deliveryFee }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun createOrder(request: OrderRequest): Result<OrderResponse> {
         return try {
             api.createOrder(request).unwrapData("Failed to create order")
@@ -32,11 +48,20 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun reorder(orderId: String): Result<String> {
+    override suspend fun reorder(orderId: String): Result<ReorderResult> {
         return try {
             api.reorder(orderId)
                 .unwrapData("Failed to reorder")
-                .map { it.message }
+                .mapCatching { response ->
+                    cartRepository.applyServerCart(response.cart).getOrThrow()
+                    ReorderResult(
+                        message = response.message ?: "Items added to cart",
+                        addedCount = response.addedCount,
+                        skippedItems = response.skippedItems.map {
+                            SkippedReorderItem(foodId = it.foodId, reason = it.reason)
+                        },
+                    )
+                }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -157,6 +182,7 @@ class OrderRepositoryImpl @Inject constructor(
                     image = foodBrief.food?.image ?: "",
                     quantity = foodBrief.quantity,
                     price = foodBrief.price,
+                    lineTotal = foodBrief.price,
                     size = foodBrief.sizeName,
                     note = foodBrief.fullText,
                     description = foodBrief.food?.description

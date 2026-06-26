@@ -1,7 +1,31 @@
 package com.example.fooddelivery.data.remote.dto
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.jsonPrimitive
 import com.example.fooddelivery.data.remote.dto.MessageResponse
+
+private object FlexibleStringSerializer : KSerializer<String> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("FlexibleString", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: String) {
+        encoder.encodeString(value)
+    }
+
+    override fun deserialize(decoder: Decoder): String {
+        val jsonDecoder = decoder as? JsonDecoder ?: return decoder.decodeString()
+        return jsonDecoder.decodeJsonElement().jsonPrimitive.content
+    }
+}
+
 @Serializable
 data class OrderRequest(
     val restaurantId: Int,
@@ -11,8 +35,14 @@ data class OrderRequest(
     val orderFoods: List<OrderItemRequest>,
     val note: String? = null,
     val paymentMethod: String,
-    val clearCartAfterOrder: Boolean = true,
+    val clearCartAfterOrder: Boolean = false,
     val totalAmount: Double? = null
+)
+
+@Serializable
+data class DeliveryFeeResponse(
+    val restaurantId: Int,
+    val deliveryFee: Double
 )
 
 @Serializable
@@ -34,9 +64,21 @@ data class OrderItemRequest(
 @Serializable
 data class OrderResponse(
     val order: OrderDetailDto,
-    val payment: PaymentDto,
-    val momoPayment: MomoPaymentDto? = null,
-    val conversation: OrderConversationDto? = null
+    @SerialName("paymentInformation")
+    val paymentInformation: PaymentInformationDto,
+    val conversation: OrderConversationDto? = null,
+    val items: List<CreateOrderItemDto> = emptyList(),
+)
+
+@Serializable
+data class CreateOrderItemDto(
+    val orderId: Int,
+    val foodId: Int,
+    val foodSizeId: Int? = null,
+    val sizeName: String? = null,
+    val quantity: Int,
+    val fullText: String? = null,
+    val price: Double,
 )
 
 @Serializable
@@ -49,29 +91,29 @@ data class OrderDetailDto(
     val addressId: Int,
     val voucherId: Int? = null,
     val note: String? = null,
+    val deliveryFee: Double? = null,
     val createdAt: String? = null
 )
 
 @Serializable
-data class PaymentDto(
-    val id: Int,
-    val orderId: Int,
-    val amount: Double,
-    val method: String,
-    val paymentStatus: String,
-    val createdAt: String? = null
-)
-
-@Serializable
-data class MomoPaymentDto(
-    val partnerCode: String,
-    val orderId: String,
-    val requestId: String,
-    val payUrl: String,
-    val deeplink: String,
-    val qrCodeUrl: String,
-    val resultCode: Int,
-    val message: String
+data class PaymentInformationDto(
+    val id: Int? = null,
+    @Serializable(with = FlexibleStringSerializer::class)
+    val orderId: String? = null,
+    @Serializable(with = FlexibleStringSerializer::class)
+    val amount: String? = null,
+    val method: String? = null,
+    val paymentStatus: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deleteAt: String? = null,
+    val partnerCode: String? = null,
+    val requestId: String? = null,
+    val payUrl: String? = null,
+    val deeplink: String? = null,
+    val qrCodeUrl: String? = null,
+    val resultCode: Int? = null,
+    val message: String? = null
 )
 
 @Serializable
@@ -80,7 +122,9 @@ data class OrderConversationDto(
     val orderId: Int,
     val customerId: Int,
     val sellerId: Int,
-    val updatedAt: String? = null
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deleteAt: String? = null
 )
 
 @Serializable
@@ -227,4 +271,18 @@ data class OngoingOrdersResponse(
 @Serializable
 data class HistoryOrdersResponse(
     val history_orders: List<OrderListDto>
+)
+
+@Serializable
+data class ReorderResponse(
+    val cart: CartResponse,
+    val addedCount: Int,
+    val skippedItems: List<SkippedReorderItemResponse> = emptyList(),
+    val message: String? = null,
+)
+
+@Serializable
+data class SkippedReorderItemResponse(
+    val foodId: Int,
+    val reason: String,
 )

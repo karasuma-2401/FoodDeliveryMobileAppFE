@@ -11,7 +11,9 @@ import com.example.fooddelivery.domain.model.SearchSortOption
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.CategoryRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
+import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
 import com.example.fooddelivery.domain.repository.SearchRepository
+import com.example.fooddelivery.domain.usecase.EnrichRestaurantsWithVoucherBadgesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -19,6 +21,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,7 +38,7 @@ data class SearchState(
     val unreadMessageCount: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val selectedLocation: String = "Current Location",
+    val selectedLocation: String = "Home",
     val lat: Double? = null,
     val lng: Double? = null,
     val availableLocations: List<String> = listOf("Home", "Work", "Other"),
@@ -60,7 +65,9 @@ class SearchViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val categoryRepository: CategoryRepository,
     private val searchRepository: SearchRepository,
-    private val locationTracker: LocationTracker
+    private val enrichRestaurantsWithVoucherBadgesUseCase: EnrichRestaurantsWithVoucherBadgesUseCase,
+    private val locationTracker: LocationTracker,
+    private val deliveryLocationRepository: DeliveryLocationRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SearchState())
     val state: StateFlow<SearchState> = _state.asStateFlow()
@@ -68,10 +75,42 @@ class SearchViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     init {
-        loadInitialData()
+        observeDeliveryLocation()
         observeCart()
         observeUnreadMessages()
         loadCategories()
+    }
+
+    private fun observeDeliveryLocation() {
+        viewModelScope.launch {
+            deliveryLocationRepository.deliveryLocation.collectLatest { location ->
+                _state.update {
+                    it.copy(
+                        selectedLocation = location.selectedLabel,
+                        availableLocations = location.availableLabels,
+                        lat = location.lat ?: it.lat,
+                        lng = location.lng ?: it.lng,
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            deliveryLocationRepository.refreshAddresses()
+            loadInitialData()
+        }
+        viewModelScope.launch {
+            deliveryLocationRepository.deliveryLocation
+                .map { it.selectedAddressId }
+                .distinctUntilChanged()
+                .drop(1)
+                .collectLatest {
+                    if (state.value.searchQuery.isBlank()) {
+                        loadInitialData()
+                    } else {
+                        performSearch()
+                    }
+                }
+        }
     }
 
     private fun loadCategories() {
@@ -126,7 +165,9 @@ class SearchViewModel @Inject constructor(
             }
             SearchEvent.LoadSearchData -> loadInitialData()
             is SearchEvent.LocationSelected -> {
-                _state.update { it.copy(selectedLocation = event.location) }
+                viewModelScope.launch {
+                    deliveryLocationRepository.selectByLabel(event.location)
+                }
             }
             is SearchEvent.DeleteHistoryItem -> {
                 viewModelScope.launch {
@@ -176,6 +217,7 @@ class SearchViewModel @Inject constructor(
                     suggestedRestaurants = restaurants,
                     isLoading = false
                 ) }
+                enrichVoucherBadges(restaurants)
                 searchRepository.saveHistory(query)
                 refreshHistory()
             }.onFailure { e ->
@@ -196,9 +238,10 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
-            val location = locationTracker.getCurrentLocation()
-            val lat = location?.latitude
-            val lng = location?.longitude
+            val locationState = deliveryLocationRepository.deliveryLocation.value
+            val gpsLocation = locationTracker.getCurrentLocation()
+            val lat = locationState.lat ?: gpsLocation?.latitude
+            val lng = locationState.lng ?: gpsLocation?.longitude
             _state.update { it.copy(lat = lat, lng = lng) }
 
             refreshHistory()
@@ -211,8 +254,26 @@ class SearchViewModel @Inject constructor(
                     suggestedRestaurants = restaurants,
                     isLoading = false
                 ) }
+                enrichVoucherBadges(restaurants)
             }.onFailure { e ->
                 _state.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
+    }
+
+    private fun enrichVoucherBadges(restaurants: List<Restaurant>) {
+        if (restaurants.isEmpty()) return
+        viewModelScope.launch {
+            val enriched = enrichRestaurantsWithVoucherBadgesUseCase(
+                restaurants = restaurants,
+                onlyIfHasVoucher = true
+            )
+            _state.update { current ->
+                if (current.suggestedRestaurants.map { it.id } != restaurants.map { it.id }) {
+                    current
+                } else {
+                    current.copy(suggestedRestaurants = enriched)
+                }
             }
         }
     }
