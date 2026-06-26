@@ -98,7 +98,7 @@ fun TicketVoucherTag(
     Row(
         modifier = modifier
             .height(34.dp)
-            .width(158.dp)
+            .width(200.dp)
             .clip(TicketVoucherShape)
             .border(width = 1.dp, color = TicketVoucherTeal, shape = TicketVoucherShape)
             .background(TicketVoucherBackground, TicketVoucherShape),

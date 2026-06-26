@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import com.example.fooddelivery.ui.screens.customer.checkout.PaymentMethod
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,7 +31,7 @@ fun PaymentMethodCard(
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         border = CardDefaults.outlinedCardBorder().copy(
             brush = SolidColor(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
@@ -38,13 +39,13 @@ fun PaymentMethodCard(
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(CustomerDimens.cardPaddingLg)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(CustomerDimens.iconContainerSm)
                     .clip(RoundedCornerShape(12.dp))
                     .background(
                         if (paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) 
@@ -64,7 +65,7 @@ fun PaymentMethodCard(
                         imageVector = Icons.Default.Payments,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(CustomerDimens.iconMd)
                     )
                 }
             }
@@ -74,7 +75,7 @@ fun PaymentMethodCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(paymentMethod.titleRes),
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )

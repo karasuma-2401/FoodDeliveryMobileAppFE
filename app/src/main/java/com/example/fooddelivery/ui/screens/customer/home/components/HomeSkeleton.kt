@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.ui.components.shimmerEffect
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun SearchBarSkeleton() {
@@ -73,13 +74,13 @@ fun RestaurantItemSkeleton() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp)
-    ) {
+            .padding(horizontal = CustomerDimens.screenHorizontalPadding, vertical = CustomerDimens.itemVerticalPadding)
+        ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .height(CustomerDimens.restaurantCardImageHeight)
+                .clip(RoundedCornerShape(CustomerDimens.cardCornerRadius))
                 .shimmerEffect()
         )
         Spacer(modifier = Modifier.height(12.dp))

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.domain.model.Address
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun AddressCard(
@@ -25,20 +26,20 @@ fun AddressCard(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 2.dp,
         tonalElevation = 1.dp
     ) {
         Row(
             modifier = Modifier
-                .padding(20.dp)
+                .padding(CustomerDimens.cardPaddingLg)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(CustomerDimens.iconContainerMd)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
@@ -47,7 +48,7 @@ fun AddressCard(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(CustomerDimens.iconMd)
                 )
             }
 
@@ -56,7 +57,7 @@ fun AddressCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = address?.title ?: "No address selected",
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold,
                     ),
                     color = MaterialTheme.colorScheme.onSurface

@@ -16,7 +16,7 @@ data class AdminDashboardResponse(
 @Serializable
 data class PaymentResponse(
     val success: Boolean,
-    val data: List<PaymentDto>
+    val data: List<AdminPaymentDto>
 )
 
 @Serializable

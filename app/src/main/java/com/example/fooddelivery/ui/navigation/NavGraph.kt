@@ -70,12 +70,6 @@ import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScree
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonalInfoScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantProfileScreen
 import com.example.fooddelivery.ui.screens.restaurant.revenue.RestaurantRevenueScreen
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.getValue
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.screens.admin.categories.CreateCategoryScreen
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
@@ -753,6 +747,9 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                         },
                         onNavigateToReviews = {
                             vendorNavController.navigate(RestaurantReviewsRoute(restaurantId = 0))
+                        },
+                        onNavigateToConversation = {
+                            vendorNavController.navigate(ConversationRoute)
                         },
                         onNavigateToResetPassword = {
                             vendorNavController.navigate(ChangePasswordRoute)

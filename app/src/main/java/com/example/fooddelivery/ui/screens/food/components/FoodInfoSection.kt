@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.domain.util.DiscountBadgeVisual
 import com.example.fooddelivery.ui.components.ShopeeDiscountBadge
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import java.util.Locale
 import kotlinx.coroutines.delay
 
@@ -68,9 +69,9 @@ fun FoodInfoSection(
     ) {
         Text(
             text = name,
-            style = MaterialTheme.typography.headlineSmall.copy(
+            style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
-                fontSize = 22.sp
+                fontSize = 20.sp
             ),
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.fillMaxWidth(),
@@ -102,7 +103,7 @@ fun FoodInfoSection(
         ) {
             Text(
                 text = "$${String.format(Locale.US, "%.0f", unitPrice)}",
-                style = MaterialTheme.typography.headlineMedium.copy(
+                style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -111,7 +112,7 @@ fun FoodInfoSection(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(CustomerDimens.iconContainerSm)
                     .graphicsLayer {
                         scaleX = pulseScale
                         scaleY = pulseScale
@@ -129,7 +130,7 @@ fun FoodInfoSection(
                     imageVector = if (showAddSuccessPulse) Icons.Default.Check else Icons.Default.Add,
                     contentDescription = "Add to cart",
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(CustomerDimens.iconMd)
                 )
             }
         }

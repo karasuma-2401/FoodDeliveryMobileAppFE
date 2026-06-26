@@ -23,6 +23,7 @@ import com.example.fooddelivery.domain.model.Order
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.order.components.OrderItemCard
 import com.example.fooddelivery.ui.screens.customer.order.components.OrderItemCardSkeleton
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -150,7 +151,7 @@ fun OrderContent(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 24.dp),
+                                .padding(horizontal = CustomerDimens.screenHorizontalPadding),
                             contentPadding = PaddingValues(vertical = 16.dp),
                             userScrollEnabled = false
                         ) {
@@ -205,7 +206,7 @@ fun OrderList(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = CustomerDimens.screenHorizontalPadding),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
             items(orders) { order ->

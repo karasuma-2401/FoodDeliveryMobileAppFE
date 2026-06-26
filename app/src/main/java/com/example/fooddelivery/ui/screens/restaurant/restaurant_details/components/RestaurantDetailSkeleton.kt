@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.ui.components.shimmerEffect
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun RestaurantHeroImageSkeleton(modifier: Modifier = Modifier) {
@@ -109,7 +110,7 @@ fun FoodItemCardSkeleton(modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(CustomerDimens.foodGridImageHeight)
                     .clip(RoundedCornerShape(20.dp))
                     .shimmerEffect()
             )

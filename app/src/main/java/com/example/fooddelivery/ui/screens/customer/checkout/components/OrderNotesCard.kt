@@ -25,7 +25,7 @@ fun OrderNotesCard(
         onValueChange = onNoteChange,
         modifier = modifier
             .fillMaxWidth()
-            .height(110.dp),
+            .height(96.dp),
         placeholder = {
             Text(
                 text = "Add a note for the restaurant (e.g. No onions)",
@@ -33,7 +33,7 @@ fun OrderNotesCard(
                 style = MaterialTheme.typography.bodyMedium
             )
         },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),

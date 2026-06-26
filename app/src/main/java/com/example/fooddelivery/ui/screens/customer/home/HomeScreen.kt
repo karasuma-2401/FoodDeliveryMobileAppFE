@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import com.example.fooddelivery.ui.screens.customer.home.components.CategoryItem
 import com.example.fooddelivery.ui.screens.customer.home.components.CategoryItemSkeleton
 import com.example.fooddelivery.ui.screens.customer.home.components.HomeTopBar
@@ -111,12 +112,12 @@ fun PhoneRequiredDialog(
         modifier = Modifier.fillMaxWidth()
     ) {
         Surface(
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
             tonalElevation = 2.dp,
             color = MaterialTheme.colorScheme.surface
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
@@ -210,7 +211,7 @@ fun HomeContent(
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 item {
-                    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) {
                         Text(
                             text = "Hey ${state.user.fullName.ifEmpty { "Customer" }}, $greeting!",
                             style = MaterialTheme.typography.bodyLarge,
@@ -221,11 +222,11 @@ fun HomeContent(
                 }
 
                 if (state.isLoading) {
-                    item { Box(modifier = Modifier.padding(horizontal = 24.dp)) { SearchBarSkeleton() }; Spacer(modifier = Modifier.height(24.dp)) }
-                    item { Box(modifier = Modifier.padding(horizontal = 24.dp)) { PromoBannerSkeleton() }; Spacer(modifier = Modifier.height(32.dp)) }
+                    item { Box(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) { SearchBarSkeleton() }; Spacer(modifier = Modifier.height(24.dp)) }
+                    item { Box(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) { PromoBannerSkeleton() }; Spacer(modifier = Modifier.height(32.dp)) }
                     item {
                         SectionHeader(title = "All Categories", onSeeAllClick = { })
-                        LazyRow(contentPadding = PaddingValues(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp, bottom = 32.dp), userScrollEnabled = false) { items(5) { CategoryItemSkeleton() } }
+                        LazyRow(contentPadding = PaddingValues(horizontal = CustomerDimens.screenHorizontalPadding), horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp, bottom = 32.dp), userScrollEnabled = false) { items(5) { CategoryItemSkeleton() } }
                     }
                     item { SectionHeader(title = "All Restaurants", onSeeAllClick = { }) }
                     items(3) { RestaurantItemSkeleton() }
@@ -233,7 +234,7 @@ fun HomeContent(
                     item {
                         Surface(
                             modifier = Modifier
-                                .padding(horizontal = 24.dp)
+                                .padding(horizontal = CustomerDimens.screenHorizontalPadding)
                                 .fillMaxWidth()
                                 .height(56.dp)
                                 .bounceClick { onNavigateToSearch() },
@@ -261,7 +262,7 @@ fun HomeContent(
 
                             HorizontalPager(
                                 state = pagerState,
-                                contentPadding = PaddingValues(horizontal = 24.dp),
+                                contentPadding = PaddingValues(horizontal = CustomerDimens.screenHorizontalPadding),
                                 pageSpacing = 16.dp,
                                 modifier = Modifier.fillMaxWidth()
                             ) { pagerIndex ->
@@ -290,7 +291,7 @@ fun HomeContent(
                             onSeeAllClick = { onEvent(HomeEvent.SeeAllCategoriesClicked) }
                         )
                         LazyRow(
-                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            contentPadding = PaddingValues(horizontal = CustomerDimens.screenHorizontalPadding),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.padding(top = 16.dp, bottom = 32.dp)
                         ) {

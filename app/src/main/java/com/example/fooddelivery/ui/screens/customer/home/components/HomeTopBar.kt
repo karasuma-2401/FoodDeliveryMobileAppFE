@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.components.bounceClick
 import com.example.fooddelivery.ui.components.cart.CartIconWithBadge
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun HomeTopBar(
@@ -37,7 +38,7 @@ fun HomeTopBar(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 0.dp),
+            .padding(horizontal = CustomerDimens.screenHorizontalPadding, vertical = 0.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -58,7 +59,7 @@ fun HomeTopBar(
                 )
                 Text(
                     text = selectedLocation,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                     modifier = Modifier.weight(1f, fill = false)
@@ -67,7 +68,7 @@ fun HomeTopBar(
                     Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp).padding(start = 2.dp)
+                    modifier = Modifier.size(20.dp).padding(start = 2.dp)
                 )
             }
 

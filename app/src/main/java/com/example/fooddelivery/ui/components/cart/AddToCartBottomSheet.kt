@@ -16,9 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import com.example.fooddelivery.ui.screens.food.FoodSizeOption
 import java.util.Locale
 
@@ -85,7 +84,7 @@ fun AddToCartBottomSheet(
             ) {
                 Text(
                     text = "Add item",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
@@ -112,7 +111,7 @@ fun AddToCartBottomSheet(
                         model = imageUrl ?: R.drawable.food_bowl,
                         contentDescription = foodName,
                         modifier = Modifier
-                            .size(72.dp)
+                            .size(CustomerDimens.listThumbnailMd)
                             .clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.food_bowl),
@@ -122,7 +121,7 @@ fun AddToCartBottomSheet(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = foodName,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -138,7 +137,7 @@ fun AddToCartBottomSheet(
                         }
                         Text(
                             text = formatCartPrice(effectivePrice),
-                            style = MaterialTheme.typography.titleMedium.copy(
+                            style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             ),
@@ -146,9 +145,12 @@ fun AddToCartBottomSheet(
                         )
                     }
 
-                    QuantityStepper(
+                    CompactQuantityStepper(
                         quantity = quantity,
-                        onQuantityChange = onQuantityChange,
+                        onDecrease = { if (quantity > 1) onQuantityChange(quantity - 1) },
+                        onIncrease = { if (quantity < 99) onQuantityChange(quantity + 1) },
+                        decreaseEnabled = quantity > 1,
+                        increaseEnabled = quantity < 99,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -221,46 +223,6 @@ fun AddToCartBottomSheet(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun QuantityStepper(
-    quantity: Int,
-    onQuantityChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = { if (quantity > 1) onQuantityChange(quantity - 1) },
-            enabled = quantity > 1,
-            modifier = Modifier.size(32.dp)
-        ) {
-            Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(16.dp))
-        }
-        Text(
-            text = quantity.toString(),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-        IconButton(
-            onClick = { if (quantity < 99) onQuantityChange(quantity + 1) },
-            enabled = quantity < 99,
-            modifier = Modifier.size(32.dp)
-        ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = "Increase",
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun TimelineItem(
@@ -39,11 +40,11 @@ fun TimelineItem(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(50.dp)
+            modifier = Modifier.width(CustomerDimens.iconContainerMd)
         ) {
             Box(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(CustomerDimens.timelineCircleSize)
                     .background(circleColor, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -51,14 +52,14 @@ fun TimelineItem(
                     imageVector = if (isCompleted && !isActive) Icons.Default.Check else icon,
                     contentDescription = null,
                     tint = iconColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(CustomerDimens.iconMd)
                 )
             }
             if (!isLast) {
                 Box(
                     modifier = Modifier
                         .width(2.dp)
-                        .height(40.dp)
+                        .height(32.dp)
                         .background(if (isCompleted) activeColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 )
             }
@@ -73,7 +74,7 @@ fun TimelineItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(
+                style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = titleColor
                 )
