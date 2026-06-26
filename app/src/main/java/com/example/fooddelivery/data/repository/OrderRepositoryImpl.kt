@@ -15,6 +15,20 @@ class OrderRepositoryImpl @Inject constructor(
     private val api: OrderApi,
     private val cartRepository: CartRepository,
 ) : OrderRepository {
+    override suspend fun getDeliveryFee(
+        restaurantId: Int,
+        latitude: Double,
+        longitude: Double
+    ): Result<Double> {
+        return try {
+            api.getDeliveryFee(restaurantId, latitude, longitude)
+                .unwrapData("Failed to calculate delivery fee")
+                .map { it.deliveryFee }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun createOrder(request: OrderRequest): Result<OrderResponse> {
         return try {
             api.createOrder(request).unwrapData("Failed to create order")
@@ -168,6 +182,7 @@ class OrderRepositoryImpl @Inject constructor(
                     image = foodBrief.food?.image ?: "",
                     quantity = foodBrief.quantity,
                     price = foodBrief.price,
+                    lineTotal = foodBrief.price,
                     size = foodBrief.sizeName,
                     note = foodBrief.fullText,
                     description = foodBrief.food?.description

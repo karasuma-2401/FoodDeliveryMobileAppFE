@@ -67,10 +67,13 @@ data class OrderItemDetail(
     val image: String,
     val quantity: Int,
     val price: Double,
+    val lineTotal: Double,
     val size: String?,
     val note: String?,
     val description: String? = null
-)
+) {
+    val unitPrice: Double get() = if (quantity > 0) lineTotal / quantity else lineTotal
+}
 
 data class VoucherSummary(
     val id: Int,

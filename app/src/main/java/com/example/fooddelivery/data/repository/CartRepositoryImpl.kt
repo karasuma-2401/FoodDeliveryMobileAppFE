@@ -64,12 +64,13 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     private fun CartItemResponse.toEntity(): CartEntity {
-        val unitPrice = if (quantity > 0) lineTotal / quantity else food.price
+        val perUnitPrice = if (quantity > 0) lineTotal / quantity else food.price
         return CartEntity(
             foodId = food.id.toString(),
             restaurantId = food.restaurantId.toString(),
             quantity = quantity,
-            unitPrice = unitPrice,
+            lineTotal = lineTotal,
+            unitPrice = perUnitPrice,
             restaurantName = food.restaurant?.name ?: "Unknown",
             foodName = food.name,
             foodPrice = food.price,

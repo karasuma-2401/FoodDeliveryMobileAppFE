@@ -171,6 +171,8 @@ fun CheckoutScreen(
 
                 CheckoutBillBreakdown(
                     subtotal = state.subtotal,
+                    deliveryFee = state.deliveryFee,
+                    isDeliveryFeeLoading = state.isDeliveryFeeLoading,
                     discount = state.discount,
                     total = state.total,
                     voucherLabel = state.selectedVoucher?.code
