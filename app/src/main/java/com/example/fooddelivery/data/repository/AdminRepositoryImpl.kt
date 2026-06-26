@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.AdminApi
 import com.example.fooddelivery.data.remote.dto.AdminDashboardResponse
+import com.example.fooddelivery.data.remote.dto.AdminPaymentDto
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.domain.repository.AdminRepository
 import javax.inject.Inject
@@ -14,6 +15,14 @@ class AdminRepositoryImpl @Inject constructor(
     override suspend fun getDashboard(): Result<AdminDashboardResponse> {
         return try {
             api.getDashboard().unwrapData("Failed to load admin dashboard")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception(e.localizedMessage ?: "Network error"))
+        }
+    }
+    override suspend fun getAdminPayments(): Result<List<AdminPaymentDto>> {
+        return try {
+            api.getAdminPayments().unwrapData("Failed to load admin payments")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception(e.localizedMessage ?: "Network error"))

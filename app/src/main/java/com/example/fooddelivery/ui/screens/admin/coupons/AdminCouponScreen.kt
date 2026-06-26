@@ -18,13 +18,14 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponSearchBarAndFilters
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponPaginationBar
 import com.example.fooddelivery.ui.screens.admin.components.AdminCouponItemCard
+import androidx.hilt.navigation.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCouponScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEditCoupon: (String) -> Unit,
     onNavigateToCreateCoupon: () -> Unit,
-    viewModel: AdminCouponViewModel = viewModel()
+    viewModel: AdminCouponViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

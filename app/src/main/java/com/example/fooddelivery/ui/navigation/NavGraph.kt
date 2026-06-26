@@ -78,6 +78,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
+import com.example.fooddelivery.ui.screens.admin.order.AdminOrderScreen
 
 @Composable
 fun RootNavigationGraph(
@@ -831,6 +832,12 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 "coupons" -> adminNavController.navigate(AdminCouponRoute)
                 "settings" -> adminNavController.navigate(AdminSettingsRoute)
                 "notifications" -> adminNavController.navigate(AdminNotificationRoute)
+
+                "restaurants" -> adminNavController.navigate(AdminRestaurantsRoute)
+                "orders" -> adminNavController.navigate(AdminOrdersRoute)
+                "payments" -> {
+                    /* TODO: adminNavController.navigate(AdminPaymentsRoute) khi ông làm màn hình này */
+                }
             }
         }
 
@@ -866,9 +873,15 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 modifier = Modifier.padding(paddingValues)
             ) {
                 composable<AdminDashboardRoute> {
-                    AdminDashboardScreen()
+                    AdminDashboardScreen(
+                        onNavigate = onAdminNavigate
+                    )
                 }
-
+                composable<AdminOrdersRoute> {
+                    AdminOrderScreen(
+                        onNavigateBack = { adminNavController.popBackStack() }
+                    )
+                }
                 composable<AdminRestaurantsRoute> {
                     AdminRestaurantScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
@@ -912,11 +925,9 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminSettingsRoute> {
                     AdminSettingScreen(
                         onNavigateToResetPassword = {
-                            // 🌟 Chú ý: Vẫn dùng navController (parent) để nhảy ra ngoài luồng auth/app
                             navController.navigate(ChangePasswordRoute)
                         },
                         onLogoutSuccess = {
-                            // 🌟 Vẫn dùng navController (parent) để văng ra ngoài màn hình Login
                             navController.navigate(AuthGraph) {
                                 popUpTo(0) { inclusive = true }
                             }

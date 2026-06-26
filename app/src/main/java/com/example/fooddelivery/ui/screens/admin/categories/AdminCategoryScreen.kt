@@ -20,7 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
-
+import androidx.hilt.navigation.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCategoryScreen(
@@ -49,12 +49,6 @@ fun AdminCategoryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = colorScheme.background)
-            )
-        },
-        bottomBar = {
-            AdminBottomBar(
-                currentRoute = "categories",
-                onTabSelected = { tab -> onNavigate(tab.route) }
             )
         },
         containerColor = colorScheme.background
