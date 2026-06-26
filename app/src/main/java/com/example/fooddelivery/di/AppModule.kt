@@ -148,9 +148,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOrderRepository(
-        api: OrderApi
+        api: OrderApi,
+        cartRepository: CartRepository,
     ): OrderRepository {
-        return OrderRepositoryImpl(api)
+        return OrderRepositoryImpl(api, cartRepository)
     }
 
     @Provides

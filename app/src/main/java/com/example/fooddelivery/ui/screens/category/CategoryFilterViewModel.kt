@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.model.FoodItem
-import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.usecase.GetCategoriesUseCase
+import com.example.fooddelivery.domain.usecase.GetCategoryDetailUseCase
 import com.example.fooddelivery.ui.navigation.CategoryFilterRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +32,7 @@ sealed interface CategoryFilterEvent {
 @HiltViewModel
 class CategoryFilterViewModel @Inject constructor(
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val foodRepository: FoodRepository,
+    private val getCategoryDetailUseCase: GetCategoryDetailUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(CategoryFilterState())
@@ -90,30 +90,16 @@ class CategoryFilterViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
-            foodRepository.getFoods(categoryId = categoryIdInt)
-                .onSuccess { responses ->
-                    val foods = responses.map { dto ->
-                        FoodItem(
-                            id = dto.id.toString(),
-                            name = dto.name,
-                            restaurantId = dto.restaurantId.toString(),
-                            restaurantName = dto.restaurant?.name ?: "",
-                            categoryId = dto.categoryId.toString(),
-                            price = dto.price,
-                            rating = dto.rating ?: 0f,
-                            reviewCount = dto.reviewCount ?: 0,
-                            imageUrl = dto.image,
-                            promoTag = dto.label
-                        )
-                    }
-                    _state.update { it.copy(foods = foods, isLoading = false) }
+            getCategoryDetailUseCase(categoryIdInt)
+                .onSuccess { detail ->
+                    _state.update { it.copy(foods = detail.foods, isLoading = false) }
                 }
                 .onFailure { e ->
                     _state.update {
                         it.copy(
                             foods = emptyList(),
                             isLoading = false,
-                            errorMessage = e.message ?: "Failed to load foods"
+                            errorMessage = e.message ?: "Failed to load category"
                         )
                     }
                 }

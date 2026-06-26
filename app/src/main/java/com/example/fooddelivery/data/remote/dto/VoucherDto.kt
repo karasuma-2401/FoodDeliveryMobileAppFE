@@ -2,7 +2,31 @@ package com.example.fooddelivery.data.remote.dto
 
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonPrimitive
+
+private object FlexibleDoubleSerializer : KSerializer<Double> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("FlexibleDouble", PrimitiveKind.DOUBLE)
+
+    override fun serialize(encoder: Encoder, value: Double) {
+        encoder.encodeDouble(value)
+    }
+
+    override fun deserialize(decoder: Decoder): Double {
+        val jsonDecoder = decoder as? JsonDecoder ?: return decoder.decodeDouble()
+        val element = jsonDecoder.decodeJsonElement().jsonPrimitive
+        return element.doubleOrNull ?: element.content.toDoubleOrNull() ?: 0.0
+    }
+}
 
 @Serializable
 data class VoucherRestaurantDto(
@@ -20,6 +44,7 @@ data class VoucherDto(
     val sale: Double,
     val type: String,
     val status: String,
+    @Serializable(with = FlexibleDoubleSerializer::class)
     val minimumOrderAmount: Double = 0.0,
     val maximumDiscountAmount: Double? = null,
     val startAt: String? = null,

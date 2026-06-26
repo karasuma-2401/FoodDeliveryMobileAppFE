@@ -5,10 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import com.example.fooddelivery.data.remote.api.CategoryApi
+import com.example.fooddelivery.data.remote.dto.CategoryDetailResponse
 import com.example.fooddelivery.data.remote.dto.CategoryResponse
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.data.remote.unwrapUnit
 import com.example.fooddelivery.domain.model.Category
+import com.example.fooddelivery.domain.model.CategoryDetail
+import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.repository.CategoryRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -44,11 +47,11 @@ class CategoryRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCategoryById(id: Int): Result<Category> {
+    override suspend fun getCategoryById(id: Int): Result<CategoryDetail> {
         return try {
             api.getCategoryById(id)
                 .unwrapData("Failed to load category")
-                .map { it.toDomain() }
+                .map { it.toDetailDomain() }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error: ${e.localizedMessage}"))
@@ -126,6 +129,26 @@ class CategoryRepositoryImpl @Inject constructor(
             foodCount = foodCount ?: 0,
             displayOrder = displayOrder ?: sortOrder ?: 0,
             isActive = isActive ?: true
+        )
+    }
+
+    private fun CategoryDetailResponse.toDetailDomain(): CategoryDetail {
+        return CategoryDetail(
+            id = id.toString(),
+            name = name,
+            imageUrl = image,
+            description = description,
+            foods = foods.orEmpty().map { food ->
+                FoodItem(
+                    id = food.id.toString(),
+                    name = food.name,
+                    restaurantId = food.restaurant?.id?.toString() ?: "",
+                    restaurantName = food.restaurant?.name ?: "",
+                    categoryId = id.toString(),
+                    price = food.price,
+                    imageUrl = food.image
+                )
+            }
         )
     }
 

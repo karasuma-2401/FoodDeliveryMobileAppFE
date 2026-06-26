@@ -5,11 +5,12 @@ import com.example.fooddelivery.data.remote.dto.OrderResponse
 import com.example.fooddelivery.domain.model.Order
 import com.example.fooddelivery.domain.model.OrderDetail
 import com.example.fooddelivery.domain.model.OrderStatusSummary
+import com.example.fooddelivery.domain.model.ReorderResult
 
 interface OrderRepository {
     suspend fun createOrder(request: OrderRequest): Result<OrderResponse>
     suspend fun checkOrderStatus(orderId: String): Result<OrderStatusSummary>
-    suspend fun reorder(orderId: String): Result<String>
+    suspend fun reorder(orderId: String): Result<ReorderResult>
     suspend fun getOrders(status: String? = null, limit: Int = 20, offset: Int = 0): Result<List<Order>>
     suspend fun getOrderDetail(orderId: Int): Result<OrderDetail>
     suspend fun cancelOrder(orderId: Int): Result<String>
