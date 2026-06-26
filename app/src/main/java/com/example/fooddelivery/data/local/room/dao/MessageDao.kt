@@ -25,6 +25,34 @@ interface MessageDao {
     @Query("DELETE FROM messages WHERE id = :id")
     suspend fun deleteMessage(id: String)
 
+    /** Removes optimistic UUID rows when the server message arrives. */
+    @Query(
+        """
+        DELETE FROM messages
+        WHERE conversationId = :conversationId
+          AND senderId = :senderId
+          AND id != :serverMessageId
+          AND id GLOB '*-*'
+        """
+    )
+    suspend fun deleteOptimisticDuplicates(
+        conversationId: String,
+        senderId: String,
+        serverMessageId: String
+    )
+
     @Query("UPDATE messages SET isRead = 1 WHERE conversationId = :conversationId")
     suspend fun markMessagesAsRead(conversationId: String)
+
+    @Query("SELECT * FROM messages WHERE id = :id LIMIT 1")
+    suspend fun getMessageById(id: String): MessageEntity?
+
+    @Query(
+        """
+        UPDATE messages
+        SET isSending = 0, isFailed = 1
+        WHERE isSending = 1 AND id GLOB '*-*'
+        """
+    )
+    suspend fun markOptimisticSendingAsFailed()
 }

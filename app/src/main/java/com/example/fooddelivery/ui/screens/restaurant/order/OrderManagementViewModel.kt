@@ -25,6 +25,7 @@ data class OrderModel(
     val orderTime: String,
     val customerName: String,
     val customerPhone: String,
+    val conversationId: Int? = null,
     val items: List<OrderItem>,
     val status: OrderStatus,
     val isError: Boolean = false
@@ -170,6 +171,7 @@ class OrderManagementViewModel @Inject constructor(
             orderTime = detail.paymentDate ?: detail.expectedArrival ?: "",
             customerName = detail.customerName.ifBlank { "Customer #${detail.id}" },
             customerPhone = detail.customerPhone.orEmpty(),
+            conversationId = detail.conversationId,
             status = mapBackendStatus(detail.backendStatus, detail.status),
             items = detail.items.map { item ->
                 OrderItem(

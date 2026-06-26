@@ -246,7 +246,7 @@ fun TrackOrderContent(
                     onChatClick = {
                         onChatWithRestaurant(
                             state.orderId.toIntOrNull() ?: 0,
-                            state.restaurantId,
+                            state.sellerId,
                             state.restaurantName,
                             state.restaurantImage
                         )

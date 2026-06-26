@@ -12,5 +12,6 @@ data class MessageDto(
     @SerialName("image")
     val imageUrl: String? = null,
     val isRead: Boolean = false,
-    val createdAt: String
+    val createdAt: String,
+    val who: String? = null
 )

@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -15,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.NotificationType
+import com.example.fooddelivery.domain.model.effectiveActions
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.notification.components.EmptyNotificationsView
 import com.example.fooddelivery.ui.screens.notification.components.NotificationItem
@@ -36,12 +37,14 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 fun NotificationScreen(
     onNavigateBack: () -> Unit,
     onNavigateToOrder: (String) -> Unit,
+    onNavigateToChat: ((String) -> Unit)? = null,
+    showBackButton: Boolean = true,
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-    
+
     val shouldLoadMore = remember {
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
@@ -75,8 +78,10 @@ fun NotificationScreen(
         onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
         onNavigateToOrder = onNavigateToOrder,
+        onNavigateToChat = onNavigateToChat,
         listState = listState,
-        snackbarHostState = snackbarHostState
+        snackbarHostState = snackbarHostState,
+        showBackButton = showBackButton
     )
 }
 
@@ -87,8 +92,10 @@ fun NotificationContent(
     onEvent: (NotificationEvent) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToOrder: (String) -> Unit,
+    onNavigateToChat: ((String) -> Unit)? = null,
     listState: LazyListState,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    showBackButton: Boolean = true
 ) {
     val pullRefreshState = rememberPullToRefreshState()
 
@@ -96,8 +103,8 @@ fun NotificationContent(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             DFoodTopBar(
-                title = "Notification",
-                onBackClick = onNavigateBack,
+                title = "Notifications",
+                onBackClick = if (showBackButton) onNavigateBack else null,
                 actions = {
                     if (state.notifications.any { !it.isRead }) {
                         IconButton(onClick = { onEvent(NotificationEvent.MarkAllRead) }) {
@@ -121,50 +128,62 @@ fun NotificationContent(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            if (state.isLoading && state.notifications.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (state.notifications.isEmpty()) {
-                EmptyNotificationsView()
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    items(state.notifications) { notification ->
-                        NotificationItem(
-                            notification = notification,
-                            onClick = {
-                                onEvent(NotificationEvent.MarkAsRead(notification.id))
-                                if (notification.type == NotificationType.ORDER && notification.targetId != null) {
-                                    onNavigateToOrder(notification.targetId)
-                                }
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (state.isLoading && state.notifications.isEmpty()) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                } else if (state.notifications.isEmpty()) {
+                    EmptyNotificationsView()
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        items(
+                            items = state.notifications,
+                            key = { it.id }
+                        ) { notification ->
+                            val hasActions = notification.effectiveActions().isNotEmpty()
+                            NotificationItem(
+                                notification = notification,
+                                onClick = {
+                                    if (!notification.isRead) {
+                                        onEvent(NotificationEvent.MarkAsRead(notification.id))
+                                    }
+                                    if (notification.type == NotificationType.CHAT && notification.targetId != null) {
+                                        onNavigateToChat?.invoke(notification.targetId)
+                                    } else if (notification.type == NotificationType.ORDER && notification.targetId != null) {
+                                        onNavigateToOrder(notification.targetId)
+                                    }
+                                },
+                                onActionClick = { action ->
+                                    onEvent(NotificationEvent.ExecuteAction(notification.id, action))
+                                },
+                                isProcessing = state.processingNotificationId == notification.id
+                            )
+                            if (!hasActions) {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 24.dp),
+                                    thickness = 0.5.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant
+                                )
                             }
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 24.dp),
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-                    }
-                    if (state.isPaginating) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                        if (state.isPaginating) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                }
                             }
                         }
                     }
                 }
             }
-        }
         }
     }
 }

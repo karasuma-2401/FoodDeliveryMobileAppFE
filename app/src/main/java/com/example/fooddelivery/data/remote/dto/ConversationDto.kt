@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ConversationDto(
     val id: Int,
-    val orderId: Int,
     val customerId: Int,
     val sellerId: Int,
     val createdAt: String,
@@ -14,8 +13,7 @@ data class ConversationDto(
     val unreadCount: Int = 0,
     val customer: OtherUserDto? = null,
     val seller: OtherUserDto? = null,
-    val restaurant: ConversationRestaurantDto? = null,
-    val other: OtherUserDto? = null
+    val restaurant: ConversationRestaurantDto? = null
 )
 
 @Serializable
@@ -27,8 +25,13 @@ data class ConversationRestaurantDto(
 
 @Serializable
 data class LastMessageDto(
+    val id: Int = 0,
     val content: String,
-    val createdAt: String
+    val senderId: Int = 0,
+    val createdAt: String,
+    @kotlinx.serialization.SerialName("image")
+    val image: String = "",
+    val isRead: Boolean = false
 )
 
 @Serializable

@@ -32,6 +32,8 @@ fun FoodInfoSectionSkeleton() {
         Box(modifier = Modifier.fillMaxWidth().height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
         Spacer(modifier = Modifier.height(6.dp))
         Box(modifier = Modifier.fillMaxWidth(0.85f).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(modifier = Modifier.width(72.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
         Spacer(modifier = Modifier.height(20.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),

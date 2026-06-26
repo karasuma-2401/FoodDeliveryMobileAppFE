@@ -19,6 +19,7 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun OrderManagementScreen(
     onNavigateBack: () -> Unit,
+    onChatWithCustomer: (orderId: Int, conversationId: Int?, customerName: String) -> Unit,
     viewModel: OrderManagementViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
@@ -90,7 +91,14 @@ fun OrderManagementScreen(
                             onDeny = { viewModel.denyOrder(order.id) },
                             onDone = { viewModel.completeOrder(order.id) },
                             onDelivered = { viewModel.deliverOrder(order.id) },
-                            onCancel = { viewModel.cancelOrder(order.id) }
+                            onCancel = { viewModel.cancelOrder(order.id) },
+                            onChatClick = {
+                                onChatWithCustomer(
+                                    order.id.toIntOrNull() ?: return@OrderCard,
+                                    order.conversationId,
+                                    order.customerName
+                                )
+                            }
                         )
                     }
                 }
@@ -104,7 +112,8 @@ fun OrderManagementScreen(
 fun OderManagementScreenPreview() {
     DFoodTheme {
         OrderManagementScreen(
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onChatWithCustomer = { _, _, _ -> }
         )
     }
 }

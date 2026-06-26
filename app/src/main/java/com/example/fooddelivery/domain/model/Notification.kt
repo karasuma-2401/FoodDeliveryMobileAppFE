@@ -7,8 +7,19 @@ data class Notification(
     val timestamp: Long,
     val type: NotificationType,
     val isRead: Boolean,
-    val targetId: String?
+    val targetId: String?,
+    val targetType: String? = null,
+    val actions: List<String> = emptyList()
 )
+
+fun Notification.effectiveActions(): List<String> {
+    if (actions.isNotEmpty()) return actions
+    if (targetType.equals("RESTAURANT", ignoreCase = true) && type == NotificationType.SYSTEM) {
+        return listOf("APPROVE_VENDOR", "REJECT_VENDOR")
+    }
+    return emptyList()
+}
+
 enum class NotificationType {
     ORDER,
     PROMOTION,

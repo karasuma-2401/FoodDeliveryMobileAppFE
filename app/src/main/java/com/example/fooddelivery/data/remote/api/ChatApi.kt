@@ -4,7 +4,6 @@ import com.example.fooddelivery.data.remote.dto.ConversationDetailDto
 import com.example.fooddelivery.data.remote.dto.ConversationDto
 import com.example.fooddelivery.data.remote.dto.CreateConversationRequest
 import com.example.fooddelivery.data.remote.dto.BaseResponse
-import com.example.fooddelivery.data.remote.dto.MessageDto
 import com.example.fooddelivery.data.remote.dto.UploadImageResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -40,13 +39,6 @@ interface ChatApi {
         @Query("limit") limit: Int,
         @Query("offset") offset: Int
     ): Response<BaseResponse<ConversationDetailDto>>
-
-    @GET("chat/messages/{conversationId}")
-    suspend fun getMessages(
-        @Path("conversationId") conversationId: String,
-        @Query("limit") limit: Int,
-        @Query("offset") offset: Int
-    ): Response<BaseResponse<List<MessageDto>>>
 
     @Multipart
     @POST("conversation/upload-image")

@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +44,8 @@ fun FoodInfoSection(
     name: String,
     description: String,
     unitPrice: Double,
+    soldCount: Int,
+    originalPrice: Double?,
     discountBadge: DiscountBadgeVisual?,
     showAddSuccessPulse: Boolean,
     isAddingToCart: Boolean,
@@ -67,21 +70,41 @@ fun FoodInfoSection(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            ),
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.fillMaxWidth(),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-
         if (discountBadge != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            ShopeeDiscountBadge(visual = discountBadge)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                ShopeeDiscountBadge(
+                    visual = discountBadge,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        } else {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
 
         if (description.isNotBlank()) {
@@ -94,6 +117,15 @@ fun FoodInfoSection(
             )
         }
 
+        if (soldCount > 0) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Sold $soldCount",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(
@@ -101,13 +133,30 @@ fun FoodInfoSection(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = "$${String.format(Locale.US, "%.0f", unitPrice)}",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = formatUsdPrice(unitPrice),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    ),
                     color = MaterialTheme.colorScheme.primary
                 )
-            )
+                val strikePrice = originalPrice?.takeIf { it > unitPrice }
+                if (strikePrice != null) {
+                    Text(
+                        text = formatUsdPrice(strikePrice),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            textDecoration = TextDecoration.LineThrough
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
 
             Box(
                 contentAlignment = Alignment.Center,
@@ -139,4 +188,8 @@ fun FoodInfoSection(
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+private fun formatUsdPrice(amount: Double): String {
+    return "$${String.format(Locale.US, "%.0f", amount)}"
 }

@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fooddelivery.ui.screens.admin.components.AdminHeader
 import com.example.fooddelivery.ui.screens.restaurant.component.profile.ProfileMenuGroup
 import com.example.fooddelivery.ui.screens.restaurant.component.profile.ProfileMenuItem
@@ -28,7 +28,7 @@ fun AdminSettingScreen(
     onNavigateToResetPassword: () -> Unit,
     onLogoutSuccess: () -> Unit, // Đổi tên callback để rõ ngữ nghĩa
     modifier: Modifier = Modifier,
-    viewModel: AdminSettingViewModel = viewModel() // Tích hợp ViewModel vào đây
+    viewModel: AdminSettingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
