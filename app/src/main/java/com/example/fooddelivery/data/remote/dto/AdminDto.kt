@@ -74,3 +74,24 @@ data class AdminUserItemDto(
     val createdAt: String,
     val roles: List<String>
 )
+@Serializable
+data class AdminRevenueResponse(
+    val success: Boolean,
+    val data: AdminRevenueDataDto
+)
+
+@Serializable
+data class AdminRevenueDataDto(
+    val grossRevenue: Double,
+    val adminCommissionRate: Double,
+    val adminRevenue: Double,
+    val restaurants: List<RestaurantRevenueDto>
+)
+
+@Serializable
+data class RestaurantRevenueDto(
+    val restaurantId: Int,
+    val restaurantName: String,
+    val grossRevenue: Double,
+    val adminRevenue: Double
+)

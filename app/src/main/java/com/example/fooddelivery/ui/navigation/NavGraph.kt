@@ -79,6 +79,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 import com.example.fooddelivery.ui.screens.admin.order.AdminOrderScreen
+import com.example.fooddelivery.ui.screens.admin.revenue.AdminRevenueScreen
 import com.example.fooddelivery.ui.screens.admin.user.UserListScreen
 
 @Composable
@@ -836,6 +837,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 "users" -> adminNavController.navigate(AdminUserListRoute)
                 "restaurants" -> adminNavController.navigate(AdminRestaurantsRoute)
                 "orders" -> adminNavController.navigate(AdminOrdersRoute)
+                "revenue" -> adminNavController.navigate(AdminRevenueRoute)
                 "payments" -> {
                     /* TODO: adminNavController.navigate(AdminPaymentsRoute) khi ông làm màn hình này */
                 }
@@ -889,6 +891,11 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                         onNavigateToAdd = { /* TODO */ },
                         onNavigateToEdit = { /* TODO */ },
                         onNavigate = onAdminNavigate
+                    )
+                }
+                composable<AdminRevenueRoute> {
+                    AdminRevenueScreen(
+                        onBackClick = { adminNavController.popBackStack() }
                     )
                 }
                 composable<AdminUserListRoute> {

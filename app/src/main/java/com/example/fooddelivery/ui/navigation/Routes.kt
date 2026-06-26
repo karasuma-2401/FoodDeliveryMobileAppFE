@@ -111,3 +111,4 @@ data class CreateCouponRoute(
     val restaurantId: Int? = null
 )
 @Serializable object AdminUserListRoute
+@Serializable object AdminRevenueRoute

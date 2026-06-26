@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.remote.api
 
 import com.example.fooddelivery.data.remote.dto.AdminDashboardResponse
 import com.example.fooddelivery.data.remote.dto.AdminPaymentDto
+import com.example.fooddelivery.data.remote.dto.AdminRevenueDataDto
 import com.example.fooddelivery.data.remote.dto.AdminUserListResponse
 import com.example.fooddelivery.data.remote.dto.BaseResponse
 import retrofit2.Response
@@ -23,4 +24,7 @@ interface AdminApi {
     suspend fun toggleUserActive(
         @Path("id") userId: Int
     ): Response<BaseResponse<Unit>>
+
+    @GET("admin/revenue")
+    suspend fun getAdminRevenue(): Response<BaseResponse<AdminRevenueDataDto>>
 }

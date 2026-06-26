@@ -71,7 +71,10 @@ fun AdminDashboardContent(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                DashboardRevenueCard(revenue = state.stats.deliveredRevenue)
+                DashboardRevenueCard(
+                    revenue = state.stats.deliveredRevenue,
+                    onClick = { onNavigate("revenue") }
+                )
 
                 Text(
                     text = "System Overview",

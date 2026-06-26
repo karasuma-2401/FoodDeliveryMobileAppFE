@@ -8,6 +8,8 @@ import com.example.fooddelivery.domain.repository.AdminRepository
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import com.example.fooddelivery.data.remote.dto.AdminUserListResponse
+import com.example.fooddelivery.data.remote.dto.AdminRevenueDataDto
+
 class AdminRepositoryImpl @Inject constructor(
     private val api: AdminApi
 ) : AdminRepository {
@@ -43,6 +45,14 @@ class AdminRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception(e.localizedMessage ?: "System error"))
+        }
+    }
+    override suspend fun getAdminRevenue(): Result<AdminRevenueDataDto> {
+        return try {
+            api.getAdminRevenue().unwrapData("Failed to load revenue analytics")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception(e.localizedMessage ?: "Network error"))
         }
     }
 }
