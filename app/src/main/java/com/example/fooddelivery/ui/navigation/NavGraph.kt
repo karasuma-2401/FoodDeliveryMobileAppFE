@@ -838,9 +838,6 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 "restaurants" -> adminNavController.navigate(AdminRestaurantsRoute)
                 "orders" -> adminNavController.navigate(AdminOrdersRoute)
                 "revenue" -> adminNavController.navigate(AdminRevenueRoute)
-                "payments" -> {
-                    /* TODO: adminNavController.navigate(AdminPaymentsRoute) khi ông làm màn hình này */
-                }
             }
         }
 

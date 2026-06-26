@@ -68,18 +68,6 @@ fun DashboardStatsGrid(
                 onClick = onOrdersClick
             )
             DashboardStatCard(
-                title = "Payments",
-                value = stats.payments.toString(),
-                icon = Icons.Default.CreditCard,
-                iconContainerColor = Color(0xFFEDE7F6),
-                iconColor = Color(0xFF5E35B1),
-                modifier = Modifier.weight(1f),
-                onClick = onPaymentsClick
-            )
-        }
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            DashboardStatCard(
                 title = "Categories",
                 value = stats.categories.toString(),
                 icon = Icons.Default.Category,
@@ -88,6 +76,8 @@ fun DashboardStatsGrid(
                 modifier = Modifier.weight(1f),
                 onClick = onCategoriesClick
             )
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             DashboardStatCard(
                 title = "Vouchers Active",
                 value = stats.vouchers.toString(),
@@ -97,7 +87,9 @@ fun DashboardStatsGrid(
                 modifier = Modifier.weight(1f),
                 onClick = onVouchersClick
             )
+            Spacer(modifier = Modifier.weight(1f))
         }
+
     }
 }
 
