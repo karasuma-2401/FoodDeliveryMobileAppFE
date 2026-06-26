@@ -40,7 +40,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                             rating = dto.averageRating?.toFloat() ?: 0f,
                             deliveryFee = dto.deliveryFee ?: 0.0,
                             imageUrl = dto.image,
-                            promoTags = if (dto.deliveryFee == 0.0) listOf("Free Delivery") else emptyList(),
+                            promoTags = emptyList(),
                             isLiked = dto.isLiked ?: false,
                             totalLikes = dto.totalLikes ?: 0
                         )

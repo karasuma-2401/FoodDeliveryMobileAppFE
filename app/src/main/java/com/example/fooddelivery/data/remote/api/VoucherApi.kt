@@ -16,6 +16,11 @@ interface VoucherApi {
         @Query("status") status: String? = null
     ): Response<BaseResponse<VoucherListResponseDto>>
 
+    @GET("vouchers/customer/{restaurantId}")
+    suspend fun getCustomerVouchers(
+        @Path("restaurantId") restaurantId: Int
+    ): Response<BaseResponse<List<VoucherDto>>>
+
     @GET("vouchers/suitable/{restaurantId}")
     suspend fun getSuitableVouchers(
         @Path("restaurantId") restaurantId: Int,

@@ -18,5 +18,5 @@ data class Voucher(
 )
 
 enum class VoucherType {
-    MONEY, PERCENT, FREE_SHIPPING
+    MONEY, PERCENT
 }
