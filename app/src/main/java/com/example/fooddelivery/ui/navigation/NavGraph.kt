@@ -716,7 +716,6 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                             }
                         },
                         onAddClick = onAddFood,
-                        unreadMessageCount = unreadMessageCount
                     )
                 }
             }
@@ -743,7 +742,12 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                         onAddFoodClick = onAddFood,
                         onNavigate = onVendorNavigate,
                         unreadMessageCount = unreadMessageCount,
-                        onNavigateToMessages = { vendorNavController.navigate(ConversationRoute) }
+                        onNavigateToMessages = { vendorNavController.navigate(ConversationRoute) } ,
+                        onNavigateToNotifications = {
+                            vendorNavController.navigate(RestaurantNotificationsRoute) {
+                                launchSingleTop = true
+                            }
+                        }
                     )
                 }
 

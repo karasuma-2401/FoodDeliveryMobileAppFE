@@ -118,13 +118,6 @@ fun EditFoodContent(
                 onActionClick = onSaveClick,
                 onBackClick = onNavigateBack
             )
-        },
-        bottomBar = {
-            DFoodBottomBar(
-                currentRoute = "",
-                onNavigate = onNavigate,
-                onAddClick = onAddFoodClick
-            )
         }
     ) { innerPadding ->
         if (state.isLoading && state.itemName.isEmpty()) {

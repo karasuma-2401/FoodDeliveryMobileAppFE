@@ -36,7 +36,9 @@ fun DashboardScreen(
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {},
     unreadMessageCount: Int = 0,
-    onNavigateToMessages: () -> Unit = {}
+    onNavigateToMessages: () -> Unit = {},
+    // 🌟 1. BỔ SUNG tham số ở gốc DashboardScreen để NavGraph gọi vào
+    onNavigateToNotifications: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -57,7 +59,8 @@ fun DashboardScreen(
         onSeeAllOrdersClick = { onNavigate("order_management") },
         onNavigate = onNavigate,
         unreadMessageCount = unreadMessageCount,
-        onNavigateToMessages = onNavigateToMessages
+        onNavigateToMessages = onNavigateToMessages,
+        onNavigateToNotifications = onNavigateToNotifications
     )
 }
 
@@ -71,7 +74,8 @@ fun DashboardContent(
     onSeeAllOrdersClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {},
     unreadMessageCount: Int = 0,
-    onNavigateToMessages: () -> Unit = {}
+    onNavigateToMessages: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -94,7 +98,7 @@ fun DashboardContent(
                     .verticalScroll(rememberScrollState())
             ) {
                 HeaderSection(
-                    location = state.restaurantName.ifBlank { "My Restaurant" }
+                    location = state.restaurantName.ifBlank { "My Restaurant" },
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -306,7 +310,8 @@ fun DashboardPreview() {
                     VoucherPreviewItem("SUMMER25", "45/100 used"),
                     VoucherPreviewItem("FREESHIP", "212 used")
                 )
-            )
+            ),
+            onNavigateToNotifications = {}
         )
     }
 }

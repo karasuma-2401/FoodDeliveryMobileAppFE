@@ -86,79 +86,79 @@ fun RestaurantProfileScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
         ) {
-        BalanceHeader(
-            balance = uiState.balance
-        )
+            BalanceHeader(
+                balance = uiState.balance
+            )
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.AccountCircle,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = "Personal Info",
-                    onClick = onNavigateToPersonalInfo
-                )
-            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.AccountCircle,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        title = "Personal Info",
+                        onClick = onNavigateToPersonalInfo
+                    )
+                }
 
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.LocationOn,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = "Business Address",
-                    onClick = onNavigateToAddress
-                )
-            }
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.LocationOn,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        title = "Business Address",
+                        onClick = onNavigateToAddress
+                    )
+                }
 
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.List,
-                    iconTint = MaterialTheme.colorScheme.secondary,
-                    title = "Number of Orders",
-                    onClick = onNavigateToOrders
-                )
-            }
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.List,
+                        iconTint = MaterialTheme.colorScheme.secondary,
+                        title = "Number of Orders",
+                        onClick = onNavigateToOrders
+                    )
+                }
 
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.Star,
-                    iconTint = MaterialTheme.colorScheme.tertiary,
-                    title = "User Reviews",
-                    onClick = { onNavigateToReviews(uiState.restaurantId) }
-                )
-            }
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.Star,
+                        iconTint = MaterialTheme.colorScheme.tertiary,
+                        title = "User Reviews",
+                        onClick = { onNavigateToReviews(uiState.restaurantId) }
+                    )
+                }
 
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.Chat,
-                    iconTint = MaterialTheme.colorScheme.secondary,
-                    title = "Conversation",
-                    onClick = onNavigateToConversation
-                )
-            }
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.Chat,
+                        iconTint = MaterialTheme.colorScheme.secondary,
+                        title = "Conversation",
+                        onClick = onNavigateToConversation
+                    )
+                }
 
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.Settings,
-                    iconTint = MaterialTheme.colorScheme.tertiary,
-                    title = "Reset Password",
-                    onClick = onNavigateToResetPassword
-                )
-            }
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.Settings,
+                        iconTint = MaterialTheme.colorScheme.tertiary,
+                        title = "Reset Password",
+                        onClick = onNavigateToResetPassword
+                    )
+                }
 
-            ProfileMenuGroup {
-                ProfileMenuItem(
-                    icon = Icons.Default.ExitToApp,
-                    iconTint = MaterialTheme.colorScheme.error,
-                    title = "Log Out",
-                    onClick = { showLogoutDialog = true }
-                )
+                ProfileMenuGroup {
+                    ProfileMenuItem(
+                        icon = Icons.Default.ExitToApp,
+                        iconTint = MaterialTheme.colorScheme.error,
+                        title = "Log Out",
+                        onClick = { showLogoutDialog = true }
+                    )
+                }
             }
-        }
         }
 
         if (uiState.isLoading) {

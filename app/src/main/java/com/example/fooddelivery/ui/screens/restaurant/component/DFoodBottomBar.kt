@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.screens.restaurant.component
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,9 +10,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -24,68 +27,87 @@ fun DFoodBottomBar(
     currentRoute: String,
     onNavigate: (String) -> Unit,
     onAddClick: () -> Unit,
-    unreadMessageCount: Int = 0
+    unreadNotificationCount: Int = 0 // 🌟 Đổi tên biến từ Message sang Notification cho đúng nghĩa
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+            .shadow(
+                elevation = 16.dp,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                clip = false
+            ),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp,
-        shadowElevation = 16.dp
+        tonalElevation = 8.dp
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .navigationBarsPadding()
-                .height(80.dp)
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
+                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
-            NavigationIcon(
-                iconId = R.drawable.ic_dashboard,
-                isSelected = currentRoute == "dashboard",
-                onClick = { onNavigate("dashboard") }
-            )
-            NavigationIcon(
-                iconId = R.drawable.ic_menu,
-                isSelected = currentRoute == "menu",
-                onClick = { onNavigate("menu") }
-            )
-
-            Box(
+            Row(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { onAddClick() },
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Item",
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
+                // Nhóm 2 Icon bên trái: Dashboard & Menu
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    NavigationIcon(
+                        iconId = R.drawable.ic_dashboard,
+                        isSelected = currentRoute == "dashboard",
+                        onClick = { onNavigate("dashboard") }
+                    )
+                    NavigationIcon(
+                        iconId = R.drawable.ic_menu,
+                        isSelected = currentRoute == "menu",
+                        onClick = { onNavigate("menu") }
+                    )
+                }
 
-            NavigationIcon(
-                iconId = R.drawable.ic_chat,
-                isSelected = currentRoute == "messages",
-                onClick = { onNavigate("messages") },
-                badgeCount = unreadMessageCount
-            )
-            NavigationIcon(
-                iconId = R.drawable.ic_notification,
-                isSelected = currentRoute == "notifications",
-                onClick = { onNavigate("notifications") }
-            )
-            NavigationIcon(
-                iconId = R.drawable.ic_profile,
-                isSelected = currentRoute == "profile",
-                onClick = { onNavigate("profile") }
-            )
+                // Nút ADD chính giữa
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .size(52.dp)
+                        .shadow(4.dp, CircleShape)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable { onAddClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Item",
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                // Nhóm 2 Icon bên phải: Notifications & Profile
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    // 🌟 Thay thế Chat bằng Notification ở đây
+                    NavigationIcon(
+                        iconId = R.drawable.ic_notification,
+                        isSelected = currentRoute == "notifications",
+                        onClick = { onNavigate("notifications") },
+                        badgeCount = unreadNotificationCount
+                    )
+                    NavigationIcon(
+                        iconId = R.drawable.ic_profile,
+                        isSelected = currentRoute == "profile",
+                        onClick = { onNavigate("profile") }
+                    )
+                }
+            }
         }
     }
 }
@@ -97,20 +119,31 @@ private fun NavigationIcon(
     onClick: () -> Unit,
     badgeCount: Int = 0
 ) {
-    Box {
-        IconButton(onClick = onClick) {
-            Icon(
-                painter = painterResource(id = iconId),
-                contentDescription = null,
-                tint = if (isSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            )
-        }
+    val iconTint by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        label = "IconTint"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = iconId),
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(24.dp)
+        )
+
         if (badgeCount > 0) {
             Badge(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 6.dp, end = 4.dp),
+                    .padding(top = 4.dp, end = 4.dp),
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError
             ) {
@@ -118,7 +151,7 @@ private fun NavigationIcon(
                     text = if (badgeCount > 99) "99+" else badgeCount.toString(),
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 2.dp)
+                    modifier = Modifier.padding(horizontal = 3.dp)
                 )
             }
         }

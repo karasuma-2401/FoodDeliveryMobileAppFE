@@ -1,36 +1,45 @@
 package com.example.fooddelivery.ui.screens.restaurant.component.dashboard
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.R
+
 @Composable
 fun HeaderSection(
     location: String,
-    onLocationClick: () -> Unit = {}
+    onLocationClick: () -> Unit = {},
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Icon(Icons.Outlined.Menu, contentDescription = null)
 
         Column(
-            modifier = Modifier.clickable { onLocationClick() }
+            modifier = Modifier
+                .clickable { onLocationClick() },
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(stringResource(R.string.dashboard_location).uppercase(), style = MaterialTheme.typography.labelSmall,color = MaterialTheme.colorScheme.primary)
-            Text(location, fontWeight = FontWeight.Bold)
+            Text(
+                text = stringResource(R.string.dashboard_location).uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = location,
+                fontWeight = FontWeight.Bold
+            )
         }
 
         Box(
@@ -38,6 +47,7 @@ fun HeaderSection(
                 .size(40.dp)
                 .clip(RoundedCornerShape(50))
                 .background(MaterialTheme.colorScheme.primary)
+                .align(Alignment.CenterEnd)
         )
     }
 }
