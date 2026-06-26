@@ -885,8 +885,6 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminRestaurantsRoute> {
                     AdminRestaurantScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigateToAdd = { /* TODO */ },
-                        onNavigateToEdit = { /* TODO */ },
                         onNavigate = onAdminNavigate
                     )
                 }

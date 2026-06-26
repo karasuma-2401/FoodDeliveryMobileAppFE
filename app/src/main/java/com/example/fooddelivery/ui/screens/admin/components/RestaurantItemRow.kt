@@ -1,45 +1,32 @@
 package com.example.fooddelivery.ui.screens.admin.components
+
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.CircleShape
-
-
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import com.example.fooddelivery.R
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.AddBusiness
 @Composable
 fun RestaurantItemRow(
     name: String,
     phone: String,
-    isApproved: Boolean,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    status: String,
+    onApprove: () -> Unit,
+    onReject: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    val isApproved = status.uppercase() == "APPROVED"
 
     Card(
         modifier = Modifier
@@ -69,8 +56,8 @@ fun RestaurantItemRow(
                 Text(text = name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
                 Text(text = phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-                val statusText = if (isApproved) "Approved" else "Pending"
-                val statusColor = if (isApproved) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.error
+                val statusText = if (isApproved) "Approved" else status.lowercase().replaceFirstChar { it.uppercase() }
+                val statusColor = if (isApproved) Color(0xFF43A047) else Color(0xFFE53935)
                 Text(text = statusText, color = statusColor, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
             }
 
@@ -83,14 +70,14 @@ fun RestaurantItemRow(
                     onDismissRequest = { showMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Edit Restaurant") },
-                        onClick = { showMenu = false; onEdit() },
-                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                        text = { Text("Approve Restaurant", color = Color(0xFF43A047)) },
+                        onClick = { showMenu = false; onApprove() },
+                        leadingIcon = { Icon(Icons.Default.Check, contentDescription = null, tint = Color(0xFF43A047)) }
                     )
                     DropdownMenuItem(
-                        text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                        onClick = { showMenu = false; onDelete() },
-                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) }
+                        text = { Text("Reject / Cancel", color = MaterialTheme.colorScheme.error) },
+                        onClick = { showMenu = false; onReject() },
+                        leadingIcon = { Icon(Icons.Default.Close, contentDescription = null, tint = MaterialTheme.colorScheme.error) }
                     )
                 }
             }

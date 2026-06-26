@@ -95,3 +95,16 @@ data class RestaurantRevenueDto(
     val grossRevenue: Double,
     val adminRevenue: Double
 )
+
+@Serializable
+data class RestaurantItemDto(
+    val id: Int,
+    val name: String,
+    val phone: String,
+    val status: String
+)
+
+@Serializable
+data class ApprovalRequest(
+    val status: String // "APPROVED" hoặc "REJECTED"
+)

@@ -9,7 +9,8 @@ import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import com.example.fooddelivery.data.remote.dto.AdminUserListResponse
 import com.example.fooddelivery.data.remote.dto.AdminRevenueDataDto
-
+import com.example.fooddelivery.data.remote.dto.RestaurantItemDto
+import com.example.fooddelivery.data.remote.dto.ApprovalRequest
 class AdminRepositoryImpl @Inject constructor(
     private val api: AdminApi
 ) : AdminRepository {
@@ -53,6 +54,23 @@ class AdminRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception(e.localizedMessage ?: "Network error"))
+        }
+    }
+    override suspend fun getMyRestaurants(): Result<List<RestaurantItemDto>> {
+        return try {
+            api.getMyRestaurants().unwrapData("Failed to fetch restaurants")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateRestaurantApproval(restaurantId: Int, status: String): Result<Unit> {
+        return try {
+            val response = api.updateRestaurantApproval(restaurantId, ApprovalRequest(status))
+            if (response.isSuccessful) Result.success(Unit)
+            else Result.failure(Exception("Action failed"))
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }
