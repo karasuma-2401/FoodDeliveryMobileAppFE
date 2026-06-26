@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.domain.model.FoodItem
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun FoodItemCard(
@@ -39,16 +40,16 @@ fun FoodItemCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(CustomerDimens.cardCornerRadius))
             .background(MaterialTheme.colorScheme.surface)
             .clickable { onItemClick() }
-            .padding(12.dp)
+            .padding(CustomerDimens.cardPadding)
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(CustomerDimens.foodGridImageHeight)
             ) {
                 AsyncImage(
                     model = foodItem.imageUrl ?: foodItem.imageRes,
@@ -88,7 +89,7 @@ fun FoodItemCard(
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = foodItem.name,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
@@ -102,7 +103,7 @@ fun FoodItemCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "$${foodItem.price}",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -113,7 +114,7 @@ fun FoodItemCard(
             IconButton(
                 onClick = onAddClick,
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(32.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
             ) {
@@ -121,7 +122,7 @@ fun FoodItemCard(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add ${foodItem.name} to cart",
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(CustomerDimens.iconMd)
                 )
             }
         }

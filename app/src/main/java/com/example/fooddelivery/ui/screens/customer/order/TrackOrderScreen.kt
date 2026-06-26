@@ -36,6 +36,7 @@ import com.example.fooddelivery.ui.screens.customer.order.components.RestaurantC
 import com.example.fooddelivery.ui.screens.customer.order.components.TimelineItem
 import com.example.fooddelivery.ui.screens.customer.order.components.TrackOrderSkeleton
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,9 +88,9 @@ fun TrackOrderContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = CustomerDimens.screenHorizontalPadding)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(CustomerDimens.screenSectionSpacing)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -163,7 +164,7 @@ fun TrackOrderContent(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = if (state.trackingStatus == TrackingStatus.DELIVERED) state.orderDetail?.deliveredAt ?: "--:--" else state.expectedArrival,
-                                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }

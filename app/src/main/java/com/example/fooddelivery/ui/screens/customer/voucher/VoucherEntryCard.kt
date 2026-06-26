@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.domain.model.Voucher
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +36,7 @@ fun VoucherEntryCard(
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
         color = if (voucher != null) {
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
         } else {
@@ -53,14 +54,14 @@ fun VoucherEntryCard(
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(CustomerDimens.cardPaddingLg)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val visual = voucher?.toVisual(discount)
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(CustomerDimens.iconContainerSm)
                     .clip(RoundedCornerShape(12.dp))
                     .background(
                         visual?.accentColor ?: MaterialTheme.colorScheme.primaryContainer
@@ -71,7 +72,7 @@ fun VoucherEntryCard(
                     imageVector = visual?.icon ?: Icons.Default.ConfirmationNumber,
                     contentDescription = null,
                     tint = if (voucher != null) Color.White else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(CustomerDimens.iconMd)
                 )
             }
 
@@ -81,7 +82,7 @@ fun VoucherEntryCard(
                 if (voucher != null) {
                     Text(
                         text = voucher.title,
-                        style = MaterialTheme.typography.titleMedium.copy(
+                        style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         ),
@@ -96,7 +97,7 @@ fun VoucherEntryCard(
                 } else {
                     Text(
                         text = "Select voucher or enter code",
-                        style = MaterialTheme.typography.titleMedium.copy(
+                        style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )

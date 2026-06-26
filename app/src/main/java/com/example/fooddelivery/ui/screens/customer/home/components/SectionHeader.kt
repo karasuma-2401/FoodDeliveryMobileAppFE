@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun SectionHeader(
@@ -25,15 +26,14 @@ fun SectionHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = CustomerDimens.screenHorizontalPadding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold
             ),
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -45,14 +45,14 @@ fun SectionHeader(
         ) {
             Text(
                 text = stringResource(R.string.see_all),
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary
             )
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
             )
         }
     }

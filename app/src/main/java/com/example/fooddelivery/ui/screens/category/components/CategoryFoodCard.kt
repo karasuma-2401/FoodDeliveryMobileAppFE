@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.domain.model.FoodItem
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun CategoryFoodCard(
@@ -40,7 +41,7 @@ fun CategoryFoodCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .height(CustomerDimens.popularFoodImageHeight + 16.dp)
             ) {
                 AsyncImage(
                     model = food.imageUrl ?: food.imageRes,
@@ -71,11 +72,11 @@ fun CategoryFoodCard(
                 }
             }
             Column(
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier.padding(CustomerDimens.cardPadding)
             ) {
                 Text(
                     text = food.name,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -93,7 +94,7 @@ fun CategoryFoodCard(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "$${String.format(java.util.Locale.US, "%.2f", food.price)}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
                     color = MaterialTheme.colorScheme.primary
                 )
             }

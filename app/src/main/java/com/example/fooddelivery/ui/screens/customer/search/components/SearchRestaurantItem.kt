@@ -19,6 +19,7 @@ import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.ui.components.VoucherBadgeSize
 import com.example.fooddelivery.ui.components.VoucherCornerBadge
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun SearchRestaurantItem(
@@ -40,7 +41,7 @@ fun SearchRestaurantItem(
                 model = restaurant.imageUrl ?: restaurant.imageRes,
                 contentDescription = null,
                 modifier = Modifier
-                    .size(64.dp)
+                    .size(CustomerDimens.listThumbnailLg)
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop
@@ -59,7 +60,7 @@ fun SearchRestaurantItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = restaurant.name,
-                style = MaterialTheme.typography.titleMedium.copy(
+                style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -76,14 +77,14 @@ fun SearchRestaurantItem(
                 )
                 Text(
                     text = " ${restaurant.rating}",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
                 restaurant.distance?.let {
                     Text(
                         text = " • ${String.format("%.1f", it)} km",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -92,7 +93,7 @@ fun SearchRestaurantItem(
                 if (!tag.isNullOrBlank()) {
                     Text(
                         text = " • $tag",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -103,7 +104,7 @@ fun SearchRestaurantItem(
             imageVector = Icons.Default.ArrowRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(CustomerDimens.iconMd)
         )
     }
 }

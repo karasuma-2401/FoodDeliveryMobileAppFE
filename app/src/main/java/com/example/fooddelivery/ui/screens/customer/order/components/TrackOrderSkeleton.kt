@@ -10,15 +10,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.ui.components.shimmerEffect
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun TrackOrderSkeleton() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .padding(horizontal = CustomerDimens.screenHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(CustomerDimens.screenSectionSpacing)
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 

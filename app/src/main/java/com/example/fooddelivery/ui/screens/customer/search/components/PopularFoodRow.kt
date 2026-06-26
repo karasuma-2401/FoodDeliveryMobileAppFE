@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import java.util.Locale
 
 @Composable
@@ -33,7 +34,7 @@ fun PopularFoodRow(
             val food = popularFood[index]
             Card(
                 modifier = Modifier
-                    .width(160.dp)
+                    .width(148.dp)
                     .bounceClick { onFoodItemClick(food.id) },
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
@@ -42,14 +43,14 @@ fun PopularFoodRow(
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(CustomerDimens.cardPadding)) {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         AsyncImage(
                             model = food.imageUrl ?: food.imageRes,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(110.dp)
+                                .height(CustomerDimens.popularFoodImageHeight)
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentScale = ContentScale.Crop
@@ -71,8 +72,8 @@ fun PopularFoodRow(
                     }
                     Text(
                         text = food.name,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(top = 12.dp),
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(top = 10.dp),
                         maxLines = 1,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -94,7 +95,7 @@ fun PopularFoodRow(
 
                     Text(
                         text = "$${String.format(Locale.US,"%.2f", food.price)}",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(top = 6.dp)
                     )

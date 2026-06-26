@@ -19,6 +19,7 @@ import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun CategoryItem(
@@ -39,21 +40,21 @@ fun CategoryItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
                 model = category.imageUrl,
                 contentDescription = category.name,
                 modifier = Modifier
-                    .size(70.dp)
+                    .size(CustomerDimens.categoryImageSize)
                     .clip(RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(id = R.drawable.food_bowl),
                 error = painterResource(id = R.drawable.food_bowl)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = category.name,

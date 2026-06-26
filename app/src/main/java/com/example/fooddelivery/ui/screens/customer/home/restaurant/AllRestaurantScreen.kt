@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
@@ -74,7 +75,7 @@ fun AllRestaurantsContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                        .padding(horizontal = CustomerDimens.screenHorizontalPadding, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     InputChip(

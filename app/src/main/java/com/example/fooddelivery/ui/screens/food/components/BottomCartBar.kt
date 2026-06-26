@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun BottomCartBar(
@@ -43,7 +44,7 @@ fun BottomCartBar(
     ) {
         Row(
             modifier = Modifier
-                .padding(24.dp)
+                .padding(CustomerDimens.bottomBarPadding)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -51,7 +52,7 @@ fun BottomCartBar(
             Column {
                 Text(
                     text = "$$price",
-                    style = MaterialTheme.typography.headlineMedium.copy(
+                    style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -74,7 +75,7 @@ fun BottomCartBar(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .semantics {
                             role = Role.Button
@@ -97,13 +98,13 @@ fun BottomCartBar(
                     text = "$quantity",
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.padding(horizontal = 8.dp),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                 )
 
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .semantics {
                             role = Role.Button
@@ -125,8 +126,8 @@ fun BottomCartBar(
 
             Box(
                 modifier = Modifier
-                    .height(56.dp)
-                    .width(140.dp)
+                    .height(48.dp)
+                    .width(128.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.primary)
                     .bounceClick { onAddToCart() },
@@ -134,7 +135,7 @@ fun BottomCartBar(
             ) {
                 Text(
                     text = "Add to Cart",
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
                     )

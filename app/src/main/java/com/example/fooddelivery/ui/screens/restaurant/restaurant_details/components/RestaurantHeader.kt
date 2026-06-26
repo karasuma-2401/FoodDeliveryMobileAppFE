@@ -29,7 +29,7 @@ import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
 
-val RestaurantHeroContentHeight = 220.dp
+val RestaurantHeroContentHeight = 200.dp
 val RestaurantHeroPanelOverlap = 20.dp
 
 @Composable
@@ -124,9 +124,9 @@ fun RestaurantInfoSection(
     ) {
         Text(
             text = restaurant.name,
-            style = MaterialTheme.typography.headlineSmall.copy(
+            style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
-                fontSize = 24.sp
+                fontSize = 20.sp
             ),
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(top = 16.dp)

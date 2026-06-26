@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import java.util.Locale
 
 @Composable
@@ -37,7 +38,12 @@ fun RestaurantHeader(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onSelect() }
-            .padding(start = 24.dp, end = 8.dp, top = 16.dp, bottom = 16.dp),
+            .padding(
+                start = CustomerDimens.screenHorizontalPadding,
+                end = 8.dp,
+                top = 12.dp,
+                bottom = 12.dp
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
@@ -53,7 +59,7 @@ fun RestaurantHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = restaurantName,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onBackground
             )
             val subtitle = buildList {

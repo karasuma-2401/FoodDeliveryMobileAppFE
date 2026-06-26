@@ -37,6 +37,7 @@ import com.example.fooddelivery.ui.screens.customer.checkout.components.OrderNot
 import com.example.fooddelivery.ui.screens.customer.checkout.components.PaymentMethodBottomSheet
 import com.example.fooddelivery.ui.screens.customer.checkout.components.PaymentMethodCard
 import com.example.fooddelivery.ui.screens.customer.checkout.components.SectionTitle
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -106,7 +107,7 @@ fun CheckoutScreen(
                 shadowElevation = 16.dp,
                 tonalElevation = 4.dp
             ) {
-                Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(24.dp)) {
+                Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(CustomerDimens.bottomBarPadding)) {
                     val buttonText = if (state.paymentMethod is PaymentMethod.MoMo) {
                         val formattedTotal = String.format(Locale.US,"$%.2f", state.total)
                         stringResource(R.string.pay_with_momo, formattedTotal)
@@ -137,8 +138,8 @@ fun CheckoutScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(horizontal = CustomerDimens.screenHorizontalPadding),
+                verticalArrangement = Arrangement.spacedBy(CustomerDimens.screenSectionSpacing)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -178,7 +179,7 @@ fun CheckoutScreen(
                     voucherLabel = state.selectedVoucher?.code
                 )
 
-                Spacer(modifier = Modifier.height(120.dp))
+                Spacer(modifier = Modifier.height(CustomerDimens.screenBottomSpacer))
             }
             
             if (state.isLoading || state.isPolling) {
