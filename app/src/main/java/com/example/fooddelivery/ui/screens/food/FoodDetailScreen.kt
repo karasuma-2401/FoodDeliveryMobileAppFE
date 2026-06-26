@@ -232,6 +232,8 @@ fun FoodDetailContent(
                                     name = food.name,
                                     description = state.foodDescription,
                                     unitPrice = state.unitPrice,
+                                    soldCount = food.soldCount,
+                                    originalPrice = state.originalPrice,
                                     discountBadge = state.discountBadge,
                                     showAddSuccessPulse = state.showAddSuccessPulse,
                                     isAddingToCart = state.isAddingToCart,

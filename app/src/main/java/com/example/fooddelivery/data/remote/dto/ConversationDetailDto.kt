@@ -5,7 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ConversationDetailDto(
     val conversation: ConversationDto,
-    val messages: List<MessageDto>,
-    val me: OtherUserDto? = null,
-    val other: OtherUserDto? = null
+    val messages: List<MessageDto>
 )

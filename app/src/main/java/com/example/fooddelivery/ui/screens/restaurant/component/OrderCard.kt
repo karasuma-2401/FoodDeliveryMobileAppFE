@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ fun OrderCard(
     onDone: () -> Unit,
     onDelivered: () -> Unit,
     onCancel: () -> Unit,
+    onChatClick: () -> Unit,
     isUpdating: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -146,6 +148,23 @@ fun OrderCard(
             }
 
             Spacer(modifier = Modifier.height(14.dp))
+
+            if (!order.isError) {
+                OutlinedButton(
+                    onClick = onChatClick,
+                    enabled = !isUpdating,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Chat,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Chat with customer", fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             when (order.status) {
                 // Bước 1: Khách vừa đặt — nhà hàng có thể Accept hoặc Deny

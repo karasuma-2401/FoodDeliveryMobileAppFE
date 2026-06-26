@@ -6,6 +6,7 @@ import com.example.fooddelivery.data.local.room.entity.MessageEntity
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.repository.UserRepository
+import com.example.fooddelivery.util.senderIdsMatch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -27,7 +28,8 @@ data class ChatState(
     val orderStatus: String = "", // Default empty since API 1.1/1.3 doesn't provide it
     val currentPage: Int = 0,
     val hasMore: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val isBusinessUser: Boolean = false
 )
 
 sealed interface ChatEvent {
@@ -88,6 +90,10 @@ class ChatViewModel @Inject constructor(
 
     private fun getCurrentUser() {
         viewModelScope.launch {
+            val roles = tokenManager.getUserRoles.first()
+            val isBusiness = roles.any { it.equals("BUSINESS", ignoreCase = true) }
+            _state.update { it.copy(isBusinessUser = isBusiness) }
+
             tokenManager.getUserId.first()?.let { id ->
                 _state.update { it.copy(currentUserId = id.toString()) }
             }
@@ -122,8 +128,12 @@ class ChatViewModel @Inject constructor(
             chatRepository.joinRoom(conversationId)
             chatRepository.markAsRead(conversationId)
             observeMessages(conversationId)
-            chatRepository.syncConversationDetail(conversationId.toInt(), 0).onSuccess {
-                _state.update { it.copy(isLoading = false) }
+            chatRepository.syncConversationDetail(conversationId.toInt(), 0).onSuccess { entity ->
+                _state.update { it.copy(
+                    isLoading = false,
+                    restaurantName = restaurantName ?: entity.restaurantName,
+                    restaurantImage = restaurantImage ?: entity.restaurantImage
+                ) }
             }.onFailure { error ->
                 _state.update { it.copy(isLoading = false, error = error.message) }
             }
@@ -132,25 +142,37 @@ class ChatViewModel @Inject constructor(
 
     private fun initChatByOrderId(orderId: Int, sellerId: Int) {
         _state.update { it.copy(isLoading = true) }
-        
+
         viewModelScope.launch {
-            chatRepository.createConversation(orderId, sellerId).onSuccess { entity ->
-                currentConversationId = entity.id
-                _state.update { it.copy(
-                    conversationId = entity.id,
-                    restaurantName = entity.restaurantName,
-                    restaurantImage = entity.restaurantImage
-                ) }
-                
-                chatRepository.joinRoom(entity.id)
-                chatRepository.markAsRead(entity.id)
-                observeMessages(entity.id)
-                chatRepository.syncConversationDetailByOrder(orderId, 0)
-                
-            }.onFailure { error ->
-                _state.update { it.copy(error = error.message) }
+            val isBusiness = isBusinessUser()
+            val entity = chatRepository.syncConversationDetailByOrder(orderId, 0).getOrElse { orderError ->
+                if (isBusiness) {
+                    _state.update { it.copy(isLoading = false, error = orderError.message) }
+                    return@launch
+                }
+                val created = chatRepository.createConversation(sellerId).getOrElse { createError ->
+                    _state.update { it.copy(isLoading = false, error = createError.message) }
+                    return@launch
+                }
+                chatRepository.syncConversationDetail(created.id.toInt(), 0).getOrElse { syncError ->
+                    _state.update { it.copy(isLoading = false, error = syncError.message) }
+                    return@launch
+                }
             }
-            _state.update { it.copy(isLoading = false) }
+
+            currentConversationId = entity.id
+            _state.update { it.copy(
+                conversationId = entity.id,
+                restaurantName = entity.restaurantName,
+                restaurantImage = entity.restaurantImage,
+                currentPage = 0,
+                hasMore = true,
+                isLoading = false
+            ) }
+
+            chatRepository.joinRoom(entity.id)
+            chatRepository.markAsRead(entity.id)
+            observeMessages(entity.id)
         }
     }
 
@@ -160,7 +182,7 @@ class ChatViewModel @Inject constructor(
             chatRepository.getMessages(conversationId).collectLatest { messages ->
                 _state.update { it.copy(messages = messages) }
                 // Nếu có tin nhắn mới khi đang ở trong chat, tự động đánh dấu đã đọc
-                if (messages.any { !it.isRead && it.senderId != _state.value.currentUserId }) {
+                if (messages.any { !it.isRead && !senderIdsMatch(it.senderId, _state.value.currentUserId) }) {
                     chatRepository.markAsRead(conversationId)
                 }
             }
@@ -176,9 +198,10 @@ class ChatViewModel @Inject constructor(
             val nextPage = _state.value.currentPage + 1
             val messagesBefore = _state.value.messages.size
             
-            chatRepository.syncConversationDetail(conversationId.toInt(), nextPage).onSuccess {
+            chatRepository.syncConversationDetail(conversationId.toInt(), nextPage).onSuccess { _ ->
                 val messagesAfter = _state.value.messages.size
-                val hasMore = messagesAfter > messagesBefore
+                val loadedCount = messagesAfter - messagesBefore
+                val hasMore = loadedCount >= 20
                 _state.update { it.copy(currentPage = nextPage, isLoadMore = false, hasMore = hasMore) }
             }.onFailure {
                 _state.update { it.copy(isLoadMore = false, hasMore = false) }
@@ -235,5 +258,10 @@ class ChatViewModel @Inject constructor(
             }
         }
         super.onCleared()
+    }
+
+    private suspend fun isBusinessUser(): Boolean {
+        return tokenManager.getUserRoles.first()
+            .any { it.equals("BUSINESS", ignoreCase = true) }
     }
 }

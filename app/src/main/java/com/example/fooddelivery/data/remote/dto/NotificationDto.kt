@@ -3,7 +3,10 @@ package com.example.fooddelivery.data.remote.dto
 import com.example.fooddelivery.domain.model.Notification
 import com.example.fooddelivery.domain.model.NotificationType
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -68,6 +71,19 @@ fun NotificationDto.toDomain(): Notification {
             NotificationType.SYSTEM
         },
         isRead = readAt != null,
-        targetId = targetId?.toString()
+        targetId = targetId?.toString(),
+        targetType = targetType,
+        actions = parseNotificationActions(metadata)
     )
+}
+
+private fun parseNotificationActions(metadata: Map<String, JsonElement>?): List<String> {
+    val actionsElement = metadata?.get("actions") ?: return emptyList()
+    return when (actionsElement) {
+        is JsonArray -> actionsElement.mapNotNull { element ->
+            runCatching { element.jsonPrimitive.content }.getOrNull()
+        }
+        is JsonPrimitive -> listOf(actionsElement.content)
+        else -> emptyList()
+    }
 }

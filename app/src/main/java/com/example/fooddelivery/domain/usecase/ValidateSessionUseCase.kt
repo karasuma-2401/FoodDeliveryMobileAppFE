@@ -1,6 +1,7 @@
 package com.example.fooddelivery.domain.usecase
 
 import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.data.remote.socket.ChatSocketManager
 import com.example.fooddelivery.data.remote.dto.MeResponse
 import com.example.fooddelivery.domain.exception.UnauthorizedException
 import com.example.fooddelivery.domain.exception.UserNotFoundException
@@ -10,7 +11,8 @@ import javax.inject.Inject
 
 class ValidateSessionUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val chatSocketManager: ChatSocketManager
 ) {
     suspend operator fun invoke(): Result<MeResponse> {
         val accessToken = tokenManager.getAccessToken.first()
@@ -46,6 +48,7 @@ class ValidateSessionUseCase @Inject constructor(
                     val newRefreshToken = response.getFinalRefreshToken()
                     if (!newAccessToken.isNullOrBlank() && !newRefreshToken.isNullOrBlank()) {
                         tokenManager.updateTokens(newAccessToken, newRefreshToken)
+                        chatSocketManager.reconnectWithCurrentToken()
                         val retryResult = authRepository.getMe()
                         if (retryResult.isSuccess) {
                             val me = retryResult.getOrThrow()
@@ -64,6 +67,7 @@ class ValidateSessionUseCase @Inject constructor(
 
         if (error is UnauthorizedException || error is UserNotFoundException) {
             tokenManager.clearAuthData()
+            chatSocketManager.disconnect()
         }
 
         return result

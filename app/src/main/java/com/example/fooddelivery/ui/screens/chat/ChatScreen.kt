@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.chat.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import com.example.fooddelivery.util.messagesForMessengerDisplay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,8 +42,8 @@ fun ChatScreen(
     LaunchedEffect(conversationId, orderId, sellerId) {
         if (conversationId != null) {
             viewModel.onEvent(ChatEvent.InitChat(conversationId, restaurantName, restaurantImage))
-        } else if (orderId != null && sellerId != null) {
-            viewModel.onEvent(ChatEvent.InitChatFromOrder(orderId, sellerId))
+        } else if (orderId != null) {
+            viewModel.onEvent(ChatEvent.InitChatFromOrder(orderId, sellerId ?: 0))
         }
     }
 
@@ -100,47 +101,64 @@ fun ChatContent(
     onAddClick: () -> Unit
 ) {
     val listState = rememberLazyListState()
+    val displayMessages = remember(state.messages) {
+        messagesForMessengerDisplay(state.messages)
+    }
     val shouldLoadMore = remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex <= 1 &&
-                state.messages.isNotEmpty()
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            if (totalItems == 0 || state.messages.isEmpty()) return@derivedStateOf false
+            val lastVisibleIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisibleIndex >= totalItems - 2 &&
+                state.hasMore &&
+                !state.isLoadMore &&
+                !state.isLoading
         }
     }
 
     LaunchedEffect(shouldLoadMore.value) {
-        if (shouldLoadMore.value && state.hasMore && !state.isLoadMore && !state.isLoading) {
+        if (shouldLoadMore.value) {
             onEvent(ChatEvent.LoadMoreHistory)
         }
     }
 
-    LaunchedEffect(state.messages.lastOrNull()?.id, state.isLoading) {
-        if (state.isLoading || state.messages.isEmpty()) return@LaunchedEffect
-        val headerCount = 1 + if (state.isLoadMore) 1 else 0
-        val newestMessageIndex = headerCount + state.messages.size - 1
-        listState.animateScrollToItem(newestMessageIndex)
+    LaunchedEffect(displayMessages.firstOrNull()?.id, state.isLoading) {
+        if (state.isLoading || displayMessages.isEmpty()) return@LaunchedEffect
+        listState.animateScrollToItem(0)
     }
 
     Scaffold(
         topBar = {
             DFoodTopBar(
-                title = state.restaurantName,
+                title = when {
+                    state.isBusinessUser && state.restaurantName.isNotBlank() -> state.restaurantName
+                    state.isBusinessUser -> "Customer"
+                    else -> state.restaurantName
+                },
                 onBackClick = onNavigateBack,
                 actions = {},
                 scrollBehavior = null,
             )
         },
         bottomBar = {
-            ChatBottomSection(
-                inputText = state.inputText,
-                orderStatus = state.orderStatus,
-                onTextChange = { onEvent(ChatEvent.OnTextChanged(it)) },
-                onSend = { onEvent(ChatEvent.SendMessage) },
-                onAddClick = onAddClick,
-                onEmojiSelected = { emoji -> 
-                    onEvent(ChatEvent.OnTextChanged(state.inputText + emoji))
-                },
-                isUploading = state.isUploadingImage
-            )
+            Column {
+                SuggestedReplies(
+                    isBusinessUser = state.isBusinessUser,
+                    onReplyClick = { onEvent(ChatEvent.SelectSuggestedReply(it)) }
+                )
+                ChatBottomSection(
+                    inputText = state.inputText,
+                    orderStatus = state.orderStatus,
+                    onTextChange = { onEvent(ChatEvent.OnTextChanged(it)) },
+                    onSend = { onEvent(ChatEvent.SendMessage) },
+                    onAddClick = onAddClick,
+                    onEmojiSelected = { emoji ->
+                        onEvent(ChatEvent.OnTextChanged(state.inputText + emoji))
+                    },
+                    isUploading = state.isUploadingImage
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
@@ -151,13 +169,19 @@ fun ChatContent(
         ) {
             LazyColumn(
                 state = listState,
+                reverseLayout = true,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
-                item(key = "date_divider") {
-                    ChatDateDivider(date = "Today")
+                items(displayMessages, key = { it.id }) { message ->
+                    ChatBubble(
+                        message = message,
+                        currentUserId = state.currentUserId,
+                        restaurantImage = state.restaurantImage,
+                        restaurantName = state.restaurantName
+                    )
                 }
 
                 if (state.isLoadMore) {
@@ -173,19 +197,8 @@ fun ChatContent(
                     }
                 }
 
-                items(state.messages, key = { it.id }) { message ->
-                    ChatBubble(
-                        message = message,
-                        currentUserId = state.currentUserId,
-                        restaurantImage = state.restaurantImage,
-                        restaurantName = state.restaurantName
-                    )
-                }
-
-                item(key = "suggested_replies") {
-                    SuggestedReplies(
-                        onReplyClick = { onEvent(ChatEvent.SelectSuggestedReply(it)) }
-                    )
+                item(key = "date_divider") {
+                    ChatDateDivider(date = "Today")
                 }
             }
         }

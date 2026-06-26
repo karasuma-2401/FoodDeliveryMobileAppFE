@@ -1,12 +1,14 @@
 package com.example.fooddelivery.domain.usecase
 
 import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.data.remote.socket.ChatSocketManager
 import com.example.fooddelivery.domain.repository.AuthRepository
 import javax.inject.Inject
 
 class LoginSocialUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val chatSocketManager: ChatSocketManager
 ) {
     suspend operator fun invoke(
         provider: String,
@@ -33,6 +35,7 @@ class LoginSocialUseCase @Inject constructor(
                 rememberMe = true
             )
             tokenManager.saveMeInfo(user.id, user.email, user.roles)
+            chatSocketManager.reconnectWithCurrentToken()
             user.roles
         }
     }

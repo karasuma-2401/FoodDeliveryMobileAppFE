@@ -31,6 +31,7 @@ import com.example.fooddelivery.data.repository.CartRepositoryImpl
 import com.example.fooddelivery.data.repository.DeliveryLocationRepositoryImpl
 import com.example.fooddelivery.data.repository.CategoryRepositoryImpl
 import com.example.fooddelivery.data.repository.ChatRepositoryImpl
+import com.example.fooddelivery.data.remote.socket.ChatSocketManager
 import com.example.fooddelivery.data.repository.DeviceRepositoryImpl
 import com.example.fooddelivery.data.repository.FoodRepositoryImpl
 import com.example.fooddelivery.data.repository.HomeRepositoryImpl
@@ -62,7 +63,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.socket.client.Socket
 import javax.inject.Singleton
 
 @Module
@@ -81,6 +81,7 @@ object AppModule {
                 AppDatabase.MIGRATION_1_2,
                 AppDatabase.MIGRATION_2_4,
                 AppDatabase.MIGRATION_6_7,
+                AppDatabase.MIGRATION_7_8,
             )
             .fallbackToDestructiveMigration()
             .build()
@@ -225,10 +226,10 @@ object AppModule {
         chatApi: ChatApi,
         conversationDao: ConversationDao,
         messageDao: MessageDao,
-        socket: Socket,
-        tokenManager: TokenManager
+        tokenManager: TokenManager,
+        chatSocketManager: ChatSocketManager
     ): ChatRepository {
-        return ChatRepositoryImpl(chatApi, conversationDao, messageDao, socket, tokenManager)
+        return ChatRepositoryImpl(chatApi, conversationDao, messageDao, tokenManager, chatSocketManager)
     }
 
     @Provides

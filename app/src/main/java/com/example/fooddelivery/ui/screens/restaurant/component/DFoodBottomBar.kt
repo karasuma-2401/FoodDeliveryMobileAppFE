@@ -14,14 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
 
 @Composable
 fun DFoodBottomBar(
     currentRoute: String,
     onNavigate: (String) -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    unreadMessageCount: Int = 0
 ) {
     Surface(
         modifier = Modifier
@@ -35,7 +38,8 @@ fun DFoodBottomBar(
             modifier = Modifier
                 .navigationBarsPadding()
                 .height(80.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
@@ -67,6 +71,12 @@ fun DFoodBottomBar(
             }
 
             NavigationIcon(
+                iconId = R.drawable.ic_chat,
+                isSelected = currentRoute == "messages",
+                onClick = { onNavigate("messages") },
+                badgeCount = unreadMessageCount
+            )
+            NavigationIcon(
                 iconId = R.drawable.ic_notification,
                 isSelected = currentRoute == "notifications",
                 onClick = { onNavigate("notifications") }
@@ -84,14 +94,33 @@ fun DFoodBottomBar(
 private fun NavigationIcon(
     iconId: Int,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    badgeCount: Int = 0
 ) {
-    IconButton(onClick = onClick) {
-        Icon(
-            painter = painterResource(id = iconId),
-            contentDescription = null,
-            tint = if (isSelected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-        )
+    Box {
+        IconButton(onClick = onClick) {
+            Icon(
+                painter = painterResource(id = iconId),
+                contentDescription = null,
+                tint = if (isSelected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+        }
+        if (badgeCount > 0) {
+            Badge(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 6.dp, end = 4.dp),
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
+            ) {
+                Text(
+                    text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 2.dp)
+                )
+            }
+        }
     }
 }

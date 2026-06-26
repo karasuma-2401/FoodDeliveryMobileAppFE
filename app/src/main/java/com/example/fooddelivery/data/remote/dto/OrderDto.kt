@@ -119,7 +119,7 @@ data class PaymentInformationDto(
 @Serializable
 data class OrderConversationDto(
     val id: Int,
-    val orderId: Int,
+    val orderId: Int? = null,
     val customerId: Int,
     val sellerId: Int,
     val createdAt: String? = null,

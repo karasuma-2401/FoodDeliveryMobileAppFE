@@ -47,6 +47,7 @@ data class TrackOrderState(
     val restaurantPhone: String = "",
     val items: List<OrderSummaryItem> = emptyList(),
     val restaurantId: Int = 0,
+    val sellerId: Int = 0,
     val address: OrderAddress? = null,
     val paymentMethod: String = "",
     val paymentStatus: String = "",
@@ -127,6 +128,7 @@ class TrackOrderViewModel @Inject constructor(
                                 )
                             },
                             restaurantId = detail.restaurantId,
+                            sellerId = detail.sellerId,
                             address = detail.address,
                             paymentMethod = detail.paymentMethod,
                             paymentStatus = detail.paymentStatus,
