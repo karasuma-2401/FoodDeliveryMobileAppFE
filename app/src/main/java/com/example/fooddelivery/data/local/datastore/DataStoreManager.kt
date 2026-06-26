@@ -6,6 +6,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -20,6 +21,7 @@ class DataStoreManager @Inject constructor(
         val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
         val DARK_MODE_KEY = booleanPreferencesKey("dark_mode")
         val NOTIFICATIONS_ENABLED_KEY = booleanPreferencesKey("notifications_enabled")
+        val SELECTED_ADDRESS_ID_KEY = intPreferencesKey("selected_address_id")
     }
 
     // Onboarding
@@ -56,6 +58,18 @@ class DataStoreManager @Inject constructor(
     suspend fun saveNotificationsState(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[NOTIFICATIONS_ENABLED_KEY] = enabled
+        }
+    }
+
+    fun readSelectedAddressId(): Flow<Int?> {
+        return context.dataStore.data.map { preferences ->
+            preferences[SELECTED_ADDRESS_ID_KEY]
+        }
+    }
+
+    suspend fun saveSelectedAddressId(addressId: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[SELECTED_ADDRESS_ID_KEY] = addressId
         }
     }
 }

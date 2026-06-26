@@ -3,6 +3,7 @@ package com.example.fooddelivery.ui.screens.customer.cart
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.remote.dto.toDomain
+import com.example.fooddelivery.data.remote.dto.toSuitableDomain
 import com.example.fooddelivery.domain.model.CartItem
 import com.example.fooddelivery.domain.model.CartRestaurantGroup
 import com.example.fooddelivery.domain.model.Voucher
@@ -49,7 +50,7 @@ data class CartState(
                         restaurantId = restaurantId,
                         restaurantName = groupItems.first().restaurantName,
                         itemCount = groupItems.sumOf { it.quantity },
-                        subtotal = groupItems.sumOf { it.totalPrice },
+                        subtotal = groupItems.sumOf { it.lineTotal },
                     )
                 }
             }
@@ -73,7 +74,8 @@ data class CartState(
     val selectedDeliveryFee: Double?
         get() = selectedSection?.group?.deliveryFee
 
-    val subTotal: Double get() = selectedItems.sumOf { it.totalPrice }
+    val subTotal: Double get() = selectedSection?.group?.subtotal
+        ?: selectedItems.sumOf { it.lineTotal }
     val total: Double get() = (subTotal - discount).coerceAtLeast(0.0)
     val isCartEmpty: Boolean get() = items.isEmpty()
     val canCheckout: Boolean get() = selectedItems.isNotEmpty() && selectedRestaurantId != null
@@ -157,9 +159,11 @@ class CartViewModel @Inject constructor(
         viewModelScope.launch {
             voucherRepository.getSuitableVouchers(restaurantId, subtotal)
                 .onSuccess { vouchersDto ->
-                    val domainVouchers = vouchersDto.map { it.toDomain() }
+                    val domainVouchers = vouchersDto.map { it.toSuitableDomain() }
                     _state.update { state ->
-                        val updatedSelected = domainVouchers.find { it.id == state.selectedVoucher?.id }
+                        val updatedSelected = domainVouchers
+                            .find { it.id == state.selectedVoucher?.id }
+                            ?.takeIf { it.isApplicable }
                         val newDiscount = updatedSelected?.let { calculateDiscount(it, state.subTotal) } ?: 0.0
                         state.copy(
                             availableVouchers = domainVouchers,

@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.remote.dto
 
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
+import java.util.Locale
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -53,7 +54,8 @@ data class VoucherDto(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     val deleteAt: String? = null,
-    val restaurant: VoucherRestaurantDto? = null
+    val restaurant: VoucherRestaurantDto? = null,
+    val remainToApply: Int? = null
 )
 
 fun VoucherDto.toDomain(): Voucher {
@@ -74,6 +76,22 @@ fun VoucherDto.toDomain(): Voucher {
         restaurantName = restaurant?.name
     )
 }
+
+fun VoucherDto.toSuitableDomain(): Voucher {
+    val remain = remainToApply ?: 0
+    return toDomain().copy(
+        isApplicable = remain == 0,
+        conditionMessage = if (remain > 0) {
+            "Add $${formatUsd(remain)} more"
+        } else {
+            null
+        }
+    )
+}
+
+private fun formatUsd(amount: Int): String =
+    String.format(Locale.US, "%.2f", amount.toDouble())
+
 @Serializable
 data class VoucherListResponseDto(
     val success: Boolean? = null,

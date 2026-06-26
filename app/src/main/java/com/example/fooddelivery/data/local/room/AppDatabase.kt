@@ -20,7 +20,7 @@ import com.example.fooddelivery.data.local.room.entity.NotificationEntity
         ConversationEntity::class,
         CartEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -94,6 +94,17 @@ abstract class AppDatabase : RoomDatabase() {
                         PRIMARY KEY(`foodId`, `size`, `restaurantId`)
                     )
                 """.trimIndent())
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE `cart_items` ADD COLUMN `lineTotal` REAL NOT NULL DEFAULT 0"
+                )
+                database.execSQL(
+                    "UPDATE `cart_items` SET `lineTotal` = `unitPrice` * `quantity`"
+                )
             }
         }
     }

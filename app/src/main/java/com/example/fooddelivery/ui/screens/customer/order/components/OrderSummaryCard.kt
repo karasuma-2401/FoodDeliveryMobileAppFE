@@ -105,7 +105,7 @@ fun OrderSummaryCard(
                     
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "$${String.format(Locale.US, "%.2f", item.price * item.quantity)}",
+                            text = "$${String.format(Locale.US, "%.2f", item.lineTotal)}",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )

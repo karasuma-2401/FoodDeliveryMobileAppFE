@@ -8,6 +8,12 @@ import com.example.fooddelivery.domain.model.OrderStatusSummary
 import com.example.fooddelivery.domain.model.ReorderResult
 
 interface OrderRepository {
+    suspend fun getDeliveryFee(
+        restaurantId: Int,
+        latitude: Double,
+        longitude: Double
+    ): Result<Double>
+
     suspend fun createOrder(request: OrderRequest): Result<OrderResponse>
     suspend fun checkOrderStatus(orderId: String): Result<OrderStatusSummary>
     suspend fun reorder(orderId: String): Result<ReorderResult>
