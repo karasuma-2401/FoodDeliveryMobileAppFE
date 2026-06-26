@@ -5,24 +5,39 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.fooddelivery.R
+import com.example.fooddelivery.domain.model.CartItem
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.data.remote.dto.toDomain
 import com.example.fooddelivery.domain.model.Voucher
+import com.example.fooddelivery.domain.config.VoucherFeatureFlags
 import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.domain.repository.VoucherRepository
+import com.example.fooddelivery.domain.util.RestaurantShareTextBuilder
 import com.example.fooddelivery.ui.navigation.RestaurantDetailRoute
+import com.example.fooddelivery.ui.screens.food.FoodSizeOption
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
+
+data class AddToCartSheetState(
+    val foodItem: FoodItem,
+    val description: String = "",
+    val sizes: List<FoodSizeOption> = emptyList(),
+    val selectedSizeId: Int? = null,
+    val quantity: Int = 1,
+    val isLoadingDetails: Boolean = false
+)
 
 data class RestaurantDetailState(
     val restaurant: Restaurant? = null,
@@ -31,17 +46,28 @@ data class RestaurantDetailState(
     val selectedCategory: String = "",
     val isLoading: Boolean = false,
     val categorizedFoodItem: Map<String, List<FoodItem>> = emptyMap(),
-    val vouchers: List<Voucher> = emptyList()
+    val vouchers: List<Voucher> = emptyList(),
+    val showAddToCartSheet: Boolean = false,
+    val addToCartSheet: AddToCartSheetState? = null,
+    val isAddingToCart: Boolean = false,
+    val restaurantCartItemCount: Int = 0,
+    val restaurantCartSubtotal: Double = 0.0
 )
 
 sealed interface RestaurantDetailEvent {
     data class CategorySelected(val category: String) : RestaurantDetailEvent
-    data class AddFoodToCart(val foodItem: FoodItem) : RestaurantDetailEvent
-    object ToggleFavorite : RestaurantDetailEvent
+    data class OpenAddToCartSheet(val foodItem: FoodItem) : RestaurantDetailEvent
+    data object DismissAddToCartSheet : RestaurantDetailEvent
+    data class SelectSheetSize(val foodSizeId: Int) : RestaurantDetailEvent
+    data class UpdateSheetQuantity(val quantity: Int) : RestaurantDetailEvent
+    data object ConfirmAddToCart : RestaurantDetailEvent
+    data object ToggleFavorite : RestaurantDetailEvent
+    data object ShareRestaurant : RestaurantDetailEvent
 }
 
 sealed interface RestaurantDetailUiEffect {
     data class ShowSnackBar(val message: String) : RestaurantDetailUiEffect
+    data class LaunchShare(val text: String, val subject: String) : RestaurantDetailUiEffect
 }
 
 @HiltViewModel
@@ -49,6 +75,7 @@ class RestaurantDetailViewModel @Inject constructor(
     private val restaurantRepository: RestaurantRepository,
     private val voucherRepository: VoucherRepository,
     private val cartRepository: CartRepository,
+    private val foodRepository: FoodRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val restaurantId: String = savedStateHandle.toRoute<RestaurantDetailRoute>().restaurantId
@@ -60,19 +87,179 @@ class RestaurantDetailViewModel @Inject constructor(
 
     init {
         loadRestaurantDetails()
+        observeRestaurantCart()
     }
 
     fun onEvent(event: RestaurantDetailEvent) {
-        when(event) {
+        when (event) {
             is RestaurantDetailEvent.CategorySelected -> {
                 _state.update { it.copy(selectedCategory = event.category) }
             }
-            is RestaurantDetailEvent.AddFoodToCart -> {
-                addToCart(event.foodItem)
+            is RestaurantDetailEvent.OpenAddToCartSheet -> openAddToCartSheet(event.foodItem)
+            RestaurantDetailEvent.DismissAddToCartSheet -> {
+                _state.update {
+                    it.copy(showAddToCartSheet = false, addToCartSheet = null)
+                }
             }
-            RestaurantDetailEvent.ToggleFavorite -> {
-                toggleFavorite()
+            is RestaurantDetailEvent.SelectSheetSize -> {
+                _state.update { current ->
+                    val sheet = current.addToCartSheet ?: return@update current
+                    current.copy(addToCartSheet = sheet.copy(selectedSizeId = event.foodSizeId))
+                }
             }
+            is RestaurantDetailEvent.UpdateSheetQuantity -> {
+                val qty = event.quantity.coerceIn(1, 99)
+                _state.update { current ->
+                    val sheet = current.addToCartSheet ?: return@update current
+                    current.copy(addToCartSheet = sheet.copy(quantity = qty))
+                }
+            }
+            RestaurantDetailEvent.ConfirmAddToCart -> confirmAddToCart()
+            RestaurantDetailEvent.ToggleFavorite -> toggleFavorite()
+            RestaurantDetailEvent.ShareRestaurant -> shareRestaurant()
+        }
+    }
+
+    private fun observeRestaurantCart() {
+        viewModelScope.launch {
+            cartRepository.cartItems.collectLatest { items ->
+                val restaurantItems = items.filter { it.restaurantId == restaurantId }
+                _state.update {
+                    it.copy(
+                        restaurantCartItemCount = restaurantItems.sumOf { item -> item.quantity },
+                        restaurantCartSubtotal = restaurantItems.sumOf { item -> item.lineTotal }
+                    )
+                }
+            }
+        }
+    }
+
+    private fun openAddToCartSheet(foodItem: FoodItem) {
+        val foodId = foodItem.id.toIntOrNull() ?: return
+        _state.update {
+            it.copy(
+                showAddToCartSheet = true,
+                addToCartSheet = AddToCartSheetState(
+                    foodItem = foodItem,
+                    isLoadingDetails = true,
+                    quantity = 1
+                )
+            )
+        }
+
+        viewModelScope.launch {
+            foodRepository.getFoodById(foodId)
+                .onSuccess { dto ->
+                    val sizes = dto.sizes?.map { size ->
+                        FoodSizeOption(
+                            foodSizeId = size.foodSizeId,
+                            name = size.name,
+                            price = size.price,
+                            isDefault = size.isDefault
+                        )
+                    } ?: emptyList()
+                    val defaultSize = sizes.firstOrNull { it.isDefault } ?: sizes.firstOrNull()
+
+                    _state.update { current ->
+                        val sheet = current.addToCartSheet ?: return@update current
+                        current.copy(
+                            addToCartSheet = sheet.copy(
+                                description = dto.description,
+                                sizes = sizes,
+                                selectedSizeId = defaultSize?.foodSizeId,
+                                foodItem = foodItem.copy(
+                                    price = defaultSize?.price ?: dto.price,
+                                    imageUrl = dto.image ?: foodItem.imageUrl
+                                ),
+                                isLoadingDetails = false
+                            )
+                        )
+                    }
+                }
+                .onFailure {
+                    _state.update { current ->
+                        val sheet = current.addToCartSheet ?: return@update current
+                        current.copy(
+                            addToCartSheet = sheet.copy(isLoadingDetails = false),
+                            showAddToCartSheet = false
+                        )
+                    }
+                    _uiEffect.emit(
+                        RestaurantDetailUiEffect.ShowSnackBar("Couldn't load item details")
+                    )
+                }
+        }
+    }
+
+    private fun confirmAddToCart() {
+        val current = _state.value
+        val sheet = current.addToCartSheet ?: return
+        if (current.isAddingToCart) return
+
+        val food = sheet.foodItem
+        val foodIdInt = food.id.toIntOrNull() ?: return
+        val selectedSize = sheet.sizes.firstOrNull { it.foodSizeId == sheet.selectedSizeId }
+        if (sheet.sizes.isNotEmpty() && selectedSize == null) return
+
+        val unitPrice = selectedSize?.price ?: food.price
+        val sizeName = selectedSize?.name.orEmpty()
+        val foodSizeId = selectedSize?.foodSizeId
+        val quantity = sheet.quantity
+
+        _state.update { it.copy(isAddingToCart = true) }
+
+        val optimisticItem = CartItem(
+            food = food.copy(price = unitPrice, size = sizeName.takeIf { it.isNotBlank() }),
+            quantity = quantity,
+            lineTotal = unitPrice * quantity,
+            restaurantId = food.restaurantId,
+            restaurantName = food.restaurantName,
+            cartItemId = OPTIMISTIC_CART_ITEM_ID,
+            foodSizeId = foodSizeId?.toString()
+        )
+
+        viewModelScope.launch {
+            cartRepository.addToCartWithOptimisticLocal(
+                foodId = foodIdInt,
+                quantity = quantity,
+                foodSizeId = foodSizeId,
+                note = null,
+                optimisticItem = optimisticItem
+            ).onSuccess {
+                _state.update {
+                    it.copy(
+                        isAddingToCart = false,
+                        showAddToCartSheet = false,
+                        addToCartSheet = null
+                    )
+                }
+                _uiEffect.emit(
+                    RestaurantDetailUiEffect.ShowSnackBar("${food.name} added to cart")
+                )
+            }.onFailure { error ->
+                _state.update { it.copy(isAddingToCart = false) }
+                _uiEffect.emit(
+                    RestaurantDetailUiEffect.ShowSnackBar(
+                        error.message ?: "Failed to add to cart"
+                    )
+                )
+            }
+        }
+    }
+
+    private fun shareRestaurant() {
+        val restaurant = _state.value.restaurant ?: return
+        val text = RestaurantShareTextBuilder.build(
+            restaurant = restaurant,
+            vouchers = _state.value.vouchers
+        )
+        viewModelScope.launch {
+            _uiEffect.emit(
+                RestaurantDetailUiEffect.LaunchShare(
+                    text = text,
+                    subject = restaurant.name
+                )
+            )
         }
     }
 
@@ -82,39 +269,24 @@ class RestaurantDetailViewModel @Inject constructor(
 
         val previousState = currentRestaurant.isLiked
         val newFavoriteStatus = !previousState
-        
-        _state.update { 
+
+        _state.update {
             it.copy(restaurant = currentRestaurant.copy(isLiked = newFavoriteStatus))
         }
-        
+
         viewModelScope.launch {
             restaurantRepository.toggleFavorite(id).onSuccess { result ->
-                _state.update { 
+                _state.update {
                     it.copy(restaurant = it.restaurant?.copy(isLiked = result.isLiked))
                 }
                 val message = if (result.isLiked) "Added to favorites" else "Removed from favorites"
                 _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar(message))
             }.onFailure { error ->
-                _state.update { 
+                _state.update {
                     it.copy(restaurant = it.restaurant?.copy(isLiked = previousState))
                 }
                 _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar(error.message ?: "Failed to update favorite"))
             }
-        }
-    }
-
-    private fun addToCart(foodItem: FoodItem) {
-        val foodId = foodItem.id.toIntOrNull() ?: return
-        viewModelScope.launch {
-            cartRepository.addToCart(foodId = foodId, quantity = 1, size = null, note = null)
-                .onSuccess {
-                    _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar("${foodItem.name} added to cart"))
-                }
-                .onFailure { error ->
-                    _uiEffect.emit(
-                        RestaurantDetailUiEffect.ShowSnackBar(error.message ?: "Failed to add to cart")
-                    )
-                }
         }
     }
 
@@ -126,7 +298,6 @@ class RestaurantDetailViewModel @Inject constructor(
 
             try {
                 supervisorScope {
-                    // Foods
                     launch {
                         restaurantRepository.getFoods(idInt).onSuccess { foodResponses ->
                             val apiFoodItems = foodResponses.map { dto ->
@@ -167,15 +338,17 @@ class RestaurantDetailViewModel @Inject constructor(
                         }
                     }
 
-                    // Vouchers
-                    launch {
-                        voucherRepository.getVouchers(restaurantId = idInt)
-                            .onSuccess { vouchersDto ->
-                                _state.update { it.copy(vouchers = vouchersDto.map { dto -> dto.toDomain() }) }
-                            }
+                    if (VoucherFeatureFlags.RESTAURANT_PUBLIC_VOUCHERS_ENABLED) {
+                        launch {
+                            voucherRepository.getCustomerVouchers(idInt)
+                                .onSuccess { vouchersDto ->
+                                    _state.update {
+                                        it.copy(vouchers = vouchersDto.map { dto -> dto.toDomain() })
+                                    }
+                                }
+                        }
                     }
 
-                    // Restaurant detail
                     launch {
                         restaurantRepository.getRestaurantById(idInt).onSuccess { dto ->
                             val restaurant = Restaurant(
@@ -190,8 +363,6 @@ class RestaurantDetailViewModel @Inject constructor(
                                 isLiked = dto.isLiked ?: false
                             )
                             _state.update { it.copy(restaurant = restaurant) }
-
-                            // After getting restaurant, check its specific like status
                             checkLikeStatus(idInt)
                         }.onFailure {
                             if (_state.value.restaurant == null) {
@@ -202,10 +373,14 @@ class RestaurantDetailViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                // Surface error to UI
                 try {
-                    _uiEffect.emit(RestaurantDetailUiEffect.ShowSnackBar(e.localizedMessage ?: "Failed to load restaurant details"))
-                } catch (_: Exception) {}
+                    _uiEffect.emit(
+                        RestaurantDetailUiEffect.ShowSnackBar(
+                            e.localizedMessage ?: "Failed to load restaurant details"
+                        )
+                    )
+                } catch (_: Exception) {
+                }
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -215,7 +390,7 @@ class RestaurantDetailViewModel @Inject constructor(
     private fun checkLikeStatus(restaurantId: Int) {
         viewModelScope.launch {
             restaurantRepository.getLikeStatus(restaurantId).onSuccess { result ->
-                _state.update { 
+                _state.update {
                     it.copy(restaurant = it.restaurant?.copy(isLiked = result.isLiked))
                 }
             }
@@ -299,5 +474,9 @@ class RestaurantDetailViewModel @Inject constructor(
                 imageRes = R.drawable.food_bowl
             )
         )
+    }
+
+    companion object {
+        private const val OPTIMISTIC_CART_ITEM_ID = -1
     }
 }

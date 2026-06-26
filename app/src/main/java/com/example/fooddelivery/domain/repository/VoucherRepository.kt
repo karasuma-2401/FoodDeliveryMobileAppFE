@@ -11,6 +11,8 @@ interface VoucherRepository {
         status: String? = null
     ): Result<List<VoucherDto>>
 
+    suspend fun getCustomerVouchers(restaurantId: Int): Result<List<VoucherDto>>
+
     suspend fun getSuitableVouchers(
         restaurantId: Int,
         cost: Double? = null

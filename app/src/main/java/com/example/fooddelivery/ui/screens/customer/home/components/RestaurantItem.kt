@@ -7,7 +7,6 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.ui.components.VoucherCornerBadge
 import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
@@ -52,39 +52,23 @@ fun RestaurantItem(
                     contentDescription = restaurant.name,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(24.dp)),
+                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
                     contentScale = ContentScale.Crop,
                     placeholder = painterResource(id = R.drawable.food_bowl),
                     error = painterResource(id = R.drawable.food_bowl)
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    restaurant.promoTags.firstOrNull { !it.contains("Freeship", ignoreCase = true) }?.let { promo ->
-                        val isPromo = promo.contains("PROMO", ignoreCase = true)
-                        BadgeContainer(
-                            text = promo,
-                            containerColor = if (isPromo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                            contentColor = if (isPromo) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError
-                        )
-                    }
 
-                    if (restaurant.deliveryFee == 0.0) {
-                        BadgeContainer(
-                            text = "Free Delivery",
-                            containerColor = MaterialTheme.colorScheme.tertiary,
-                            contentColor = MaterialTheme.colorScheme.onTertiary
-                        )
-                    }
+                restaurant.voucherBadgeLabel?.let { label ->
+                    VoucherCornerBadge(
+                        label = label,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    )
                 }
 
                 onFavoriteClick?.let { onFavorite ->
                     Surface(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
+                            .align(Alignment.TopStart)
                             .padding(12.dp),
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
@@ -156,31 +140,8 @@ fun RestaurantItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
-                val deliveryFeeText = if (restaurant.deliveryFee == 0.0) "Free" else "$${String.format("%.2f", restaurant.deliveryFee)}"
-                InfoItem(
-                    icon = Icons.Outlined.DirectionsRun,
-                    text = deliveryFeeText,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
-    }
-}
-
-@Composable
-private fun BadgeContainer(text: String, containerColor: Color, contentColor: Color) {
-    Surface(
-        color = containerColor,
-        contentColor = contentColor,
-        shape = RoundedCornerShape(12.dp),
-        shadowElevation = 2.dp
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
-        )
     }
 }
 

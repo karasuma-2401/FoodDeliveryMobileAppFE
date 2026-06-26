@@ -197,7 +197,7 @@ class UserRepositoryImpl @Inject constructor(
                         rating = (dto.rating ?: dto.averageRating ?: 0.0).toFloat(),
                         deliveryFee = dto.deliveryFee ?: 0.0,
                         imageUrl = dto.image,
-                        promoTags = if (dto.deliveryFee == 0.0) listOf("Free Delivery") else emptyList(),
+                        promoTags = emptyList(),
                         isLiked = dto.isLiked ?: true,
                         totalLikes = dto.totalLikes ?: 0
                     )

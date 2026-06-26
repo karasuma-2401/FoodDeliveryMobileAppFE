@@ -17,7 +17,7 @@ enum class OrderStatus { PENDING, PREPARING, DELIVERING, DELIVERED, CONFIRMED, C
 data class OrderItem(
     val name: String,
     val quantity: Int,
-    val price: Double
+    val lineTotal: Double
 )
 
 data class OrderModel(
@@ -30,7 +30,7 @@ data class OrderModel(
     val isError: Boolean = false
 ) {
     val totalPrice: Double
-        get() = items.sumOf { it.price * it.quantity }
+        get() = items.sumOf { it.lineTotal }
 }
 
 data class OrderManagementState(
@@ -178,7 +178,7 @@ class OrderManagementViewModel @Inject constructor(
                         if (!item.size.isNullOrBlank()) append(" (${item.size})")
                     },
                     quantity = item.quantity,
-                    price = item.price
+                    lineTotal = item.lineTotal
                 )
             }
         )

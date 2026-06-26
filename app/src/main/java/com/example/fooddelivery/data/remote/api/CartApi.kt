@@ -23,6 +23,11 @@ interface CartApi {
     @DELETE("cart/{cartItemId}")
     suspend fun deleteCartItem(@Path("cartItemId") cartItemId: Int): Response<BaseResponse<CartResponse>>
 
+    @DELETE("cart/restaurant/{restaurantId}")
+    suspend fun clearCartByRestaurant(
+        @Path("restaurantId") restaurantId: Int
+    ): Response<BaseResponse<CartResponse>>
+
     @DELETE("cart")
     suspend fun clearCart(): Response<BaseResponse<Unit>>
 }

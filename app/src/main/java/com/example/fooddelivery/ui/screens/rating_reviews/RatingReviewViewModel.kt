@@ -95,7 +95,7 @@ class RatingReviewViewModel @Inject constructor(
                 restaurantRepository.getRestaurantReviews(restaurantIdInt).onSuccess { reviews ->
                     _state.update { it.copy(reviews = reviews) }
                 }.onFailure { e ->
-                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Failed to load reviews: ${'$'}{e.message}"))
+                    _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar("Failed to load reviews: ${e.message}"))
                 }
             } catch (e: Exception) {
                 _uiEffect.emit(RatingReviewUiEffect.ShowSnackBar(e.localizedMessage ?: "An error occurred while loading reviews"))

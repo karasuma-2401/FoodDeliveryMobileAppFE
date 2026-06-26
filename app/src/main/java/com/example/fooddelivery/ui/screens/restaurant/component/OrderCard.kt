@@ -136,7 +136,7 @@ fun OrderCard(
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
-                                text = formatVND(item.price * item.quantity),
+                                text = formatVND(item.lineTotal),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium
                             )

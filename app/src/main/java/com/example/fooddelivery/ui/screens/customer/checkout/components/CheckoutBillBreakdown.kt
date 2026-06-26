@@ -16,6 +16,9 @@ fun CheckoutBillBreakdown(
     subtotal: Double,
     discount: Double,
     total: Double,
+    deliveryFee: Double? = null,
+    isDeliveryFeeLoading: Boolean = false,
+    voucherLabel: String? = null,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -41,9 +44,31 @@ fun CheckoutBillBreakdown(
                 Text("$${String.format(Locale.US, "%.2f",subtotal)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
 
+            if (isDeliveryFeeLoading) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Delivery fee", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+            } else if (deliveryFee != null && deliveryFee > 0) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Delivery fee", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "$${String.format(Locale.US, "%.2f", deliveryFee)}",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
             if (discount > 0) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Discount", color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        text = if (voucherLabel != null) "Discount ($voucherLabel)" else "Discount",
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Text("-$${String.format(Locale.US, "%.2f",discount)}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }

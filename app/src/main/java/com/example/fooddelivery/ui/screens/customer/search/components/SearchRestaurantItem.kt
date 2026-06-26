@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowRight
-import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -17,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.ui.components.VoucherBadgeSize
+import com.example.fooddelivery.ui.components.VoucherCornerBadge
 import com.example.fooddelivery.ui.components.bounceClick
 
 @Composable
@@ -44,21 +45,12 @@ fun SearchRestaurantItem(
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop
             )
-            if (restaurant.hasVoucher) {
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .offset(x = (-4).dp, y = (-4).dp),
-                    color = MaterialTheme.colorScheme.error,
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.LocalOffer,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp).padding(2.dp),
-                        tint = MaterialTheme.colorScheme.onError
-                    )
-                }
+            restaurant.voucherBadgeLabel?.let { label ->
+                VoucherCornerBadge(
+                    label = label,
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    size = VoucherBadgeSize.Compact
+                )
             }
         }
 
@@ -87,7 +79,7 @@ fun SearchRestaurantItem(
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                
+
                 restaurant.distance?.let {
                     Text(
                         text = " • ${String.format("%.1f", it)} km",

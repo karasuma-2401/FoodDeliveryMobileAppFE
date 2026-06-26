@@ -18,6 +18,12 @@ interface CartDao {
     @Query("SELECT * FROM cart_items WHERE foodId = :foodId AND restaurantId = :restaurantId LIMIT 1")
     suspend fun getCartItem(foodId: String, restaurantId: String): CartEntity?
 
+    @Query(
+        "SELECT * FROM cart_items WHERE foodId = :foodId AND restaurantId = :restaurantId " +
+            "AND foodSize = :foodSize LIMIT 1"
+    )
+    suspend fun getCartItemByKey(foodId: String, restaurantId: String, foodSize: String): CartEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCartItem(cartItem: CartEntity)
 

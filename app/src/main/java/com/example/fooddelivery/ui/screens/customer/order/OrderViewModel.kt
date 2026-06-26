@@ -3,7 +3,6 @@ package com.example.fooddelivery.ui.screens.customer.order
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.Order
-import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,7 +37,6 @@ sealed interface OrderUiEffect {
 @HiltViewModel
 class OrderViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
-    private val cartRepository: CartRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(OrderState())
     val state: StateFlow<OrderState> = _state.asStateFlow()
@@ -84,11 +82,15 @@ class OrderViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             val result = orderRepository.reorder(orderId)
-            
-            result.onSuccess { message ->
-                // Sync cart from server to local before navigating
-                cartRepository.syncCart()
+
+            result.onSuccess { reorderResult ->
                 _state.update { it.copy(isLoading = false) }
+                val message = buildString {
+                    append(reorderResult.message)
+                    if (reorderResult.skippedItems.isNotEmpty()) {
+                        append(" (${reorderResult.skippedItems.size} item(s) skipped)")
+                    }
+                }
                 _uiEffect.emit(OrderUiEffect.ShowSuccess(message))
                 _uiEffect.emit(OrderUiEffect.NavigateToCart)
             }.onFailure { error ->

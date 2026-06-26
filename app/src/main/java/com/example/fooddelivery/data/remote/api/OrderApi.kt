@@ -6,6 +6,13 @@ import retrofit2.http.*
 import kotlinx.serialization.json.JsonElement
 
 interface OrderApi {
+    @GET("orders/deliveryFee/{restaurantId}")
+    suspend fun getDeliveryFee(
+        @Path("restaurantId") restaurantId: Int,
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double
+    ): Response<BaseResponse<DeliveryFeeResponse>>
+
     @POST("orders")
     suspend fun createOrder(@Body request: OrderRequest): Response<BaseResponse<OrderResponse>>
 
@@ -13,7 +20,7 @@ interface OrderApi {
     suspend fun getOrderStatus(@Path("orderId") orderId: Int): Response<BaseResponse<OrderStatusSummaryResponse>>
 
     @POST("orders/{orderId}/reorder")
-    suspend fun reorder(@Path("orderId") orderId: String): Response<BaseResponse<MessageResponse>>
+    suspend fun reorder(@Path("orderId") orderId: String): Response<BaseResponse<ReorderResponse>>
 
     @GET("orders")
     suspend fun getOngoingOrders(

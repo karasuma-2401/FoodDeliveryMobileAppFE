@@ -6,8 +6,11 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.User
+import com.example.fooddelivery.domain.location.LocationTracker
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
+import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
+import com.example.fooddelivery.domain.usecase.EnrichRestaurantsWithVoucherBadgesUseCase
 import com.example.fooddelivery.domain.usecase.GetHomeDashboardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,6 +20,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -80,8 +86,11 @@ sealed interface HomeUiEffect {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getHomeDashboardUseCase: GetHomeDashboardUseCase,
+    private val enrichRestaurantsWithVoucherBadgesUseCase: EnrichRestaurantsWithVoucherBadgesUseCase,
     private val cartRepository: CartRepository,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val deliveryLocationRepository: DeliveryLocationRepository,
+    private val locationTracker: LocationTracker,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -91,9 +100,33 @@ class HomeViewModel @Inject constructor(
     val effect: SharedFlow<HomeUiEffect> = _effect.asSharedFlow()
 
     init {
-        loadData()
         observeCart()
         observeUnreadMessages()
+        observeDeliveryLocation()
+    }
+
+    private fun observeDeliveryLocation() {
+        viewModelScope.launch {
+            deliveryLocationRepository.deliveryLocation.collectLatest { location ->
+                _state.update {
+                    it.copy(
+                        selectedLocation = location.selectedLabel,
+                        availableLocations = location.availableLabels,
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            deliveryLocationRepository.refreshAddresses()
+            loadData()
+        }
+        viewModelScope.launch {
+            deliveryLocationRepository.deliveryLocation
+                .map { it.selectedAddressId }
+                .distinctUntilChanged()
+                .drop(1)
+                .collectLatest { loadData() }
+        }
     }
 
     private fun observeCart() {
@@ -122,7 +155,7 @@ class HomeViewModel @Inject constructor(
                 HomeEvent.CartClicked -> _effect.emit(HomeUiEffect.NavigateToCart)
                 HomeEvent.MessageClicked -> _effect.emit(HomeUiEffect.NavigateToConversations)
                 is HomeEvent.LocationSelected -> {
-                    _state.update { it.copy(selectedLocation = event.location) }
+                    deliveryLocationRepository.selectByLabel(event.location)
                 }
                 is HomeEvent.CategoryClicked -> _effect.emit(HomeUiEffect.NavigateToCategory(event.categoryId))
                 is HomeEvent.RestaurantClicked -> _effect.emit(HomeUiEffect.NavigateToRestaurant(event.restaurantId))
@@ -149,7 +182,9 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = true, errorMessage = null) }
             }
 
-            getHomeDashboardUseCase().onSuccess { data ->
+            val location = deliveryLocationRepository.deliveryLocation.value
+            val (lat, lng) = resolveCoordinates(location.lat, location.lng)
+            getHomeDashboardUseCase(lat = lat, lng = lng).onSuccess { data ->
                 val mockBanners = listOf(
                     HomeBanner("1", "Flash Sale 50%", "Pizza Hut Special Deal", R.drawable.food_bowl, BannerTarget.RESTAURANT, "3", 0xFFFF8142),
                     HomeBanner("2", "Burger Day", "Buy 1 Get 1 Free Today", R.drawable.food_bowl, BannerTarget.CATEGORY, "2", 0xFF4CAF50),
@@ -169,7 +204,6 @@ class HomeViewModel @Inject constructor(
                         categories = data.categories,
                         restaurants = data.restaurants,
                         banners = mockBanners,
-                        availableLocations = data.addresses.map { addr -> addr.type }.ifEmpty { listOf("Home", "Work", "Other") },
                         cartItemCount = data.cartItemCount,
                         unreadMessageCount = data.unreadMessageCount,
                         isPhoneMissing = data.user?.phone?.isBlank() ?: false,
@@ -177,8 +211,32 @@ class HomeViewModel @Inject constructor(
                         isRefreshing = false
                     )
                 }
+                enrichVoucherBadges(data.restaurants)
             }.onFailure { e ->
                 _state.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = e.message) }
+            }
+        }
+    }
+
+    private suspend fun resolveCoordinates(
+        addressLat: Double?,
+        addressLng: Double?,
+    ): Pair<Double?, Double?> {
+        if (addressLat != null && addressLng != null) return addressLat to addressLng
+        val gps = locationTracker.getCurrentLocation()
+        return (addressLat ?: gps?.latitude) to (addressLng ?: gps?.longitude)
+    }
+
+    private fun enrichVoucherBadges(restaurants: List<Restaurant>) {
+        if (restaurants.isEmpty()) return
+        viewModelScope.launch {
+            val enriched = enrichRestaurantsWithVoucherBadgesUseCase(restaurants)
+            _state.update { current ->
+                if (current.restaurants.map { it.id } != restaurants.map { it.id }) {
+                    current
+                } else {
+                    current.copy(restaurants = enriched)
+                }
             }
         }
     }

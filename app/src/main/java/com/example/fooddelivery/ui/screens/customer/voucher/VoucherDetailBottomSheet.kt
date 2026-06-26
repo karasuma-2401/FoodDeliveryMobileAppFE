@@ -1,4 +1,4 @@
-package com.example.fooddelivery.ui.screens.customer.cart.components
+package com.example.fooddelivery.ui.screens.customer.voucher
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.*
@@ -20,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.domain.model.Voucher
-import com.example.fooddelivery.domain.model.VoucherType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +28,8 @@ fun VoucherDetailBottomSheet(
     onApplyVoucher: (Voucher) -> Unit,
     showApplyButton: Boolean = true
 ) {
+    val visual = voucher.toVisual()
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         dragHandle = { BottomSheetDefaults.DragHandle() },
@@ -58,8 +58,8 @@ fun VoucherDetailBottomSheet(
                         .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close, 
-                        contentDescription = null, 
+                        imageVector = Icons.Default.Close,
+                        contentDescription = null,
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -68,7 +68,6 @@ fun VoucherDetailBottomSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Voucher Header Card
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(16.dp),
@@ -81,15 +80,11 @@ fun VoucherDetailBottomSheet(
                     Box(
                         modifier = Modifier
                             .size(56.dp)
-                            .background(
-                                if (voucher.type == VoucherType.PERCENT) MaterialTheme.colorScheme.primary 
-                                else MaterialTheme.colorScheme.secondary,
-                                RoundedCornerShape(12.dp)
-                            ),
+                            .background(visual.accentColor, RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (voucher.type == VoucherType.PERCENT) Icons.Default.Percent else Icons.Default.LocalShipping,
+                            imageVector = visual.icon,
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
@@ -116,8 +111,7 @@ fun VoucherDetailBottomSheet(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Detail Sections
-            DetailSection(
+            VoucherDetailSection(
                 icon = Icons.Default.Info,
                 title = "Description",
                 content = voucher.description
@@ -125,7 +119,7 @@ fun VoucherDetailBottomSheet(
 
             if (voucher.restaurantName != null) {
                 Spacer(modifier = Modifier.height(20.dp))
-                DetailSection(
+                VoucherDetailSection(
                     icon = Icons.Default.Store,
                     title = "Applied for",
                     content = voucher.restaurantName
@@ -133,23 +127,32 @@ fun VoucherDetailBottomSheet(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-            DetailSection(
+            VoucherDetailSection(
                 icon = Icons.Default.Percent,
-                title = "Condition",
+                title = "Conditions",
                 content = buildString {
-                    append("Minimum Order: $${voucher.minOrderAmount}")
+                    append("Min. order: $${voucher.minOrderAmount}")
                     if (voucher.maxDiscountAmount != null) {
-                        append("\nMaximum Discount: $${voucher.maxDiscountAmount}")
+                        append("\nMax. discount: $${voucher.maxDiscountAmount}")
                     }
                 }
             )
 
             if (voucher.expiryText != null) {
                 Spacer(modifier = Modifier.height(20.dp))
-                DetailSection(
+                VoucherDetailSection(
                     icon = Icons.Default.Close,
                     title = "Expiry",
-                    content = "Valid until: ${voucher.expiryText}"
+                    content = voucher.expiryText
+                )
+            }
+
+            if (!voucher.isApplicable && voucher.conditionMessage != null) {
+                Spacer(modifier = Modifier.height(20.dp))
+                VoucherDetailSection(
+                    icon = Icons.Default.Info,
+                    title = "Why not eligible",
+                    content = voucher.conditionMessage
                 )
             }
 
@@ -171,7 +174,7 @@ fun VoucherDetailBottomSheet(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("Apply this Voucher", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Apply Voucher", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
@@ -179,7 +182,7 @@ fun VoucherDetailBottomSheet(
 }
 
 @Composable
-fun DetailSection(icon: ImageVector, title: String, content: String) {
+private fun VoucherDetailSection(icon: ImageVector, title: String, content: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Surface(
             modifier = Modifier.size(36.dp),

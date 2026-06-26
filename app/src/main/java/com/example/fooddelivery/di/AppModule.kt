@@ -3,6 +3,7 @@ package com.example.fooddelivery.di
 import android.content.Context
 import androidx.room.Room
 import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.data.local.datastore.DataStoreManager
 import com.example.fooddelivery.data.local.room.AppDatabase
 import com.example.fooddelivery.data.local.room.dao.CartDao
 import com.example.fooddelivery.data.local.room.dao.NotificationDao
@@ -27,6 +28,7 @@ import com.example.fooddelivery.data.remote.api.VoucherApi
 import com.example.fooddelivery.data.repository.AddressRepositoryImpl
 import com.example.fooddelivery.data.repository.AuthRepositoryImpl
 import com.example.fooddelivery.data.repository.CartRepositoryImpl
+import com.example.fooddelivery.data.repository.DeliveryLocationRepositoryImpl
 import com.example.fooddelivery.data.repository.CategoryRepositoryImpl
 import com.example.fooddelivery.data.repository.ChatRepositoryImpl
 import com.example.fooddelivery.data.repository.DeviceRepositoryImpl
@@ -42,6 +44,7 @@ import com.example.fooddelivery.data.repository.VoucherRepositoryImpl
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.AuthRepository
 import com.example.fooddelivery.domain.repository.CartRepository
+import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
 import com.example.fooddelivery.domain.repository.CategoryRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.repository.DeviceRepository
@@ -74,7 +77,11 @@ object AppModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_4)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_4,
+                AppDatabase.MIGRATION_6_7,
+            )
             .fallbackToDestructiveMigration()
             .build()
     }
@@ -121,6 +128,15 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideDeliveryLocationRepository(
+        addressRepository: AddressRepository,
+        dataStoreManager: DataStoreManager,
+    ): DeliveryLocationRepository {
+        return DeliveryLocationRepositoryImpl(addressRepository, dataStoreManager)
+    }
+
+    @Provides
+    @Singleton
     fun provideCartRepository(
         dao: CartDao,
         api: CartApi
@@ -148,9 +164,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOrderRepository(
-        api: OrderApi
+        api: OrderApi,
+        cartRepository: CartRepository,
     ): OrderRepository {
-        return OrderRepositoryImpl(api)
+        return OrderRepositoryImpl(api, cartRepository)
     }
 
     @Provides

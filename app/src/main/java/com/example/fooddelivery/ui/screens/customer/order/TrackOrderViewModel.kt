@@ -28,7 +28,7 @@ enum class TrackingStatus(val step: Int, val title: String, val subtitle: String
 data class OrderSummaryItem(
     val name: String,
     val quantity: Int,
-    val price: Double,
+    val lineTotal: Double,
     val description: String,
     val image: String,
     val note: String? = null
@@ -116,8 +116,15 @@ class TrackOrderViewModel @Inject constructor(
                             restaurantName = detail.restaurantName,
                             restaurantImage = detail.restaurantImage,
                             restaurantPhone = detail.restaurantPhone ?: "",
-                            items = detail.items.map { 
-                                OrderSummaryItem(it.name, it.quantity, it.price, it.size ?: "", it.image, it.note) 
+                            items = detail.items.map {
+                                OrderSummaryItem(
+                                    name = it.name,
+                                    quantity = it.quantity,
+                                    lineTotal = it.lineTotal,
+                                    description = it.size ?: "",
+                                    image = it.image,
+                                    note = it.note
+                                )
                             },
                             restaurantId = detail.restaurantId,
                             address = detail.address,
