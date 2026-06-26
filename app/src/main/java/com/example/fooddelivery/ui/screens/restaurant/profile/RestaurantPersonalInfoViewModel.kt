@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.repository.RestaurantRepository
+import com.example.fooddelivery.domain.repository.AddressRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -14,7 +15,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RestaurantPersonalInfoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repository: RestaurantRepository
+    private val repository: RestaurantRepository,
+    private val addressRepository: AddressRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf(RestaurantPersonalInfoState())
@@ -25,7 +27,6 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
     init {
         val isFromSignUp: Boolean = savedStateHandle["isFromSignUp"] ?: false
         uiState = uiState.copy(isFromSignUp = isFromSignUp)
-
 
         if (!isFromSignUp) {
             loadCurrentRestaurantProfile()
@@ -71,11 +72,45 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
         }
     }
 
+    fun fetchLatestAddress() {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+
+            val result = addressRepository.getAddressesForRestaurant()
+
+            result.onSuccess { addressList ->
+                val latestAddress = addressList.maxByOrNull { it.id }
+
+                if (latestAddress != null) {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        addressId = latestAddress.id,
+                        selectedAddressText = latestAddress.detail.ifEmpty { "SELECTED ADDRESS" },
+                        error = null
+                    )
+                } else {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        error = "NOT FOUND"
+                    )
+                }
+            }.onFailure { error ->
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = error.message ?: "SEVER ERROR"
+                )
+            }
+        }
+    }
+
     fun onEvent(event: RestaurantPersonalInfoEvent) {
         when (event) {
             is RestaurantPersonalInfoEvent.NameChanged -> uiState = uiState.copy(name = event.name, error = null)
             is RestaurantPersonalInfoEvent.PhoneChanged -> uiState = uiState.copy(phone = event.phone, error = null)
             is RestaurantPersonalInfoEvent.DescriptionChanged -> uiState = uiState.copy(description = event.description, error = null)
+            is RestaurantPersonalInfoEvent.AddressSelected -> {
+                uiState = uiState.copy(addressId = event.id, selectedAddressText = event.detail, error = null)
+            }
             RestaurantPersonalInfoEvent.Submit -> updateProfile()
         }
     }
@@ -87,28 +122,46 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
                 return@launch
             }
 
-            if (currentRestaurantId == -1) {
-                uiState = uiState.copy(error = "Restaurant ID is missing!")
-                return@launch
-            }
-
             uiState = uiState.copy(isLoading = true, error = null)
 
-            // 🌟 Gọi API PATCH để cập nhật
-            val result = repository.updateRestaurantProfile(
-                restaurantId = currentRestaurantId,
-                name = uiState.name,
-                phone = uiState.phone,
-                description = uiState.description
-            )
+            if (uiState.isFromSignUp) {
+                if (uiState.addressId == null) {
+                    uiState = uiState.copy(isLoading = false, error = "Please select a business address!")
+                    return@launch
+                }
 
-            result.onSuccess {
-                uiState = uiState.copy(isLoading = false, isSuccess = true)
-            }.onFailure { error ->
-                uiState = uiState.copy(
-                    isLoading = false,
-                    error = error.message ?: "Failed to update profile"
+                val result = repository.createRestaurant(
+                    name = uiState.name,
+                    phone = uiState.phone,
+                    description = uiState.description,
+                    addressId = uiState.addressId!!,
+                    image = null
                 )
+
+                result.onSuccess {
+                    uiState = uiState.copy(isLoading = false, isSuccess = true)
+                }.onFailure { error ->
+                    uiState = uiState.copy(isLoading = false, error = error.message ?: "Failed to create restaurant")
+                }
+
+            } else {
+                if (currentRestaurantId == -1) {
+                    uiState = uiState.copy(error = "Restaurant ID is missing!")
+                    return@launch
+                }
+
+                val result = repository.updateRestaurantProfile(
+                    restaurantId = currentRestaurantId,
+                    name = uiState.name,
+                    phone = uiState.phone,
+                    description = uiState.description
+                )
+
+                result.onSuccess {
+                    uiState = uiState.copy(isLoading = false, isSuccess = true)
+                }.onFailure { error ->
+                    uiState = uiState.copy(isLoading = false, error = error.message ?: "Failed to update profile")
+                }
             }
         }
     }

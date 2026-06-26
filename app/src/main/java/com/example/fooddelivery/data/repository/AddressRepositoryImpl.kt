@@ -4,6 +4,7 @@ import com.example.fooddelivery.data.remote.api.AddressApi
 import com.example.fooddelivery.data.remote.api.PhotonService
 import com.example.fooddelivery.data.remote.dto.toAddress
 import com.example.fooddelivery.data.remote.dto.toAddressRequest
+import com.example.fooddelivery.data.remote.dto.toRestaurantAddress
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.repository.AddressRepository
@@ -29,7 +30,20 @@ class AddressRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
-
+    override suspend fun getAddressesForRestaurant(): Result<List<Address>> {
+        return try {
+            addressApi.getAddresses()
+                .unwrapData("Failed to get addresses")
+                .map { addresses ->
+                    addresses
+                        .filter { it.address.deleteAt == null }
+                        .map { it.toRestaurantAddress() }
+                }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
     override suspend fun getAddressById(addressId: Int): Result<Address> {
         return try {
             addressApi.getAddress(addressId)

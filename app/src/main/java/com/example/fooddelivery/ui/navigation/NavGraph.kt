@@ -459,6 +459,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onEditProfile = { navController.navigate(EditProfileRoute) },
                 onManageAddress = { navController.navigate(MyAddressRoute) },
+                onNavigateToBusinessRegistration = {
+                    navController.navigate(RestaurantPersonalInfoRoute(isFromSignUp = true))
+                },
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToFavourite = { navController.navigate(FavouriteRoute) },
                 onNavigateToNotification = { navController.navigate(NotificationRoute) },
@@ -505,6 +508,33 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToOrder = { orderId ->
                     navController.navigate(TrackOrderRoute(orderId = orderId))
+                }
+            )
+        }
+        composable<RestaurantPersonalInfoRoute> {
+            RestaurantPersonalInfoScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToSelectAddress = {
+                    navController.navigate(BusinessAddressRoute(isFromSignUp = true))
+                },
+                onRegistrationComplete = {
+                    navController.navigate(RestaurantGraph) {
+                        popUpTo<HomeRoute> { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable<BusinessAddressRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<BusinessAddressRoute>()
+            AddAddressScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAddressSaved = {
+                    if (args.isFromSignUp) {
+                        navController.previousBackStackEntry?.savedStateHandle?.set("address_saved_signal", true)
+                    }
+                    navController.popBackStack()
                 }
             )
         }
@@ -731,7 +761,15 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     )
                 }
                 composable<RestaurantPersonalInfoRoute> {
-                    RestaurantPersonalInfoScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                    RestaurantPersonalInfoScreen(
+                        navController = vendorNavController,
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onNavigateToSelectAddress = {
+                            vendorNavController.navigate(BusinessAddressRoute(isFromSignUp = false))
+                        },
+                        onRegistrationComplete = {
+                        }
+                    )
                 }
 
                 composable<RestaurantProfileRoute> {
@@ -762,7 +800,6 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     )
                 }
                 composable<AddAddressRoute> { backStackEntry ->
-                    // 1. Lấy arguments từ Route (nếu addressId = null tức là thêm mới, có số tức là edit)
                     val args = backStackEntry.toRoute<AddAddressRoute>()
 
                     AddAddressScreen(

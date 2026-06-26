@@ -3,6 +3,7 @@ package com.example.fooddelivery.domain.repository
 import com.example.fooddelivery.domain.model.Address
 
 interface AddressRepository {
+    suspend fun getAddressesForRestaurant(): Result<List<Address>>
     suspend fun getAddresses(): Result<List<Address>>
     suspend fun getAddressById(addressId: Int): Result<Address>
     suspend fun addAddress(address: Address): Result<Unit>

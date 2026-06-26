@@ -80,6 +80,8 @@ data class RatingReviewRoute(
 )
 
 // Restaurant
+@Serializable data class RestaurantPersonalInfoRoute(val isFromSignUp: Boolean = false)
+@Serializable data class BusinessAddressRoute(val addressId: Int? = null, val isFromSignUp: Boolean = false)
 @Serializable object RestaurantDashboardRoute
 @Serializable object RestaurantFoodListRoute
 @Serializable data class RestaurantAddFoodRoute(val foodId: String? = null)
@@ -95,7 +97,6 @@ data class RestaurantReviewsRoute(val restaurantId: Int)
 
 @Serializable object RestaurantOrderManagementRoute
 
-@Serializable object RestaurantPersonalInfoRoute
 
 // Admin
 @Serializable object AdminDashboardRoute
