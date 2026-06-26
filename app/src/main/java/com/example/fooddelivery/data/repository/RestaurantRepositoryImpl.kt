@@ -69,7 +69,38 @@ class RestaurantRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
-
+    override suspend fun registerBusiness(): Result<BusinessRegisterResponse> {
+        return try {
+            api.registerBusiness().unwrapData("Failed to register business account")
+        } catch (e: Exception) {
+            if (e is kotlin.coroutines.cancellation.CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+    override suspend fun createRestaurant(
+        name: String,
+        phone: String,
+        description: String,
+        addressId: Int,
+        image: File?
+    ): Result<RestaurantResponse> {
+        return try {
+            val response = api.createRestaurant(
+                name = name.toRequestBody("text/plain".toMediaTypeOrNull()),
+                phone = phone.toRequestBody("text/plain".toMediaTypeOrNull()),
+                description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
+                addressId = addressId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                image = image?.let {
+                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("image", it.name, requestFile)
+                }
+            )
+            response.unwrapData("Failed to create restaurant")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
     override suspend fun getDashboard(restaurantId: Int): Result<RestaurantDashboardRangeResponse> {
         return try {
             api.getDashboard(restaurantId).unwrapData("Failed to load dashboard")
@@ -144,7 +175,7 @@ class RestaurantRepositoryImpl @Inject constructor(
         restaurantId: Int,
         price: Double,
         sizesJson: String,
-        ingredientIds: List<Int>?, // 👈 Đổi từ String? sang List<Int>?
+        ingredientIds: List<Int>?,
         imageFile: File?
     ): Result<FoodResponse> {
         return try {

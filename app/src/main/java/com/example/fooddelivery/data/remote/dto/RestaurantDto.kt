@@ -17,6 +17,7 @@ data class UpdateRestaurantProfileRequest(
     val description: String
 )
 
+
 @Serializable
 data class RestaurantDashboardTopFoodDto(
     val id: Int,
@@ -216,4 +217,8 @@ data class NestedFoodDto(
     val price: Double? = null,
     val description: String? = null,
     val image: String? = null
+)
+@Serializable
+data class BusinessRegisterResponse(
+    val requiresTokenRefresh: Boolean
 )

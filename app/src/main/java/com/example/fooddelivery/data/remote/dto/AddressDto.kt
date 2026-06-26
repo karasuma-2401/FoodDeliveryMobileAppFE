@@ -55,3 +55,13 @@ fun AddressResponse.toAddress(): Address {
         longitude = address.longitude ?: 0.0
     )
 }
+fun AddressResponse.toRestaurantAddress(): Address {
+    return Address(
+        id = address.id ?: 0,
+        type = title,
+        title = address.title ?: "",
+        detail = address.fullText ?: "",
+        latitude = address.latitude ?: 0.0,
+        longitude = address.longitude ?: 0.0
+    )
+}

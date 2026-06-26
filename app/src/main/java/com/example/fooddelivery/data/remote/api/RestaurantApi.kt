@@ -116,4 +116,17 @@ interface RestaurantApi {
         @Path("restaurantId") restaurantId: Int,
         @Body request: UpdateRestaurantProfileRequest
     ): Response<BaseResponse<RestaurantResponse>>
+
+    @Multipart
+    @POST("restaurant/manage")
+    suspend fun createRestaurant(
+        @Part("name") name: RequestBody,
+        @Part("phone") phone: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("addressId") addressId: RequestBody,
+        @Part image: MultipartBody.Part?
+    ): Response<BaseResponse<RestaurantResponse>>
+
+    @POST("restaurant/business/register")
+    suspend fun registerBusiness(): Response<BaseResponse<BusinessRegisterResponse>>
 }

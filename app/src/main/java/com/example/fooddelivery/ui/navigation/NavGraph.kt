@@ -76,6 +76,12 @@ import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScree
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonalInfoScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantProfileScreen
 import com.example.fooddelivery.ui.screens.restaurant.revenue.RestaurantRevenueScreen
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.fooddelivery.ui.screens.admin.categories.CreateCategoryScreen
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
@@ -465,6 +471,9 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onEditProfile = { navController.navigate(EditProfileRoute) },
                 onManageAddress = { navController.navigate(MyAddressRoute) },
+                onNavigateToBusinessRegistration = {
+                    navController.navigate(RestaurantPersonalInfoRoute(isFromSignUp = true))
+                },
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToFavourite = { navController.navigate(FavouriteRoute) },
                 onNavigateToNotification = { navController.navigate(NotificationRoute) },
@@ -511,9 +520,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToOrder = { orderId ->
                     navController.navigate(TrackOrderRoute(orderId = orderId))
-                },
-                onNavigateToChat = { conversationId ->
-                    navController.navigate(ChatRoute(conversationId = conversationId))
                 }
             )
         }
@@ -613,20 +619,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
     composable<RestaurantGraph> {
         val vendorNavController = androidx.navigation.compose.rememberNavController()
-        val unreadChatViewModel: UnreadChatViewModel = hiltViewModel()
-        val unreadMessageCount by unreadChatViewModel.unreadCount.collectAsStateWithLifecycle()
-        val lifecycleOwner = LocalLifecycleOwner.current
-
-        DisposableEffect(lifecycleOwner) {
-            val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_RESUME) {
-                    unreadChatViewModel.refresh()
-                }
-            }
-            lifecycleOwner.lifecycle.addObserver(observer)
-            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-        }
-
         val navBackStackEntry by vendorNavController.currentBackStackEntryAsState()
         val currentRouteStr = navBackStackEntry?.destination?.route ?: ""
 
@@ -672,9 +664,9 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                             val targetRoute = when (tab) {
                                 "dashboard" -> RestaurantDashboardRoute
                                 "menu" -> RestaurantFoodListRoute
-                                "messages" -> ConversationRoute
                                 "notifications" -> RestaurantNotificationsRoute
                                 "profile" -> RestaurantProfileRoute
+                                "messages" -> ConversationRoute
                                 else -> RestaurantDashboardRoute
                             }
                             vendorNavController.navigate(targetRoute) {
@@ -685,8 +677,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                                 restoreState = true
                             }
                         },
-                        onAddClick = onAddFood,
-                        unreadMessageCount = unreadMessageCount
+                        onAddClick = onAddFood
                     )
                 }
             }
@@ -712,7 +703,6 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                         },
                         onAddFoodClick = onAddFood,
                         onNavigate = onVendorNavigate,
-                        unreadMessageCount = unreadMessageCount,
                         onNavigateToMessages = { vendorNavController.navigate(ConversationRoute) }
                     )
                 }
@@ -788,7 +778,15 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 }
 
                 composable<RestaurantPersonalInfoRoute> {
-                    RestaurantPersonalInfoScreen(onNavigateBack = { vendorNavController.popBackStack() })
+                    RestaurantPersonalInfoScreen(
+                        navController = vendorNavController,
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onNavigateToSelectAddress = {
+                            vendorNavController.navigate(BusinessAddressRoute(isFromSignUp = false))
+                        },
+                        onRegistrationComplete = {
+                        }
+                    )
                 }
 
                 composable<RestaurantProfileRoute> {
@@ -819,7 +817,6 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     )
                 }
                 composable<AddAddressRoute> { backStackEntry ->
-                    // 1. Lấy arguments từ Route (nếu addressId = null tức là thêm mới, có số tức là edit)
                     val args = backStackEntry.toRoute<AddAddressRoute>()
 
                     AddAddressScreen(

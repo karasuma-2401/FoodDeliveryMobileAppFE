@@ -35,6 +35,7 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onEditProfile: () -> Unit,
     onManageAddress: () -> Unit,
+    onNavigateToBusinessRegistration: () -> Unit,
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
     onNavigateToNotification: () -> Unit,
@@ -47,7 +48,7 @@ fun ProfileScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     var showLogoutDialog by remember { mutableStateOf(false) }
-
+    var showBusinessDialog by remember { mutableStateOf(false) }
     LaunchedEffect(state.isLogoutSuccess) {
         if (state.isLogoutSuccess) {
             onLogout()
@@ -60,7 +61,12 @@ fun ProfileScreen(
             viewModel.onEvent(ProfileEvent.ErrorDismissed)
         }
     }
-
+    LaunchedEffect(state.isBusinessRegisterSuccess) {
+        if (state.isBusinessRegisterSuccess) {
+            onNavigateToBusinessRegistration()
+            viewModel.onEvent(ProfileEvent.BusinessRegisterReset)
+        }
+    }
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -83,6 +89,28 @@ fun ProfileScreen(
             }
         )
     }
+    if (showBusinessDialog) {
+        AlertDialog(
+            onDismissRequest = { showBusinessDialog = false },
+            title = { Text(text = "Business Registration", fontWeight = FontWeight.Bold) },
+            text = { Text(text = "Do you want to register as a partner and open your own restaurant business?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showBusinessDialog = false
+                        viewModel.onEvent(ProfileEvent.RegisterBusinessClicked)
+                    }
+                ) {
+                    Text("Register Now", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBusinessDialog = false }) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                }
+            }
+        )
+    }
 
     ProfileContent(
         state = state,
@@ -97,6 +125,7 @@ fun ProfileScreen(
         onChangePassword = onChangePassword,
         onResetEmail = onResetEmail,
         onShowLogoutDialog = { showLogoutDialog = true },
+        onShowBusinessDialog = { showBusinessDialog = true },
         snackBarHostState = snackBarHostState
     )
 }
@@ -116,6 +145,7 @@ fun ProfileContent(
     onChangePassword: () -> Unit,
     onResetEmail: () -> Unit,
     onShowLogoutDialog: () -> Unit,
+    onShowBusinessDialog: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
     val refreshState = rememberPullToRefreshState()
@@ -218,6 +248,13 @@ fun ProfileContent(
                     iconTint = Color(0xFFFF9800),
                     tittle = "Addresses",
                     onClick = onManageAddress
+                )
+                ProfileMenuCard(
+                    icon = Icons.Default.Store,
+                    iconContainerColor = Color(0xFFE8EAF6),
+                    iconTint = Color(0xFF3F51B5),
+                    tittle = "Business Registration",
+                    onClick = onShowBusinessDialog
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -346,6 +383,7 @@ fun ProfileScreenPreview() {
             onChangePassword = {},
             onResetEmail = {},
             onShowLogoutDialog = {},
+            onShowBusinessDialog = {},
             snackBarHostState = SnackbarHostState()
         )
     }
