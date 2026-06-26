@@ -6,22 +6,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Chat // 🌟 Thêm import này nếu chưa có
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fooddelivery.ui.screens.restaurant.component.profile.BalanceHeader
@@ -32,9 +28,10 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun RestaurantProfileScreen(
     onNavigateToPersonalInfo: () -> Unit,
-    onNavigateToOrders: () -> Unit,      // 🌟 Thêm điều hướng cho Number of Orders
-    onNavigateToAddress: () -> Unit,     // 🌟 Thêm điều hướng cho Business Address
+    onNavigateToOrders: () -> Unit,
+    onNavigateToAddress: () -> Unit,
     onNavigateToReviews: (Int) -> Unit,
+    onNavigateToConversation: () -> Unit, 
     onNavigateToResetPassword: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
@@ -96,6 +93,15 @@ fun RestaurantProfileScreen(
 
             ProfileMenuGroup {
                 ProfileMenuItem(
+                    icon = Icons.Default.Chat,
+                    iconTint = MaterialTheme.colorScheme.secondary,
+                    title = "Conversation",
+                    onClick = onNavigateToConversation
+                )
+            }
+
+            ProfileMenuGroup {
+                ProfileMenuItem(
                     icon = Icons.Default.Settings,
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     title = "Reset Password",
@@ -124,6 +130,7 @@ fun RestaurantProfilePreview() {
             onNavigateToOrders = {},
             onNavigateToAddress = {},
             onNavigateToReviews = {},
+            onNavigateToConversation = {},
             onLogout = {},
             onNavigateToResetPassword = {}
         )
