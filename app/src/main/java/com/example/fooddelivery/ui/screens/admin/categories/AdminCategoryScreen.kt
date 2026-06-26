@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.* // Quan trọng nhất: để nhận getValue/setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,7 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
-
+import androidx.hilt.navigation.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCategoryScreen(
@@ -30,7 +30,6 @@ fun AdminCategoryScreen(
     onNavigate: (String) -> Unit,
     viewModel: CategoryListViewModel = hiltViewModel()
 ) {
-    // Đổi tên thành uiState để tránh lỗi 'Unresolved' hoặc 'Candidate mismatch'
     val uiState by viewModel.state
     val colorScheme = MaterialTheme.colorScheme
 
@@ -49,12 +48,6 @@ fun AdminCategoryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = colorScheme.background)
-            )
-        },
-        bottomBar = {
-            AdminBottomBar(
-                currentRoute = "categories",
-                onTabSelected = { tab -> onNavigate(tab.route) }
             )
         },
         containerColor = colorScheme.background
@@ -116,7 +109,6 @@ fun CategoryRowItem(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Category Image Placeholder
             Box(
                 modifier = Modifier
                     .size(50.dp)
@@ -138,7 +130,7 @@ fun CategoryRowItem(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Order: ${category.displayOrder} • ${if (category.isActive) "Active" else "Hidden"}",
+                    text = if (category.isActive) "Active" else "Hidden",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (category.isActive) Color(0xFF4CAF50) else colorScheme.error
                 )
