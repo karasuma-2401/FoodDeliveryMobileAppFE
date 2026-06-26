@@ -87,6 +87,7 @@ data class RatingReviewRoute(
 @Serializable object RestaurantWithdrawRoute
 @Serializable
 data class RestaurantReviewsRoute(val restaurantId: Int)
+@Serializable data class RestaurantRevenueRoute(val restaurantId: Int)
 @Serializable object RestaurantNotificationsRoute
 @Serializable object RestaurantMessagesRoute
 @Serializable object RestaurantProfileRoute
