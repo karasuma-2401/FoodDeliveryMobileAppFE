@@ -627,7 +627,8 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
         val isNotifications = currentRouteStr.contains("RestaurantNotificationsRoute")
         val isProfile = currentRouteStr.contains("RestaurantProfileRoute")
         val isMessages = currentRouteStr.contains("ConversationRoute") || currentRouteStr.contains("ChatRoute")
-
+        val unreadChatViewModel: UnreadChatViewModel = hiltViewModel()
+        val unreadMessageCount by unreadChatViewModel.unreadCount.collectAsStateWithLifecycle()
         val showBottomBar = isDashboard || isMenu || isNotifications || isProfile || isMessages
 
         val vendorCurrentRoute = when {
@@ -703,6 +704,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                         },
                         onAddFoodClick = onAddFood,
                         onNavigate = onVendorNavigate,
+                        unreadMessageCount = unreadMessageCount,
                         onNavigateToMessages = { vendorNavController.navigate(ConversationRoute) }
                     )
                 }
