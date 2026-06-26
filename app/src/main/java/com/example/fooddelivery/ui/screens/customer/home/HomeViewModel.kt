@@ -10,6 +10,7 @@ import com.example.fooddelivery.domain.location.LocationTracker
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
+import com.example.fooddelivery.domain.usecase.EnrichRestaurantsWithVoucherBadgesUseCase
 import com.example.fooddelivery.domain.usecase.GetHomeDashboardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -85,6 +86,7 @@ sealed interface HomeUiEffect {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getHomeDashboardUseCase: GetHomeDashboardUseCase,
+    private val enrichRestaurantsWithVoucherBadgesUseCase: EnrichRestaurantsWithVoucherBadgesUseCase,
     private val cartRepository: CartRepository,
     private val chatRepository: ChatRepository,
     private val deliveryLocationRepository: DeliveryLocationRepository,
@@ -209,6 +211,7 @@ class HomeViewModel @Inject constructor(
                         isRefreshing = false
                     )
                 }
+                enrichVoucherBadges(data.restaurants)
             }.onFailure { e ->
                 _state.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = e.message) }
             }
@@ -222,5 +225,19 @@ class HomeViewModel @Inject constructor(
         if (addressLat != null && addressLng != null) return addressLat to addressLng
         val gps = locationTracker.getCurrentLocation()
         return (addressLat ?: gps?.latitude) to (addressLng ?: gps?.longitude)
+    }
+
+    private fun enrichVoucherBadges(restaurants: List<Restaurant>) {
+        if (restaurants.isEmpty()) return
+        viewModelScope.launch {
+            val enriched = enrichRestaurantsWithVoucherBadgesUseCase(restaurants)
+            _state.update { current ->
+                if (current.restaurants.map { it.id } != restaurants.map { it.id }) {
+                    current
+                } else {
+                    current.copy(restaurants = enriched)
+                }
+            }
+        }
     }
 }

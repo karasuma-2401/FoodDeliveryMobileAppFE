@@ -2,6 +2,7 @@ package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.local.room.dao.CartDao
 import com.example.fooddelivery.data.local.room.entity.CartEntity
+import com.example.fooddelivery.data.local.room.entity.toEntity
 import com.example.fooddelivery.data.local.room.entity.toDomain
 import com.example.fooddelivery.data.remote.api.CartApi
 import com.example.fooddelivery.data.remote.dto.AddToCartRequest
@@ -11,6 +12,7 @@ import com.example.fooddelivery.data.remote.dto.UpdateCartItemRequest
 import com.example.fooddelivery.data.remote.dto.toRestaurantGroups
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.data.remote.unwrapUnit
+import com.example.fooddelivery.domain.model.CartItem
 import com.example.fooddelivery.domain.model.CartRestaurantGroup
 import com.example.fooddelivery.domain.repository.CartRepository
 import kotlinx.coroutines.flow.Flow
@@ -105,6 +107,68 @@ class CartRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun addToCartWithOptimisticLocal(
+        foodId: Int,
+        quantity: Int,
+        foodSizeId: Int?,
+        note: String?,
+        optimisticItem: CartItem
+    ): Result<Unit> {
+        val entity = optimisticItem.toEntity()
+        val snapshot = captureOptimisticSnapshot(entity)
+        cartDao.addToCartAtomic(entity)
+        return addToCart(foodId, quantity, foodSizeId?.toString(), note)
+            .onFailure { rollbackOptimisticAdd(snapshot) }
+    }
+
+    private suspend fun captureOptimisticSnapshot(entity: CartEntity): OptimisticCartSnapshot {
+        val existing = cartDao.getCartItemByKey(
+            foodId = entity.foodId,
+            restaurantId = entity.restaurantId,
+            foodSize = entity.foodSize
+        )
+        return OptimisticCartSnapshot(
+            foodId = entity.foodId,
+            restaurantId = entity.restaurantId,
+            foodSize = entity.foodSize,
+            hadExistingItem = existing != null,
+            quantityBefore = existing?.quantity
+        )
+    }
+
+    private suspend fun rollbackOptimisticAdd(snapshot: OptimisticCartSnapshot) {
+        val current = cartDao.getCartItemByKey(
+            foodId = snapshot.foodId,
+            restaurantId = snapshot.restaurantId,
+            foodSize = snapshot.foodSize
+        ) ?: return
+
+        if (!snapshot.hadExistingItem) {
+            cartDao.deleteCartItem(current)
+            return
+        }
+
+        val quantityBefore = snapshot.quantityBefore ?: 0
+        if (quantityBefore <= 0) {
+            cartDao.deleteCartItem(current)
+        } else {
+            cartDao.updateCartItem(
+                current.copy(
+                    quantity = quantityBefore,
+                    lineTotal = current.unitPrice * quantityBefore
+                )
+            )
+        }
+    }
+
+    private data class OptimisticCartSnapshot(
+        val foodId: String,
+        val restaurantId: String,
+        val foodSize: String,
+        val hadExistingItem: Boolean,
+        val quantityBefore: Int?
+    )
 
     override suspend fun updateQuantity(cartItemId: Int, quantity: Int): Result<Unit> {
         return try {

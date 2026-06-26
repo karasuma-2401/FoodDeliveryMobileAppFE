@@ -227,7 +227,7 @@ fun HomeContent(
                         SectionHeader(title = "All Categories", onSeeAllClick = { })
                         LazyRow(contentPadding = PaddingValues(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp, bottom = 32.dp), userScrollEnabled = false) { items(5) { CategoryItemSkeleton() } }
                     }
-                    item { SectionHeader(title = "Open Restaurants", onSeeAllClick = { }) }
+                    item { SectionHeader(title = "All Restaurants", onSeeAllClick = { }) }
                     items(3) { RestaurantItemSkeleton() }
                 } else {
                     item {

@@ -12,10 +12,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.R
@@ -23,15 +24,26 @@ import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
+import com.example.fooddelivery.ui.components.cart.AddToCartBottomSheet
+import com.example.fooddelivery.ui.components.cart.RestaurantCartBar
 import com.example.fooddelivery.ui.screens.customer.search.components.SectionHeader
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.CategoryTabs
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.CategoryTabsSkeleton
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.FoodItemCard
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.FoodItemCardSkeleton
-import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantHeader
-import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantHeaderSkeleton
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantHeroActions
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantHeroImage
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantHeroPanelOverlap
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantInfoSection
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantInfoSectionSkeleton
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantHeroImageSkeleton
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantVoucherSection
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.RestaurantVoucherSheetCard
+import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.restaurantHeroTotalHeight
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.SectionHeaderSkeleton
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import com.example.fooddelivery.ui.utils.rememberHeroOverlayState
+import com.example.fooddelivery.ui.utils.shareText
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -40,10 +52,13 @@ fun RestaurantDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFoodDetail: (String) -> Unit,
     onNavigateToReviews: (String) -> Unit,
+    onNavigateToCart: () -> Unit,
+    onNavigateToCheckout: (restaurantId: String, restaurantName: String) -> Unit,
     viewModel: RestaurantDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(viewModel.uiEffect) {
         viewModel.uiEffect.collectLatest { effect ->
@@ -52,6 +67,13 @@ fun RestaurantDetailScreen(
                     snackBarHostState.showSnackbar(
                         message = effect.message,
                         duration = SnackbarDuration.Short
+                    )
+                }
+                is RestaurantDetailUiEffect.LaunchShare -> {
+                    context.shareText(
+                        text = effect.text,
+                        subject = effect.subject,
+                        chooserTitle = "Share restaurant"
                     )
                 }
             }
@@ -64,6 +86,8 @@ fun RestaurantDetailScreen(
         onNavigateBack = onNavigateBack,
         onNavigateToFoodDetail = onNavigateToFoodDetail,
         onNavigateToReviews = onNavigateToReviews,
+        onNavigateToCart = onNavigateToCart,
+        onNavigateToCheckout = onNavigateToCheckout,
         onEvent = viewModel::onEvent
     )
 }
@@ -76,31 +100,39 @@ fun RestaurantDetailContent(
     onNavigateBack: () -> Unit,
     onNavigateToFoodDetail: (String) -> Unit,
     onNavigateToReviews: (String) -> Unit,
+    onNavigateToCart: () -> Unit,
+    onNavigateToCheckout: (restaurantId: String, restaurantName: String) -> Unit,
     onEvent: (RestaurantDetailEvent) -> Unit
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     var showVoucherSheet by remember { mutableStateOf(false) }
 
-    val currentScrollIndex by remember {
+    val firstCategoryIndex = if (state.vouchers.isEmpty()) 3 else 4
+
+    val currentScrollIndex by remember(firstCategoryIndex) {
         derivedStateOf {
             val visibleItems = listState.layoutInfo.visibleItemsInfo
             if (visibleItems.isEmpty()) return@derivedStateOf 0
             visibleItems
-                .filter { it.index >= 1 }
+                .filter { it.index >= firstCategoryIndex }
                 .firstOrNull { it.offset + it.size > 100 }
                 ?.index ?: 0
         }
     }
 
-    val categoryToPositionMap = remember(state.categorizedFoodItem, state.categories) {
+    val categoryToPositionMap = remember(
+        state.categorizedFoodItem,
+        state.categories,
+        state.vouchers.isEmpty()
+    ) {
         val mapping = mutableMapOf<String, Int>()
-        var currentIdx = 2 // Header(0) + Tabs(1)
+        var currentIdx = firstCategoryIndex
         state.categories.forEach { category ->
             mapping[category] = currentIdx
             val itemsInCategory = state.categorizedFoodItem[category] ?: emptyList()
             val rowCount = (itemsInCategory.size + 1) / 2
-            currentIdx += rowCount + 1 
+            currentIdx += rowCount + 1
         }
         mapping
     }
@@ -115,6 +147,9 @@ fun RestaurantDetailContent(
         }
     }
 
+    val showCartBar = state.restaurantCartItemCount > 0
+    val cartBarPadding = if (showCartBar) 88.dp else 0.dp
+
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackBarHostState) { data ->
@@ -126,111 +161,212 @@ fun RestaurantDetailContent(
                 )
             }
         },
-        containerColor = Color.White
+        bottomBar = {
+            if (showCartBar) {
+                RestaurantCartBar(
+                    itemCount = state.restaurantCartItemCount,
+                    subtotal = state.restaurantCartSubtotal,
+                    onCartClick = onNavigateToCart,
+                    onContinueClick = {
+                        val restaurant = state.restaurant ?: return@RestaurantCartBar
+                        onNavigateToCheckout(restaurant.id, restaurant.name)
+                    }
+                )
+            }
+        },
+        containerColor = Color.White,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         if (state.isLoading) {
-            LazyColumn(
+            val heroHeight = restaurantHeroTotalHeight()
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
-                contentPadding = PaddingValues(bottom = 24.dp),
-                userScrollEnabled = false
+                    .padding(bottom = innerPadding.calculateBottomPadding())
             ) {
-                item { RestaurantHeaderSkeleton() }
-                item {
-                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        CategoryTabsSkeleton()
-                    }
-                }
-                item {
-                    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        SectionHeaderSkeleton()
-                    }
-                }
-                items(2) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .padding(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        FoodItemCardSkeleton(modifier = Modifier.weight(1f))
-                        FoodItemCardSkeleton(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-        } else {
-            state.restaurant?.let { restaurant ->
-                LazyColumn(
-                    state = listState,
+                RestaurantHeroImageSkeleton(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentPadding = PaddingValues(bottom = 24.dp)
+                        .fillMaxWidth()
+                        .height(heroHeight)
+                        .align(Alignment.TopCenter)
+                )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 24.dp + cartBarPadding),
+                    userScrollEnabled = false
                 ) {
                     item {
-                        RestaurantHeader(
-                            restaurant = restaurant,
-                            vouchers = state.vouchers,
-                            onBackClick = onNavigateBack,
-                            onViewAllVouchers = { showVoucherSheet = true },
-                                    onFavoriteToggle = { onEvent(RestaurantDetailEvent.ToggleFavorite) },
-                                    onReviewsClick = { onNavigateToReviews(restaurant.id) }
-                                )
+                        Spacer(modifier = Modifier.height(heroHeight - RestaurantHeroPanelOverlap))
                     }
-                    stickyHeader {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    Color.White,
+                                    RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                                )
+                        ) {
+                            RestaurantInfoSectionSkeleton()
+                        }
+                    }
+                    item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(Color.White)
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
-                            CategoryTabs(
-                                categories = state.categories,
-                                selectedCategory = state.selectedCategory,
-                                onCategorySelected = { category ->
-                                    val targetIndex = categoryToPositionMap[category] ?: 0
-                                    coroutineScope.launch {
-                                        listState.animateScrollToItem(
-                                            index = targetIndex,
-                                            scrollOffset = -10
-                                        )
-                                    }
-                                }
-                            )
+                            CategoryTabsSkeleton()
                         }
                     }
-                    state.categories.forEach { category ->
-                        val itemsInCategory = state.categorizedFoodItem[category] ?: emptyList()
-                        item {
-                            SectionHeader(
-                                title = "$category (${itemsInCategory.size})",
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
+                    item {
+                        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                            SectionHeaderSkeleton()
                         }
-                        items(itemsInCategory.chunked(2)) { rowItems ->
-                            Row(
+                    }
+                    items(2) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            FoodItemCardSkeleton(modifier = Modifier.weight(1f))
+                            FoodItemCardSkeleton(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        } else {
+            state.restaurant?.let { restaurant ->
+                val heroHeight = restaurantHeroTotalHeight()
+                val heroOverlay = rememberHeroOverlayState(
+                    listState = listState,
+                    heroHeight = heroHeight,
+                    panelOverlap = RestaurantHeroPanelOverlap
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
+                    if (heroOverlay.showHeroImage) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(heroHeight)
+                                .align(Alignment.TopCenter)
+                        ) {
+                            RestaurantHeroImage(restaurant = restaurant)
+                        }
+                    }
+
+                    if (heroOverlay.showHeroActions) {
+                        RestaurantHeroActions(
+                            isLiked = restaurant.isLiked,
+                            onBackClick = onNavigateBack,
+                            onFavoriteToggle = { onEvent(RestaurantDetailEvent.ToggleFavorite) },
+                            onShareClick = { onEvent(RestaurantDetailEvent.ShareRestaurant) },
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .zIndex(2f)
+                        )
+                    }
+
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Transparent),
+                        contentPadding = PaddingValues(bottom = 24.dp + cartBarPadding)
+                    ) {
+                        item(key = "hero_spacer") {
+                            Spacer(modifier = Modifier.height(heroHeight - RestaurantHeroPanelOverlap))
+                        }
+                        item(key = "info") {
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    .background(
+                                        Color.White,
+                                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                                    )
                             ) {
-                                rowItems.forEach { foodItem ->
-                                    FoodItemCard(
-                                        foodItem = foodItem,
-                                        onAddClick = {
-                                            onEvent(RestaurantDetailEvent.AddFoodToCart(foodItem))
-                                        },
-                                        onItemClick = { onNavigateToFoodDetail(foodItem.id) },
-                                        modifier = Modifier.weight(1f)
+                                RestaurantInfoSection(
+                                    restaurant = restaurant,
+                                    onReviewsClick = { onNavigateToReviews(restaurant.id) }
+                                )
+                            }
+                        }
+                        if (state.vouchers.isNotEmpty()) {
+                            item(key = "vouchers") {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color.White)
+                                        .padding(bottom = 20.dp)
+                                ) {
+                                    RestaurantVoucherSection(
+                                        vouchers = state.vouchers,
+                                        onViewAllClick = { showVoucherSheet = true },
+                                        modifier = Modifier.padding(horizontal = 16.dp)
                                     )
                                 }
-                                if (rowItems.size == 1) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
                             }
-                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                        stickyHeader {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White)
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                CategoryTabs(
+                                    categories = state.categories,
+                                    selectedCategory = state.selectedCategory,
+                                    onCategorySelected = { category ->
+                                        val targetIndex = categoryToPositionMap[category] ?: 0
+                                        coroutineScope.launch {
+                                            listState.animateScrollToItem(index = targetIndex)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        state.categories.forEach { category ->
+                            val itemsInCategory = state.categorizedFoodItem[category] ?: emptyList()
+                            item {
+                                SectionHeader(
+                                    title = "$category (${itemsInCategory.size})",
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                            }
+                            items(itemsInCategory.chunked(2)) { rowItems ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    rowItems.forEach { foodItem ->
+                                        FoodItemCard(
+                                            foodItem = foodItem,
+                                            onAddClick = {
+                                                onEvent(RestaurantDetailEvent.OpenAddToCartSheet(foodItem))
+                                            },
+                                            onItemClick = { onNavigateToFoodDetail(foodItem.id) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    if (rowItems.size == 1) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
                         }
                     }
                 }
@@ -242,6 +378,25 @@ fun RestaurantDetailContent(
         VoucherBottomSheet(
             vouchers = state.vouchers,
             onDismiss = { showVoucherSheet = false }
+        )
+    }
+
+    val sheet = state.addToCartSheet
+    if (state.showAddToCartSheet && sheet != null) {
+        AddToCartBottomSheet(
+            foodName = sheet.foodItem.name,
+            imageUrl = sheet.foodItem.imageUrl,
+            description = sheet.description,
+            sizes = sheet.sizes,
+            unitPrice = sheet.foodItem.price,
+            selectedSizeId = sheet.selectedSizeId,
+            quantity = sheet.quantity,
+            isLoading = sheet.isLoadingDetails,
+            isSubmitting = state.isAddingToCart,
+            onSizeSelected = { onEvent(RestaurantDetailEvent.SelectSheetSize(it)) },
+            onQuantityChange = { onEvent(RestaurantDetailEvent.UpdateSheetQuantity(it)) },
+            onConfirm = { onEvent(RestaurantDetailEvent.ConfirmAddToCart) },
+            onDismiss = { onEvent(RestaurantDetailEvent.DismissAddToCartSheet) }
         )
     }
 }
@@ -264,7 +419,7 @@ fun VoucherBottomSheet(
                 .padding(bottom = 32.dp)
         ) {
             Text(
-                text = "Store Vouchers",
+                text = "Store vouchers",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -272,54 +427,9 @@ fun VoucherBottomSheet(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(vouchers) { voucher ->
-                    VoucherItemCard(voucher = voucher)
+                items(vouchers, key = { it.id }) { voucher ->
+                    RestaurantVoucherSheetCard(voucher = voucher)
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun VoucherItemCard(voucher: Voucher) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = voucher.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = voucher.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-                if (voucher.expiryText != null) {
-                    Text(
-                        text = voucher.expiryText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFFEE4D2D),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            }
-            Button(
-                onClick = { /* Collect voucher logic */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEE4D2D)),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                shape = RoundedCornerShape(4.dp)
-            ) {
-                Text(text = "Collect", fontSize = 12.sp)
             }
         }
     }
@@ -434,8 +544,10 @@ fun RestaurantDetailScreenPreview() {
             snackBarHostState = SnackbarHostState(),
             onNavigateBack = {},
             onNavigateToFoodDetail = {},
-        onNavigateToReviews = {},
-        onEvent = {}
+            onNavigateToReviews = {},
+            onNavigateToCart = {},
+            onNavigateToCheckout = { _, _ -> },
+            onEvent = {}
         )
     }
 }

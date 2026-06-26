@@ -11,32 +11,57 @@ import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.ui.components.shimmerEffect
 
 @Composable
-fun RestaurantHeaderSkeleton() {
+fun RestaurantHeroImageSkeleton(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.shimmerEffect())
+}
+
+@Composable
+fun RestaurantInfoSectionSkeleton() {
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(32.dp))
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp)
+                .fillMaxWidth(0.7f)
+                .height(28.dp)
+                .clip(RoundedCornerShape(4.dp))
                 .shimmerEffect()
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Box(modifier = Modifier.fillMaxWidth(0.7f).height(28.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
         Spacer(modifier = Modifier.height(8.dp))
-        Box(modifier = Modifier.fillMaxWidth(0.9f).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(0.9f)
+                .height(14.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .shimmerEffect()
+        )
         Spacer(modifier = Modifier.height(4.dp))
-        Box(modifier = Modifier.fillMaxWidth(0.5f).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(0.5f)
+                .height(14.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .shimmerEffect()
+        )
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            repeat(2) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(18.dp).clip(CircleShape).shimmerEffect())
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Box(modifier = Modifier.width(40.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-                }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(18.dp).clip(CircleShape).shimmerEffect())
+                Spacer(modifier = Modifier.width(4.dp))
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmerEffect()
+                )
             }
         }
     }
@@ -71,6 +96,7 @@ fun SectionHeaderSkeleton() {
             .shimmerEffect()
     )
 }
+
 @Composable
 fun FoodItemCardSkeleton(modifier: Modifier = Modifier) {
     Box(
@@ -80,13 +106,37 @@ fun FoodItemCardSkeleton(modifier: Modifier = Modifier) {
             .padding(12.dp)
     ) {
         Column {
-            Box(modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(20.dp)).shimmerEffect())
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .shimmerEffect()
+            )
             Spacer(modifier = Modifier.height(12.dp))
-            Box(modifier = Modifier.fillMaxWidth(0.8f).height(18.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(18.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .shimmerEffect()
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Box(modifier = Modifier.fillMaxWidth(0.6f).height(12.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(12.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .shimmerEffect()
+            )
             Spacer(modifier = Modifier.height(12.dp))
-            Box(modifier = Modifier.width(60.dp).height(22.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(22.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .shimmerEffect()
+            )
         }
         Box(
             modifier = Modifier

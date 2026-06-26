@@ -34,6 +34,16 @@ class VoucherRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getCustomerVouchers(restaurantId: Int): Result<List<VoucherDto>> {
+        return try {
+            api.getCustomerVouchers(restaurantId)
+                .unwrapData("Failed to load restaurant vouchers")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception(e.localizedMessage ?: "Network error"))
+        }
+    }
+
     override suspend fun getSuitableVouchers(
         restaurantId: Int,
         cost: Double?

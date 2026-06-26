@@ -1,10 +1,13 @@
 package com.example.fooddelivery.ui.screens.food
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,36 +15,47 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import com.example.fooddelivery.ui.components.cart.AddToCartBottomSheet
+import com.example.fooddelivery.ui.components.cart.RestaurantCartBar
 import com.example.fooddelivery.ui.screens.food.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import com.example.fooddelivery.ui.utils.rememberHeroOverlayState
+import com.example.fooddelivery.ui.utils.shareText
 import kotlinx.coroutines.flow.collectLatest
-import java.util.Locale
 
 @Composable
 fun FoodDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToRestaurant: (String) -> Unit,
-    onShowSnackbar: (String) -> Unit,
+    onNavigateToCart: () -> Unit,
+    onNavigateToCheckout: (restaurantId: String, restaurantName: String) -> Unit,
     viewModel: FoodDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LaunchedEffect(viewModel.uiEffect) {
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
-                FoodDetailUiEffect.NavigateBack -> {
-                    onNavigateBack()
+                is FoodDetailUiEffect.LaunchShare -> {
+                    context.shareText(
+                        text = effect.text,
+                        subject = effect.subject,
+                        chooserTitle = "Share food"
+                    )
                 }
             }
         }
@@ -51,6 +65,8 @@ fun FoodDetailScreen(
         state = state,
         onNavigateBack = onNavigateBack,
         onNavigateToRestaurant = onNavigateToRestaurant,
+        onNavigateToCart = onNavigateToCart,
+        onNavigateToCheckout = onNavigateToCheckout,
         onEvent = viewModel::onEvent
     )
 }
@@ -61,143 +77,242 @@ fun FoodDetailContent(
     state: FoodDetailState,
     onNavigateBack: () -> Unit,
     onNavigateToRestaurant: (String) -> Unit,
+    onNavigateToCart: () -> Unit,
+    onNavigateToCheckout: (restaurantId: String, restaurantName: String) -> Unit,
     onEvent: (FoodDetailEvent) -> Unit
 ) {
+    val showCartBar = state.restaurantCartItemCount > 0
+    val cartBarPadding = if (showCartBar) 88.dp else 0.dp
+
+    if (state.showSizeSheet && state.food != null) {
+        AddToCartBottomSheet(
+            foodName = state.food.name,
+            imageUrl = state.food.imageUrl,
+            description = state.foodDescription,
+            sizes = state.sizes,
+            unitPrice = state.unitPrice,
+            selectedSizeId = state.sheetSelectedSizeId,
+            quantity = state.sheetQuantity,
+            isLoading = false,
+            isSubmitting = state.isAddingToCart,
+            onSizeSelected = { onEvent(FoodDetailEvent.SelectSheetSize(it)) },
+            onQuantityChange = { onEvent(FoodDetailEvent.UpdateSheetQuantity(it)) },
+            onConfirm = { onEvent(FoodDetailEvent.ConfirmAddFromSheet) },
+            onDismiss = { onEvent(FoodDetailEvent.DismissSizeSheet) }
+        )
+    }
+
     Scaffold(
-        topBar = {
-            DFoodTopBar(
-                title = "Details",
-                onBackClick = onNavigateBack
-            )
-        },
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            state.food?.let { food ->
-                BottomCartBar(
-                    price = String.format(Locale.US, "%.0f", state.totalPrice),
-                    quantity = state.quantity,
-                    onUpdateQuantity = { onEvent(FoodDetailEvent.UpdateQuantity(it)) },
-                    onAddToCart = { onEvent(FoodDetailEvent.AddToCart) }
+            if (showCartBar) {
+                RestaurantCartBar(
+                    itemCount = state.restaurantCartItemCount,
+                    subtotal = state.restaurantCartSubtotal,
+                    onCartClick = onNavigateToCart,
+                    onContinueClick = {
+                        val food = state.food ?: return@RestaurantCartBar
+                        onNavigateToCheckout(food.restaurantId, food.restaurantName)
+                    }
                 )
             }
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        }
     ) { innerPadding ->
-        if (state.isLoading) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentPadding = PaddingValues(24.dp, 8.dp),
-                userScrollEnabled = false
-            ) {
-                item { FoodImageHeaderSkeleton() }
-                item { Spacer(modifier = Modifier.height(24.dp)) }
-                item { RestaurantChipSkeleton() }
-                item { Spacer(modifier = Modifier.height(16.dp)) }
-                item { FoodTitleAndDescSkeleton() }
-                item { Spacer(modifier = Modifier.height(16.dp))}
-                item { FoodInfoRowSkeleton() }
-                item { Spacer(modifier = Modifier.height(24.dp)) }
-                item { SizeSelectionSkeleton() }
-                item { Spacer(modifier = Modifier.height(24.dp)) }
-            }
-        } else if (state.food == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = state.errorMessage ?: "Food not found",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            val food = state.food ?: return@Scaffold
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
-            ) {
-                item {
-                    FoodImageHeader(
-                        imageUrl = food.imageUrl
+        when {
+            state.isLoading -> {
+                val heroHeight = foodHeroTotalHeight()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    FoodDetailHeaderSkeleton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(heroHeight)
+                            .align(Alignment.TopCenter)
                     )
-                }
-                item { Spacer(modifier = Modifier.height(24.dp)) }
-                item {
-                    RestaurantChip(
-                        name = food.restaurantName,
-                        onClick = {
-                            state.restaurant?.id?.let(onNavigateToRestaurant) ?: onNavigateBack()
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = cartBarPadding),
+                        userScrollEnabled = false
+                    ) {
+                        item {
+                            Spacer(modifier = Modifier.height(heroHeight - FoodHeroPanelOverlap))
                         }
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        MaterialTheme.colorScheme.background,
+                                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                                    )
+                            ) {
+                                FoodInfoSectionSkeleton()
+                            }
+                        }
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                RestaurantChipSkeleton()
+                            }
+                        }
+                        item { Spacer(modifier = Modifier.height(24.dp)) }
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                SizeSelectionSkeleton()
+                            }
+                        }
+                    }
+                }
+            }
+            state.food == null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = state.errorMessage ?: "Food not found",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+            else -> {
+                val food = state.food
+                val listState = rememberLazyListState()
+                val heroHeight = foodHeroTotalHeight()
+                val heroOverlay = rememberHeroOverlayState(
+                    listState = listState,
+                    heroHeight = heroHeight,
+                    panelOverlap = FoodHeroPanelOverlap
+                )
 
-                item { Spacer(modifier = Modifier.height(16.dp)) }
-                item {
-                    Text(
-                        text = food.name,
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 22.sp,
-                            color = MaterialTheme.colorScheme.onBackground
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    if (heroOverlay.showHeroImage) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(heroHeight)
+                                .align(Alignment.TopCenter)
+                        ) {
+                            FoodDetailHeroImage(imageUrl = food.imageUrl)
+                        }
+                    }
+
+                    if (heroOverlay.showHeroActions) {
+                        FoodDetailHeroActions(
+                            onBackClick = onNavigateBack,
+                            onShareClick = { onEvent(FoodDetailEvent.ShareFood) },
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .zIndex(2f)
                         )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = state.foodDescription,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 22.sp
-                    )
-                }
+                    }
 
-                item { Spacer(modifier = Modifier.height(16.dp)) }
-                item {
-                    FoodInfoRow(
-                        rating = food.rating.takeIf { it > 0f }
-                            ?: state.restaurant?.rating
-                            ?: 0f,
-                        deliveryFee = state.restaurant?.deliveryFee ?: 0.0
-                    )
-                }
-                item { Spacer(modifier = Modifier.height(24.dp)) }
-                item {
-                    SizeSelection(
-                        sizes = state.sizes,
-                        selectedFoodSizeId = state.selectedFoodSizeId,
-                        onSizeSelected = { size ->
-                            onEvent(
-                                FoodDetailEvent.SelectSize(
-                                    foodSizeId = size.foodSizeId,
-                                    sizeName = size.name,
-                                    price = size.price
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Transparent),
+                        contentPadding = PaddingValues(bottom = 32.dp + cartBarPadding)
+                    ) {
+                        item(key = "hero_spacer") {
+                            Spacer(modifier = Modifier.height(heroHeight - FoodHeroPanelOverlap))
+                        }
+                        item(key = "info") {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        MaterialTheme.colorScheme.background,
+                                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                                    )
+                            ) {
+                                FoodInfoSection(
+                                    name = food.name,
+                                    description = state.foodDescription,
+                                    unitPrice = state.unitPrice,
+                                    discountBadge = state.discountBadge,
+                                    showAddSuccessPulse = state.showAddSuccessPulse,
+                                    isAddingToCart = state.isAddingToCart,
+                                    onQuickAdd = { onEvent(FoodDetailEvent.QuickAdd) },
+                                    onClearAddSuccessPulse = {
+                                        onEvent(FoodDetailEvent.ClearAddSuccessPulse)
+                                    }
                                 )
+                            }
+                        }
+                        item(key = "restaurant") {
+                            RestaurantChip(
+                                name = food.restaurantName,
+                                onClick = {
+                                    state.restaurant?.id?.let(onNavigateToRestaurant) ?: onNavigateBack()
+                                },
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(horizontal = 16.dp)
                             )
                         }
-                    )
+                        item { Spacer(modifier = Modifier.height(24.dp)) }
+                        item(key = "sizes") {
+                            SizeSelection(
+                                sizes = state.sizes,
+                                selectedFoodSizeId = state.selectedFoodSizeId,
+                                onSizeSelected = { size ->
+                                    onEvent(
+                                        FoodDetailEvent.SelectSize(
+                                            foodSizeId = size.foodSizeId,
+                                            sizeName = size.name,
+                                            price = size.price
+                                        )
+                                    )
+                                },
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(horizontal = 16.dp)
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.height(24.dp)) }
+                        item(key = "ingredients") {
+                            IngredientsSection(
+                                ingredients = state.ingredients,
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(horizontal = 16.dp)
+                            )
+                        }
+                    }
                 }
-                item { Spacer(modifier = Modifier.height(24.dp)) }
-
-                item {
-                    IngredientsSection(ingredients = state.ingredients)
-                }
-
-                item { Spacer(modifier = Modifier.height(120.dp)) }
             }
         }
     }
 }
 
 @Composable
-fun IngredientsSection(ingredients: List<FoodIngredient>) {
+fun IngredientsSection(
+    ingredients: List<FoodIngredient>,
+    modifier: Modifier = Modifier
+) {
     if (ingredients.isEmpty()) return
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = "Ingredients",
             style = MaterialTheme.typography.titleMedium.copy(
@@ -233,7 +348,6 @@ fun IngredientsSection(ingredients: List<FoodIngredient>) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-
                     Text(
                         text = ingredient.name,
                         style = MaterialTheme.typography.bodySmall,
@@ -256,6 +370,8 @@ fun FoodDetailScreenPreview() {
             state = FoodDetailState(),
             onNavigateBack = {},
             onNavigateToRestaurant = {},
+            onNavigateToCart = {},
+            onNavigateToCheckout = { _, _ -> },
             onEvent = {}
         )
     }
