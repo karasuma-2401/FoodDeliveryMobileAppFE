@@ -112,3 +112,5 @@ data class CreateCouponRoute(
 )
 @Serializable object AdminUserListRoute
 @Serializable object AdminRevenueRoute
+
+@Serializable object CreateCategoryRoute

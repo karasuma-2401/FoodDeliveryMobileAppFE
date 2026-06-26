@@ -77,6 +77,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.fooddelivery.ui.screens.admin.categories.CreateCategoryScreen
 import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 import com.example.fooddelivery.ui.screens.admin.order.AdminOrderScreen
 import com.example.fooddelivery.ui.screens.admin.revenue.AdminRevenueScreen
@@ -901,7 +902,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminCategoriesRoute> {
                     AdminCategoryScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigateToAdd = { /* TODO: adminNavController.navigate(CreateCategoryRoute) */ },
+                        onNavigateToAdd = { adminNavController.navigate(CreateCategoryRoute)},
                         onNavigateToEdit = { /* TODO */ },
                         onNavigate = onAdminNavigate
                     )
@@ -919,6 +920,11 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
 
                 composable<CreateCouponRoute> {
                     CreateCouponScreen(
+                        onNavigateBack = { adminNavController.popBackStack() }
+                    )
+                }
+                composable<CreateCategoryRoute> {
+                    CreateCategoryScreen(
                         onNavigateBack = { adminNavController.popBackStack() }
                     )
                 }

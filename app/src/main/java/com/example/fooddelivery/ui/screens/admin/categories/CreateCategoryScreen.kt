@@ -1,11 +1,11 @@
 package com.example.fooddelivery.ui.screens.admin.categories
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +29,6 @@ fun CreateCategoryScreen(
 ) {
     val state = viewModel.uiState
     val scrollState = rememberScrollState()
-
     val colorScheme = MaterialTheme.colorScheme
 
     Scaffold(
@@ -123,50 +121,29 @@ fun CreateCategoryScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Parent Category", fontWeight = FontWeight.Bold, color = colorScheme.onBackground)
-            DFoodFTextField(
-                value = state.parentCategory,
-                onValueChange = { },
-                label = "",
-                leadingIcon = { Icon(Icons.Default.Category, null) }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Display Order", fontWeight = FontWeight.Bold, color = colorScheme.onBackground)
-                    DFoodFTextField(
-                        value = state.displayOrder,
-                        onValueChange = { viewModel.onEvent(CategoryEvent.OrderChanged(it)) },
-                        label = "",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            Text("Status", fontWeight = FontWeight.Bold, color = colorScheme.onBackground, modifier = Modifier.padding(bottom = 4.dp))
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, colorScheme.outlineVariant),
+                color = colorScheme.surface
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Active", color = colorScheme.onSurface)
+                    Switch(
+                        checked = state.isActive,
+                        onCheckedChange = { viewModel.onEvent(CategoryEvent.StatusChanged(it)) },
+                        colors = SwitchDefaults.colors(
+                            checkedTrackColor = colorScheme.primary,
+                            checkedThumbColor = colorScheme.onPrimary
+                        )
                     )
-                }
-                Column(modifier = Modifier.weight(1.2f)) {
-                    Text("Status", fontWeight = FontWeight.Bold, color = colorScheme.onBackground)
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = MaterialTheme.shapes.medium,
-                        border = BorderStroke(1.dp, colorScheme.outlineVariant),
-                        color = colorScheme.surface
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("Active", color = colorScheme.onSurface)
-                            Switch(
-                                checked = state.isActive,
-                                onCheckedChange = { viewModel.onEvent(CategoryEvent.StatusChanged(it)) },
-                                colors = SwitchDefaults.colors(
-                                    checkedTrackColor = colorScheme.primary,
-                                    checkedThumbColor = colorScheme.onPrimary
-                                )
-                            )
-                        }
-                    }
                 }
             }
 
@@ -203,7 +180,6 @@ fun CreateCategoryScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 6. Buttons
             Button(
                 onClick = { viewModel.onEvent(CategoryEvent.SaveCategory) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -226,21 +202,12 @@ fun CreateCategoryScreen(
                 onClick = onNavigateBack,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, colorScheme.outline) // md_theme_light_outline
+                border = BorderStroke(1.dp, colorScheme.outline)
             ) {
                 Text("Cancel", color = colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
         }
-    }
-}
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun CreateCategoryScreenReview() {
-    DFoodTheme {
-        CreateCategoryScreen(
-            onNavigateBack = {},
-        )
     }
 }

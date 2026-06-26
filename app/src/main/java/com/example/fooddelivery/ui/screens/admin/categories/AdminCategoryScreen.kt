@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.* // Quan trọng nhất: để nhận getValue/setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +30,6 @@ fun AdminCategoryScreen(
     onNavigate: (String) -> Unit,
     viewModel: CategoryListViewModel = hiltViewModel()
 ) {
-    // Đổi tên thành uiState để tránh lỗi 'Unresolved' hoặc 'Candidate mismatch'
     val uiState by viewModel.state
     val colorScheme = MaterialTheme.colorScheme
 
@@ -110,7 +109,6 @@ fun CategoryRowItem(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Category Image Placeholder
             Box(
                 modifier = Modifier
                     .size(50.dp)
@@ -132,7 +130,7 @@ fun CategoryRowItem(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Order: ${category.displayOrder} • ${if (category.isActive) "Active" else "Hidden"}",
+                    text = if (category.isActive) "Active" else "Hidden",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (category.isActive) Color(0xFF4CAF50) else colorScheme.error
                 )
