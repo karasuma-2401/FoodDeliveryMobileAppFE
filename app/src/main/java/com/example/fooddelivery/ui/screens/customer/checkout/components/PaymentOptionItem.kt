@@ -15,7 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun PaymentOptionItem(
@@ -30,7 +30,7 @@ fun PaymentOptionItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onSelect() },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
         border = BorderStroke(
             width = if (isSelected) 2.dp else 1.dp,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
@@ -40,13 +40,13 @@ fun PaymentOptionItem(
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(CustomerDimens.cardPaddingLg)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(CustomerDimens.iconContainerSm)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
@@ -59,7 +59,7 @@ fun PaymentOptionItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )

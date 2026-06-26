@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun CartIconWithBadge(
@@ -33,7 +34,7 @@ fun CartIconWithBadge(
     badgeContentColor: Color = MaterialTheme.colorScheme.onPrimary,
     badgeBorderColor: Color = MaterialTheme.colorScheme.surface
 ) {
-    Box(modifier = modifier.size(48.dp)) {
+    Box(modifier = modifier.size(CustomerDimens.cartBarIconSize)) {
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -46,7 +47,7 @@ fun CartIconWithBadge(
                 imageVector = Icons.Rounded.ShoppingCart,
                 contentDescription = "View cart",
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(CustomerDimens.iconSm)
             )
         }
         if (itemCount > 0) {

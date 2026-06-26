@@ -24,6 +24,7 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.ui.components.VoucherCornerBadge
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun RestaurantItem(
@@ -35,9 +36,9 @@ fun RestaurantItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .padding(horizontal = CustomerDimens.screenHorizontalPadding, vertical = CustomerDimens.itemVerticalPadding)
             .bounceClick { onClick() },
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp, pressedElevation = 0.dp)
     ) {
@@ -45,7 +46,7 @@ fun RestaurantItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(CustomerDimens.restaurantCardImageHeight)
             ) {
                 AsyncImage(
                     model = restaurant.imageUrl,
@@ -92,7 +93,7 @@ fun RestaurantItem(
 
             Text(
                 text = restaurant.name,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -100,7 +101,7 @@ fun RestaurantItem(
             if (restaurant.tags.isNotEmpty()) {
                 Text(
                     text = restaurant.tags.joinToString(" • "),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -148,8 +149,8 @@ fun RestaurantItem(
 @Composable
 private fun InfoItem(icon: ImageVector, text: String, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+        Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+        Text(text = text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
     }
 }

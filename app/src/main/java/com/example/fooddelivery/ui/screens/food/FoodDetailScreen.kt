@@ -15,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -150,27 +149,13 @@ fun FoodDetailContent(
                                     )
                             ) {
                                 FoodInfoSectionSkeleton()
-                            }
-                        }
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .padding(horizontal = 16.dp)
-                            ) {
-                                RestaurantChipSkeleton()
-                            }
-                        }
-                        item { Spacer(modifier = Modifier.height(24.dp)) }
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .padding(horizontal = 16.dp)
-                            ) {
-                                SizeSelectionSkeleton()
+                                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                                    RestaurantChipSkeleton()
+                                }
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                                    SizeSelectionSkeleton()
+                                }
                             }
                         }
                     }
@@ -228,15 +213,13 @@ fun FoodDetailContent(
 
                     LazyColumn(
                         state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Transparent),
+                        modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 32.dp + cartBarPadding)
                     ) {
                         item(key = "hero_spacer") {
                             Spacer(modifier = Modifier.height(heroHeight - FoodHeroPanelOverlap))
                         }
-                        item(key = "info") {
+                        item(key = "content") {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -257,46 +240,35 @@ fun FoodDetailContent(
                                         onEvent(FoodDetailEvent.ClearAddSuccessPulse)
                                     }
                                 )
-                            }
-                        }
-                        item(key = "restaurant") {
-                            RestaurantChip(
-                                name = food.restaurantName,
-                                onClick = {
-                                    state.restaurant?.id?.let(onNavigateToRestaurant) ?: onNavigateBack()
-                                },
-                                modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .padding(horizontal = 16.dp)
-                            )
-                        }
-                        item { Spacer(modifier = Modifier.height(24.dp)) }
-                        item(key = "sizes") {
-                            SizeSelection(
-                                sizes = state.sizes,
-                                selectedFoodSizeId = state.selectedFoodSizeId,
-                                onSizeSelected = { size ->
-                                    onEvent(
-                                        FoodDetailEvent.SelectSize(
-                                            foodSizeId = size.foodSizeId,
-                                            sizeName = size.name,
-                                            price = size.price
+                                RestaurantChip(
+                                    name = food.restaurantName,
+                                    onClick = {
+                                        state.restaurant?.id?.let(onNavigateToRestaurant)
+                                            ?: onNavigateBack()
+                                    },
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                SizeSelection(
+                                    sizes = state.sizes,
+                                    selectedFoodSizeId = state.selectedFoodSizeId,
+                                    onSizeSelected = { size ->
+                                        onEvent(
+                                            FoodDetailEvent.SelectSize(
+                                                foodSizeId = size.foodSizeId,
+                                                sizeName = size.name,
+                                                price = size.price
+                                            )
                                         )
-                                    )
-                                },
-                                modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .padding(horizontal = 16.dp)
-                            )
-                        }
-                        item { Spacer(modifier = Modifier.height(24.dp)) }
-                        item(key = "ingredients") {
-                            IngredientsSection(
-                                ingredients = state.ingredients,
-                                modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .padding(horizontal = 16.dp)
-                            )
+                                    },
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                IngredientsSection(
+                                    ingredients = state.ingredients,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
                         }
                     }
                 }

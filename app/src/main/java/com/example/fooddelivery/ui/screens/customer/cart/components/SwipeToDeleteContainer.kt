@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +42,10 @@ fun SwipeToDeleteContainer(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                    .padding(
+                        horizontal = CustomerDimens.screenHorizontalPadding,
+                        vertical = CustomerDimens.itemVerticalPadding
+                    )
                     .background(color, MaterialTheme.shapes.large),
                 contentAlignment = Alignment.CenterEnd
             ) {

@@ -25,6 +25,7 @@ import com.example.fooddelivery.ui.screens.customer.cart.components.SwipeToDelet
 import com.example.fooddelivery.ui.screens.customer.voucher.VoucherDetailBottomSheet
 import com.example.fooddelivery.ui.screens.customer.voucher.VoucherEntryCard
 import com.example.fooddelivery.ui.screens.customer.voucher.VoucherSelectionSheet
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,7 +141,7 @@ fun CartContent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp)
+                        .padding(CustomerDimens.bottomBarPadding)
                 ) {
                     DFoodButton(
                         text = if (state.isLoading) "Processing..." else "Proceed to Checkout",
@@ -167,7 +168,7 @@ fun CartContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-                contentPadding = PaddingValues(bottom = 120.dp)
+                contentPadding = PaddingValues(bottom = CustomerDimens.screenBottomSpacer)
             ) {
                 state.restaurantSections.forEach { section ->
                     val group = section.group
@@ -215,14 +216,17 @@ fun CartContent(
                                         }
                                     }
                                 },
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                                modifier = Modifier.padding(
+                                    horizontal = CustomerDimens.screenHorizontalPadding,
+                                    vertical = CustomerDimens.itemVerticalPadding
+                                )
                             )
                         }
                     }
                     item {
                         Spacer(modifier = Modifier.height(8.dp))
                         HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 24.dp),
+                            modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding),
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -236,7 +240,10 @@ fun CartContent(
                             discount = state.discount,
                             onClick = onShowVoucherSheet,
                             onRemove = { onEvent(CartEvent.ApplyVoucher(null)) },
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                            modifier = Modifier.padding(
+                                horizontal = CustomerDimens.screenHorizontalPadding,
+                                vertical = CustomerDimens.cardPaddingLg
+                            )
                         )
                     }
 

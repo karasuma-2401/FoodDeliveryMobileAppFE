@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.domain.model.Order
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import com.example.fooddelivery.domain.model.OrderStatus
 import com.example.fooddelivery.domain.model.OrderType
 import java.util.Locale
@@ -32,7 +33,7 @@ fun OrderItemCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .padding(vertical = CustomerDimens.itemVerticalPadding)
     ) {
         // Metadata row (Food/Drink + Status)
         Row(
@@ -68,7 +69,7 @@ fun OrderItemCard(
                 model = order.restaurantImage,
                 contentDescription = order.restaurantName,
                 modifier = Modifier
-                    .size(70.dp)
+                    .size(CustomerDimens.listThumbnailSm)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop
@@ -86,7 +87,7 @@ fun OrderItemCard(
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
-                        style = MaterialTheme.typography.titleMedium.copy(
+                        style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         ),
@@ -108,7 +109,7 @@ fun OrderItemCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "$${String.format(Locale.getDefault(), "%.2f", order.price)}",
-                        style = MaterialTheme.typography.titleMedium.copy(
+                        style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -128,50 +129,50 @@ fun OrderItemCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(14.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (order.status == OrderStatus.ONGOING) {
                 Button(
                     onClick = onPrimaryAction,
-                    modifier = Modifier.weight(1f).height(45.dp),
+                    modifier = Modifier.weight(1f).height(CustomerDimens.orderButtonHeight),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("Track Order", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Track Order", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
                 OutlinedButton(
                     onClick = onSecondaryAction,
-                    modifier = Modifier.weight(1f).height(45.dp),
+                    modifier = Modifier.weight(1f).height(CustomerDimens.orderButtonHeight),
                     shape = RoundedCornerShape(10.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Cancel", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             } else {
                 OutlinedButton(
                     onClick = onSecondaryAction,
-                    modifier = Modifier.weight(1f).height(45.dp),
+                    modifier = Modifier.weight(1f).height(CustomerDimens.orderButtonHeight),
                     shape = RoundedCornerShape(10.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Rate", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Rate", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
                 Button(
                     onClick = onPrimaryAction,
-                    modifier = Modifier.weight(1f).height(45.dp),
+                    modifier = Modifier.weight(1f).height(CustomerDimens.orderButtonHeight),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("Re-Order", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Re-Order", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
         }

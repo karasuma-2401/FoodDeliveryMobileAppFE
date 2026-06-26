@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.ui.screens.customer.order.OrderSummaryItem
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import java.util.Locale
 
 @Composable
@@ -24,11 +25,11 @@ fun OrderSummaryCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(CustomerDimens.cardPaddingLg)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -36,7 +37,7 @@ fun OrderSummaryCard(
             ) {
                 Text(
                     text = "Order Summary",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Surface(
@@ -55,26 +56,26 @@ fun OrderSummaryCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
             items.forEachIndexed { index, item ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = if (index == items.size - 1) 0.dp else 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = if (index == items.size - 1) 0.dp else 12.dp),
                     verticalAlignment = Alignment.Top
                 ) {
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(28.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = "${item.quantity}x",
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
+                                fontSize = 11.sp
                             )
                         }
                     }
@@ -106,7 +107,7 @@ fun OrderSummaryCard(
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "$${String.format(Locale.US, "%.2f", item.lineTotal)}",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         AsyncImage(
@@ -114,7 +115,7 @@ fun OrderSummaryCard(
                             contentDescription = item.name,
                             modifier = Modifier
                                 .padding(top = 4.dp)
-                                .size(40.dp)
+                                .size(36.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentScale = ContentScale.Crop

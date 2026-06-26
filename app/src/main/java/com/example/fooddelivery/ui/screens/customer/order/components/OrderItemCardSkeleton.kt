@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.example.fooddelivery.ui.theme.CustomerDimens
 import com.example.fooddelivery.ui.components.shimmerEffect
 
 @Composable
@@ -16,7 +17,7 @@ fun OrderItemCardSkeleton() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .padding(vertical = CustomerDimens.itemVerticalPadding)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -47,7 +48,7 @@ fun OrderItemCardSkeleton() {
         ) {
             Box(
                 modifier = Modifier
-                    .size(70.dp)
+                    .size(CustomerDimens.listThumbnailSm)
                     .clip(RoundedCornerShape(12.dp))
                     .shimmerEffect()
             )
