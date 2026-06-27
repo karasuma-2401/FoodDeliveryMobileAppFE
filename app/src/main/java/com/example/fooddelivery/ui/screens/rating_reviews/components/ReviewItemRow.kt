@@ -14,27 +14,32 @@ import com.example.fooddelivery.domain.model.ReviewItem
 @Composable
 fun ReviewItemRow(
     review: ReviewItem,
-    onMoreClick: () -> Unit // Tiếp tục nhận callback tại đây
+    userRole: UserRole,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onReplyClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
-        // User Avatar Placholder
+        // User Avatar Placeholder
         Box(
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-        ) {
-        }
+        )
 
         Spacer(modifier = Modifier.width(12.dp))
 
         ReviewContentCard(
             review = review,
-            onMoreClick = onMoreClick,
+            userRole = userRole,
+            onEditClick = onEditClick,
+            onDeleteClick = onDeleteClick,
+            onReplyClick = onReplyClick,
             modifier = Modifier.weight(1f)
         )
     }

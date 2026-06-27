@@ -3,14 +3,8 @@ package com.example.fooddelivery.ui.screens.rating_reviews.restaurant_reviews
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,9 +22,22 @@ fun ReviewScreen(
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
+    var reviewIdToReply by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(key1 = restaurantId) {
         viewModel.loadReviews(restaurantId)
+    }
+
+    // Hiển thị Dialog khi có ID review cần reply
+    if (reviewIdToReply != null) {
+        ReplyDialog(
+            onDismiss = { reviewIdToReply = null },
+            onSubmit = { replyText ->
+                reviewIdToReply?.let { id ->
+                    viewModel.replyReview(id, replyText)
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -78,13 +85,53 @@ fun ReviewScreen(
                 ) { review ->
                     ReviewItemRow(
                         review = review,
-                        onMoreClick = {
+                        userRole = state.userRole,
+                        onEditClick = {
+                            // Xử lý logic Edit nếu cần
+                        },
+                        onDeleteClick = {
+                            viewModel.deleteReview(review.id)
+                        },
+                        onReplyClick = {
+                            reviewIdToReply = review.id
                         }
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+fun ReplyDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit
+) {
+    var replyText by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Reply to Review") },
+        text = {
+            OutlinedTextField(
+                value = replyText,
+                onValueChange = { replyText = it },
+                label = { Text("Your response") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (replyText.isNotBlank()) onSubmit(replyText)
+                    onDismiss()
+                }
+            ) { Text("Send") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

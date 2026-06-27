@@ -77,7 +77,7 @@ interface RestaurantRepository {
         description: String
     ): Result<RestaurantResponse>
 
-    suspend fun deleteReview(reviewId: Int): Result<FoodRatingResponse>
+    suspend fun deleteReview(reviewId: Int): Result<Unit>
     suspend fun createRestaurant(
         name: String,
         phone: String,
@@ -87,4 +87,5 @@ interface RestaurantRepository {
     ): Result<RestaurantResponse>
 
     suspend fun registerBusiness(): Result<BusinessRegisterResponse>
+    suspend fun replyReview(reviewId: Int, reply: String): Result<Unit>
 }

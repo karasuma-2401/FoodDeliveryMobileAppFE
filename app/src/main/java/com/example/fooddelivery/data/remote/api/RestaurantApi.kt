@@ -104,12 +104,7 @@ interface RestaurantApi {
     suspend fun updateReview(
         @Path("reviewId") reviewId: Int,
         @Body request: UpdateReviewRequest
-    ): Response<BaseResponse<FoodRatingResponse>>
-
-    @DELETE("restaurant/reviews/{reviewId}")
-    suspend fun deleteReview(
-        @Path("reviewId") reviewId: Int
-    ): Response<BaseResponse<FoodRatingResponse>>
+    ): Response<BaseResponse<UpdateReviewPayload>>
 
     @PATCH("restaurant/manage/{restaurantId}")
     suspend fun updateRestaurantProfile(
@@ -129,4 +124,14 @@ interface RestaurantApi {
 
     @POST("restaurant/business/register")
     suspend fun registerBusiness(): Response<BaseResponse<BusinessRegisterResponse>>
+    @DELETE("restaurant/reviews/{reviewId}")
+    suspend fun deleteReview(
+        @Path("reviewId") reviewId: Int
+    ): Response<BaseResponse<Unit>>
+
+    @POST("restaurant/reviews/{reviewId}/reply")
+    suspend fun replyReview(
+        @Path("reviewId") reviewId: Int,
+        @Body request: ReplyReviewRequest
+    ): Response<BaseResponse<Unit>>
 }
