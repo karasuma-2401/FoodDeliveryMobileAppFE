@@ -3,7 +3,6 @@ package com.example.fooddelivery.ui.screens.admin.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ConfirmationNumber
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,10 +14,8 @@ import com.example.fooddelivery.ui.screens.admin.coupons.SystemVoucher
 @Composable
 fun AdminCouponItemCard(
     voucher: SystemVoucher,
-    onEditClick: () -> Unit,
     onToggleActive: (Boolean) -> Unit
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -62,17 +59,8 @@ fun AdminCouponItemCard(
             }
 
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onEditClick) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Coupon",
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
-
                 Switch(
                     checked = voucher.isActive,
                     onCheckedChange = onToggleActive,

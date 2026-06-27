@@ -1040,8 +1040,12 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminCategoriesRoute> {
                     AdminCategoryScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigateToAdd = { adminNavController.navigate(CreateCategoryRoute)},
-                        onNavigateToEdit = { /* TODO */ },
+                        onNavigateToAdd = {
+                            adminNavController.navigate(CreateCategoryRoute(categoryId = null))
+                        },
+                        onNavigateToEdit = { categoryId ->
+                            adminNavController.navigate(CreateCategoryRoute(categoryId = categoryId.toString()))
+                        },
                         onNavigate = onAdminNavigate
                     )
                 }
@@ -1049,7 +1053,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminCouponRoute> {
                     AdminCouponScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigateToEditCoupon = { /* TODO */ },
+                        onNavigateToEditCoupon = {},
                         onNavigateToCreateCoupon = {
                             adminNavController.navigate(CreateCouponRoute())
                         }

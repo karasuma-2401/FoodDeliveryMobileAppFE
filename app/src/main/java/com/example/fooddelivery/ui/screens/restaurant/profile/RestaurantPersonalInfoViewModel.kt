@@ -75,7 +75,6 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
     fun fetchLatestAddress() {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-
             val result = addressRepository.getAddressesForRestaurant()
 
             result.onSuccess { addressList ->

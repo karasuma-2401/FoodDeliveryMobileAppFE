@@ -114,4 +114,7 @@ data class CreateCouponRoute(
 @Serializable object AdminUserListRoute
 @Serializable object AdminRevenueRoute
 
-@Serializable object CreateCategoryRoute
+@Serializable
+data class CreateCategoryRoute(
+    val categoryId: String? = null
+)
