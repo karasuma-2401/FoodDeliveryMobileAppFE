@@ -38,11 +38,11 @@ fun ProfileScreen(
     onNavigateToBusinessRegistration: () -> Unit,
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
-    onNavigateToNotification: () -> Unit,
     onNavigateToReview: () -> Unit,
     onChangePassword: () -> Unit,
     onResetEmail: () -> Unit,
     onLogout: () -> Unit,
+    showBackButton: Boolean = true,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -115,12 +115,12 @@ fun ProfileScreen(
     ProfileContent(
         state = state,
         onEvent = viewModel::onEvent,
+        showBackButton = showBackButton,
         onNavigateBack = onNavigateBack,
         onEditProfile = onEditProfile,
         onManageAddress = onManageAddress,
         onNavigateToCart = onNavigateToCart,
         onNavigateToFavourite = onNavigateToFavourite,
-        onNavigateToNotification = onNavigateToNotification,
         onNavigateToReview = onNavigateToReview,
         onChangePassword = onChangePassword,
         onResetEmail = onResetEmail,
@@ -135,12 +135,12 @@ fun ProfileScreen(
 fun ProfileContent(
     state: ProfileState,
     onEvent: (ProfileEvent) -> Unit,
+    showBackButton: Boolean = true,
     onNavigateBack: () -> Unit,
     onEditProfile: () -> Unit,
     onManageAddress: () -> Unit,
     onNavigateToCart: () -> Unit,
     onNavigateToFavourite: () -> Unit,
-    onNavigateToNotification: () -> Unit,
     onNavigateToReview: () -> Unit,
     onChangePassword: () -> Unit,
     onResetEmail: () -> Unit,
@@ -156,8 +156,8 @@ fun ProfileContent(
             Column {
                 DFoodTopBar(
                     title = "Profile",
-                    onBackClick = onNavigateBack,
-                    scrollBehavior = null
+                    onBackClick = if (showBackButton) onNavigateBack else null,
+                    scrollBehavior = null,
                 )
                 if (state.isLoading) {
                     LinearProgressIndicator(
@@ -286,26 +286,6 @@ fun ProfileContent(
                     onClick = onNavigateToFavourite
                 )
                 ProfileMenuCard(
-                    icon = Icons.Default.Notifications,
-                    iconContainerColor = Color(0xFFFFFDE7),
-                    iconTint = Color(0xFFFFEB3B),
-                    tittle = "Notification",
-                    onClick = onNavigateToNotification,
-                    trailing = {
-                        if (state.unreadNotificationCount > 0) {
-                            Badge(
-                                containerColor = Color(0xFFFF7622),
-                                contentColor = Color.White,
-                            ) {
-                                Text(
-                                    text = if (state.unreadNotificationCount > 99) "99+" else state.unreadNotificationCount.toString(),
-                                    fontSize = 10.sp
-                                )
-                            }
-                        }
-                    }
-                )
-                ProfileMenuCard(
                     icon = Icons.Default.RateReview,
                     iconContainerColor = Color(0xFFE0F7FA),
                     iconTint = Color(0xFF00BCD4),
@@ -378,7 +358,6 @@ fun ProfileScreenPreview() {
             onManageAddress = {},
             onNavigateToCart = {},
             onNavigateToFavourite = {},
-            onNavigateToNotification = {},
             onNavigateToReview = {},
             onChangePassword = {},
             onResetEmail = {},

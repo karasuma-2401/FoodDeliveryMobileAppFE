@@ -5,7 +5,7 @@ import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.repository.AddressRepository
 import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
 import com.example.fooddelivery.domain.repository.DeliveryLocationState
-import com.example.fooddelivery.domain.repository.toDisplayLabel
+import com.example.fooddelivery.domain.repository.toAddressLabel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,7 +41,7 @@ class DeliveryLocationRepositoryImpl @Inject constructor(
 
     override suspend fun selectByLabel(label: String) {
         val addresses = _deliveryLocation.value.addresses
-        val selected = addresses.find { it.toDisplayLabel() == label } ?: return
+        val selected = addresses.find { it.toAddressLabel() == label } ?: return
         selectById(selected.id)
     }
 

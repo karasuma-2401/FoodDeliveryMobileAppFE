@@ -9,8 +9,10 @@ import com.example.fooddelivery.domain.repository.UserRepository
 import com.example.fooddelivery.util.senderIdsMatch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -57,6 +59,8 @@ class ChatViewModel @Inject constructor(
     val state: StateFlow<ChatState> = _state.asStateFlow()
     private var currentConversationId: String? = null
     private var messageObserverJob: Job? = null
+    private var messagePollingJob: Job? = null
+    private val messagePollIntervalMs = 8_000L
 
     init {
         getCurrentUser()
@@ -128,6 +132,7 @@ class ChatViewModel @Inject constructor(
             chatRepository.joinRoom(conversationId)
             chatRepository.markAsRead(conversationId)
             observeMessages(conversationId)
+            startMessagePolling(conversationId)
             chatRepository.syncConversationDetail(conversationId.toInt(), 0).onSuccess { entity ->
                 _state.update { it.copy(
                     isLoading = false,
@@ -173,6 +178,7 @@ class ChatViewModel @Inject constructor(
             chatRepository.joinRoom(entity.id)
             chatRepository.markAsRead(entity.id)
             observeMessages(entity.id)
+            startMessagePolling(entity.id)
         }
     }
 
@@ -185,6 +191,16 @@ class ChatViewModel @Inject constructor(
                 if (messages.any { !it.isRead && !senderIdsMatch(it.senderId, _state.value.currentUserId) }) {
                     chatRepository.markAsRead(conversationId)
                 }
+            }
+        }
+    }
+
+    private fun startMessagePolling(conversationId: String) {
+        messagePollingJob?.cancel()
+        messagePollingJob = viewModelScope.launch {
+            while (isActive) {
+                delay(messagePollIntervalMs)
+                chatRepository.syncConversationDetail(conversationId.toInt(), 0)
             }
         }
     }
@@ -252,6 +268,8 @@ class ChatViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        messagePollingJob?.cancel()
+        messageObserverJob?.cancel()
         currentConversationId?.let { id ->
             viewModelScope.launch {
                 chatRepository.leaveRoom(id)

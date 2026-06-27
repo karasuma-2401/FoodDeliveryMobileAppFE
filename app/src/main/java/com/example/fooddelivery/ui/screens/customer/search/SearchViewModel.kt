@@ -38,12 +38,10 @@ data class SearchState(
     val unreadMessageCount: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val selectedLocation: String = "Home",
     val lat: Double? = null,
     val lng: Double? = null,
-    val availableLocations: List<String> = listOf("Home", "Work", "Other"),
     val selectedSort: SearchSortOption? = null,
-    val selectedCategoryId: String? = null
+    val selectedCategoryId: String? = null,
 )
 
 sealed interface SearchEvent {
@@ -52,7 +50,7 @@ sealed interface SearchEvent {
     object PerformSearch: SearchEvent
     object ClearSearch: SearchEvent
     object LoadSearchData: SearchEvent
-    data class LocationSelected(val location: String) : SearchEvent
+    data class AddressSelected(val addressId: Int) : SearchEvent
     data class DeleteHistoryItem(val id: Int) : SearchEvent
     object ClearAllHistory : SearchEvent
     data class SortSelected(val sort: SearchSortOption?) : SearchEvent
@@ -86,8 +84,6 @@ class SearchViewModel @Inject constructor(
             deliveryLocationRepository.deliveryLocation.collectLatest { location ->
                 _state.update {
                     it.copy(
-                        selectedLocation = location.selectedLabel,
-                        availableLocations = location.availableLabels,
                         lat = location.lat ?: it.lat,
                         lng = location.lng ?: it.lng,
                     )
@@ -164,9 +160,9 @@ class SearchViewModel @Inject constructor(
                 loadInitialData()
             }
             SearchEvent.LoadSearchData -> loadInitialData()
-            is SearchEvent.LocationSelected -> {
+            is SearchEvent.AddressSelected -> {
                 viewModelScope.launch {
-                    deliveryLocationRepository.selectByLabel(event.location)
+                    deliveryLocationRepository.selectById(event.addressId)
                 }
             }
             is SearchEvent.DeleteHistoryItem -> {

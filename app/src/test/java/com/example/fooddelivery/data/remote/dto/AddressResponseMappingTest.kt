@@ -4,6 +4,7 @@ import com.example.fooddelivery.domain.repository.DeliveryLocationState
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -42,6 +43,23 @@ class AddressResponseMappingTest {
         assertEquals(10.776889, address.latitude, 0.0001)
         assertEquals(106.700806, address.longitude, 0.0001)
         assertEquals("Home", address.type)
+        assertEquals("123 Nguyen Hue, District 1, HCM", address.detail)
+
+        val locationState = DeliveryLocationState(
+            addresses = listOf(address),
+            selectedAddressId = address.id,
+        )
+
+        assertEquals("Home", locationState.selectedAddressLabel)
+        assertEquals("123 Nguyen Hue, District 1, HCM", locationState.selectedAddressDetail)
+    }
+
+    @Test
+    fun `empty addresses show placeholder detail`() {
+        val locationState = DeliveryLocationState()
+
+        assertEquals(DeliveryLocationState.EMPTY_PLACEHOLDER, locationState.selectedAddressDetail)
+        assertTrue(locationState.availableAddressOptions.isEmpty())
     }
 
     @Test

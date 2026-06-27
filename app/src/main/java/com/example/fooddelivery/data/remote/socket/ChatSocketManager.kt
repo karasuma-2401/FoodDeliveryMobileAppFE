@@ -4,9 +4,13 @@ import com.example.fooddelivery.BuildConfig
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import io.socket.client.IO
 import io.socket.client.Socket
+import io.socket.emitter.Emitter
 import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 
 @Singleton
 class ChatSocketManager @Inject constructor(
@@ -18,6 +22,8 @@ class ChatSocketManager @Inject constructor(
     private val lock = Any()
 
     fun getSocket(): Socket = socket
+
+    fun isConnected(): Boolean = socket.connected()
 
     fun onSocketReplaced(setup: () -> Unit) {
         synchronized(lock) {
@@ -42,6 +48,29 @@ class ChatSocketManager @Inject constructor(
         if (!socket.connected() && !tokenManager.bearerToken().isNullOrBlank()) {
             socket.connect()
         }
+    }
+
+    suspend fun awaitConnection(timeoutMs: Long = 10_000L): Boolean {
+        if (socket.connected()) return true
+        connectIfNeeded()
+        return withTimeoutOrNull(timeoutMs) {
+            suspendCancellableCoroutine { continuation ->
+                val currentSocket = socket
+                if (currentSocket.connected()) {
+                    continuation.resume(true)
+                    return@suspendCancellableCoroutine
+                }
+                val listener = Emitter.Listener {
+                    if (continuation.isActive) {
+                        continuation.resume(true)
+                    }
+                }
+                currentSocket.once(Socket.EVENT_CONNECT, listener)
+                continuation.invokeOnCancellation {
+                    currentSocket.off(Socket.EVENT_CONNECT, listener)
+                }
+            }
+        } ?: false
     }
 
     /** Recreate the socket with the latest JWT after login or account switch. */

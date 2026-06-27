@@ -35,6 +35,7 @@ fun OrdersScreen(
     onNavigateToTrackOrder: (String) -> Unit,
     onNavigateToRate: (String, String, String) -> Unit,
     onNavigateToCart: () -> Unit,
+    showBackButton: Boolean = true,
     viewModel: OrderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -64,6 +65,7 @@ fun OrdersScreen(
         state = state,
         pagerState = pagerState,
         scope = scope,
+        showBackButton = showBackButton,
         onBackClick = onNavigateBack,
         onTrackOrder = onNavigateToTrackOrder,
         onRate = onNavigateToRate,
@@ -83,6 +85,7 @@ fun OrderContent(
     state: OrderState,
     pagerState: PagerState,
     scope: CoroutineScope,
+    showBackButton: Boolean = true,
     onBackClick: () -> Unit,
     onTrackOrder: (String) -> Unit,
     onRate: (String, String, String) -> Unit,
@@ -94,7 +97,7 @@ fun OrderContent(
         topBar = {
             DFoodTopBar(
                 title = "My Orders",
-                onBackClick = onBackClick
+                onBackClick = if (showBackButton) onBackClick else null,
             )
         },
         containerColor = MaterialTheme.colorScheme.background
