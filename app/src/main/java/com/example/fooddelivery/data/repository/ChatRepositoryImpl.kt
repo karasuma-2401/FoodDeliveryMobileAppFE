@@ -16,6 +16,7 @@ import com.example.fooddelivery.data.remote.socket.ChatSocketManager
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.data.remote.unwrapUnit
 import com.example.fooddelivery.domain.repository.ChatRepository
+import com.example.fooddelivery.util.messageCreatedAtMillis
 import com.example.fooddelivery.util.normalizeCreatedAt
 import com.example.fooddelivery.util.normalizeCreatedAtNow
 import com.example.fooddelivery.util.senderIdsMatch
@@ -45,6 +46,8 @@ class ChatRepositoryImpl @Inject constructor(
 
     private val socketScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val sendTimeoutMs = 15_000L
+    @Volatile
+    private var activeConversationId: String? = null
 
     init {
         chatSocketManager.onSocketReplaced { attachSocketListeners() }
@@ -59,8 +62,16 @@ class ChatRepositoryImpl @Inject constructor(
 
     private fun attachSocketListeners() {
         val socket = socket()
+        socket.off(Socket.EVENT_CONNECT)
         socket.off("text-chat")
         socket.off("exception")
+        socket.on(Socket.EVENT_CONNECT) {
+            activeConversationId?.let { conversationId ->
+                socketScope.launch {
+                    emitJoinRoom(conversationId)
+                }
+            }
+        }
         socket.on("text-chat") { args ->
             val data = parseSocketPayload(args) ?: return@on
             try {
@@ -241,6 +252,10 @@ class ChatRepositoryImpl @Inject constructor(
 
         return try {
             ensureSocketReady()
+            if (!chatSocketManager.awaitConnection()) {
+                messageDao.updateMessage(message.copy(isSending = false, isFailed = true))
+                return Result.failure(Exception("Chat connection unavailable"))
+            }
             val json = JSONObject().apply {
                 put("conversationId", message.conversationId.toInt())
                 put("content", message.content)
@@ -258,21 +273,35 @@ class ChatRepositoryImpl @Inject constructor(
     }
 
     override suspend fun joinRoom(conversationId: String) {
+        activeConversationId = conversationId
+        emitJoinRoom(conversationId)
+    }
+
+    override suspend fun leaveRoom(conversationId: String) {
+        if (activeConversationId == conversationId) {
+            activeConversationId = null
+        }
         try {
-            ensureSocketReady()
-            val data = JSONObject().put("conversationId", conversationId.toInt())
-            socket().emit("join-room", data)
+            if (chatSocketManager.isConnected()) {
+                val data = JSONObject().put("conversationId", conversationId.toInt())
+                socket().emit("leave-room", data)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    override suspend fun leaveRoom(conversationId: String) {
+    private suspend fun emitJoinRoom(conversationId: String) {
         try {
+            ensureSocketReady()
+            if (!chatSocketManager.awaitConnection()) {
+                Log.w("ChatRepository", "Socket not connected; will join room $conversationId on reconnect")
+                return
+            }
             val data = JSONObject().put("conversationId", conversationId.toInt())
-            socket().emit("leave-room", data)
+            socket().emit("join-room", data)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("ChatRepository", "Failed to join room $conversationId", e)
         }
     }
 
@@ -305,6 +334,10 @@ class ChatRepositoryImpl @Inject constructor(
 
         return try {
             ensureSocketReady()
+            if (!chatSocketManager.awaitConnection()) {
+                messageDao.updateMessage(message.copy(isSending = false, isFailed = true))
+                return Result.failure(Exception("Chat connection unavailable"))
+            }
             val json = JSONObject().apply {
                 put("conversationId", conversationId.toInt())
                 put("content", "")
@@ -352,14 +385,37 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun handleNewMessage(message: MessageEntity) {
         val normalizedMessage = message.copy(createdAt = normalizeCreatedAt(message.createdAt))
         val currentUserId = getCurrentUserId()?.toString()
-        if (currentUserId != null && senderIdsMatch(normalizedMessage.senderId, currentUserId)) {
+        val messageToInsert = if (currentUserId != null &&
+            senderIdsMatch(normalizedMessage.senderId, currentUserId)
+        ) {
+            val optimisticCreatedAt = messageDao.getLatestOptimisticCreatedAt(
+                conversationId = normalizedMessage.conversationId,
+                senderId = normalizedMessage.senderId
+            )
             messageDao.deleteOptimisticDuplicates(
                 conversationId = normalizedMessage.conversationId,
                 senderId = normalizedMessage.senderId,
                 serverMessageId = normalizedMessage.id
             )
+            preserveClientTimestampIfNewer(normalizedMessage, optimisticCreatedAt)
+        } else {
+            normalizedMessage
         }
-        messageDao.insertMessage(normalizedMessage)
+        messageDao.insertMessage(messageToInsert)
+    }
+
+    private fun preserveClientTimestampIfNewer(
+        serverMessage: MessageEntity,
+        optimisticCreatedAt: String?
+    ): MessageEntity {
+        if (optimisticCreatedAt.isNullOrBlank()) return serverMessage
+        val serverMillis = messageCreatedAtMillis(serverMessage.createdAt)
+        val clientMillis = messageCreatedAtMillis(optimisticCreatedAt)
+        return if (clientMillis > serverMillis) {
+            serverMessage.copy(createdAt = clientMillis.toString())
+        } else {
+            serverMessage
+        }
     }
 
     private fun scheduleSendTimeout(tempId: String) {

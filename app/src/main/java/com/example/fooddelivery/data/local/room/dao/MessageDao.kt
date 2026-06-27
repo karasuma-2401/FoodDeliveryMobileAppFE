@@ -19,7 +19,14 @@ interface MessageDao {
     @Update
     suspend fun updateMessage(message: MessageEntity)
 
-    @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY createdAt ASC")
+    @Query(
+        """
+        SELECT * FROM messages
+        WHERE conversationId = :conversationId
+        ORDER BY CAST(createdAt AS INTEGER) ASC,
+            CASE WHEN id GLOB '*-*' THEN 9223372036854775807 ELSE CAST(id AS INTEGER) END ASC
+        """
+    )
     fun getMessages(conversationId: String): Flow<List<MessageEntity>>
 
     @Query("DELETE FROM messages WHERE id = :id")
@@ -46,6 +53,21 @@ interface MessageDao {
 
     @Query("SELECT * FROM messages WHERE id = :id LIMIT 1")
     suspend fun getMessageById(id: String): MessageEntity?
+
+    @Query(
+        """
+        SELECT createdAt FROM messages
+        WHERE conversationId = :conversationId
+          AND senderId = :senderId
+          AND id GLOB '*-*'
+        ORDER BY CAST(createdAt AS INTEGER) DESC
+        LIMIT 1
+        """
+    )
+    suspend fun getLatestOptimisticCreatedAt(
+        conversationId: String,
+        senderId: String
+    ): String?
 
     @Query(
         """
