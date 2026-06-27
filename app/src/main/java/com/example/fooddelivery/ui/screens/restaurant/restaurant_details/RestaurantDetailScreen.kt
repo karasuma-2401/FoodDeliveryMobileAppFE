@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -25,7 +26,9 @@ import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.ui.components.cart.AddToCartBottomSheet
+import com.example.fooddelivery.ui.components.cart.FlyToCartOverlay
 import com.example.fooddelivery.ui.components.cart.RestaurantCartBar
+import com.example.fooddelivery.ui.components.cart.rememberFlyToCartState
 import com.example.fooddelivery.ui.screens.customer.search.components.SectionHeader
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.CategoryTabs
 import com.example.fooddelivery.ui.screens.restaurant.restaurant_details.components.CategoryTabsSkeleton
@@ -106,6 +109,8 @@ fun RestaurantDetailContent(
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val flyToCartState = rememberFlyToCartState()
+    var flyStartCenter by remember { mutableStateOf<Offset?>(null) }
     var showVoucherSheet by remember { mutableStateOf(false) }
 
     val firstCategoryIndex = if (state.vouchers.isEmpty()) 3 else 4
@@ -147,9 +152,10 @@ fun RestaurantDetailContent(
         }
     }
 
-    val showCartBar = state.restaurantCartItemCount > 0
+    val showCartBar = state.restaurantCartItemCount > 0 || flyToCartState.pendingRequest != null
     val cartBarPadding = if (showCartBar) 88.dp else 0.dp
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackBarHostState) { data ->
@@ -170,7 +176,9 @@ fun RestaurantDetailContent(
                     onContinueClick = {
                         val restaurant = state.restaurant ?: return@RestaurantCartBar
                         onNavigateToCheckout(restaurant.id, restaurant.name)
-                    }
+                    },
+                    onCartIconPositioned = flyToCartState::updateCartTarget,
+                    cartBounceTrigger = flyToCartState.cartBounceTrigger,
                 )
             }
         },
@@ -354,7 +362,8 @@ fun RestaurantDetailContent(
                                     rowItems.forEach { foodItem ->
                                         FoodItemCard(
                                             foodItem = foodItem,
-                                            onAddClick = {
+                                            onAddClick = { imageCenter ->
+                                                flyStartCenter = imageCenter
                                                 onEvent(RestaurantDetailEvent.OpenAddToCartSheet(foodItem))
                                             },
                                             onItemClick = { onNavigateToFoodDetail(foodItem.id) },
@@ -395,9 +404,21 @@ fun RestaurantDetailContent(
             isSubmitting = state.isAddingToCart,
             onSizeSelected = { onEvent(RestaurantDetailEvent.SelectSheetSize(it)) },
             onQuantityChange = { onEvent(RestaurantDetailEvent.UpdateSheetQuantity(it)) },
-            onConfirm = { onEvent(RestaurantDetailEvent.ConfirmAddToCart) },
-            onDismiss = { onEvent(RestaurantDetailEvent.DismissAddToCartSheet) }
+            onConfirm = {
+                flyStartCenter?.let { center ->
+                    flyToCartState.launch(sheet.foodItem.imageUrl, center)
+                }
+                flyStartCenter = null
+                onEvent(RestaurantDetailEvent.ConfirmAddToCart)
+            },
+            onDismiss = {
+                flyStartCenter = null
+                onEvent(RestaurantDetailEvent.DismissAddToCartSheet)
+            }
         )
+    }
+
+    FlyToCartOverlay(state = flyToCartState)
     }
 }
 

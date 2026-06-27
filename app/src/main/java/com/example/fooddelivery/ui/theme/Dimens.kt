@@ -29,9 +29,9 @@ object CustomerDimens {
     val itemSpacing = 12.dp
     val itemVerticalPadding = 8.dp
 
-    val qtyButtonSize = 26.dp
-    val qtyIconSize = 13.dp
-    val qtyStepperHeight = 30.dp
+    val qtyButtonSize = 40.dp
+    val qtyIconSize = 20.dp
+    val qtyStepperHeight = 44.dp
 
     val timelineCircleSize = 40.dp
     val orderButtonHeight = 40.dp
@@ -39,4 +39,7 @@ object CustomerDimens {
 
     val bottomBarPadding = 16.dp
     val cartBarIconSize = 40.dp
+
+    val bottomNavHeight = 56.dp
+    val bottomNavIconSize = 24.dp
 }

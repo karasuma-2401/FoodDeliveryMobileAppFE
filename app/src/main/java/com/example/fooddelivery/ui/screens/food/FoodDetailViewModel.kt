@@ -237,7 +237,6 @@ class FoodDetailViewModel @Inject constructor(
         _state.update {
             it.copy(
                 isAddingToCart = true,
-                showAddSuccessPulse = true,
                 showSizeSheet = false,
                 sheetSelectedSizeId = null,
                 sheetQuantity = 1

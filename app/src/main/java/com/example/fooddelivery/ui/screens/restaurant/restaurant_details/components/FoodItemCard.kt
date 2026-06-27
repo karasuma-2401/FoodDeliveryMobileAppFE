@@ -19,24 +19,32 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.domain.model.FoodItem
+import com.example.fooddelivery.ui.components.cart.onCenterPositioned
 import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun FoodItemCard(
     foodItem: FoodItem,
-    onAddClick: () -> Unit,
+    onAddClick: (imageCenter: Offset) -> Unit,
     onItemClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var imageCenter by remember { mutableStateOf<Offset?>(null) }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -57,7 +65,8 @@ fun FoodItemCard(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(20.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .onCenterPositioned { imageCenter = it },
                     contentScale = ContentScale.Crop
                 )
                 foodItem.promoTag?.let { tag ->
@@ -112,7 +121,9 @@ fun FoodItemCard(
                 .align(Alignment.BottomEnd)
         ) {
             IconButton(
-                onClick = onAddClick,
+                onClick = {
+                    imageCenter?.let(onAddClick)
+                },
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)

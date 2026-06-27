@@ -22,9 +22,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.domain.util.DiscountBadgeVisual
 import com.example.fooddelivery.ui.components.ShopeeDiscountBadge
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.components.cart.onCenterPositioned
 import com.example.fooddelivery.ui.theme.CustomerDimens
 import java.util.Locale
 import kotlinx.coroutines.delay
@@ -49,7 +54,7 @@ fun FoodInfoSection(
     discountBadge: DiscountBadgeVisual?,
     showAddSuccessPulse: Boolean,
     isAddingToCart: Boolean,
-    onQuickAdd: () -> Unit,
+    onQuickAdd: (Offset) -> Unit,
     onClearAddSuccessPulse: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -64,6 +69,7 @@ fun FoodInfoSection(
         targetValue = if (showAddSuccessPulse) 1.15f else 1f,
         label = "add_pulse"
     )
+    var addButtonCenter by remember { mutableStateOf<Offset?>(null) }
 
     Column(
         modifier = modifier
@@ -162,6 +168,7 @@ fun FoodInfoSection(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(CustomerDimens.iconContainerSm)
+                    .onCenterPositioned { addButtonCenter = it }
                     .graphicsLayer {
                         scaleX = pulseScale
                         scaleY = pulseScale
@@ -172,7 +179,9 @@ fun FoodInfoSection(
                         enabled = !isAddingToCart,
                         enableHaptic = true,
                         hapticFeedbackType = HapticFeedbackType.LongPress,
-                        onClick = onQuickAdd
+                        onClick = {
+                            addButtonCenter?.let(onQuickAdd)
+                        }
                     )
             ) {
                 Icon(
