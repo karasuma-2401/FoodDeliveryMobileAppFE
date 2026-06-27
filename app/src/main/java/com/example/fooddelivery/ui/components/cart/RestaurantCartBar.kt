@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.ui.theme.CustomerDimens
@@ -26,7 +27,9 @@ fun RestaurantCartBar(
     subtotal: Double,
     onCartClick: () -> Unit,
     onContinueClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCartIconPositioned: ((Offset) -> Unit)? = null,
+    cartBounceTrigger: Int = 0,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -43,7 +46,9 @@ fun RestaurantCartBar(
         ) {
             CartIconWithBadge(
                 itemCount = itemCount,
-                onClick = onCartClick
+                onClick = onCartClick,
+                onCenterPositioned = onCartIconPositioned,
+                bounceTrigger = cartBounceTrigger,
             )
 
             Text(

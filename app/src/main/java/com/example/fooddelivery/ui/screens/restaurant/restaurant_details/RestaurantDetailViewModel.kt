@@ -206,7 +206,13 @@ class RestaurantDetailViewModel @Inject constructor(
         val foodSizeId = selectedSize?.foodSizeId
         val quantity = sheet.quantity
 
-        _state.update { it.copy(isAddingToCart = true) }
+        _state.update {
+            it.copy(
+                isAddingToCart = true,
+                showAddToCartSheet = false,
+                addToCartSheet = null,
+            )
+        }
 
         val optimisticItem = CartItem(
             food = food.copy(price = unitPrice, size = sizeName.takeIf { it.isNotBlank() }),
@@ -226,13 +232,7 @@ class RestaurantDetailViewModel @Inject constructor(
                 note = null,
                 optimisticItem = optimisticItem
             ).onSuccess {
-                _state.update {
-                    it.copy(
-                        isAddingToCart = false,
-                        showAddToCartSheet = false,
-                        addToCartSheet = null
-                    )
-                }
+                _state.update { it.copy(isAddingToCart = false) }
                 _uiEffect.emit(
                     RestaurantDetailUiEffect.ShowSnackBar("${food.name} added to cart")
                 )

@@ -67,7 +67,7 @@ fun CompactQuantityStepper(
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier
-                .widthIn(min = 24.dp)
+                .widthIn(min = 28.dp)
                 .padding(horizontal = 6.dp)
         )
 

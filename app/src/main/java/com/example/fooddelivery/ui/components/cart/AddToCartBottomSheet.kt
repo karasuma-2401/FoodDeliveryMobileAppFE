@@ -29,6 +29,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +43,7 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.theme.CustomerDimens
 import com.example.fooddelivery.ui.screens.food.FoodSizeOption
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +63,7 @@ fun AddToCartBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
     val effectivePrice = sizes.firstOrNull { it.foodSizeId == selectedSizeId }?.price ?: unitPrice
     val totalPrice = effectivePrice * quantity
     val canConfirm = !isLoading && !isSubmitting && (sizes.isEmpty() || selectedSizeId != null)
@@ -135,24 +138,29 @@ fun AddToCartBottomSheet(
                                 modifier = Modifier.padding(top = 4.dp)
                             )
                         }
-                        Text(
-                            text = formatCartPrice(effectivePrice),
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = formatCartPrice(effectivePrice),
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            CompactQuantityStepper(
+                                quantity = quantity,
+                                onDecrease = { if (quantity > 1) onQuantityChange(quantity - 1) },
+                                onIncrease = { if (quantity < 99) onQuantityChange(quantity + 1) },
+                                decreaseEnabled = quantity > 1,
+                                increaseEnabled = quantity < 99,
+                            )
+                        }
                     }
-
-                    CompactQuantityStepper(
-                        quantity = quantity,
-                        onDecrease = { if (quantity > 1) onQuantityChange(quantity - 1) },
-                        onIncrease = { if (quantity < 99) onQuantityChange(quantity + 1) },
-                        decreaseEnabled = quantity > 1,
-                        increaseEnabled = quantity < 99,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
                 }
 
                 if (sizes.isNotEmpty()) {
@@ -207,7 +215,12 @@ fun AddToCartBottomSheet(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = onConfirm,
+                    onClick = {
+                        scope.launch {
+                            sheetState.hide()
+                            onConfirm()
+                        }
+                    },
                     enabled = canConfirm,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp)

@@ -44,7 +44,7 @@ data class FoodSizeOption(
 data class FoodIngredient(
     val id: Int,
     val name: String,
-    val iconUrl: String? = null
+    val iconKey: String? = null
 )
 
 data class FoodDetailState(
@@ -237,7 +237,6 @@ class FoodDetailViewModel @Inject constructor(
         _state.update {
             it.copy(
                 isAddingToCart = true,
-                showAddSuccessPulse = true,
                 showSizeSheet = false,
                 sheetSelectedSizeId = null,
                 sheetQuantity = 1
@@ -335,7 +334,7 @@ class FoodDetailViewModel @Inject constructor(
                         FoodIngredient(
                             id = ingredient.id,
                             name = ingredient.name,
-                            iconUrl = ingredient.icon
+                            iconKey = ingredient.icon
                         )
                     } ?: emptyList()
 

@@ -23,7 +23,7 @@ import javax.inject.Inject
 data class IngredientItemState(
     val id: String,
     val name: String,
-    val iconUrl: String? = null,
+    val iconKey: String? = null,
     val isSelected: Boolean = false
 )
 
@@ -77,7 +77,7 @@ class AddFoodViewModel @Inject constructor(
                         IngredientItemState(
                             id = dto.id.toString(),
                             name = dto.name,
-                            iconUrl = dto.icon,
+                            iconKey = dto.icon,
                             isSelected = false
                         )
                     }

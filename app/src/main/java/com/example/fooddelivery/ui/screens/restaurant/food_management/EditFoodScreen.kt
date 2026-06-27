@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.components.ingredient.IngredientIcon
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodActionTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
@@ -38,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun EditFoodScreen(
@@ -259,9 +259,9 @@ fun EditFoodContent(
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(
-                                            painter = rememberAsyncImagePainter(model = item.iconUrl),
-                                            contentDescription = null,
+                                        IngredientIcon(
+                                            iconKey = item.iconKey,
+                                            contentDescription = item.name,
                                             tint = if (item.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(24.dp)
                                         )

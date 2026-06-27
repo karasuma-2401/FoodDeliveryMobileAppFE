@@ -1,30 +1,41 @@
 package com.example.fooddelivery.ui.components.bottombar
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Assignment
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.ui.components.bounceClick
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 sealed class BottomNavItem(
     val title: String,
@@ -51,92 +62,63 @@ fun DFoodBottomBar(
         BottomNavItem.Profile
     )
 
-    Box(
+    Column(
         modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .navigationBarsPadding()
-            .padding(bottom = 8.dp)
     ) {
-        Surface(
+        HorizontalDivider(
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+        )
+
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(28.dp),
-            shadowElevation = 15.dp,
-            color = MaterialTheme.colorScheme.surface
+                .height(CustomerDimens.bottomNavHeight),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                items.forEach { item ->
-                    val isSelected = currentRoute == item.route
+            items.forEach { item ->
+                val isSelected = currentRoute == item.route
+                val contentColor by animateColorAsState(
+                    targetValue = if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+                    },
+                    animationSpec = tween(durationMillis = 200),
+                    label = "nav_item_color"
+                )
 
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val contentColor by animateColorAsState(
-                            targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                alpha = 0.5f
-                            ),
-                            animationSpec = tween(durationMillis = 250),
-                            label = "color"
-                        )
-
-                        val backgroundColor by animateColorAsState(
-                            targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.12f
-                            ) else Color.Transparent,
-                            animationSpec = tween(durationMillis = 250),
-                            label = "bg"
-                        )
-                        Box(
-                            modifier = Modifier
-                                .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessLow))
-                                .clip(CircleShape)
-                                .background(backgroundColor)
-                                .bounceClick(
-                                    scale = 0.95f,
-                                    onClick = { if (!isSelected) onItemClick(item) }
-                                )
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                                    contentDescription = item.title,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = contentColor
-                                )
-
-                                AnimatedVisibility(
-                                    visible = isSelected,
-                                    enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-                                    exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start)
-                                ) {
-                                    Text(
-                                        text = item.title,
-                                        modifier = Modifier.padding(start = 6.dp),
-                                        style = MaterialTheme.typography.labelLarge.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 10.sp
-                                        ),
-                                        color = contentColor,
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-                        }
-                    }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .bounceClick(
+                            scale = 0.96f,
+                            onClick = { onItemClick(item) }
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                        contentDescription = item.title,
+                        modifier = Modifier.size(CustomerDimens.bottomNavIconSize),
+                        tint = contentColor
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 11.sp,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                        ),
+                        color = contentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
