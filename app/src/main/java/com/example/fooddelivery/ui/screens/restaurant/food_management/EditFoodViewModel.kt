@@ -84,7 +84,7 @@ class EditFoodViewModel @Inject constructor(
                         IngredientItemState(
                             id = dto.id.toString(),
                             name = dto.name,
-                            iconUrl = dto.icon,
+                            iconKey = dto.icon,
                             isSelected = dto.id.toString() in savedIngredientIds
                         )
                     }

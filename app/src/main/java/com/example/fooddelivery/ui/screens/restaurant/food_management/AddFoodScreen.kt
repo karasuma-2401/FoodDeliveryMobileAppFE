@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
 
-import coil.compose.rememberAsyncImagePainter
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.fooddelivery.ui.components.ingredient.IngredientIcon
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodActionTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodImagePicker
@@ -248,9 +248,9 @@ fun AddFoodScreenContent(
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        painter = rememberAsyncImagePainter(model = item.iconUrl),
-                                        contentDescription = null,
+                                    IngredientIcon(
+                                        iconKey = item.iconKey,
+                                        contentDescription = item.name,
                                         tint = if (item.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(24.dp)
                                     )
