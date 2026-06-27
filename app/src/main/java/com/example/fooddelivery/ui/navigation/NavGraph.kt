@@ -794,7 +794,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                 composable<RestaurantProfileRoute> {
                     RestaurantProfileScreen(
                         onNavigateToPersonalInfo = {
-                            vendorNavController.navigate(RestaurantPersonalInfoRoute)
+                            vendorNavController.navigate(RestaurantPersonalInfoRoute())
                         },
                         onNavigateToAddress = {
                             vendorNavController.navigate(AddAddressRoute())

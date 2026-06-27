@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
 import java.util.Locale
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardRevenueCard(
@@ -22,7 +23,7 @@ fun DashboardRevenueCard(
     revenue: Double,
     modifier: Modifier = Modifier
 ) {
-    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
 
     Card(
         onClick = onClick,
