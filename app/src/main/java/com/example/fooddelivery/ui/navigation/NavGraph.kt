@@ -1,6 +1,5 @@
 package com.example.fooddelivery.ui.navigation
 
-import androidx.compose.ui.Modifier
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -10,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -71,6 +71,7 @@ import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
 import com.example.fooddelivery.ui.screens.rating_reviews.restaurant_reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.notification.NotificationScreen
+import com.example.fooddelivery.ui.screens.notification.UnreadNotificationViewModel
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonalInfoScreen
@@ -99,12 +100,36 @@ fun RootNavigationGraph(
 
     val customerBottomBarRoutes = listOf(
         HomeRoute::class,
-        SearchRoute::class,
         MyOrdersRoute::class,
-        ProfileRoute::class
+        NotificationRoute::class,
+        ProfileRoute::class,
     )
 
     val showCustomerBottomBar = customerBottomBarRoutes.any { currentDestination?.hasRoute(it) == true }
+    val unreadNotificationViewModel: UnreadNotificationViewModel = hiltViewModel()
+    val unreadNotificationCount by unreadNotificationViewModel.unreadCount.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    when {
+        currentDestination?.hasRoute(HomeRoute::class) == true -> {
+            BackHandler {
+                (context as? Activity)?.finish()
+            }
+        }
+        currentDestination?.hasRoute(MyOrdersRoute::class) == true ||
+            currentDestination?.hasRoute(NotificationRoute::class) == true ||
+            currentDestination?.hasRoute(ProfileRoute::class) == true -> {
+            BackHandler {
+                navController.navigate(HomeRoute) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        }
+    }
 
     val rootStartDestination = when (startDestination) {
         CustomerGraph, HomeRoute -> CustomerGraph
@@ -124,16 +149,17 @@ fun RootNavigationGraph(
                 com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar(
                     currentRoute = when {
                         currentDestination?.hasRoute(HomeRoute::class) == true -> "home"
-                        currentDestination?.hasRoute(SearchRoute::class) == true -> "search"
                         currentDestination?.hasRoute(MyOrdersRoute::class) == true -> "orders"
+                        currentDestination?.hasRoute(NotificationRoute::class) == true -> "notifications"
                         currentDestination?.hasRoute(ProfileRoute::class) == true -> "profile"
                         else -> ""
                     },
+                    unreadNotificationCount = unreadNotificationCount,
                     onItemClick = { item ->
                         val route = when (item) {
                             BottomNavItem.Home -> HomeRoute
-                            BottomNavItem.Search -> SearchRoute
                             BottomNavItem.Orders -> MyOrdersRoute
+                            BottomNavItem.Notifications -> NotificationRoute
                             BottomNavItem.Profile -> ProfileRoute
                         }
                         navController.navigate(route) {
@@ -329,7 +355,10 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                     navController.navigate(ConversationRoute) {
                         launchSingleTop = true
                     }
-                }
+                },
+                onNavigateToManageAddress = {
+                    navController.navigate(MyAddressRoute)
+                },
             )
         }
 
@@ -451,7 +480,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
         composable<MyOrdersRoute> {
             OrdersScreen(
-                onNavigateBack = { navController.popBackStack() },
+                showBackButton = false,
+                onNavigateBack = {},
                 onNavigateToTrackOrder = { orderId -> navController.navigate(TrackOrderRoute(orderId = orderId)) },
                 onNavigateToRate = { orderId, restaurantId, restaurantName ->
                     navController.navigate(RatingReviewRoute(orderId = orderId, restaurantId = restaurantId, restaurantName = restaurantName))
@@ -468,7 +498,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
         composable<ProfileRoute> {
             ProfileScreen(
-                onNavigateBack = { navController.popBackStack() },
+                showBackButton = false,
+                onNavigateBack = {},
                 onEditProfile = { navController.navigate(EditProfileRoute) },
                 onManageAddress = { navController.navigate(MyAddressRoute) },
                 onNavigateToBusinessRegistration = {
@@ -476,7 +507,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 },
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToFavourite = { navController.navigate(FavouriteRoute) },
-                onNavigateToNotification = { navController.navigate(NotificationRoute) },
                 onNavigateToReview = { navController.navigate(UserReviewRoute) },
                 onChangePassword = { navController.navigate(ChangePasswordRoute) },
                 onResetEmail = { navController.navigate(ResetEmailRoute) },
@@ -517,7 +547,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
         composable<NotificationRoute> {
             NotificationScreen(
-                onNavigateBack = { navController.popBackStack() },
+                showBackButton = false,
+                onNavigateBack = {},
                 onNavigateToOrder = { orderId ->
                     navController.navigate(TrackOrderRoute(orderId = orderId))
                 }
@@ -560,11 +591,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
         composable<SearchRoute> {
             SearchScreen(
-                onNavigateToHome = { navController.popBackStack() },
-                onNavigateToOrders = { navController.navigate(MyOrdersRoute) },
-                onNavigateToProfile = { navController.navigate(ProfileRoute) },
-                onNavigateToCart = { navController.navigate(CartRoute) },
-                onNavigateToConversations = { navController.navigate(ConversationRoute) },
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToRestaurant = { restaurant ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = restaurant.id))
                 },

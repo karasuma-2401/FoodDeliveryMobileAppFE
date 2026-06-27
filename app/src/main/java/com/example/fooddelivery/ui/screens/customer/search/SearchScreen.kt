@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
@@ -31,7 +32,7 @@ import com.example.fooddelivery.ui.screens.customer.search.components.SearchInpu
 import com.example.fooddelivery.ui.screens.customer.search.components.SearchRestaurantItem
 import com.example.fooddelivery.ui.screens.customer.search.components.SearchShimmerLoading
 import com.example.fooddelivery.ui.screens.customer.search.components.SectionHeader
-import com.example.fooddelivery.ui.screens.customer.home.components.HomeTopBar
+import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -40,13 +41,10 @@ enum class SearchDisplayState {
     LOADING, SUGGESTIONS, RESULTS, EMPTY
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-    onNavigateToHome: () -> Unit,
-    onNavigateToOrders: () -> Unit,
-    onNavigateToProfile: () -> Unit,
-    onNavigateToCart: () -> Unit,
-    onNavigateToConversations: () -> Unit,
+    onNavigateBack: () -> Unit,
     onNavigateToRestaurant: (Restaurant) -> Unit,
     onNavigateToFoodDetail: (String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
@@ -90,17 +88,13 @@ fun SearchScreen(
         }
     }
 
+    BackHandler(onBack = onNavigateBack)
+
     Scaffold(
         topBar = {
-            HomeTopBar(
-                selectedLocation = state.selectedLocation,
-                availableLocations = state.availableLocations,
-                onLocationSelected = { viewModel.onEvent(SearchEvent.LocationSelected(it)) },
-                cartItemCount = state.cartItemCount,
-                unreadMessageCount = state.unreadMessageCount,
-                onCartClick = onNavigateToCart,
-                onMessageClick = onNavigateToConversations,
-                onBackClick = onNavigateToHome,
+            DFoodTopBar(
+                title = "Search",
+                onBackClick = onNavigateBack,
             )
         },
         containerColor = MaterialTheme.colorScheme.background

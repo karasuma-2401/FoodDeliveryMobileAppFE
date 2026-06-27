@@ -9,7 +9,9 @@ import com.example.fooddelivery.domain.model.User
 import com.example.fooddelivery.domain.location.LocationTracker
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
+import com.example.fooddelivery.domain.repository.DeliveryAddressOption
 import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
+import com.example.fooddelivery.domain.repository.DeliveryLocationState
 import com.example.fooddelivery.domain.usecase.EnrichRestaurantsWithVoucherBadgesUseCase
 import com.example.fooddelivery.domain.usecase.GetHomeDashboardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,8 +50,9 @@ data class HomeState(
     val restaurants: List<Restaurant> = emptyList(),
     val cartItemCount: Int = 0,
     val unreadMessageCount: Int = 0,
-    val selectedLocation: String = "Home",
-    val availableLocations: List<String> = listOf("Home", "Work", "Other"),
+    val selectedLocationLabel: String = "",
+    val selectedLocationDetail: String = DeliveryLocationState.EMPTY_PLACEHOLDER,
+    val addressOptions: List<DeliveryAddressOption> = emptyList(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
@@ -62,7 +65,8 @@ sealed interface HomeEvent {
     object Refresh : HomeEvent
     object CartClicked : HomeEvent
     object MessageClicked : HomeEvent
-    data class LocationSelected(val location: String) : HomeEvent
+    data class AddressSelected(val addressId: Int) : HomeEvent
+    object ManageAddressClicked : HomeEvent
     data class CategoryClicked(val categoryId: String) : HomeEvent
     data class RestaurantClicked(val restaurantId: String) : HomeEvent
     data class BannerClicked(val banner: HomeBanner) : HomeEvent
@@ -81,6 +85,7 @@ sealed interface HomeUiEffect {
     data class NavigateToRestaurant(val restaurantId: String) : HomeUiEffect
     data class NavigateToFoodDetail(val foodId: String) : HomeUiEffect
     object NavigateToEditProfile : HomeUiEffect
+    object NavigateToManageAddress : HomeUiEffect
 }
 
 @HiltViewModel
@@ -110,8 +115,9 @@ class HomeViewModel @Inject constructor(
             deliveryLocationRepository.deliveryLocation.collectLatest { location ->
                 _state.update {
                     it.copy(
-                        selectedLocation = location.selectedLabel,
-                        availableLocations = location.availableLabels,
+                        selectedLocationLabel = location.selectedAddressLabel,
+                        selectedLocationDetail = location.selectedAddressDetail,
+                        addressOptions = location.availableAddressOptions,
                     )
                 }
             }
@@ -154,9 +160,10 @@ class HomeViewModel @Inject constructor(
                 HomeEvent.Refresh -> loadData(isRefresh = true)
                 HomeEvent.CartClicked -> _effect.emit(HomeUiEffect.NavigateToCart)
                 HomeEvent.MessageClicked -> _effect.emit(HomeUiEffect.NavigateToConversations)
-                is HomeEvent.LocationSelected -> {
-                    deliveryLocationRepository.selectByLabel(event.location)
+                is HomeEvent.AddressSelected -> {
+                    deliveryLocationRepository.selectById(event.addressId)
                 }
+                HomeEvent.ManageAddressClicked -> _effect.emit(HomeUiEffect.NavigateToManageAddress)
                 is HomeEvent.CategoryClicked -> _effect.emit(HomeUiEffect.NavigateToCategory(event.categoryId))
                 is HomeEvent.RestaurantClicked -> _effect.emit(HomeUiEffect.NavigateToRestaurant(event.restaurantId))
                 is HomeEvent.BannerClicked -> {

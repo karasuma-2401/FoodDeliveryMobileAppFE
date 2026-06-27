@@ -29,6 +29,8 @@ import com.example.fooddelivery.ui.components.bounceClick
 import com.example.fooddelivery.ui.theme.CustomerDimens
 import com.example.fooddelivery.ui.screens.customer.home.components.CategoryItem
 import com.example.fooddelivery.ui.screens.customer.home.components.CategoryItemSkeleton
+import com.example.fooddelivery.ui.screens.customer.home.components.HomeGreetingCard
+import com.example.fooddelivery.ui.screens.customer.home.components.HomeGreetingSkeleton
 import com.example.fooddelivery.ui.screens.customer.home.components.HomeTopBar
 import com.example.fooddelivery.ui.screens.customer.home.components.PromoBanner
 import com.example.fooddelivery.ui.screens.customer.home.components.PromoBannerSkeleton
@@ -39,7 +41,6 @@ import com.example.fooddelivery.ui.screens.customer.home.components.SectionHeade
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import java.util.Calendar
 
 @Composable
 fun HomeScreen(
@@ -53,6 +54,7 @@ fun HomeScreen(
     onNavigateToEditProfile: () -> Unit,
     onNavigateToOrders: () -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToManageAddress: () -> Unit,
     onNavigateToFoodDetail: (String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -70,6 +72,7 @@ fun HomeScreen(
                 is HomeUiEffect.NavigateToRestaurant -> onNavigateToRestaurant(effect.restaurantId)
                 is HomeUiEffect.NavigateToFoodDetail -> onNavigateToFoodDetail(effect.foodId)
                 HomeUiEffect.NavigateToEditProfile -> onNavigateToEditProfile()
+                HomeUiEffect.NavigateToManageAddress -> onNavigateToManageAddress()
             }
         }
     }
@@ -97,7 +100,8 @@ fun HomeScreen(
         onEvent = viewModel::onEvent,
         onNavigateToProfile = onNavigateToProfile,
         onNavigateToOrders = onNavigateToOrders,
-        onNavigateToSearch = onNavigateToSearch
+        onNavigateToSearch = onNavigateToSearch,
+        onNavigateToManageAddress = onNavigateToManageAddress,
     )
 }
 
@@ -175,21 +179,17 @@ fun HomeContent(
     onEvent: (HomeEvent) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToOrders: () -> Unit,
-    onNavigateToSearch: () -> Unit
+    onNavigateToSearch: () -> Unit,
+    onNavigateToManageAddress: () -> Unit,
 ) {
-    val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-        in 0..11 -> "Good Morning"
-        in 12..15 -> "Good Afternoon"
-        in 16..20 -> "Good Evening"
-        else -> "Good Night"
-    }
-
     Scaffold(
         topBar = {
             HomeTopBar(
-                selectedLocation = state.selectedLocation,
-                availableLocations = state.availableLocations,
-                onLocationSelected = { onEvent(HomeEvent.LocationSelected(it)) },
+                selectedLocationLabel = state.selectedLocationLabel,
+                selectedLocationDetail = state.selectedLocationDetail,
+                addressOptions = state.addressOptions,
+                onAddressSelected = { onEvent(HomeEvent.AddressSelected(it)) },
+                onManageAddressClick = { onEvent(HomeEvent.ManageAddressClicked) },
                 cartItemCount = state.cartItemCount,
                 unreadMessageCount = state.unreadMessageCount,
                 onCartClick = { onEvent(HomeEvent.CartClicked) },
@@ -210,18 +210,13 @@ fun HomeContent(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                item {
-                    Column(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) {
-                        Text(
-                            text = "Hey ${state.user.fullName.ifEmpty { "Customer" }}, $greeting!",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                if (state.isLoading) {
+                    item {
+                        Box(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) {
+                            HomeGreetingSkeleton()
+                        }
                         Spacer(modifier = Modifier.height(16.dp))
                     }
-                }
-
-                if (state.isLoading) {
                     item { Box(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) { SearchBarSkeleton() }; Spacer(modifier = Modifier.height(24.dp)) }
                     item { Box(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) { PromoBannerSkeleton() }; Spacer(modifier = Modifier.height(32.dp)) }
                     item {
@@ -231,6 +226,14 @@ fun HomeContent(
                     item { SectionHeader(title = "All Restaurants", onSeeAllClick = { }) }
                     items(3) { RestaurantItemSkeleton() }
                 } else {
+                    item {
+                        HomeGreetingCard(
+                            userName = state.user.fullName,
+                            modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding),
+                            onClick = onNavigateToProfile,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                     item {
                         Surface(
                             modifier = Modifier
@@ -305,7 +308,7 @@ fun HomeContent(
                     }
                     item {
                         SectionHeader(
-                            title = "Open Restaurants",
+                            title = "All Restaurants",
                             onSeeAllClick = { onEvent(HomeEvent.SeeAllRestaurantsClicked) }
                         )
                     }
@@ -332,6 +335,7 @@ fun HomeScreenPreview() {
             onNavigateToProfile = {},
             onNavigateToOrders = {},
             onNavigateToSearch = {},
+            onNavigateToManageAddress = {},
         )
     }
 }
