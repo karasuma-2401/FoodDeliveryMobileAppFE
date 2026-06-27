@@ -1,10 +1,11 @@
 package com.example.fooddelivery.ui.screens.rating_reviews.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -14,12 +15,19 @@ import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
 import com.example.fooddelivery.domain.model.ReviewItem
 
+enum class UserRole { CUSTOMER, BUSINESS, ADMIN }
+
 @Composable
 fun ReviewContentCard(
     review: ReviewItem,
-    onMoreClick: () -> Unit,
+    userRole: UserRole,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onReplyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var isMenuExpanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
@@ -42,14 +50,50 @@ fun ReviewContentCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_more_horiz),
-                    contentDescription = "More options",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .size(18.dp)
-                        .clickable { onMoreClick() } // 2. Gọi callback khi click
-                )
+                Box {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_more_horiz),
+                        contentDescription = "More options",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { isMenuExpanded = true }
+                    )
+
+                    DropdownMenu(
+                        expanded = isMenuExpanded,
+                        onDismissRequest = { isMenuExpanded = false }
+                    ) {
+                        when (userRole) {
+                            UserRole.CUSTOMER -> {
+                                DropdownMenuItem(
+                                    text = { Text("Edit") },
+                                    onClick = { isMenuExpanded = false; onEditClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = { isMenuExpanded = false; onDeleteClick() }
+                                )
+                            }
+                            UserRole.BUSINESS -> {
+                                DropdownMenuItem(
+                                    text = { Text("Reply") },
+                                    onClick = { isMenuExpanded = false; onReplyClick() }
+                                )
+                            }
+                            UserRole.ADMIN -> {
+                                DropdownMenuItem(
+                                    text = { Text("Reply") },
+                                    onClick = { isMenuExpanded = false; onReplyClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = { isMenuExpanded = false; onDeleteClick() }
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -72,6 +116,34 @@ fun ReviewContentCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
             )
+
+            if (!review.reply.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(12.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "Restaurant's reply:",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = review.reply,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,7 +29,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun UserReviewScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToEdit: (String, String, String, String, Int, String) -> Unit,
+    onNavigateToEdit: (orderId: String, restaurantId: String, restaurantName: String, restaurantImage: String, rating: Int, comment: String, reviewId: String) -> Unit,
     viewModel: UserReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -36,17 +37,21 @@ fun UserReviewScreen(
     val pullToRefreshState = rememberPullToRefreshState()
     val listState = rememberLazyListState()
 
+    var reviewIdToDelete by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
                 is UserReviewUiEffect.NavigateToEdit -> {
+
                     onNavigateToEdit(
                         effect.orderId,
                         effect.restaurantId,
                         effect.restaurantName,
                         effect.restaurantImage,
                         effect.rating,
-                        effect.comment
+                        effect.comment,
+                        effect.reviewId
                     )
                 }
 
@@ -56,6 +61,30 @@ fun UserReviewScreen(
             }
         }
     }
+
+    if (reviewIdToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { reviewIdToDelete = null },
+            title = { Text("Delete Review", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to delete this review? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        reviewIdToDelete?.let { viewModel.onEvent(UserReviewEvent.DeleteReview(it)) }
+                        reviewIdToDelete = null
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reviewIdToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     val shouldLoadNextPage = remember {
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
@@ -76,6 +105,7 @@ fun UserReviewScreen(
         pullToRefreshState = pullToRefreshState,
         listState = listState,
         onNavigateBack = onNavigateBack,
+        onDeleteClick = { id -> reviewIdToDelete = id }
     )
 }
 
@@ -87,6 +117,7 @@ fun UserReviewContent(
     pullToRefreshState: PullToRefreshState,
     listState: LazyListState,
     onNavigateBack: () -> Unit,
+    onDeleteClick: (String) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -106,7 +137,7 @@ fun UserReviewContent(
             if (state.reviews.isEmpty() && !state.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "You haven't written any reviews yet.", 
+                        text = "You haven't written any reviews yet.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -122,7 +153,7 @@ fun UserReviewContent(
                         UserReviewItem(
                             review = review,
                             onEditClick = { onEvent(UserReviewEvent.EditReview(review)) },
-                            onDeleteClick = { onEvent(UserReviewEvent.DeleteReview(review.id)) }
+                            onDeleteClick = { onDeleteClick(review.id) } // Thay vì gọi thẳng Event, mở Dialog lên trước
                         )
                     }
 

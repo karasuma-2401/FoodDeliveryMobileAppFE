@@ -222,3 +222,24 @@ data class NestedFoodDto(
 data class BusinessRegisterResponse(
     val requiresTokenRefresh: Boolean
 )
+@Serializable
+data class ReplyReviewRequest(
+    val reply: String
+)
+
+
+@Serializable
+data class UpdateReviewPayload(
+    val success: Boolean,
+    val message: String,
+    val data: FoodRatingPatchResponse
+)
+
+@Serializable
+data class FoodRatingPatchResponse(
+    val id: Int,
+    val vote: Int,
+    val comment: String? = null,
+    val tags: List<String> = emptyList(),
+    val updatedAt: String? = null
+)

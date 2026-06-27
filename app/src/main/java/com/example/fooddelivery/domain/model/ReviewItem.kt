@@ -8,6 +8,7 @@ data class ReviewItem(
     val title: String,
     val rating: Int,
     val description: String,
+    val reply: String? = null,
     val userAvatarRes: Int? = null
 ) {
     init {

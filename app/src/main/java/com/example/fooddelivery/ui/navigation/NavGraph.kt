@@ -558,7 +558,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<UserReviewRoute> {
             UserReviewScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment ->
+                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment, reviewId ->
                     navController.navigate(
                         RatingReviewRoute(
                             orderId = orderId,
@@ -566,7 +566,8 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                             restaurantName = name,
                             restaurantImage = image,
                             initialRating = rating,
-                            initialComment = comment
+                            initialComment = comment,
+                            reviewId = reviewId
                         )
                     )
                 }
@@ -625,6 +626,33 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToChat = { id, name, image ->
                     navController.navigate(ChatRoute(conversationId = id, restaurantName = name, restaurantImage = image))
+                }
+            )
+        }
+        composable<RestaurantPersonalInfoRoute> {
+            RestaurantPersonalInfoScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToSelectAddress = {
+                    navController.navigate(BusinessAddressRoute(isFromSignUp = true))
+                },
+                onRegistrationComplete = {
+                    navController.navigate(RestaurantGraph) {
+                        popUpTo<HomeRoute> { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable<BusinessAddressRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<BusinessAddressRoute>()
+            AddAddressScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAddressSaved = {
+                    if (args.isFromSignUp) {
+                        navController.previousBackStackEntry?.savedStateHandle?.set("address_saved_signal", true)
+                    }
+                    navController.popBackStack()
                 }
             )
         }
@@ -814,6 +842,20 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                             vendorNavController.navigate(BusinessAddressRoute(isFromSignUp = false))
                         },
                         onRegistrationComplete = {
+                        }
+                    )
+                }
+                composable<BusinessAddressRoute> { backStackEntry ->
+                    val args = backStackEntry.toRoute<BusinessAddressRoute>()
+
+                    AddAddressScreen(
+                        onNavigateBack = {
+                            vendorNavController.popBackStack()
+                        },
+                        onAddressSaved = {
+                            vendorNavController.previousBackStackEntry?.savedStateHandle?.set("address_saved_signal", true)
+
+                            vendorNavController.popBackStack()
                         }
                     )
                 }

@@ -330,16 +330,38 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     override suspend fun updateReview(reviewId: Int, request: UpdateReviewRequest): Result<FoodRatingResponse> {
         return try {
-            api.updateReview(reviewId, request).unwrapData("Failed to update review")
+            api.updateReview(reviewId, request)
+                .unwrapData("Failed to update review")
+                .map { payload ->
+                    FoodRatingResponse(
+                        id = payload.data.id,
+                        restaurantId = 0,
+                        userId = 0,
+                        vote = payload.data.vote,
+                        comment = payload.data.comment ?: "",
+                        tags = payload.data.tags,
+                        createdAt = payload.data.updatedAt ?: "",
+                        orderId = 0
+                    )
+                }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
         }
     }
 
-    override suspend fun deleteReview(reviewId: Int): Result<FoodRatingResponse> {
+    override suspend fun deleteReview(reviewId: Int): Result<Unit> {
         return try {
-            api.deleteReview(reviewId).unwrapData("Failed to delete review")
+            api.deleteReview(reviewId).unwrapSuccess("Failed to delete review")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+    override suspend fun replyReview(reviewId: Int, reply: String): Result<Unit> {
+        return try {
+            val request = ReplyReviewRequest(reply = reply)
+            api.replyReview(reviewId, request).unwrapSuccess("Failed to reply to review")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
