@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.domain.model.OrderDetail
 import com.example.fooddelivery.domain.repository.OrderRepository
+import com.example.fooddelivery.domain.repository.PaymentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -44,7 +45,8 @@ data class OrderManagementState(
 
 @HiltViewModel
 class OrderManagementViewModel @Inject constructor(
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val paymentRepository: PaymentRepository
 ) : ViewModel() {
 
     private val _state = mutableStateOf(OrderManagementState())
@@ -75,7 +77,31 @@ class OrderManagementViewModel @Inject constructor(
     }
 
     fun deliverOrder(orderId: String) {
-        updateOrderStatus(orderId, newStatus = "DELIVERED")
+        val numericOrderId = orderId.toIntOrNull() ?: return
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(updatingOrderId = orderId, error = null)
+
+            val paymentResult = paymentRepository.getPaymentDetail(numericOrderId)
+
+            paymentResult.onSuccess { payment ->
+                val confirmResult = paymentRepository.confirmPayment(payment.id)
+
+                confirmResult.onSuccess {
+                    updateOrderStatusInternal(orderId, numericOrderId, "DELIVERED")
+                }.onFailure { error ->
+                    _state.value = _state.value.copy(
+                        updatingOrderId = null,
+                        error = "Lỗi xác nhận thanh toán: ${error.message}"
+                    )
+                }
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    updatingOrderId = null,
+                    error = "Không lấy được thông tin thanh toán: ${error.message}"
+                )
+            }
+        }
     }
 
     fun cancelOrder(orderId: String) {
@@ -86,7 +112,6 @@ class OrderManagementViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
-            // Increased limit to avoid capping at 100. Ideally, pagination should be implemented.
             val ongoingDeferred = async {
                 orderRepository.getOrders(status = "ongoing", limit = 1000, offset = 0)
             }
@@ -109,9 +134,9 @@ class OrderManagementViewModel @Inject constructor(
             }
 
             val orderIds = (
-                ongoingResult.getOrDefault(emptyList()) +
-                    historyResult.getOrDefault(emptyList())
-                )
+                    ongoingResult.getOrDefault(emptyList()) +
+                            historyResult.getOrDefault(emptyList())
+                    )
                 .mapNotNull { it.id.toIntOrNull() }
                 .distinct()
 
@@ -122,8 +147,7 @@ class OrderManagementViewModel @Inject constructor(
             val orders = ordersDeferred.awaitAll().map { (orderId, result) ->
                 result.fold(
                     onSuccess = { detail -> toOrderModel(detail) },
-                    onFailure = { 
-                        // Instead of dropping the order, create a placeholder with error status
+                    onFailure = {
                         OrderModel(
                             id = orderId.toString(),
                             orderTime = "",
@@ -150,22 +174,25 @@ class OrderManagementViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.value = _state.value.copy(updatingOrderId = orderId, error = null)
-
-            orderRepository.updateOrderStatus(numericOrderId, newStatus)
-                .onSuccess {
-                    _state.value = _state.value.copy(updatingOrderId = null)
-                    loadOrders()
-                }
-                .onFailure { error ->
-                    _state.value = _state.value.copy(
-                        updatingOrderId = null,
-                        error = error.message ?: "Failed to update order"
-                    )
-                }
+            updateOrderStatusInternal(orderId, numericOrderId, newStatus)
         }
     }
 
-    private fun toOrderModel(detail: com.example.fooddelivery.domain.model.OrderDetail): OrderModel {
+    private suspend fun updateOrderStatusInternal(orderId: String, numericOrderId: Int, newStatus: String) {
+        orderRepository.updateOrderStatus(numericOrderId, newStatus)
+            .onSuccess {
+                _state.value = _state.value.copy(updatingOrderId = null)
+                loadOrders()
+            }
+            .onFailure { error ->
+                _state.value = _state.value.copy(
+                    updatingOrderId = null,
+                    error = error.message ?: "Failed to update order"
+                )
+            }
+    }
+
+    private fun toOrderModel(detail: OrderDetail): OrderModel {
         return OrderModel(
             id = detail.id,
             orderTime = detail.paymentDate ?: detail.expectedArrival ?: "",
@@ -186,7 +213,6 @@ class OrderManagementViewModel @Inject constructor(
         )
     }
 
-    /** Map raw backend status string sang OrderStatus enum của restaurant UI. */
     private fun mapBackendStatus(backendSt: String, frontendSt: String): OrderStatus {
         return when (backendSt.uppercase().ifBlank { frontendSt.uppercase() }) {
             "PENDING"        -> OrderStatus.PENDING

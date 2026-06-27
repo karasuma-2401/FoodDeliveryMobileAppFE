@@ -2,15 +2,16 @@ package com.example.fooddelivery.ui.screens.admin.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.domain.repository.AdminRepository // 🌟 Import Repository
 import com.example.fooddelivery.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.util.Locale
 
 data class AdminSettingUiState(
     val adminEmail: String = "",
@@ -22,29 +23,44 @@ data class AdminSettingUiState(
 
 @HiltViewModel
 class AdminSettingViewModel @Inject constructor(
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val adminRepository: AdminRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminSettingUiState())
     val uiState: StateFlow<AdminSettingUiState> = _uiState.asStateFlow()
 
     init {
-        loadAdminDashboardData()
+        loadAdminData()
     }
-
-    private fun loadAdminDashboardData() {
+    fun loadAdminData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            delay(1000)
+            adminRepository.getDashboard()
+                .onSuccess { dashboard ->
+                    val formattedEarnings = try {
+                        String.format(Locale.US, "$%,.2f", dashboard.deliveredRevenue.toDouble())
+                    } catch (e: Exception) {
+                        "$${dashboard.deliveredRevenue}"
+                    }
 
-            _uiState.update {
-                it.copy(
-                    adminEmail = "admin@dfood.com",
-                    totalEarnings = "$124,500.80",
-                    isLoading = false
-                )
-            }
+                    _uiState.update {
+                        it.copy(
+                            adminEmail = "admin@dfood.com",
+                            totalEarnings = formattedEarnings,
+                            isLoading = false
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.localizedMessage ?: "Failed to load admin settings data"
+                        )
+                    }
+                }
         }
     }
 
