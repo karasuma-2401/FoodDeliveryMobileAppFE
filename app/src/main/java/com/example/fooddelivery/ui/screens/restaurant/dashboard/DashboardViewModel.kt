@@ -6,6 +6,7 @@ import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.domain.model.BestSellerItem
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.domain.repository.VoucherRepository
+import com.example.fooddelivery.domain.util.CurrencyFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -15,7 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 data class RecentOrder(
@@ -124,7 +124,7 @@ class DashboardViewModel @Inject constructor(
                                     ?: if (voucher.type.equals("PERCENT", ignoreCase = true)) {
                                         "${voucher.sale.toInt()}% off"
                                     } else {
-                                        "$${String.format(Locale.US, "%.2f", voucher.sale)} off"
+                                        CurrencyFormatter.format(voucher.sale) + " off"
                                     }
                             )
                         }
@@ -156,7 +156,7 @@ class DashboardViewModel @Inject constructor(
                             bestSellers = dashboard.bestSellers.map { item ->
                                 BestSellerItem(
                                     name = item.name,
-                                    price = "$${String.format(Locale.US, "%.2f", item.price)}",
+                                    price = CurrencyFormatter.format(item.price),
                                     rating = item.rating.toFloat(),
                                     soldCount = item.soldCount,
                                     imageUrl = item.imageUrl

@@ -367,7 +367,8 @@ fun RestaurantDetailContent(
                                                 onEvent(RestaurantDetailEvent.OpenAddToCartSheet(foodItem))
                                             },
                                             onItemClick = { onNavigateToFoodDetail(foodItem.id) },
-                                            modifier = Modifier.weight(1f)
+                                            modifier = Modifier.weight(1f),
+                                            showAddButton = !state.isAdmin
                                         )
                                     }
                                     if (rowItems.size == 1) {

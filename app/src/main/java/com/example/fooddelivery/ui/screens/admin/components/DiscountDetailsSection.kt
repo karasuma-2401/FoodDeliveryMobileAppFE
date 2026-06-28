@@ -69,10 +69,11 @@ fun DiscountDetailsSection(
             Column(modifier = Modifier.weight(1f)) {
                 Text("Discount Value", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
                 Spacer(modifier = Modifier.height(4.dp))
+                val isPercent = discountType.contains("percent", ignoreCase = true)
                 OutlinedTextField(
                     value = discountValue,
                     onValueChange = onValueChange,
-                    suffix = { Text("%", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                    suffix = { Text(if (isPercent) "%" else "$", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
@@ -82,21 +83,23 @@ fun DiscountDetailsSection(
                     )
                 )
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Max Discount", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = maxDiscount,
-                    onValueChange = onMaxDiscountChange,
-                    prefix = { Text("$ ", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary
+            if (discountType.contains("percent", ignoreCase = true)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Max Discount", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = maxDiscount,
+                        onValueChange = onMaxDiscountChange,
+                        prefix = { Text("$ ", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     )
-                )
+                }
             }
         }
     }

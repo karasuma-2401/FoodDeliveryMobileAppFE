@@ -435,7 +435,20 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             val route = backStackEntry.toRoute<RestaurantReviewsRoute>()
             ReviewScreen(
                 restaurantId = route.restaurantId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment, reviewId ->
+                    navController.navigate(
+                        RatingReviewRoute(
+                            orderId = orderId?.toString() ?: "",
+                            restaurantId = restaurantId.toString(),
+                            restaurantName = name,
+                            restaurantImage = image,
+                            initialRating = rating,
+                            initialComment = comment,
+                            reviewId = reviewId?.toString()
+                        )
+                    )
+                }
             )
         }
 
@@ -811,7 +824,9 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     val route = backStackEntry.toRoute<RestaurantReviewsRoute>()
                     ReviewScreen(
                         restaurantId = route.restaurantId,
-                        onNavigateBack = { vendorNavController.popBackStack() }
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onNavigateToEdit = { _, _, _, _, _, _, _ ->
+                        }
                     )
                 }
                 composable<RestaurantRevenueRoute> { backStackEntry ->
@@ -1024,7 +1039,10 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminRestaurantsRoute> {
                     AdminRestaurantScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigate = onAdminNavigate
+                        onNavigate = onAdminNavigate,
+                        onNavigateToRestaurantDetail = { id ->
+                            navController.navigate(RestaurantDetailRoute(restaurantId = id.toString()))
+                        }
                     )
                 }
                 composable<AdminRevenueRoute> {
@@ -1040,8 +1058,12 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminCategoriesRoute> {
                     AdminCategoryScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigateToAdd = { adminNavController.navigate(CreateCategoryRoute)},
-                        onNavigateToEdit = { /* TODO */ },
+                        onNavigateToAdd = {
+                            adminNavController.navigate(CreateCategoryRoute(categoryId = null))
+                        },
+                        onNavigateToEdit = { categoryId ->
+                            adminNavController.navigate(CreateCategoryRoute(categoryId = categoryId.toString()))
+                        },
                         onNavigate = onAdminNavigate
                     )
                 }
@@ -1049,7 +1071,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminCouponRoute> {
                     AdminCouponScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigateToEditCoupon = { /* TODO */ },
+                        onNavigateToEditCoupon = {},
                         onNavigateToCreateCoupon = {
                             adminNavController.navigate(CreateCouponRoute())
                         }

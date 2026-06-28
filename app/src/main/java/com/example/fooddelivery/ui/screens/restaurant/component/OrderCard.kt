@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.domain.util.CurrencyFormatter
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderModel
 import com.example.fooddelivery.ui.screens.restaurant.order.OrderStatus
 
@@ -40,7 +41,7 @@ fun OrderCard(
         label = "ArrowRotationAnimation"
     )
 
-    fun formatVND(amount: Double) = String.format("%,d", amount.toInt()).replace(',', '.') + "đ"
+    fun formatCurrency(amount: Double) = CurrencyFormatter.format(amount)
 
     Card(
         modifier = modifier
@@ -99,7 +100,7 @@ fun OrderCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = formatVND(order.totalPrice),
+                        text = formatCurrency(order.totalPrice),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.error
@@ -138,7 +139,7 @@ fun OrderCard(
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
-                                text = formatVND(item.lineTotal),
+                                text = formatCurrency(item.lineTotal),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium
                             )

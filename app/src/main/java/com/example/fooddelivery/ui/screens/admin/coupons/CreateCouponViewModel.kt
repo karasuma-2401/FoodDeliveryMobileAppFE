@@ -102,14 +102,26 @@ class CreateCouponViewModel @Inject constructor(
             return
         }
 
+        // Validate discount value limits based on type
+        val isPercent = currentState.discountType.contains("percent", ignoreCase = true)
+        if (isPercent && sale > 100) {
+            _uiState.update { it.copy(errorMessage = "Percentage discount cannot exceed 100%") }
+            return
+        }
+
         val minOrder = currentState.minOrder.toDoubleOrNull()
         if (minOrder == null || minOrder < 0) {
             _uiState.update { it.copy(errorMessage = "Invalid minimum order amount") }
             return
         }
 
-        val maxDiscount = currentState.maxDiscount.toDoubleOrNull()
-        if (maxDiscount != null && maxDiscount < 0) {
+        // Max discount validation only applies to percentage discounts
+        val maxDiscount = if (isPercent) {
+            currentState.maxDiscount.toDoubleOrNull()
+        } else {
+            null
+        }
+        if (isPercent && maxDiscount != null && maxDiscount < 0) {
             _uiState.update { it.copy(errorMessage = "Invalid maximum discount amount") }
             return
         }
@@ -146,12 +158,13 @@ class CreateCouponViewModel @Inject constructor(
             try {
                 // Determine restaurantId: route parameter takes precedence, then tokenManager for vendors
                 val finalRestaurantId = routeRestaurantId ?: tokenManager.getRestaurantId.first()
-
-                val type = if (currentState.discountType.contains("percent", ignoreCase = true)) {
-                    "PERCENT"
-                } else {
-                    "MONEY"
+                
+                if (finalRestaurantId == null) {
+                    _uiState.update { it.copy(isSaving = false, errorMessage = "No restaurant found") }
+                    return@launch
                 }
+
+                val type = if (isPercent) "PERCENT" else "MONEY"
 
                 val name = currentState.couponCode.trim().uppercase()
                 val code = currentState.couponCode.trim().uppercase()
@@ -166,7 +179,7 @@ class CreateCouponViewModel @Inject constructor(
                     status = "APPLYING",
                     restaurantId = finalRestaurantId,
                     minimumOrderAmount = minOrder,
-                    maximumDiscountAmount = maxDiscount?.takeIf { it > 0 },
+                    maximumDiscountAmount = if (isPercent) maxDiscount?.takeIf { it > 0 } else null,
                     startAt = startAt,
                     endAt = endAt,
                     usageLimit = totalUsageLimit,
@@ -174,7 +187,6 @@ class CreateCouponViewModel @Inject constructor(
                 )
 
                 result.onSuccess {
-                    // Cập nhật cờ thành công để giao diện bắt tín hiệu quay lại màn hình trước
                     _uiState.update { it.copy(isSaving = false, isSavedSuccessfully = true) }
                 }.onFailure { e ->
                     _uiState.update { it.copy(isSaving = false, errorMessage = e.localizedMessage ?: "Failed to save coupon") }

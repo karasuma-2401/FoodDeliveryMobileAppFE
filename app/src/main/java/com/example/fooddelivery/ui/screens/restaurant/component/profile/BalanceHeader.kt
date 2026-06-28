@@ -34,7 +34,7 @@ fun BalanceHeader(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = balance,
+            text = if (balance.isBlank()) "—" else balance,
             color = MaterialTheme.colorScheme.onPrimary,
             fontSize = 40.sp,
             fontWeight = FontWeight.Bold

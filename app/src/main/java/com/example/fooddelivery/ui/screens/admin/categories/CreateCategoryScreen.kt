@@ -1,8 +1,12 @@
 package com.example.fooddelivery.ui.screens.admin.categories
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,12 +18,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
-import com.example.fooddelivery.ui.theme.DFoodTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,13 +38,45 @@ fun CreateCategoryScreen(
     val state = viewModel.uiState
     val scrollState = rememberScrollState()
     val colorScheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    val file = withContext(Dispatchers.IO) {
+                        val tempFile = File(context.cacheDir, "category_image_${System.currentTimeMillis()}.jpg")
+                        context.contentResolver.openInputStream(it)?.use { input ->
+                            FileOutputStream(tempFile).use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        tempFile
+                    }
+                    viewModel.onEvent(CategoryEvent.ImageSelected(it.toString()))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    // Tự động quay lại màn hình trước khi lưu/cập nhật thành công
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            onNavigateBack()
+        }
+    }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "Create Category",
+                        text = if (state.isEditMode) "Edit Category" else "Create Category",
                         color = colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
@@ -67,12 +107,14 @@ fun CreateCategoryScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Box tải ảnh lên
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
                     .border(BorderStroke(1.dp, colorScheme.outlineVariant), RoundedCornerShape(16.dp))
-                    .background(colorScheme.surface),
+                    .background(colorScheme.surface)
+                    .clickable { imagePickerLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -105,6 +147,7 @@ fun CreateCategoryScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Khung nhập tên Category
             Text(
                 "Category Name",
                 fontWeight = FontWeight.Bold,
@@ -119,36 +162,9 @@ fun CreateCategoryScreen(
                 errorMessage = state.error
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Status", fontWeight = FontWeight.Bold, color = colorScheme.onBackground, modifier = Modifier.padding(bottom = 4.dp))
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, colorScheme.outlineVariant),
-                color = colorScheme.surface
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Active", color = colorScheme.onSurface)
-                    Switch(
-                        checked = state.isActive,
-                        onCheckedChange = { viewModel.onEvent(CategoryEvent.StatusChanged(it)) },
-                        colors = SwitchDefaults.colors(
-                            checkedTrackColor = colorScheme.primary,
-                            checkedThumbColor = colorScheme.onPrimary
-                        )
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Lời khuyên UI (Pro Tip)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = colorScheme.primaryContainer,
@@ -180,9 +196,12 @@ fun CreateCategoryScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Nút Lưu/Cập nhật
             Button(
                 onClick = { viewModel.onEvent(CategoryEvent.SaveCategory) },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.primary,
@@ -192,15 +211,21 @@ fun CreateCategoryScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(color = colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Save Category", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = if (state.isEditMode) "Update Category" else "Save Category",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Nút Hủy
             OutlinedButton(
                 onClick = onNavigateBack,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, colorScheme.outline)
             ) {

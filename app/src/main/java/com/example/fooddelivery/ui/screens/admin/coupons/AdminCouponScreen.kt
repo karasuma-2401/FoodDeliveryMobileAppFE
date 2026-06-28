@@ -78,7 +78,6 @@ fun AdminCouponScreen(
                     items(uiState.systemVouchers) { itemVoucher ->
                         AdminCouponItemCard(
                             voucher = itemVoucher,
-                            onEditClick = { onNavigateToEditCoupon(itemVoucher.id) },
                             onToggleActive = { isActive ->
                                 viewModel.toggleSystemCoupon(itemVoucher.id, isActive)
                             }

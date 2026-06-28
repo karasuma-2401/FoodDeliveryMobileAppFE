@@ -4,6 +4,7 @@ data class ReviewItem(
     val id: String,
     val userName: String = "",
     val userAvatarUrl: String? = null,
+    val userId: Int = 0,
     val date: String,
     val title: String,
     val rating: Int,

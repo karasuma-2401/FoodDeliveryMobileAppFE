@@ -1,6 +1,9 @@
 package com.example.fooddelivery.ui.screens.restaurant.profile
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,10 +29,15 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.sectionheader.SectionHeader
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.RestaurantInputField
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun RestaurantPersonalInfoScreen(
-    navController: NavController, // 🌟 Nhận NavController để lắng nghe tín hiệu
+    navController: NavController,
     onNavigateBack: () -> Unit,
     onNavigateToSelectAddress: () -> Unit,
     onRegistrationComplete: () -> Unit,
@@ -67,7 +75,8 @@ fun RestaurantPersonalInfoScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
-        onSelectAddressClick = onNavigateToSelectAddress
+        onSelectAddressClick = onNavigateToSelectAddress,
+        onImageSelected = viewModel::onImageSelected
     )
 }
 
@@ -77,8 +86,35 @@ fun RestaurantPersonalInfoContent(
     state: RestaurantPersonalInfoState,
     onEvent: (RestaurantPersonalInfoEvent) -> Unit,
     onNavigateBack: () -> Unit,
-    onSelectAddressClick: () -> Unit
+    onSelectAddressClick: () -> Unit,
+    onImageSelected: (File, Uri) -> Unit = { _, _ -> }
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    val file = withContext(Dispatchers.IO) {
+                        val tempFile = File(context.cacheDir, "restaurant_image_${System.currentTimeMillis()}.jpg")
+                        context.contentResolver.openInputStream(it)?.use { input ->
+                            FileOutputStream(tempFile).use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        tempFile
+                    }
+                    onImageSelected(file, it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+    
     Scaffold(
         topBar = {
             val screenTitle = if (state.isFromSignUp) "Setup Restaurant" else "Restaurant Information"
@@ -102,7 +138,8 @@ fun RestaurantPersonalInfoContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(160.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium),
+                        .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
+                        .clickable { imagePickerLauncher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -111,7 +148,7 @@ fun RestaurantPersonalInfoContent(
                             contentDescription = "Upload Photo",
                             tint = MaterialTheme.colorScheme.primary
                         )
-                        TextButton(onClick = { /* Open Gallery */ }) {
+                        TextButton(onClick = { imagePickerLauncher.launch("image/*") }) {
                             Text("Change Restaurant Photo")
                         }
                     }

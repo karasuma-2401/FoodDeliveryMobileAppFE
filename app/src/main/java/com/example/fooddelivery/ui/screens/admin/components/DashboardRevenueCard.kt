@@ -13,8 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.text.NumberFormat
-import java.util.Locale
+import com.example.fooddelivery.domain.util.CurrencyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,8 +22,6 @@ fun DashboardRevenueCard(
     revenue: Double,
     modifier: Modifier = Modifier
 ) {
-    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
-
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -48,7 +45,7 @@ fun DashboardRevenueCard(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = currencyFormatter.format(revenue),
+                    text = CurrencyFormatter.format(revenue),
                     style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Black),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontSize = 28.sp
