@@ -21,6 +21,7 @@ import com.example.fooddelivery.domain.model.ReviewItem
 fun ReviewItemRow(
     review: ReviewItem,
     userRole: UserRole,
+    currentUserId: Int? = null,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onReplyClick: () -> Unit
@@ -92,6 +93,7 @@ fun ReviewItemRow(
         ReviewContentCard(
             review = review,
             userRole = userRole,
+            currentUserId = currentUserId,
             onEditClick = onEditClick,
             onDeleteClick = onDeleteClick,
             onReplyClick = onReplyClick,

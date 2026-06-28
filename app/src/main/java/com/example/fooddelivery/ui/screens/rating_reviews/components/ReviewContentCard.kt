@@ -21,12 +21,20 @@ enum class UserRole { CUSTOMER, BUSINESS, ADMIN }
 fun ReviewContentCard(
     review: ReviewItem,
     userRole: UserRole,
+    currentUserId: Int? = null,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onReplyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
+    val isReviewOwner = currentUserId != null && review.userId != 0 && currentUserId == review.userId
+    
+    val shouldShowMenu = when (userRole) {
+        UserRole.CUSTOMER -> isReviewOwner
+        UserRole.BUSINESS -> true
+        UserRole.ADMIN -> true
+    }
 
     Card(
         modifier = modifier,
@@ -50,46 +58,50 @@ fun ReviewContentCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Box {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_more_horiz),
-                        contentDescription = "More options",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable { isMenuExpanded = true }
-                    )
+                if (shouldShowMenu) {
+                    Box {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_more_horiz),
+                            contentDescription = "More options",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clickable { isMenuExpanded = true }
+                        )
 
-                    DropdownMenu(
-                        expanded = isMenuExpanded,
-                        onDismissRequest = { isMenuExpanded = false }
-                    ) {
-                        when (userRole) {
-                            UserRole.CUSTOMER -> {
-                                DropdownMenuItem(
-                                    text = { Text("Edit") },
-                                    onClick = { isMenuExpanded = false; onEditClick() }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Delete") },
-                                    onClick = { isMenuExpanded = false; onDeleteClick() }
-                                )
-                            }
-                            UserRole.BUSINESS -> {
-                                DropdownMenuItem(
-                                    text = { Text("Reply") },
-                                    onClick = { isMenuExpanded = false; onReplyClick() }
-                                )
-                            }
-                            UserRole.ADMIN -> {
-                                DropdownMenuItem(
-                                    text = { Text("Reply") },
-                                    onClick = { isMenuExpanded = false; onReplyClick() }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Delete") },
-                                    onClick = { isMenuExpanded = false; onDeleteClick() }
-                                )
+                        DropdownMenu(
+                            expanded = isMenuExpanded,
+                            onDismissRequest = { isMenuExpanded = false }
+                        ) {
+                            when (userRole) {
+                                UserRole.CUSTOMER -> {
+                                    if (isReviewOwner) {
+                                        DropdownMenuItem(
+                                            text = { Text("Edit") },
+                                            onClick = { isMenuExpanded = false; onEditClick() }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Delete") },
+                                            onClick = { isMenuExpanded = false; onDeleteClick() }
+                                        )
+                                    }
+                                }
+                                UserRole.BUSINESS -> {
+                                    DropdownMenuItem(
+                                        text = { Text("Reply") },
+                                        onClick = { isMenuExpanded = false; onReplyClick() }
+                                    )
+                                }
+                                UserRole.ADMIN -> {
+                                    DropdownMenuItem(
+                                        text = { Text("Reply") },
+                                        onClick = { isMenuExpanded = false; onReplyClick() }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Delete") },
+                                        onClick = { isMenuExpanded = false; onDeleteClick() }
+                                    )
+                                }
                             }
                         }
                     }

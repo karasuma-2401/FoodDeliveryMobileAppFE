@@ -435,7 +435,20 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             val route = backStackEntry.toRoute<RestaurantReviewsRoute>()
             ReviewScreen(
                 restaurantId = route.restaurantId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment, reviewId ->
+                    navController.navigate(
+                        RatingReviewRoute(
+                            orderId = orderId?.toString() ?: "",
+                            restaurantId = restaurantId.toString(),
+                            restaurantName = name,
+                            restaurantImage = image,
+                            initialRating = rating,
+                            initialComment = comment,
+                            reviewId = reviewId?.toString()
+                        )
+                    )
+                }
             )
         }
 
@@ -811,7 +824,9 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     val route = backStackEntry.toRoute<RestaurantReviewsRoute>()
                     ReviewScreen(
                         restaurantId = route.restaurantId,
-                        onNavigateBack = { vendorNavController.popBackStack() }
+                        onNavigateBack = { vendorNavController.popBackStack() },
+                        onNavigateToEdit = { _, _, _, _, _, _, _ ->
+                        }
                     )
                 }
                 composable<RestaurantRevenueRoute> { backStackEntry ->

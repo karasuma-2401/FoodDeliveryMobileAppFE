@@ -41,7 +41,8 @@ fun FoodItemCard(
     foodItem: FoodItem,
     onAddClick: (imageCenter: Offset) -> Unit,
     onItemClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showAddButton: Boolean = true
 ) {
     var imageCenter by remember { mutableStateOf<Offset?>(null) }
 
@@ -116,25 +117,27 @@ fun FoodItemCard(
                 color = MaterialTheme.colorScheme.primary
             )
         }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-        ) {
-            IconButton(
-                onClick = {
-                    imageCenter?.let(onAddClick)
-                },
+        if (showAddButton) {
+            Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
+                    .align(Alignment.BottomEnd)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add ${foodItem.name} to cart",
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(CustomerDimens.iconMd)
-                )
+                IconButton(
+                    onClick = {
+                        imageCenter?.let(onAddClick)
+                    },
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add ${foodItem.name} to cart",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(CustomerDimens.iconMd)
+                    )
+                }
             }
         }
     }

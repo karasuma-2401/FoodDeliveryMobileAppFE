@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.screens.rating_reviews.restaurant_reviews
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,34 +8,85 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.rating_reviews.components.ReviewItemRow
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewScreen(
     restaurantId: Int,
     onNavigateBack: () -> Unit,
+    onNavigateToEdit: (orderId: Int?, restaurantId: Int, name: String, image: String, rating: Int, comment: String, reviewId: Int?) -> Unit,
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
     var reviewIdToReply by remember { mutableStateOf<String?>(null) }
+    var reviewIdToDelete by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(key1 = restaurantId) {
-        viewModel.loadReviews(restaurantId)
+        viewModel.onEvent(ReviewEvent.LoadReviews(restaurantId))
     }
 
-    // Hiển thị Dialog khi có ID review cần reply
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collectLatest { effect ->
+            when (effect) {
+                is ReviewUiEffect.NavigateToEdit -> {
+                    onNavigateToEdit(
+                        effect.orderId,
+                        effect.restaurantId,
+                        effect.restaurantName,
+                        effect.restaurantImage,
+                        effect.rating,
+                        effect.comment,
+                        effect.reviewId
+                    )
+                }
+                is ReviewUiEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    if (reviewIdToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { reviewIdToDelete = null },
+            title = { Text("Delete Review", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to delete this review? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        reviewIdToDelete?.let { viewModel.onEvent(ReviewEvent.DeleteReview(it)) }
+                        reviewIdToDelete = null
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reviewIdToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     if (reviewIdToReply != null) {
         ReplyDialog(
             onDismiss = { reviewIdToReply = null },
             onSubmit = { replyText ->
                 reviewIdToReply?.let { id ->
-                    viewModel.replyReview(id, replyText)
+                    viewModel.onEvent(ReviewEvent.ReplyReview(id, replyText))
                 }
             }
         )
@@ -86,11 +138,12 @@ fun ReviewScreen(
                     ReviewItemRow(
                         review = review,
                         userRole = state.userRole,
+                        currentUserId = state.currentUserId,
                         onEditClick = {
-                            // Xử lý logic Edit nếu cần
+                            viewModel.onEvent(ReviewEvent.EditReview(review))
                         },
                         onDeleteClick = {
-                            viewModel.deleteReview(review.id)
+                            reviewIdToDelete = review.id
                         },
                         onReplyClick = {
                             reviewIdToReply = review.id
@@ -138,6 +191,10 @@ fun ReplyDialog(
 @Composable
 fun ReviewScreenPreview() {
     DFoodTheme {
-        ReviewScreen(restaurantId = 1, onNavigateBack = {})
+        ReviewScreen(
+            restaurantId = 1,
+            onNavigateBack = {},
+            onNavigateToEdit = { _, _, _, _, _, _, _ -> }
+        )
     }
 }

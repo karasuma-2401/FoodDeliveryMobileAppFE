@@ -18,6 +18,7 @@ import com.example.fooddelivery.domain.repository.VoucherRepository
 import com.example.fooddelivery.domain.util.RestaurantShareTextBuilder
 import com.example.fooddelivery.ui.navigation.RestaurantDetailRoute
 import com.example.fooddelivery.ui.screens.food.FoodSizeOption
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +52,8 @@ data class RestaurantDetailState(
     val addToCartSheet: AddToCartSheetState? = null,
     val isAddingToCart: Boolean = false,
     val restaurantCartItemCount: Int = 0,
-    val restaurantCartSubtotal: Double = 0.0
+    val restaurantCartSubtotal: Double = 0.0,
+    val isAdmin: Boolean = false
 )
 
 sealed interface RestaurantDetailEvent {
@@ -76,6 +78,7 @@ class RestaurantDetailViewModel @Inject constructor(
     private val voucherRepository: VoucherRepository,
     private val cartRepository: CartRepository,
     private val foodRepository: FoodRepository,
+    private val tokenManager: TokenManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val restaurantId: String = savedStateHandle.toRoute<RestaurantDetailRoute>().restaurantId
@@ -88,6 +91,16 @@ class RestaurantDetailViewModel @Inject constructor(
     init {
         loadRestaurantDetails()
         observeRestaurantCart()
+        checkUserRole()
+    }
+
+    private fun checkUserRole() {
+        viewModelScope.launch {
+            tokenManager.getUserRoles.collectLatest { roles ->
+                val isAdmin = roles.any { it.equals("ADMIN", ignoreCase = true) }
+                _state.update { it.copy(isAdmin = isAdmin) }
+            }
+        }
     }
 
     fun onEvent(event: RestaurantDetailEvent) {
