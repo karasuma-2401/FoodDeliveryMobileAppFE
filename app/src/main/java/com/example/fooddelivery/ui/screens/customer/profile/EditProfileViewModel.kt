@@ -18,23 +18,18 @@ data class EditProfileState(
     val user: User = User(),
     val initialUser: User = User(),
     val fullNameError: String? = null,
-    val emailError: String? = null,
-    val phoneError: String? = null,
     val selectedImageUri: String? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null
 ) {
     val isChanged: Boolean
-        get() = user.fullName != initialUser.fullName || 
-                user.phone != initialUser.phone || 
+        get() = user.fullName != initialUser.fullName ||
                 selectedImageUri != null
 }
 
 sealed interface EditProfileEvent {
     data class FullNameChanged(val name: String) : EditProfileEvent
-    data class EmailChanged(val email: String) : EditProfileEvent
-    data class PhoneChanged(val phone: String) : EditProfileEvent
     data class ProfileImageChanged(val uri: String) : EditProfileEvent
     object SaveClicked : EditProfileEvent
     object ErrorDismissed : EditProfileEvent
@@ -58,12 +53,6 @@ class EditProfileViewModel @Inject constructor(
         when (event) {
             is EditProfileEvent.FullNameChanged -> {
                 _state.update { it.copy(user = it.user.copy(fullName = event.name), fullNameError = null) }
-            }
-            is EditProfileEvent.EmailChanged -> {
-                _state.update { it.copy(user = it.user.copy(email = event.email), emailError = null) }
-            }
-            is EditProfileEvent.PhoneChanged -> {
-                _state.update { it.copy(user = it.user.copy(phone = event.phone), phoneError = null) }
             }
             is EditProfileEvent.ProfileImageChanged -> {
                 _state.update { it.copy(selectedImageUri = event.uri) }
@@ -92,23 +81,13 @@ class EditProfileViewModel @Inject constructor(
     }
 
     private fun validate(): Boolean {
-        val user = _state.value.user
-        val nameError = validateInputUseCase.validateFullName(user.fullName)
-        val emailError = validateInputUseCase.validateEmail(user.email)
-        val phoneError = validateInputUseCase.validatePhone(user.phone)
+        val nameError = validateInputUseCase.validateFullName(_state.value.user.fullName)
 
-        val hasError = listOf(nameError, emailError, phoneError).any { it != null }
-
-        if (hasError) {
-            _state.update { 
-                it.copy(
-                    fullNameError = nameError,
-                    emailError = emailError,
-                    phoneError = phoneError
-                )
-            }
+        if (nameError != null) {
+            _state.update { it.copy(fullNameError = nameError) }
+            return false
         }
-        return !hasError
+        return true
     }
 
     private fun saveProfile() {

@@ -17,8 +17,7 @@ data class FacebookLoginRequest (
 
 @Serializable
 data class GoogleLoginRequest (
-    val accessToken: String? = null,
-    val code: String? = null
+    val idToken: String
 )
 
 @Serializable

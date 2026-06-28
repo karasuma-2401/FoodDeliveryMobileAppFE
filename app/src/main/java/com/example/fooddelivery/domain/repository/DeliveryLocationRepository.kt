@@ -50,12 +50,20 @@ data class DeliveryLocationState(
         get() = selectedAddress?.longitude?.takeIf { it != 0.0 }
 
     companion object {
-        const val EMPTY_PLACEHOLDER = "Chọn địa chỉ giao hàng"
+        const val EMPTY_PLACEHOLDER = "Select delivery address"
     }
 }
 
-fun Address.toAddressLabel(): String =
-    type.ifEmpty { title.ifEmpty { "Address" } }
+fun String.toDisplayAddressType(): String = when {
+    equals("Nhà riêng", ignoreCase = true) || equals("Home", ignoreCase = true) -> "Home"
+    equals("Văn phòng", ignoreCase = true) || equals("Work", ignoreCase = true) -> "Work"
+    else -> this
+}
+
+fun Address.toAddressLabel(): String {
+    val raw = type.ifEmpty { title.ifEmpty { "Address" } }
+    return raw.toDisplayAddressType()
+}
 
 fun Address.toAddressDetail(): String =
     detail.ifEmpty { title.ifEmpty { type } }

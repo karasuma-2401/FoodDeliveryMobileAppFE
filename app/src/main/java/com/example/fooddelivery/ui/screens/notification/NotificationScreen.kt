@@ -24,9 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.fooddelivery.domain.model.NotificationType
-import com.example.fooddelivery.domain.model.effectiveActions
+import com.example.fooddelivery.domain.model.NotificationDestination
+import com.example.fooddelivery.domain.model.resolveDestination
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.notification.components.EmptyNotificationsView
 import com.example.fooddelivery.ui.screens.notification.components.NotificationItem
@@ -36,14 +38,18 @@ import com.example.fooddelivery.ui.theme.DFoodTheme
 @Composable
 fun NotificationScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToOrder: (String) -> Unit,
-    onNavigateToChat: ((String) -> Unit)? = null,
+    onNavigate: (NotificationDestination) -> Unit,
     showBackButton: Boolean = true,
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onEvent(NotificationEvent.LoadNotifications)
+        viewModel.onEvent(NotificationEvent.RefreshUnreadCount)
+    }
 
     val shouldLoadMore = remember {
         derivedStateOf {
@@ -59,13 +65,6 @@ fun NotificationScreen(
         }
     }
 
-    LaunchedEffect(state.successMessage) {
-        state.successMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.onEvent(NotificationEvent.SuccessDismissed)
-        }
-    }
-
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -77,8 +76,7 @@ fun NotificationScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
-        onNavigateToOrder = onNavigateToOrder,
-        onNavigateToChat = onNavigateToChat,
+        onNavigate = onNavigate,
         listState = listState,
         snackbarHostState = snackbarHostState,
         showBackButton = showBackButton
@@ -91,8 +89,7 @@ fun NotificationContent(
     state: NotificationState,
     onEvent: (NotificationEvent) -> Unit,
     onNavigateBack: () -> Unit,
-    onNavigateToOrder: (String) -> Unit,
-    onNavigateToChat: ((String) -> Unit)? = null,
+    onNavigate: (NotificationDestination) -> Unit,
     listState: LazyListState,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     showBackButton: Boolean = true
@@ -144,31 +141,20 @@ fun NotificationContent(
                             items = state.notifications,
                             key = { it.id }
                         ) { notification ->
-                            val hasActions = notification.effectiveActions().isNotEmpty()
                             NotificationItem(
                                 notification = notification,
                                 onClick = {
                                     if (!notification.isRead) {
                                         onEvent(NotificationEvent.MarkAsRead(notification.id))
                                     }
-                                    if (notification.type == NotificationType.CHAT && notification.targetId != null) {
-                                        onNavigateToChat?.invoke(notification.targetId)
-                                    } else if (notification.type == NotificationType.ORDER && notification.targetId != null) {
-                                        onNavigateToOrder(notification.targetId)
-                                    }
-                                },
-                                onActionClick = { action ->
-                                    onEvent(NotificationEvent.ExecuteAction(notification.id, action))
-                                },
-                                isProcessing = state.processingNotificationId == notification.id
+                                    notification.resolveDestination()?.let(onNavigate)
+                                }
                             )
-                            if (!hasActions) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = 24.dp),
-                                    thickness = 0.5.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant
-                                )
-                            }
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
                         }
                         if (state.isPaginating) {
                             item {
@@ -197,7 +183,7 @@ fun NotificationScreenPreview() {
             state = NotificationState(),
             onEvent = {},
             onNavigateBack = {},
-            onNavigateToOrder = {},
+            onNavigate = {},
             listState = rememberLazyListState()
         )
     }

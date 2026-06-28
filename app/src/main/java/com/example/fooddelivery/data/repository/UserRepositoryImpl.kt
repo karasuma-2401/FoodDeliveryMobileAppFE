@@ -64,7 +64,6 @@ class UserRepositoryImpl @Inject constructor(
 
             val response = api.updateUserProfile(
                 name = user.fullName.toRequestBody("text/plain".toMediaTypeOrNull()),
-                phone = user.phone.toRequestBody("text/plain".toMediaTypeOrNull()),
                 avatar = imagePart
             )
 
@@ -90,12 +89,28 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun addUserPhone(phone: String): Result<User> {
+        return try {
+            val response = api.updateUserProfile(
+                phone = phone.toRequestBody("text/plain".toMediaTypeOrNull())
+            )
+            if (response.isSuccessful && response.body() != null) {
+                response.body()!!.toUser()
+            } else {
+                Result.failure(Exception(response.parseErrorMessage("Failed to add phone number")))
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
+        }
+    }
+
     private fun UserProfileData.toUser(): User {
         return User(
             id = id?.toString().orEmpty(),
             fullName = name,
             email = email,
-            phone = phone,
+            phone = phone.orEmpty(),
             birthday = birthday ?: "",
             profileImage = avatar
         )

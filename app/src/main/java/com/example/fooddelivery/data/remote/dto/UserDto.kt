@@ -15,7 +15,7 @@ data class UserProfileResponse(
     val avatar: String? = null
 ) {
     fun getFinalData(): UserProfileData? {
-        return data ?: if (name != null && email != null && phone != null) {
+        return data ?: if (name != null && email != null) {
             UserProfileData(
                 id = id,
                 name = name,
@@ -35,7 +35,7 @@ data class UserProfileData(
     val id: Int? = null,
     val name: String,
     val email: String,
-    val phone: String,
+    val phone: String? = null,
     val birthday: String? = null,
     val avatar: String? = null
 )

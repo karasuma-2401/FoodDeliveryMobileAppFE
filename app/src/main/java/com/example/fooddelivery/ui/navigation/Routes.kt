@@ -64,6 +64,7 @@ data class RatingReviewRoute(
 
 @Serializable object ProfileRoute
 @Serializable object EditProfileRoute
+@Serializable object AddPhoneRoute
 @Serializable object ChangePasswordRoute
 @Serializable object ResetEmailRoute
 @Serializable object MyAddressRoute

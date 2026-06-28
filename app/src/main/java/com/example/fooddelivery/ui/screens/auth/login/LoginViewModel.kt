@@ -110,7 +110,7 @@ class LoginViewModel @Inject constructor(
     private fun loginWithGoogle(googleToken: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = loginWithGoogleUseCase(googleToken)
+            val result = loginWithGoogleUseCase(idToken = googleToken)
             result.onSuccess { roles ->
                 registerDeviceTokenUseCase()
                 _state.update {

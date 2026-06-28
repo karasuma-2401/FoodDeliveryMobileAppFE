@@ -11,6 +11,7 @@ import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.model.AddressItem
 import com.example.fooddelivery.domain.usecase.DeleteAddressUseCase
 import com.example.fooddelivery.domain.usecase.GetAddressesUseCase
+import com.example.fooddelivery.domain.repository.toDisplayAddressType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -90,7 +91,7 @@ class CustomerAddressViewModel @Inject constructor(
         }
         return AddressItem(
             id = id,
-            type = type,
+            type = type.toDisplayAddressType(),
             title = title,
             detail = detail,
             deliveryNote = deliveryNote,

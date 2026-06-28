@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,7 +48,7 @@ import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.address.components.AddressDeliveryNoteField
 import com.example.fooddelivery.ui.screens.address.components.AddressFormDivider
-import com.example.fooddelivery.ui.screens.address.components.AddressSearchDialog
+import com.example.fooddelivery.ui.screens.address.components.AddressSearchBottomSheet
 import com.example.fooddelivery.ui.screens.address.components.AddressTypeSelector
 import com.example.fooddelivery.ui.screens.address.components.DeliveryLocationRow
 import com.example.fooddelivery.ui.theme.CustomerDimens
@@ -93,7 +94,8 @@ fun AddAddressContent(
     onNavigateBack: () -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
-    var showSearchDialog by remember { mutableStateOf(false) }
+    var showSearchSheet by remember { mutableStateOf(false) }
+    val searchSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusManager = LocalFocusManager.current
     val isEditMode = state.isEditMode
     val mapLocation = remember(state.selectedAddress) {
@@ -105,9 +107,9 @@ fun AddAddressContent(
         }
     }
 
-    AddressSearchDialog(
-        showDialog = showSearchDialog,
-        onDismissRequest = { showSearchDialog = false },
+    AddressSearchBottomSheet(
+        showSheet = showSearchSheet,
+        onDismissRequest = { showSearchSheet = false },
         searchQuery = state.searchQuery,
         onSearchQueryChange = { onEvent(AddAddressEvent.SearchQueryChanged(it)) },
         isSearching = state.isSearching,
@@ -115,8 +117,9 @@ fun AddAddressContent(
         noResultsFound = state.noResultsFound,
         onSearchResultSelected = {
             onEvent(AddAddressEvent.SearchResultSelected(it))
-            showSearchDialog = false
-        }
+            showSearchSheet = false
+        },
+        sheetState = searchSheetState,
     )
 
     Scaffold(
@@ -163,7 +166,7 @@ fun AddAddressContent(
         ) {
             LocationPickerHeader(
                 initialLocation = mapLocation,
-                onSearchClick = { showSearchDialog = true },
+                onSearchClick = { showSearchSheet = true },
             )
 
             Card(
@@ -213,7 +216,7 @@ fun AddAddressContent(
                     DeliveryLocationRow(
                         address = state.fullAddress,
                         hasPinnedLocation = state.hasPinnedLocation,
-                        onChangeClick = { showSearchDialog = true },
+                        onChangeClick = { showSearchSheet = true },
                     )
 
                     AddressFormDivider()

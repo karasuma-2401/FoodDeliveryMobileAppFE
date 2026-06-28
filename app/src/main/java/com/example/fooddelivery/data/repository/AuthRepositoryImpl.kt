@@ -64,9 +64,9 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun loginGoogle(accessToken: String?, code: String?): Result<LoginResponse> {
+    override suspend fun loginGoogle(idToken: String): Result<LoginResponse> {
         return try {
-            val response = api.loginGoogle(GoogleLoginRequest(accessToken = accessToken, code = code))
+            val response = api.loginGoogle(GoogleLoginRequest(idToken = idToken))
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it)
@@ -134,10 +134,10 @@ class AuthRepositoryImpl @Inject constructor(
                     } ?: Result.failure(Exception("Empty response body"))
                 }
                 response.code() == 401 -> {
-                    Result.failure(UnauthorizedException("Token không hợp lệ hoặc đã hết hạn"))
+                    Result.failure(UnauthorizedException("Invalid or expired token"))
                 }
                 response.code() == 404 -> {
-                    Result.failure(UserNotFoundException("Tài khoản không tồn tại hoặc chưa được kích hoạt"))
+                    Result.failure(UserNotFoundException("Account not found or not activated"))
                 }
                 else -> {
                     val errorMsg = response.parseErrorMessage("Get me failed: ${response.code()}")

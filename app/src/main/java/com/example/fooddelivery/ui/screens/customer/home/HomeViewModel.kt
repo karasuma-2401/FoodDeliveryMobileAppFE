@@ -84,7 +84,6 @@ sealed interface HomeUiEffect {
     data class NavigateToCategory(val categoryId: String) : HomeUiEffect
     data class NavigateToRestaurant(val restaurantId: String) : HomeUiEffect
     data class NavigateToFoodDetail(val foodId: String) : HomeUiEffect
-    object NavigateToEditProfile : HomeUiEffect
     object NavigateToManageAddress : HomeUiEffect
 }
 
