@@ -27,7 +27,8 @@ fun CheckoutSuccessScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(horizontal = 24.dp)
+                .padding(top = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -63,8 +64,8 @@ fun CheckoutSuccessScreen(
                 onClick = onTrackOrder,
                 modifier = Modifier.fillMaxWidth()
             )
-            
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
     }
 }

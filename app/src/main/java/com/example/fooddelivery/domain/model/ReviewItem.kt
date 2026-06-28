@@ -10,6 +10,8 @@ data class ReviewItem(
     val rating: Int,
     val description: String,
     val reply: String? = null,
+    val tags: List<String> = emptyList(),
+    val orderId: Int? = null,
     val userAvatarRes: Int? = null
 ) {
     init {

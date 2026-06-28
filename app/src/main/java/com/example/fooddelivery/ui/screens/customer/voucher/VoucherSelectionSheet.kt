@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -267,6 +268,6 @@ fun VoucherSelectionSheet(
             }
         }
 
-        Spacer(modifier = Modifier.navigationBarsPadding())
+        NavigationBarBottomSpacer()
     }
 }

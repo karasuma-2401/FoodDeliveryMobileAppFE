@@ -107,29 +107,37 @@ fun CheckoutScreen(
                 shadowElevation = 16.dp,
                 tonalElevation = 4.dp
             ) {
-                Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(CustomerDimens.bottomBarPadding)) {
-                    val buttonText = if (state.paymentMethod is PaymentMethod.MoMo) {
-                        val formattedTotal = String.format(Locale.US,"$%.2f", state.total)
-                        stringResource(R.string.pay_with_momo, formattedTotal)
-                    } else stringResource(R.string.place_order)
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(CustomerDimens.bottomBarPadding)
+                    ) {
+                        val buttonText = if (state.paymentMethod is PaymentMethod.MoMo) {
+                            val formattedTotal = String.format(Locale.US,"$%.2f", state.total)
+                            stringResource(R.string.pay_with_momo, formattedTotal)
+                        } else stringResource(R.string.place_order)
 
-                    DFoodButton(
-                        text = buttonText,
-                        onClick = { viewModel.onEvent(CheckoutEvent.PlaceOrder) },
-                        isLoading = state.isLoading || state.isPolling,
-                        containerColor = if (state.paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) else MaterialTheme.colorScheme.primary,
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward, 
-                                contentDescription = null, 
-                                tint = MaterialTheme.colorScheme.onPrimary, 
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    )
+                        DFoodButton(
+                            text = buttonText,
+                            onClick = { viewModel.onEvent(CheckoutEvent.PlaceOrder) },
+                            isLoading = state.isLoading || state.isPolling,
+                            containerColor = if (state.paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) else MaterialTheme.colorScheme.primary,
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        )
+                    }
+                    Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                 }
             }
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {

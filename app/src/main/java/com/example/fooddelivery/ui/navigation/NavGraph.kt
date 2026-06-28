@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.DisposableEffect
@@ -77,8 +78,6 @@ import com.example.fooddelivery.ui.screens.restaurant.order.OrderManagementScree
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonalInfoScreen
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantProfileScreen
 import com.example.fooddelivery.ui.screens.restaurant.revenue.RestaurantRevenueScreen
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -144,6 +143,7 @@ fun RootNavigationGraph(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showCustomerBottomBar) {
                 com.example.fooddelivery.ui.components.bottombar.DFoodBottomBar(
@@ -436,7 +436,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             ReviewScreen(
                 restaurantId = route.restaurantId,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment, reviewId ->
+                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment, reviewId, tags ->
                     navController.navigate(
                         RatingReviewRoute(
                             orderId = orderId?.toString() ?: "",
@@ -445,6 +445,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                             restaurantImage = image,
                             initialRating = rating,
                             initialComment = comment,
+                            initialTags = tags,
                             reviewId = reviewId?.toString()
                         )
                     )
@@ -571,7 +572,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
         composable<UserReviewRoute> {
             UserReviewScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment, reviewId ->
+                onNavigateToEdit = { orderId, restaurantId, name, image, rating, comment, reviewId, tags ->
                     navController.navigate(
                         RatingReviewRoute(
                             orderId = orderId,
@@ -580,6 +581,7 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                             restaurantImage = image,
                             initialRating = rating,
                             initialComment = comment,
+                            initialTags = tags,
                             reviewId = reviewId
                         )
                     )
@@ -725,6 +727,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
         }
 
         androidx.compose.material3.Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (showBottomBar) {
                     DFoodBottomBar(
@@ -825,8 +828,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     ReviewScreen(
                         restaurantId = route.restaurantId,
                         onNavigateBack = { vendorNavController.popBackStack() },
-                        onNavigateToEdit = { _, _, _, _, _, _, _ ->
-                        }
+                        onNavigateToEdit = { _, _, _, _, _, _, _, _ -> }
                     )
                 }
                 composable<RestaurantRevenueRoute> { backStackEntry ->
@@ -996,6 +998,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
 
         Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (showBottomBar) {
                     AdminBottomBar(

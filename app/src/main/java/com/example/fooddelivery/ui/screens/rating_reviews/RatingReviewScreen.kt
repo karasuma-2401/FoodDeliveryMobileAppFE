@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.rating_reviews.components.ReviewTagCloud
 import com.example.fooddelivery.ui.screens.rating_reviews.components.StarRatingBar
@@ -79,6 +80,7 @@ fun RatingReviewContent(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHost) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state.isLoading) {
@@ -195,6 +197,7 @@ fun RatingReviewContent(
                         Text("Delete Review")
                     }
                 }
+                NavigationBarBottomSpacer()
             }
         }
     }

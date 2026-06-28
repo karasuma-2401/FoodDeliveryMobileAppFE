@@ -50,7 +50,8 @@ fun RoleSelectionScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(24.dp)
+                    .navigationBarsPadding(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

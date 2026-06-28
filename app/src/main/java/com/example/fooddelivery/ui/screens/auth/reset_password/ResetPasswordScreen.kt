@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 
@@ -146,6 +147,7 @@ fun ResetPasswordContent(
                 onClick = { onEvent(ResetPasswordEvent.ResetPasswordClicked) },
                 enabled = !state.isLoading
             )
+            NavigationBarBottomSpacer()
         }
     }
 }

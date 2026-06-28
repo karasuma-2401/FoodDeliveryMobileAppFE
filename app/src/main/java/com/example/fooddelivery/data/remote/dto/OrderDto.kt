@@ -281,10 +281,17 @@ data class HistoryOrdersResponse(
 
 @Serializable
 data class ReorderResponse(
-    val cart: CartResponse,
+    val id: Int,
+    val totalItems: Int,
+    val subtotal: Double,
+    val restaurantGroups: List<CartRestaurantGroupResponse> = emptyList(),
+    val restaurant: CartRestaurantResponse? = null,
+    val items: List<CartItemResponse>,
     val addedCount: Int,
     val skippedItems: List<SkippedReorderItemResponse> = emptyList(),
     val message: String? = null,
+    val deliveryFee: Double? = null,
+    val totalPrice: Double? = null,
 )
 
 @Serializable

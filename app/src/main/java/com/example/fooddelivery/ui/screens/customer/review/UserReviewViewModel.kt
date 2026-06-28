@@ -40,7 +40,8 @@ sealed interface UserReviewUiEffect {
         val restaurantImage: String,
         val rating: Int,
         val comment: String,
-        val reviewId: String
+        val reviewId: String,
+        val tags: List<String> = emptyList(),
     ) : UserReviewUiEffect
     data class ShowToast(val message: String) : UserReviewUiEffect
 }
@@ -84,7 +85,8 @@ class UserReviewViewModel @Inject constructor(
                         restaurantImage = event.review.restaurantImage,
                         rating = event.review.rating,
                         comment = event.review.comment,
-                        reviewId = event.review.id
+                        reviewId = event.review.id,
+                        tags = event.review.tags,
                     ))
                 }
             }

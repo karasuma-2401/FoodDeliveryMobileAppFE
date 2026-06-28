@@ -53,7 +53,7 @@ class OrderRepositoryImpl @Inject constructor(
             api.reorder(orderId)
                 .unwrapData("Failed to reorder")
                 .mapCatching { response ->
-                    cartRepository.applyServerCart(response.cart).getOrThrow()
+                    cartRepository.applyServerCart(response.toCartResponse()).getOrThrow()
                     ReorderResult(
                         message = response.message ?: "Items added to cart",
                         addedCount = response.addedCount,

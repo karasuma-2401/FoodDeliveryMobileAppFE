@@ -100,6 +100,7 @@ fun NotificationContent(
     val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             DFoodTopBar(

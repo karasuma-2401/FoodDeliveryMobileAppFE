@@ -114,6 +114,7 @@ fun FoodDetailContent(
 
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (showCartBar) {
                     RestaurantCartBar(
@@ -136,7 +137,7 @@ fun FoodDetailContent(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
+                        .padding(bottom = innerPadding.calculateBottomPadding())
                 ) {
                     FoodDetailHeaderSkeleton(
                         modifier = Modifier
@@ -178,7 +179,7 @@ fun FoodDetailContent(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
+                        .padding(bottom = innerPadding.calculateBottomPadding()),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -201,7 +202,7 @@ fun FoodDetailContent(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
+                        .padding(bottom = innerPadding.calculateBottomPadding())
                 ) {
                     if (heroOverlay.showHeroImage) {
                         Box(

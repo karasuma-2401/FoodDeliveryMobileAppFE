@@ -138,27 +138,38 @@ fun CartContent(
         },
         bottomBar = {
             if (!state.isCartEmpty) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(CustomerDimens.bottomBarPadding)
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 12.dp,
+                    tonalElevation = 2.dp,
                 ) {
-                    DFoodButton(
-                        text = if (state.isLoading) "Processing..." else "Proceed to Checkout",
-                        onClick = onCheckoutClick,
-                        enabled = state.canCheckout && !state.isLoading,
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(20.dp)
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(CustomerDimens.bottomBarPadding)
+                        ) {
+                            DFoodButton(
+                                text = if (state.isLoading) "Processing..." else "Proceed to Checkout",
+                                onClick = onCheckoutClick,
+                                enabled = state.canCheckout && !state.isLoading,
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             )
                         }
-                    )
+                        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                    }
                 }
             }
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state.isCartEmpty) {

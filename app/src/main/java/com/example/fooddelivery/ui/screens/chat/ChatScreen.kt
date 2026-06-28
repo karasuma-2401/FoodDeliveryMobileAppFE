@@ -142,7 +142,11 @@ fun ChatContent(
             )
         },
         bottomBar = {
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
                 SuggestedReplies(
                     isBusinessUser = state.isBusinessUser,
                     onReplyClick = { onEvent(ChatEvent.SelectSuggestedReply(it)) }
@@ -160,6 +164,7 @@ fun ChatContent(
                 )
             }
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(

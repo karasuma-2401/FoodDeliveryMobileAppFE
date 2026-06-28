@@ -183,6 +183,7 @@ fun HomeContent(
     onNavigateToManageAddress: () -> Unit,
 ) {
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             HomeTopBar(
                 selectedLocationLabel = state.selectedLocationLabel,

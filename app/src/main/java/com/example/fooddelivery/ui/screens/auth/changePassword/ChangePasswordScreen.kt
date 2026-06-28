@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
+import com.example.fooddelivery.ui.components.layout.ScaffoldBottomBarSurface
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 
@@ -60,12 +62,7 @@ fun ChangePasswordScreen(
             )
         },
         bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 16.dp,
-                tonalElevation = 4.dp
-            ) {
+            ScaffoldBottomBarSurface(shadowElevation = 16.dp, tonalElevation = 4.dp) {
                 DFoodButton(
                     text = "UPDATE PASSWORD",
                     onClick = {
@@ -79,6 +76,7 @@ fun ChangePasswordScreen(
                 )
             }
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
@@ -163,30 +161,22 @@ private fun PasswordInputField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        DFoodFTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = "Enter $label",
-            isPassword = true,
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.Lock,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            isError = errorMessage != null,
-            errorMessage = errorMessage,
-            keyboardOptions = keyboardOptions,
-            keyboardActions = keyboardActions,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+    DFoodFTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        isPassword = true,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.Lock,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        isError = errorMessage != null,
+        errorMessage = errorMessage,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        modifier = Modifier.fillMaxWidth()
+    )
 }

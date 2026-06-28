@@ -19,17 +19,21 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private val REVIEW_TAG_LABELS = listOf(
+private val DEFAULT_REVIEW_TAG_LABELS = listOf(
     "Delicious food",
     "Fast delivery",
     "Careful packaging",
     "Friendly attitude",
     "Reasonable price",
-    "Food arrived hot",
-    "Fresh ingredients",
-    "Accurate order",
-    "Large portions"
 )
+
+private const val REVIEW_TAGS_DISPLAY_LIMIT = 5
+
+private fun buildAvailableTags(preselected: Set<String>): List<String> {
+    val defaults = DEFAULT_REVIEW_TAG_LABELS.take(REVIEW_TAGS_DISPLAY_LIMIT)
+    val extra = preselected.filter { it.isNotBlank() && it !in defaults }
+    return (defaults + extra).distinct()
+}
 
 data class RatingReviewState(
     val orderId: String = "",
@@ -41,7 +45,7 @@ data class RatingReviewState(
     val comment: String = "",
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,
-    val availableTags: List<String> = REVIEW_TAG_LABELS,
+    val availableTags: List<String> = emptyList(),
     val selectedTags: Set<String> = emptySet(),
     val reviews: List<VendorReviewResponse> = emptyList()
 )
@@ -66,6 +70,7 @@ class RatingReviewViewModel @Inject constructor(
     private val restaurantRepository: RestaurantRepository
 ) : ViewModel() {
     private val routeData = savedStateHandle.toRoute<RatingReviewRoute>()
+    private val initialTags = routeData.initialTags.filter { it.isNotBlank() }.toSet()
 
     private val _state = MutableStateFlow(
         RatingReviewState(
@@ -75,7 +80,9 @@ class RatingReviewViewModel @Inject constructor(
             restaurantName = routeData.restaurantName,
             restaurantImage = routeData.restaurantImage,
             rating = routeData.initialRating,
-            comment = routeData.initialComment
+            comment = routeData.initialComment,
+            availableTags = buildAvailableTags(initialTags),
+            selectedTags = initialTags,
         )
     )
     val state: StateFlow<RatingReviewState> = _state.asStateFlow()

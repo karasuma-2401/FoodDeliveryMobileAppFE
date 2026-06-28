@@ -15,6 +15,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.card.AddressCard
+import com.example.fooddelivery.ui.components.layout.ScaffoldBottomBarSurface
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,24 +62,27 @@ fun CustomerAddressScreen(
             )
         },
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-            ) {
-                DFoodButton(
-                    text = "ADD NEW ADDRESS",
-                    onClick = onAddNewAddress,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.AddLocationAlt,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    },
-                )
+            ScaffoldBottomBarSurface {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                ) {
+                    DFoodButton(
+                        text = "ADD NEW ADDRESS",
+                        onClick = onAddNewAddress,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.AddLocationAlt,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        },
+                    )
+                }
             }
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {

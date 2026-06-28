@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.layout.ScaffoldBottomBarSurface
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 
@@ -97,12 +98,7 @@ fun EditProfileContent(
             )
         },
         bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 16.dp,
-                tonalElevation = 4.dp
-            ) {
+            ScaffoldBottomBarSurface(shadowElevation = 16.dp, tonalElevation = 4.dp) {
                 DFoodButton(
                     text = "SAVE",
                     onClick = {
@@ -116,6 +112,7 @@ fun EditProfileContent(
                 )
             }
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
@@ -257,29 +254,21 @@ fun ProfileInputField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        DFoodFTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = "Enter your $label",
-            leadingIcon = {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            isError = isError,
-            errorMessage = errorMessage,
-            keyboardOptions = keyboardOptions,
-            keyboardActions = keyboardActions,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+    DFoodFTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        leadingIcon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        isError = isError,
+        errorMessage = errorMessage,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        modifier = Modifier.fillMaxWidth()
+    )
 }

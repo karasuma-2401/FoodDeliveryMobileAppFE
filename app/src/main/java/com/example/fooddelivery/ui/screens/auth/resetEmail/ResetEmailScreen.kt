@@ -100,16 +100,10 @@ fun ResetEmailScreen(
                 exit = fadeOut()
             ) {
                 Column {
-                    Text(
-                        text = "Phone Number",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
                     DFoodFTextField(
                         value = state.phone,
                         onValueChange = { viewModel.onEvent(ResetEmailEvent.PhoneChanged(it)) },
-                        label = "Enter registered phone",
+                        label = "Phone Number",
                         leadingIcon = { Icon(Icons.Outlined.Phone, null, tint = MaterialTheme.colorScheme.primary) },
                         isError = state.phoneError != null,
                         errorMessage = state.phoneError,
@@ -118,16 +112,10 @@ fun ResetEmailScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    Text(
-                        text = "Current Password",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
                     DFoodFTextField(
                         value = state.password,
                         onValueChange = { viewModel.onEvent(ResetEmailEvent.PasswordChanged(it)) },
-                        label = "Enter your password",
+                        label = "Current Password",
                         isPassword = true,
                         leadingIcon = { Icon(Icons.Outlined.Lock, null, tint = MaterialTheme.colorScheme.primary) },
                         isError = state.passwordError != null,
@@ -153,16 +141,10 @@ fun ResetEmailScreen(
                 exit = fadeOut()
             ) {
                 Column {
-                    Text(
-                        text = "New Email",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
                     DFoodFTextField(
                         value = state.newEmail,
                         onValueChange = { viewModel.onEvent(ResetEmailEvent.NewEmailChanged(it)) },
-                        label = "Enter new email address",
+                        label = "New Email",
                         leadingIcon = { Icon(Icons.Outlined.Email, null, tint = MaterialTheme.colorScheme.primary) },
                         isError = state.newEmailError != null,
                         errorMessage = state.newEmailError,
@@ -171,16 +153,10 @@ fun ResetEmailScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    Text(
-                        text = "OTP Code",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
                     DFoodFTextField(
                         value = state.otpCode,
                         onValueChange = { if (it.length <= 6) viewModel.onEvent(ResetEmailEvent.OtpChanged(it)) },
-                        label = "Enter 6-digit OTP",
+                        label = "OTP Code",
                         isError = state.otpError != null,
                         errorMessage = state.otpError,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
