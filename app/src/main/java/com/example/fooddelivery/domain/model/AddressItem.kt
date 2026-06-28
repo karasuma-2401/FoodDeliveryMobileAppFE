@@ -8,6 +8,7 @@ data class AddressItem(
     val type: String,
     val title: String,
     val detail: String,
+    val deliveryNote: String = "",
     val icon: ImageVector,
     val iconColor: Color,
     val iconBgColor: Color

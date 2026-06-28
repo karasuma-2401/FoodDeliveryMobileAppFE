@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.domain.model.Address
+import com.example.fooddelivery.util.formatLocationLine
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +81,7 @@ fun AddressSelectionBottomSheet(
                                     text = formatAddressLine(address),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 2
+                                    maxLines = 3
                                 )
                             }
                             if (isSelected) {
@@ -110,9 +111,10 @@ fun AddressSelectionBottomSheet(
 }
 
 internal fun formatAddressLine(address: Address): String {
-    val parts = listOfNotNull(
-        address.streetName.takeIf { it.isNotBlank() },
-        address.city.takeIf { it.isNotBlank() }
-    )
-    return parts.joinToString(", ").ifBlank { address.detail.ifBlank { address.title } }
+    val location = address.formatLocationLine()
+    return if (address.deliveryNote.isBlank()) {
+        location
+    } else {
+        "$location\n${address.deliveryNote}"
+    }
 }

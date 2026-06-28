@@ -149,6 +149,7 @@ data class RestaurantResponse(
     val averageRating: Double? = null,
     val rating: Double? = null, // Dùng cho API /user/favorites
     val ratingCount: Int? = null,
+    val distanceKm: Double? = null,
     val categories: List<RestaurantCategoryDto>? = null,
     val tags: List<String>? = null, // Dùng cho API /user/favorites
     val startingPrice: Double? = null,

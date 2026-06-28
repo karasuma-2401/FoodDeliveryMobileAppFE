@@ -6,6 +6,7 @@ import com.example.fooddelivery.data.remote.parseErrorMessage
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.data.remote.unwrapSuccess
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.domain.model.RestaurantListQuery
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -21,35 +22,44 @@ class RestaurantRepositoryImpl @Inject constructor(
     private val api: RestaurantApi
 ) : RestaurantRepository {
 
-    override suspend fun getRestaurants(
-        limit: Int?,
-        offset: Int?,
-        keyword: String?,
-        categoryId: Int?
-    ): Result<List<Restaurant>> {
+    override suspend fun getRestaurants(query: RestaurantListQuery): Result<List<Restaurant>> {
         return try {
-            api.getRestaurants(limit, offset, keyword, categoryId)
+            val keyword = query.keyword?.trim()?.takeIf { it.isNotEmpty() }
+            api.getRestaurants(
+                limit = query.limit,
+                offset = query.offset,
+                keyword = keyword,
+                categoryId = query.categoryId,
+                latitude = query.latitude,
+                longitude = query.longitude,
+                minRating = query.minRating,
+                sortBy = query.sort.apiValue,
+            )
                 .unwrapData("Failed to load restaurants")
                 .map { list ->
-                    list.map { dto ->
-                        Restaurant(
-                            id = dto.id.toString(),
-                            name = dto.name,
-                            description = dto.description ?: "",
-                            tags = dto.categories?.map { it.name } ?: emptyList(),
-                            rating = dto.averageRating?.toFloat() ?: 0f,
-                            deliveryFee = dto.deliveryFee ?: 0.0,
-                            imageUrl = dto.image,
-                            promoTags = emptyList(),
-                            isLiked = dto.isLiked ?: false,
-                            totalLikes = dto.totalLikes ?: 0
-                        )
-                    }
+                    list.map { dto -> dto.toRestaurantListItem() }
                 }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(Exception("Network error: ${e.localizedMessage}"))
         }
+    }
+
+    private fun RestaurantResponse.toRestaurantListItem(): Restaurant {
+        return Restaurant(
+            id = id.toString(),
+            name = name,
+            description = description ?: "",
+            tags = categories?.map { it.name } ?: emptyList(),
+            rating = (averageRating ?: rating)?.toFloat() ?: 0f,
+            reviewCount = ratingCount ?: 0,
+            deliveryFee = 0.0,
+            imageUrl = image,
+            promoTags = emptyList(),
+            isLiked = isLiked ?: false,
+            totalLikes = totalLikes ?: 0,
+            distance = distanceKm,
+        )
     }
 
     override suspend fun getRestaurantById(id: Int): Result<RestaurantResponse> {

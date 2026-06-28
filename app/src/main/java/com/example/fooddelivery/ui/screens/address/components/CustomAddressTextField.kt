@@ -1,11 +1,16 @@
 package com.example.fooddelivery.ui.screens.address.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,19 +26,22 @@ fun CustomAddressTextField(
     leadingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    modifier: Modifier = Modifier
+    readOnly: Boolean = false,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    modifier: Modifier = Modifier,
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .heightIn(min = if (singleLine) 56.dp else 96.dp),
         placeholder = {
             Text(
                 text = placeholder,
                 color = Color.LightGray,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         },
         leadingIcon = leadingIcon?.let {
@@ -43,6 +51,9 @@ fun CustomAddressTextField(
         },
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
+        readOnly = readOnly,
+        singleLine = singleLine,
+        minLines = minLines,
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color(0xFFF0F1F5),
@@ -52,6 +63,5 @@ fun CustomAddressTextField(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),
-        singleLine = true
     )
 }

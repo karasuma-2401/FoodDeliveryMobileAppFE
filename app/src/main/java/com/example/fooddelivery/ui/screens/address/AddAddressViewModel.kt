@@ -8,8 +8,11 @@ import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.usecase.AddAddressUseCase
 import com.example.fooddelivery.domain.usecase.GetAddressUseCase
 import com.example.fooddelivery.domain.usecase.SearchPlacesUseCase
+import com.example.fooddelivery.data.remote.dto.photonPlaceTitle
+import com.example.fooddelivery.domain.usecase.UpdateAddressLocationUseCase
 import com.example.fooddelivery.domain.usecase.UpdateAddressUseCase
 import com.example.fooddelivery.ui.navigation.AddAddressRoute
+import com.example.fooddelivery.util.hasValidCoordinates
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,9 +23,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class AddAddressState (
+data class AddAddressState(
     val title: String = "",
     val fullAddress: String = "",
+    val deliveryNote: String = "",
     val type: String = "Home",
     val isEditMode: Boolean = false,
     val searchQuery: String = "",
@@ -32,31 +36,43 @@ data class AddAddressState (
     val isSuccess: Boolean = false,
     val errorMessage: String? = null,
     val noResultsFound: Boolean = false,
-    val selectedAddress: Address? = null
-)
+    val selectedAddress: Address? = null,
+) {
+    val hasPinnedLocation: Boolean
+        get() = selectedAddress?.hasValidCoordinates() == true && fullAddress.isNotBlank()
+}
 
 sealed interface AddAddressEvent {
     data class TitleChanged(val title: String) : AddAddressEvent
-    data class FullAddressChanged(val address: String) : AddAddressEvent
+    data class DeliveryNoteChanged(val note: String) : AddAddressEvent
     data class TypeChanged(val type: String) : AddAddressEvent
     data class SearchQueryChanged(val query: String) : AddAddressEvent
     data class SearchResultSelected(val address: Address) : AddAddressEvent
     object SaveAddressClicked : AddAddressEvent
-    object ResetState: AddAddressEvent
-    object ErrorDismissed: AddAddressEvent
+    object ResetState : AddAddressEvent
+    object ErrorDismissed : AddAddressEvent
 }
+
+private data class SavedLocationSnapshot(
+    val fullText: String,
+    val latitude: Double,
+    val longitude: Double,
+)
 
 @HiltViewModel
 class AddAddressViewModel @Inject constructor(
     private val addAddressUseCase: AddAddressUseCase,
     private val updateAddressUseCase: UpdateAddressUseCase,
+    private val updateAddressLocationUseCase: UpdateAddressLocationUseCase,
     private val getAddressUseCase: GetAddressUseCase,
     private val searchPlacesUseCase: SearchPlacesUseCase,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val routeArgs = savedStateHandle.toRoute<AddAddressRoute>()
     private val editingAddressId: Int? = routeArgs.addressId
+
+    private var savedLocationSnapshot: SavedLocationSnapshot? = null
 
     private val _state = MutableStateFlow(AddAddressState(isEditMode = editingAddressId != null))
     val state: StateFlow<AddAddressState> = _state.asStateFlow()
@@ -76,13 +92,21 @@ class AddAddressViewModel @Inject constructor(
                     "Work", "Văn phòng" -> "Work"
                     else -> "Other"
                 }
-                _state.update { it.copy(
-                    selectedAddress = address,
-                    type = uiType,
-                    title = if (uiType == "Other") address.type else "",
-                    fullAddress = address.detail,
-                    isLoading = false
-                )}
+                savedLocationSnapshot = SavedLocationSnapshot(
+                    fullText = address.detail,
+                    latitude = address.latitude,
+                    longitude = address.longitude,
+                )
+                _state.update {
+                    it.copy(
+                        selectedAddress = address,
+                        type = uiType,
+                        title = if (uiType == "Other") address.type else "",
+                        fullAddress = address.detail,
+                        deliveryNote = address.deliveryNote,
+                        isLoading = false,
+                    )
+                }
             }.onFailure { error ->
                 _state.update { it.copy(isLoading = false, errorMessage = error.message) }
             }
@@ -96,17 +120,8 @@ class AddAddressViewModel @Inject constructor(
             is AddAddressEvent.TitleChanged -> {
                 _state.update { it.copy(title = event.title) }
             }
-            is AddAddressEvent.FullAddressChanged -> {
-                _state.update { current ->
-                    val isManualAddressChange = current.selectedAddress != null &&
-                        current.selectedAddress.detail.trim() != event.address.trim()
-
-                    current.copy(
-                        fullAddress = event.address,
-                        // If user manually edits the text, old coordinates are no longer reliable.
-                        selectedAddress = if (isManualAddressChange) null else current.selectedAddress
-                    )
-                }
+            is AddAddressEvent.DeliveryNoteChanged -> {
+                _state.update { it.copy(deliveryNote = event.note) }
             }
             is AddAddressEvent.TypeChanged -> {
                 _state.update { it.copy(type = event.type) }
@@ -122,6 +137,7 @@ class AddAddressViewModel @Inject constructor(
             }
             AddAddressEvent.ResetState -> {
                 _state.value = AddAddressState()
+                savedLocationSnapshot = null
             }
             is AddAddressEvent.ErrorDismissed -> {
                 _state.update { it.copy(errorMessage = null) }
@@ -149,7 +165,7 @@ class AddAddressViewModel @Inject constructor(
                 it.copy(
                     searchResults = results,
                     isSearching = false,
-                    noResultsFound = results.isEmpty()
+                    noResultsFound = results.isEmpty(),
                 )
             }
         }.onFailure { error ->
@@ -164,19 +180,33 @@ class AddAddressViewModel @Inject constructor(
                 fullAddress = address.detail,
                 searchResults = emptyList(),
                 searchQuery = "",
-                noResultsFound = false
+                noResultsFound = false,
             )
         }
     }
 
+    private fun hasLocationChanged(fullText: String, latitude: Double, longitude: Double): Boolean {
+        val snapshot = savedLocationSnapshot ?: return true
+        return snapshot.fullText.trim() != fullText.trim() ||
+            snapshot.latitude != latitude ||
+            snapshot.longitude != longitude
+    }
+
     fun saveAddress() {
         val currentState = _state.value
+        if (currentState.isLoading) return
+
+        val pinned = currentState.selectedAddress
+        if (pinned == null || !pinned.hasValidCoordinates()) {
+            _state.update {
+                it.copy(errorMessage = "Please search and confirm your delivery location on the map")
+            }
+            return
+        }
         if (currentState.fullAddress.isBlank()) {
             _state.update { it.copy(errorMessage = "Delivery address is required") }
             return
         }
-        if (currentState.isLoading) return
-
         if (currentState.type == "Other" && currentState.title.isBlank()) {
             _state.update { it.copy(errorMessage = "Please provide a title for this address") }
             return
@@ -186,20 +216,37 @@ class AddAddressViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
             val finalType = if (currentState.type == "Other") currentState.title else currentState.type
-            val physicalTitle = currentState.selectedAddress?.title ?: finalType
+            val physicalTitle = pinned.title.ifBlank { finalType }
+            val trimmedNote = currentState.deliveryNote.trim()
 
-            val addressToSave = currentState.selectedAddress?.copy(
+            val addressToSave = pinned.copy(
                 type = finalType,
                 title = physicalTitle,
-                detail = currentState.fullAddress
-            ) ?: Address(
-                type = finalType,
-                title = physicalTitle,
-                detail = currentState.fullAddress
+                detail = currentState.fullAddress,
+                deliveryNote = trimmedNote,
             )
 
             val result = if (currentState.isEditMode && editingAddressId != null) {
-                updateAddressUseCase(addressToSave.copy(id = editingAddressId))
+                val detailsResult = updateAddressUseCase(addressToSave.copy(id = editingAddressId))
+                if (detailsResult.isFailure) {
+                    detailsResult
+                } else if (
+                    hasLocationChanged(
+                        fullText = currentState.fullAddress,
+                        latitude = pinned.latitude,
+                        longitude = pinned.longitude,
+                    )
+                ) {
+                    updateAddressLocationUseCase(
+                        userAddressId = editingAddressId,
+                        placeTitle = pinned.photonPlaceTitle(),
+                        fullText = currentState.fullAddress,
+                        latitude = pinned.latitude,
+                        longitude = pinned.longitude,
+                    )
+                } else {
+                    detailsResult
+                }
             } else {
                 addAddressUseCase(addressToSave)
             }
