@@ -13,6 +13,7 @@ data class FoodItem(
     val imageUrl: String? = null,
     val imageRes: Int? = null,
     val promoTag: String? = null,
+    val voucherBadgeLabel: String? = null,
     val size: String? = null // Logic: Size nằm trong định nghĩa món ăn được chọn
 ) {
     init {

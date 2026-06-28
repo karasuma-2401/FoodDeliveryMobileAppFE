@@ -12,7 +12,11 @@ interface RestaurantApi {
         @Query("limit") limit: Int? = 20,
         @Query("offset") offset: Int? = 0,
         @Query("keyword") keyword: String? = null,
-        @Query("categoryId") categoryId: Int? = null
+        @Query("categoryId") categoryId: Int? = null,
+        @Query("latitude") latitude: Double? = null,
+        @Query("longitude") longitude: Double? = null,
+        @Query("minRating") minRating: Double? = null,
+        @Query("sortBy") sortBy: String? = null,
     ): Response<BaseResponse<List<RestaurantResponse>>>
 
     @GET("restaurant/detail/{id}")

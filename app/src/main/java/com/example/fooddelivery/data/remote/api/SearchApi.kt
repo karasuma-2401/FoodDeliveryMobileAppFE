@@ -13,34 +13,34 @@ interface SearchApi {
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0,
         @Query("sort") sort: String? = null,
-        @Query("categoryId") categoryId: String? = null
+        @Query("categoryId") categoryId: String? = null,
     ): Response<BaseResponse<UnifiedSearchResponse>>
 
     @GET("search/suggestions")
     suspend fun getSuggestions(
         @Query("lat") lat: Double? = null,
         @Query("lng") lng: Double? = null,
-        @Query("limit") limit: Int = 10
+        @Query("limit") limit: Int = 10,
     ): Response<BaseResponse<UnifiedSearchResponse>>
 
     @GET("search/history")
-    suspend fun getHistory(): Response<BaseResponse<SearchNestedPayload<List<SearchHistoryDto>>>>
+    suspend fun getHistory(): Response<BaseResponse<List<SearchHistoryDto>>>
 
     @POST("search/history")
     suspend fun saveHistory(
-        @Body request: Map<String, String> // {"keyword": "pizza"}
-    ): Response<BaseResponse<SearchNestedPayload<SearchHistoryDto>>>
+        @Body request: Map<String, String>,
+    ): Response<BaseResponse<SearchHistoryDto>>
 
     @DELETE("search/history")
-    suspend fun clearAllHistory(): Response<BaseResponse<SearchNestedPayload<Unit>>>
+    suspend fun clearAllHistory(): Response<BaseResponse<Unit>>
 
     @DELETE("search/history/{id}")
     suspend fun deleteHistoryItem(
-        @Path("id") id: Int
-    ): Response<BaseResponse<SearchNestedPayload<Unit>>>
+        @Path("id") id: Int,
+    ): Response<BaseResponse<Unit>>
 
     @GET("search/trending")
     suspend fun getTrending(
-        @Query("limit") limit: Int = 10
-    ): Response<BaseResponse<SearchNestedPayload<List<TrendingKeywordDto>>>>
+        @Query("limit") limit: Int = 10,
+    ): Response<BaseResponse<List<TrendingKeywordDto>>>
 }

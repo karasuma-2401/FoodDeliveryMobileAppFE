@@ -12,10 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.domain.model.FoodItem
+import com.example.fooddelivery.ui.components.VoucherBadgeSize
+import com.example.fooddelivery.ui.components.VoucherCornerBadge
 import com.example.fooddelivery.ui.components.bounceClick
 import com.example.fooddelivery.ui.theme.CustomerDimens
 import java.util.Locale
@@ -55,18 +58,11 @@ fun PopularFoodRow(
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentScale = ContentScale.Crop
                         )
-                        if (!food.promoTag.isNullOrBlank()) {
-                            Text(
-                                text = food.promoTag,
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onError,
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.error,
-                                        shape = RoundedCornerShape(6.dp)
-                                    )
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                        if (!food.voucherBadgeLabel.isNullOrBlank()) {
+                            VoucherCornerBadge(
+                                label = food.voucherBadgeLabel,
+                                modifier = Modifier.align(Alignment.TopEnd),
+                                size = VoucherBadgeSize.Compact,
                             )
                         }
                     }

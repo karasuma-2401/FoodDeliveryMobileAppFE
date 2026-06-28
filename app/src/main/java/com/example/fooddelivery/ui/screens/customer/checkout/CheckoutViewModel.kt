@@ -133,7 +133,11 @@ class CheckoutViewModel @Inject constructor(
                         }
                         else -> addresses.firstOrNull()
                     }
-                    state.copy(address = selected, addresses = addresses)
+                    val orderNote = when {
+                        state.orderNote.isNotBlank() -> state.orderNote
+                        else -> selected?.deliveryNote.orEmpty()
+                    }
+                    state.copy(address = selected, addresses = addresses, orderNote = orderNote)
                 }
                 loadDeliveryFee()
             }
@@ -220,7 +224,11 @@ class CheckoutViewModel @Inject constructor(
                 viewModelScope.launch {
                     deliveryLocationRepository.selectById(event.address.id)
                     _state.update {
-                        it.copy(address = event.address, showAddressSheet = false)
+                        it.copy(
+                            address = event.address,
+                            showAddressSheet = false,
+                            orderNote = event.address.deliveryNote,
+                        )
                     }
                     loadDeliveryFee()
                 }
@@ -273,7 +281,14 @@ class CheckoutViewModel @Inject constructor(
                 when {
                     addresses.isEmpty() -> _uiEffect.emit(CheckoutUiEffect.NavigateToAddAddress)
                     addresses.size == 1 -> {
-                        _state.update { it.copy(address = addresses.first(), addresses = addresses) }
+                        val address = addresses.first()
+                        _state.update {
+                            it.copy(
+                                address = address,
+                                addresses = addresses,
+                                orderNote = address.deliveryNote,
+                            )
+                        }
                         loadDeliveryFee()
                     }
                     else -> {

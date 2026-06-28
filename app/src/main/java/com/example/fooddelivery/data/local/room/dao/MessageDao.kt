@@ -56,21 +56,6 @@ interface MessageDao {
 
     @Query(
         """
-        SELECT createdAt FROM messages
-        WHERE conversationId = :conversationId
-          AND senderId = :senderId
-          AND id GLOB '*-*'
-        ORDER BY CAST(createdAt AS INTEGER) DESC
-        LIMIT 1
-        """
-    )
-    suspend fun getLatestOptimisticCreatedAt(
-        conversationId: String,
-        senderId: String
-    ): String?
-
-    @Query(
-        """
         UPDATE messages
         SET isSending = 0, isFailed = 1
         WHERE isSending = 1 AND id GLOB '*-*'

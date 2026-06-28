@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.ui.theme.CustomerDimens
+import com.example.fooddelivery.util.formatLocationLine
 
 @Composable
 fun AddressCard(
@@ -63,11 +64,19 @@ fun AddressCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = if (address != null) formatAddressLine(address) else "Please add a delivery address",
+                    text = if (address != null) address.formatLocationLine() else "Please add a delivery address",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    maxLines = 2
                 )
+                if (!address?.deliveryNote.isNullOrBlank()) {
+                    Text(
+                        text = address?.deliveryNote.orEmpty(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
+                        maxLines = 2
+                    )
+                }
             }
 
             TextButton(

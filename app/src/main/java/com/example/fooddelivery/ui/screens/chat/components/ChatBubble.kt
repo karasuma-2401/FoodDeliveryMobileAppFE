@@ -21,9 +21,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.fooddelivery.data.local.room.entity.MessageEntity
+import com.example.fooddelivery.util.formatMessageDisplayTime
 import com.example.fooddelivery.util.senderIdsMatch
-import java.text.SimpleDateFormat
-import java.util.*
 
 @Composable
 fun ChatBubble(
@@ -38,7 +37,9 @@ fun ChatBubble(
     val bubbleColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
     val textColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
 
-    val timeStr = rememberFormattedTime(message.createdAt)
+    val timeStr = remember(message.createdAt, message.isSending) {
+        if (message.isSending) "" else formatMessageDisplayTime(message.createdAt)
+    }
 
     Column(
         modifier = Modifier
@@ -141,20 +142,27 @@ fun ChatBubble(
                 end = if (isMe) 12.dp else 0.dp
             )
         ) {
-            Text(
-                text = timeStr,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
+            if (timeStr.isNotBlank()) {
+                Text(
+                    text = timeStr,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
             if (isMe) {
-                Spacer(modifier = Modifier.width(4.dp))
                 if (message.isSending) {
+                    if (timeStr.isNotBlank()) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     CircularProgressIndicator(
                         modifier = Modifier.size(10.dp), 
                         strokeWidth = 1.dp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 } else if (message.isFailed) {
+                    if (timeStr.isNotBlank()) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     Text("!", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 } else if (message.isRead) {
                     Text(
@@ -164,28 +172,6 @@ fun ChatBubble(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun rememberFormattedTime(createdAt: String): String {
-    return remember(createdAt) {
-        try {
-            val outputFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
-            if (createdAt.contains("T")) {
-                val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).apply {
-                    timeZone = TimeZone.getTimeZone("UTC")
-                }
-                val cleanTime = createdAt.substringBefore(".").substringBefore("Z")
-                val date = isoFormat.parse(cleanTime)
-                date?.let { outputFormat.format(it) } ?: createdAt
-            } else {
-                val date = Date(createdAt.toLong())
-                outputFormat.format(date)
-            }
-        } catch (e: Exception) {
-            createdAt
         }
     }
 }

@@ -8,14 +8,16 @@ import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.SearchHistory
 import com.example.fooddelivery.domain.model.SearchSortOption
+import com.example.fooddelivery.domain.model.TrendingKeyword
 import com.example.fooddelivery.domain.repository.CartRepository
 import com.example.fooddelivery.domain.repository.CategoryRepository
 import com.example.fooddelivery.domain.repository.ChatRepository
 import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
 import com.example.fooddelivery.domain.repository.SearchRepository
-import com.example.fooddelivery.domain.usecase.EnrichRestaurantsWithVoucherBadgesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +33,7 @@ import javax.inject.Inject
 data class SearchState(
     val searchQuery: String = "",
     val recentKeyWords: List<SearchHistory> = emptyList(),
+    val trendingKeywords: List<TrendingKeyword> = emptyList(),
     val suggestedRestaurants: List<Restaurant> = emptyList(),
     val popularFood: List<FoodItem> = emptyList(),
     val categories: List<Category> = emptyList(),
@@ -63,7 +66,6 @@ class SearchViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val categoryRepository: CategoryRepository,
     private val searchRepository: SearchRepository,
-    private val enrichRestaurantsWithVoucherBadgesUseCase: EnrichRestaurantsWithVoucherBadgesUseCase,
     private val locationTracker: LocationTracker,
     private val deliveryLocationRepository: DeliveryLocationRepository,
 ) : ViewModel() {
@@ -150,7 +152,8 @@ class SearchViewModel @Inject constructor(
                 }
             }
             is SearchEvent.KeywordClicked -> {
-                _state.update { it.copy(searchQuery = event.keyword) }
+                val keyword = event.keyword.trim()
+                _state.update { it.copy(searchQuery = keyword) }
                 performSearch()
             }
             SearchEvent.PerformSearch -> performSearch()
@@ -194,26 +197,25 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun performSearch() {
-        val query = state.value.searchQuery
+        val query = state.value.searchQuery.trim()
         if (query.isBlank()) return
 
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            
+
             searchRepository.unifiedSearch(
                 query = query,
                 lat = state.value.lat,
                 lng = state.value.lng,
                 sort = state.value.selectedSort,
-                categoryId = state.value.selectedCategoryId
+                categoryId = state.value.selectedCategoryId,
             ).onSuccess { (foods, restaurants) ->
                 _state.update { it.copy(
                     popularFood = foods,
                     suggestedRestaurants = restaurants,
-                    isLoading = false
+                    isLoading = false,
                 ) }
-                enrichVoucherBadges(restaurants)
                 searchRepository.saveHistory(query)
                 refreshHistory()
             }.onFailure { e ->
@@ -240,36 +242,28 @@ class SearchViewModel @Inject constructor(
             val lng = locationState.lng ?: gpsLocation?.longitude
             _state.update { it.copy(lat = lat, lng = lng) }
 
-            refreshHistory()
-            searchRepository.getSuggestions(
-                lat = lat,
-                lng = lng
-            ).onSuccess { (foods, restaurants) ->
-                _state.update { it.copy(
-                    popularFood = foods,
-                    suggestedRestaurants = restaurants,
-                    isLoading = false
-                ) }
-                enrichVoucherBadges(restaurants)
-            }.onFailure { e ->
-                _state.update { it.copy(isLoading = false, error = e.message) }
-            }
-        }
-    }
+            coroutineScope {
+                val historyDeferred = async { searchRepository.getHistory() }
+                val trendingDeferred = async { searchRepository.getTrending() }
+                val suggestionsDeferred = async { searchRepository.getSuggestions(lat = lat, lng = lng) }
 
-    private fun enrichVoucherBadges(restaurants: List<Restaurant>) {
-        if (restaurants.isEmpty()) return
-        viewModelScope.launch {
-            val enriched = enrichRestaurantsWithVoucherBadgesUseCase(
-                restaurants = restaurants,
-                onlyIfHasVoucher = true
-            )
-            _state.update { current ->
-                if (current.suggestedRestaurants.map { it.id } != restaurants.map { it.id }) {
-                    current
-                } else {
-                    current.copy(suggestedRestaurants = enriched)
+                historyDeferred.await().onSuccess { history ->
+                    _state.update { it.copy(recentKeyWords = history) }
                 }
+                trendingDeferred.await().onSuccess { trending ->
+                    _state.update { it.copy(trendingKeywords = trending) }
+                }
+                suggestionsDeferred.await()
+                    .onSuccess { (foods, restaurants) ->
+                        _state.update { it.copy(
+                            popularFood = foods,
+                            suggestedRestaurants = restaurants,
+                            isLoading = false,
+                        ) }
+                    }
+                    .onFailure { e ->
+                        _state.update { it.copy(isLoading = false, error = e.message) }
+                    }
             }
         }
     }
