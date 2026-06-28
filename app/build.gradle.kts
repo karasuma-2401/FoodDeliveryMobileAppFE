@@ -19,6 +19,26 @@ val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN") ?: "0"
 val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""
 val fbProtocolScheme = "fb$fbAppId"
 
+// BE deployed on Azure — override via root local.properties for local development.
+val defaultApiBaseUrl =
+    "https://food-deliver-be-cnbggtg6e5a4gbf4.eastasia-01.azurewebsites.net/api/"
+val defaultSocketUrl =
+    "https://food-deliver-be-cnbggtg6e5a4gbf4.eastasia-01.azurewebsites.net"
+
+fun ensureApiBaseUrl(url: String): String {
+    val trimmed = url.trim()
+    return if (trimmed.endsWith("/")) trimmed else "$trimmed/"
+}
+
+fun ensureSocketUrl(url: String): String = url.trim().trimEnd('/')
+
+val apiBaseUrl = ensureApiBaseUrl(
+    localProperties.getProperty("API_BASE_URL") ?: defaultApiBaseUrl
+)
+val socketUrl = ensureSocketUrl(
+    localProperties.getProperty("SOCKET_URL") ?: defaultSocketUrl
+)
+
 
 android {
     namespace = "com.example.fooddelivery"
@@ -40,7 +60,8 @@ android {
         // SECURITY: Đưa Google Client ID vào BuildConfig
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
 
-        buildConfigField("String", "API_BASE_URL", "\"http://localhost:4000/api/\"")
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "SOCKET_URL", "\"$socketUrl\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -49,8 +70,8 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://localhost:4000/api/\"")
-            buildConfigField("String", "SOCKET_URL", "\"http://localhost:4000\"")
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            buildConfigField("String", "SOCKET_URL", "\"$socketUrl\"")
         }
         release {
             isMinifyEnabled = true // Bật obfuscation để bảo vệ code
@@ -58,10 +79,17 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://api.yourapp.com/api/\"")
-            buildConfigField("String", "SOCKET_URL", "\"https://api.yourapp.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            buildConfigField("String", "SOCKET_URL", "\"$socketUrl\"")
         }
     }
+
+    // Lint crash với Kotlin 2.x trên release — không chặn build APK nội bộ.
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
