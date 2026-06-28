@@ -222,7 +222,7 @@ fun EditFoodContent(
                                         DFoodFTextField(
                                             value = state.selectedSizes[size] ?: "",
                                             onValueChange = { price -> onSizePriceChange(size, price) },
-                                            label = "đ 0.00"
+                                            label = "$ 0.00"
                                         )
                                     }
                                 }

@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.data.remote.dto.FoodResponse
+import com.example.fooddelivery.domain.util.CurrencyFormatter
 
 @Composable
 fun FoodItemCard(
@@ -28,8 +29,7 @@ fun FoodItemCard(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    val displayPrice = item.price.toInt()
-    val formattedPrice = String.format("%,d", displayPrice).replace(',', '.') + "đ"
+    val formattedPrice = CurrencyFormatter.format(item.price)
 
     val categoryName = item.category?.name ?: "Food"
 

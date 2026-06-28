@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.domain.usecase.LogoutUseCase
 import com.example.fooddelivery.domain.repository.RestaurantRepository
+import com.example.fooddelivery.domain.util.CurrencyFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,8 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
 import javax.inject.Inject
 
 data class RestaurantProfileUiState(
@@ -85,7 +84,7 @@ class RestaurantProfileViewModel @Inject constructor(
     private suspend fun loadRevenueForId(restaurantId: Int) {
         repository.generateDashboard(restaurantId)
             .onSuccess { dashboard ->
-                val formatted = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(dashboard.revenue)
+                val formatted = CurrencyFormatter.format(dashboard.revenue)
                 _uiState.update {
                     it.copy(
                         isLoading = false,

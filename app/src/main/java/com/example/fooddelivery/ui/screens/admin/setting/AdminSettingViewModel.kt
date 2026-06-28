@@ -2,8 +2,9 @@ package com.example.fooddelivery.ui.screens.admin.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fooddelivery.domain.repository.AdminRepository // 🌟 Import Repository
+import com.example.fooddelivery.domain.repository.AdminRepository
 import com.example.fooddelivery.domain.usecase.LogoutUseCase
+import com.example.fooddelivery.domain.util.CurrencyFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import java.util.Locale
 
 data class AdminSettingUiState(
     val adminEmail: String = "",
@@ -39,11 +39,7 @@ class AdminSettingViewModel @Inject constructor(
 
             adminRepository.getDashboard()
                 .onSuccess { dashboard ->
-                    val formattedEarnings = try {
-                        String.format(Locale.US, "$%,.2f", dashboard.deliveredRevenue.toDouble())
-                    } catch (e: Exception) {
-                        "$${dashboard.deliveredRevenue}"
-                    }
+                    val formattedEarnings = CurrencyFormatter.format(dashboard.deliveredRevenue.toDouble())
 
                     _uiState.update {
                         it.copy(

@@ -21,8 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.data.remote.dto.RestaurantRevenueDto
-import java.text.NumberFormat
-import java.util.Locale
+import com.example.fooddelivery.domain.util.CurrencyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -175,6 +174,5 @@ fun RestaurantRevenueRow(item: RestaurantRevenueDto) {
 }
 
 fun formatCurrency(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale.US)
-    return format.format(amount)
+    return CurrencyFormatter.format(amount)
 }

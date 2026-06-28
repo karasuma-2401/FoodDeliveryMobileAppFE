@@ -14,11 +14,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.fooddelivery.ui.screens.restaurant.dashboard.RecentOrder
-import java.text.NumberFormat
+import com.example.fooddelivery.domain.util.CurrencyFormatter
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.TextStyle
@@ -66,7 +65,7 @@ fun RevenueSection(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            val formattedRevenue = NumberFormat.getCurrencyInstance(LocalLocale.current.platformLocale).format(revenue)
+            val formattedRevenue = CurrencyFormatter.format(revenue)
             Text(
                 text = formattedRevenue,
                 style = MaterialTheme.typography.headlineMedium,
