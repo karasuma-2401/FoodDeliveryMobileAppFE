@@ -1,5 +1,6 @@
 package com.example.fooddelivery.data.remote.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -29,7 +30,7 @@ data class CategoryDetailResponse(
     val name: String,
     val image: String = "",
     val description: String? = null,
-    val sortOrder: Int? = null,
+    @SerialName("sortOrder")
     val displayOrder: Int? = null,
     val isActive: Boolean? = null,
     val foodCount: Int? = null,

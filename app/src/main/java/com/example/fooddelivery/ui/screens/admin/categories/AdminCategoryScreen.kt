@@ -1,5 +1,9 @@
 package com.example.fooddelivery.ui.screens.admin.categories
 
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,13 +17,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.theme.DFoodTheme
-import androidx.hilt.navigation.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCategoryScreen(
@@ -31,7 +36,20 @@ fun AdminCategoryScreen(
 ) {
     val uiState by viewModel.state
     val colorScheme = MaterialTheme.colorScheme
+    val lifecycleOwner = LocalLifecycleOwner.current
 
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadCategories()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -110,11 +128,22 @@ fun CategoryRowItem(
         ) {
             Box(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(60.dp)
                     .background(colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Image, null, tint = colorScheme.primary, modifier = Modifier.size(24.dp))
+                if (category.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = category.imageUrl,
+                        contentDescription = category.name,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(Icons.Default.Image, null, tint = colorScheme.primary, modifier = Modifier.size(24.dp))
+                }
             }
 
             Column(
