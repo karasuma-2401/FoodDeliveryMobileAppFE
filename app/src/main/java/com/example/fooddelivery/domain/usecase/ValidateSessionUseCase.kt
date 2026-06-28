@@ -17,7 +17,7 @@ class ValidateSessionUseCase @Inject constructor(
     suspend operator fun invoke(): Result<MeResponse> {
         val accessToken = tokenManager.getAccessToken.first()
         if (accessToken.isNullOrBlank()) {
-            return Result.failure(UnauthorizedException("Chưa đăng nhập"))
+            return Result.failure(UnauthorizedException("Not logged in"))
         }
 
         return fetchMeWithRefresh()

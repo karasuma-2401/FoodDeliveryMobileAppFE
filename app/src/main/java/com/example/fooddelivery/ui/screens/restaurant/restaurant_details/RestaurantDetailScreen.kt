@@ -182,7 +182,7 @@ fun RestaurantDetailContent(
                 )
             }
         },
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         if (state.isLoading) {
@@ -211,7 +211,7 @@ fun RestaurantDetailContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    Color.White,
+                                    MaterialTheme.colorScheme.background,
                                     RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                                 )
                         ) {
@@ -222,7 +222,7 @@ fun RestaurantDetailContent(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color.White)
+                                .background(MaterialTheme.colorScheme.background)
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             CategoryTabsSkeleton()
@@ -299,7 +299,7 @@ fun RestaurantDetailContent(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(
-                                        Color.White,
+                                        MaterialTheme.colorScheme.background,
                                         RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                                     )
                             ) {
@@ -314,7 +314,7 @@ fun RestaurantDetailContent(
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color.White)
+                                        .background(MaterialTheme.colorScheme.background)
                                         .padding(bottom = 20.dp)
                                 ) {
                                     RestaurantVoucherSection(
@@ -329,7 +329,7 @@ fun RestaurantDetailContent(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color.White)
+                                    .background(MaterialTheme.colorScheme.background)
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 CategoryTabs(
@@ -431,7 +431,7 @@ fun VoucherBottomSheet(
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle() }
     ) {
         Column(

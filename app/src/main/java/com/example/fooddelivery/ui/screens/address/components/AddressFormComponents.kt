@@ -46,12 +46,32 @@ private data class AddressTypeOption(
     val value: String,
     val label: String,
     val icon: ImageVector,
+    val accentColor: Color,
+    val containerColor: Color,
 )
 
 private val addressTypeOptions = listOf(
-    AddressTypeOption("Home", "Home", Icons.Outlined.Home),
-    AddressTypeOption("Work", "Work", Icons.Outlined.WorkOutline),
-    AddressTypeOption("Other", "Other", Icons.Outlined.MoreHoriz),
+    AddressTypeOption(
+        value = "Home",
+        label = "Home",
+        icon = Icons.Outlined.Home,
+        accentColor = Color(0xFF1A73E8),
+        containerColor = Color(0xFFE8F0FE),
+    ),
+    AddressTypeOption(
+        value = "Work",
+        label = "Office",
+        icon = Icons.Outlined.WorkOutline,
+        accentColor = Color(0xFF9333EA),
+        containerColor = Color(0xFFF3E8FF),
+    ),
+    AddressTypeOption(
+        value = "Other",
+        label = "Other",
+        icon = Icons.Outlined.MoreHoriz,
+        accentColor = Color(0xFFEA580C),
+        containerColor = Color(0xFFFFF7ED),
+    ),
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -78,6 +98,7 @@ fun AddressTypeSelector(
                         Text(
                             text = option.label,
                             style = MaterialTheme.typography.labelLarge,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                         )
                     },
                     leadingIcon = {
@@ -85,18 +106,22 @@ fun AddressTypeSelector(
                             imageVector = option.icon,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
+                            tint = if (selected) option.accentColor else option.accentColor.copy(alpha = 0.75f),
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        iconColor = option.accentColor.copy(alpha = 0.75f),
+                        selectedContainerColor = option.containerColor,
+                        selectedLabelColor = option.accentColor,
+                        selectedLeadingIconColor = option.accentColor,
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = selected,
-                        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        borderColor = option.accentColor.copy(alpha = 0.28f),
+                        selectedBorderColor = option.accentColor.copy(alpha = 0.55f),
                     ),
                 )
             }

@@ -98,6 +98,12 @@ class TokenManager @Inject constructor (
         }
     }
 
+    suspend fun savePhone(phone: String) {
+        context.userPrefDataStore.edit { preferences ->
+            preferences[PHONE_KEY] = phone
+        }
+    }
+
     suspend fun updateTokens(accessToken: String, refreshToken: String) {
         securePrefs.edit().apply {
             putString(ACCESS_TOKEN, accessToken)

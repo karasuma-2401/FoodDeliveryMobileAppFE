@@ -47,7 +47,7 @@ class AdminCouponViewModel @Inject constructor(
             id = id.toString(),
             code = code,
             description = description ?: name,
-            expiryText = "Hết hạn: ${endAt ?: "Không giới hạn"}",
+            expiryText = "Expires: ${endAt ?: "No expiry"}",
             isActive = status.uppercase() == "APPLYING"
         )
     }

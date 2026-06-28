@@ -12,12 +12,23 @@ data class Notification(
     val actions: List<String> = emptyList()
 )
 
-fun Notification.effectiveActions(): List<String> {
-    if (actions.isNotEmpty()) return actions
-    if (targetType.equals("RESTAURANT", ignoreCase = true) && type == NotificationType.SYSTEM) {
-        return listOf("APPROVE_VENDOR", "REJECT_VENDOR")
+sealed interface NotificationDestination {
+    data class Order(val orderId: String) : NotificationDestination
+    data class Chat(val conversationId: String) : NotificationDestination
+    data class RestaurantApproval(val restaurantId: String) : NotificationDestination
+}
+
+fun Notification.resolveDestination(): NotificationDestination? {
+    val target = targetId ?: return null
+    return when {
+        type == NotificationType.CHAT -> NotificationDestination.Chat(target)
+        type == NotificationType.ORDER -> NotificationDestination.Order(target)
+        type == NotificationType.PAYMENT -> NotificationDestination.Order(target)
+        type == NotificationType.SYSTEM &&
+            targetType.equals("RESTAURANT", ignoreCase = true) ->
+            NotificationDestination.RestaurantApproval(target)
+        else -> null
     }
-    return emptyList()
 }
 
 enum class NotificationType {

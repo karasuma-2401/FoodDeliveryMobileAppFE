@@ -11,6 +11,8 @@ import com.example.fooddelivery.domain.usecase.SearchPlacesUseCase
 import com.example.fooddelivery.data.remote.dto.photonPlaceTitle
 import com.example.fooddelivery.domain.usecase.UpdateAddressLocationUseCase
 import com.example.fooddelivery.domain.usecase.UpdateAddressUseCase
+import com.example.fooddelivery.domain.repository.DeliveryLocationRepository
+import com.example.fooddelivery.domain.repository.toDisplayAddressType
 import com.example.fooddelivery.ui.navigation.AddAddressRoute
 import com.example.fooddelivery.util.hasValidCoordinates
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -66,6 +68,7 @@ class AddAddressViewModel @Inject constructor(
     private val updateAddressLocationUseCase: UpdateAddressLocationUseCase,
     private val getAddressUseCase: GetAddressUseCase,
     private val searchPlacesUseCase: SearchPlacesUseCase,
+    private val deliveryLocationRepository: DeliveryLocationRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -87,10 +90,11 @@ class AddAddressViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             getAddressUseCase(id).onSuccess { address ->
-                val uiType = when (address.type) {
-                    "Home", "Nhà riêng" -> "Home"
-                    "Work", "Văn phòng" -> "Work"
-                    else -> "Other"
+                val uiType = address.type.toDisplayAddressType().let { displayType ->
+                    when (displayType) {
+                        "Home", "Work" -> displayType
+                        else -> "Other"
+                    }
                 }
                 savedLocationSnapshot = SavedLocationSnapshot(
                     fullText = address.detail,
@@ -252,6 +256,7 @@ class AddAddressViewModel @Inject constructor(
             }
 
             result.onSuccess {
+                deliveryLocationRepository.refreshAddresses()
                 _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { error ->
                 _state.update { it.copy(isLoading = false, errorMessage = error.message) }

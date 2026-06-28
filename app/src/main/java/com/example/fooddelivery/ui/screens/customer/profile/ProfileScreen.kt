@@ -229,13 +229,13 @@ fun ProfileContent(
                     tittle = "Personal Info",
                     onClick = onEditProfile
                 )
-                ProfileMenuCard(
-                    icon = Icons.Default.Email,
-                    iconContainerColor = Color(0xFFE6F7EF),
-                    iconTint = Color(0xFF00C569),
-                    tittle = "Change Email",
-                    onClick = onResetEmail
-                )
+//                ProfileMenuCard(
+//                    icon = Icons.Default.Email,
+//                    iconContainerColor = Color(0xFFE6F7EF),
+//                    iconTint = Color(0xFF00C569),
+//                    tittle = "Change Email",
+//                    onClick = onResetEmail
+//                )
                 ProfileMenuCard(
                     icon = Icons.Default.Lock,
                     iconContainerColor = Color(0xFFF3E5F5),
