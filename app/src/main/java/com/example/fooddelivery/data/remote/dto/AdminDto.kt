@@ -72,7 +72,8 @@ data class AdminUserItemDto(
     val blockedReason: String?,
     val blockedAt: String?,
     val createdAt: String,
-    val roles: List<String>
+    val roles: List<String>,
+    val avatar: String? = null
 )
 @Serializable
 data class AdminRevenueResponse(
@@ -101,7 +102,8 @@ data class RestaurantItemDto(
     val id: Int,
     val name: String,
     val phone: String,
-    val status: String
+    val status: String,
+    val image: String? = null
 )
 
 @Serializable

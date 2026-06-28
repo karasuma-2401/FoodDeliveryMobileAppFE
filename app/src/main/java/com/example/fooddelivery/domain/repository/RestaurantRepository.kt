@@ -70,7 +70,9 @@ interface RestaurantRepository {
         restaurantId: Int,
         name: String,
         phone: String,
-        description: String
+        description: String,
+        addressId: Int?,
+        image: File?
     ): Result<RestaurantResponse>
 
     suspend fun deleteReview(reviewId: Int): Result<Unit>

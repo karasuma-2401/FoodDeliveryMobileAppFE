@@ -15,14 +15,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 
 @Composable
 fun RestaurantItemRow(
     name: String,
     phone: String,
     status: String,
+    image: String? = null,
     onApprove: () -> Unit,
     onReject: () -> Unit,
     onClick: () -> Unit = {}
@@ -48,7 +51,18 @@ fun RestaurantItemRow(
                     .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(name.take(1), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                if (image?.isNotEmpty() == true) {
+                    AsyncImage(
+                        model = image,
+                        contentDescription = name,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(name.take(1), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                }
             }
 
             Column(

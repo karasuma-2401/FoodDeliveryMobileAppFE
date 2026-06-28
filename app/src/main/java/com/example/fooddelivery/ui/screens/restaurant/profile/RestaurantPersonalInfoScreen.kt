@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,12 +20,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.sectionheader.SectionHeader
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
@@ -142,14 +145,44 @@ fun RestaurantPersonalInfoContent(
                         .clickable { imagePickerLauncher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_add),
-                            contentDescription = "Upload Photo",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        TextButton(onClick = { imagePickerLauncher.launch("image/*") }) {
-                            Text("Change Restaurant Photo")
+                    if (state.imageUrl?.isNotEmpty() == true) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = state.imageUrl,
+                                contentDescription = "Restaurant image",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentScale = ContentScale.Crop
+                            )
+                            Surface(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .align(Alignment.Center),
+                                shape = RoundedCornerShape(25.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Change image",
+                                    modifier = Modifier.padding(12.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add),
+                                contentDescription = "Upload Photo",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            TextButton(onClick = { imagePickerLauncher.launch("image/*") }) {
+                                Text("Change Restaurant Photo")
+                            }
                         }
                     }
                 }
