@@ -291,15 +291,23 @@ class RestaurantRepositoryImpl @Inject constructor(
         restaurantId: Int,
         name: String,
         phone: String,
-        description: String
+        description: String,
+        addressId: Int?,
+        image: File?
     ): Result<RestaurantResponse> {
         return try {
-            val request = UpdateRestaurantProfileRequest(
-                name = name,
-                phone = phone,
-                description = description
+            val response = api.updateRestaurantProfile(
+                restaurantId = restaurantId,
+                name = name.toRequestBody("text/plain".toMediaTypeOrNull()),
+                phone = phone.toRequestBody("text/plain".toMediaTypeOrNull()),
+                description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
+                addressId = addressId?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull()),
+                image = image?.let {
+                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("image", it.name, requestFile)
+                }
             )
-            api.updateRestaurantProfile(restaurantId, request).unwrapData("Failed to update restaurant profile")
+            response.unwrapData("Failed to update restaurant profile")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)

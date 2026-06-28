@@ -17,11 +17,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -117,31 +119,61 @@ fun CreateCategoryScreen(
                     .clickable { imagePickerLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Surface(
-                        modifier = Modifier.size(70.dp),
-                        shape = RoundedCornerShape(35.dp),
-                        color = colorScheme.primaryContainer
+                if (state.imageUri?.isNotEmpty() == true) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.AddAPhoto,
-                            contentDescription = null,
-                            modifier = Modifier.padding(18.dp),
-                            tint = colorScheme.primary
+                        AsyncImage(
+                            model = state.imageUri,
+                            contentDescription = "Selected category image",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(colorScheme.surface),
+                            contentScale = ContentScale.Crop
+                        )
+                        Surface(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .align(Alignment.Center),
+                            shape = RoundedCornerShape(25.dp),
+                            color = colorScheme.primaryContainer.copy(alpha = 0.9f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Change image",
+                                modifier = Modifier.padding(12.dp),
+                                tint = colorScheme.primary
+                            )
+                        }
+                    }
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Surface(
+                            modifier = Modifier.size(70.dp),
+                            shape = RoundedCornerShape(35.dp),
+                            color = colorScheme.primaryContainer
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AddAPhoto,
+                                contentDescription = null,
+                                modifier = Modifier.padding(18.dp),
+                                tint = colorScheme.primary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Upload Category Image",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = colorScheme.onBackground
+                        )
+                        Text(
+                            "SVG, PNG, or JPG (max. 2MB)",
+                            fontSize = 11.sp,
+                            color = colorScheme.onSurfaceVariant
                         )
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        "Upload Category Image",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = colorScheme.onBackground
-                    )
-                    Text(
-                        "SVG, PNG, or JPG (max. 2MB)",
-                        fontSize = 11.sp,
-                        color = colorScheme.onSurfaceVariant
-                    )
                 }
             }
 

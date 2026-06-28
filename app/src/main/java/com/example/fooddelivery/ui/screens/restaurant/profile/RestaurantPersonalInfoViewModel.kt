@@ -48,6 +48,7 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
                         name = profile.name,
                         phone = profile.phone ?: "",
                         description = profile.description ?: "",
+                        imageUrl = profile.image ?: profile.coverImage,
                         isLoading = false
                     )
                 }.onFailure { error ->
@@ -66,8 +67,11 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
                             name = myRestaurant.name,
                             phone = myRestaurant.phone ?: "",
                             description = myRestaurant.description ?: "",
+                            imageUrl = myRestaurant.image ?: myRestaurant.coverImage,
                             isLoading = false
                         )
+                    } else {
+                        uiState = uiState.copy(isLoading = false)
                     }
                 }.onFailure {
                     uiState = uiState.copy(isLoading = false, error = "Failed to load your restaurant")
@@ -78,6 +82,7 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
 
     fun onImageSelected(file: File, uri: Uri) {
         selectedImageFile = file
+        uiState = uiState.copy(imageUrl = uri.toString())
     }
 
     fun fetchLatestAddress() {
@@ -145,8 +150,12 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
                     image = selectedImageFile
                 )
 
-                result.onSuccess {
-                    uiState = uiState.copy(isLoading = false, isSuccess = true)
+                result.onSuccess { response ->
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        imageUrl = response.image ?: response.coverImage
+                    )
                 }.onFailure { error ->
                     uiState = uiState.copy(isLoading = false, error = error.message ?: "Failed to create restaurant")
                 }
@@ -157,15 +166,22 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
                     return@launch
                 }
 
+
                 val result = repository.updateRestaurantProfile(
                     restaurantId = currentRestaurantId,
                     name = uiState.name,
                     phone = uiState.phone,
-                    description = uiState.description
+                    description = uiState.description,
+                    addressId = uiState.addressId!!,
+                    image = selectedImageFile
                 )
 
-                result.onSuccess {
-                    uiState = uiState.copy(isLoading = false, isSuccess = true)
+                result.onSuccess { response ->
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        imageUrl = response.image ?: response.coverImage
+                    )
                 }.onFailure { error ->
                     uiState = uiState.copy(isLoading = false, error = error.message ?: "Failed to update profile")
                 }

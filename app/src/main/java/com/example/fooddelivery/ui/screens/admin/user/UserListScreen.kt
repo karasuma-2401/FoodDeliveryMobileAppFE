@@ -15,10 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.fooddelivery.data.remote.dto.AdminUserItemDto
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,13 +102,27 @@ fun UserRowItem(user: AdminUserItemDto) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = user.name.take(1).uppercase(),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
+            if (user.avatar?.isNotEmpty() == true) {
+                AsyncImage(
+                    model = user.avatar,
+                    contentDescription = user.name,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = CircleShape
+                        ),
+                    contentScale = ContentScale.Crop
                 )
-            )
+            } else {
+                Text(
+                    text = user.name.take(1).uppercase(),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(16.dp))

@@ -3,8 +3,6 @@ package com.example.fooddelivery.ui.components.card
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -79,29 +77,6 @@ fun FoodItemCard(
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontWeight = FontWeight.Bold
                     )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = (item.rating ?: 0f).toString(),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "(${item.reviewCount ?: 0} Reviews)",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    style = MaterialTheme.typography.labelMedium
                 )
             }
         }

@@ -76,6 +76,7 @@ fun AdminRestaurantScreen(
                             name = restaurant.name,
                             phone = restaurant.phone,
                             status = restaurant.status,
+                            image = restaurant.image,
                             onApprove = { viewModel.updateApprovalStatus(restaurant.id, "APPROVED") }, // 🌟 Gọi API Approve
                             onReject = { viewModel.updateApprovalStatus(restaurant.id, "REJECTED") },   // 🌟 Gọi API Reject
                             onClick = { onNavigateToRestaurantDetail(restaurant.id) }

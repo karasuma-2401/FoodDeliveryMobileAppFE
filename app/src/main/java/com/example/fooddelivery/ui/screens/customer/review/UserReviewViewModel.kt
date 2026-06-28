@@ -107,6 +107,7 @@ class UserReviewViewModel @Inject constructor(
                 
                 userRepository.getUserReviews(limit = limit, offset = currentOffset)
                     .onSuccess { newReviews ->
+                        // Merge new reviews
                         _state.update { currentState ->
                             currentState.copy(
                                 reviews = if (isRefresh) newReviews else currentState.reviews + newReviews,
@@ -116,6 +117,36 @@ class UserReviewViewModel @Inject constructor(
                                 endReached = newReviews.size < limit,
                                 errorMessage = null
                             )
+                        }
+
+                        // For reviews missing restaurantImage, fetch restaurant details to fill image
+                        val missingIds = newReviews
+                            .filter { it.restaurantImage.isBlank() }
+                            .mapNotNull { it.restaurantId.toIntOrNull() }
+                            .toSet()
+
+                        if (missingIds.isNotEmpty()) {
+                            // Fetch details in parallel
+                            missingIds.forEach { rid ->
+                                viewModelScope.launch {
+                                    restaurantRepository.getRestaurantById(rid)
+                                        .onSuccess { resp ->
+                                            val image = resp.image ?: resp.coverImage
+                                            if (!image.isNullOrBlank()) {
+                                                _state.update { cur ->
+                                                    cur.copy(reviews = cur.reviews.map { r ->
+                                                        if (r.restaurantId.toIntOrNull() == rid && r.restaurantImage.isBlank()) {
+                                                            r.copy(restaurantImage = image)
+                                                        } else r
+                                                    })
+                                                }
+                                            }
+                                        }
+                                        .onFailure {
+                                            // ignore failures silently
+                                        }
+                                }
+                            }
                         }
                     }
                     .onFailure { e ->

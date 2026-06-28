@@ -110,10 +110,15 @@ interface RestaurantApi {
         @Body request: UpdateReviewRequest
     ): Response<BaseResponse<UpdateReviewPayload>>
 
+    @Multipart
     @PATCH("restaurant/manage/{restaurantId}")
     suspend fun updateRestaurantProfile(
         @Path("restaurantId") restaurantId: Int,
-        @Body request: UpdateRestaurantProfileRequest
+        @Part("name") name: RequestBody,
+        @Part("phone") phone: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("addressId") addressId: RequestBody?,
+        @Part image: MultipartBody.Part?
     ): Response<BaseResponse<RestaurantResponse>>
 
     @Multipart
