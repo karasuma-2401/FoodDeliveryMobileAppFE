@@ -6,9 +6,17 @@ enum class SearchSortOption(val apiValue: String, val title: String) {
     PRICE_LOW_TO_HIGH("price_low_to_high", "Lowest Price")
 }
 
-enum class RestaurantSortOption(val title: String) {
-    RATING("Best Rating"),
-    DELIVERY_FEE("Delivery fee"),
+enum class RestaurantSortOption(val apiValue: String?, val title: String) {
+    NEWEST(null, "Newest"),
+    DISTANCE("DISTANCE", "Near me"),
+    RATING("RATING", "Top rated"),
+}
+
+enum class RestaurantMinRatingFilter(val value: Double?, val title: String) {
+    ANY(null, "All ratings"),
+    THREE(3.0, "3+ stars"),
+    FOUR(4.0, "4+ stars"),
+    FOUR_FIVE(4.5, "4.5+ stars"),
 }
 
 enum class FoodSortOption(val title: String) {

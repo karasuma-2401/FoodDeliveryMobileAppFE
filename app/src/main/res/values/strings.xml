@@ -38,4 +38,16 @@
     <string name="recent_keywords">Recent Keywords</string>
     <string name="trending_keywords">Trending Keywords</string>
     <string name="search_placeholder">Search dishes...</string>
+
+    <!-- All Restaurants -->
+    <string name="all_restaurants_title">All Restaurants</string>
+    <string name="all_restaurants_search_hint">Search restaurants or dishes</string>
+    <string name="all_restaurants_filters">Filters</string>
+    <string name="all_restaurants_filter_title">Filters</string>
+    <string name="all_restaurants_sort_by">Sort by</string>
+    <string name="all_restaurants_min_rating">Minimum rating</string>
+    <string name="all_restaurants_apply_filters">Apply</string>
+    <string name="all_restaurants_near">Near %1$s</string>
+    <string name="all_restaurants_empty">No restaurants match your filters</string>
+    <string name="all_restaurants_end_of_list">You\'ve reached the end of the list!</string>
 </resources>

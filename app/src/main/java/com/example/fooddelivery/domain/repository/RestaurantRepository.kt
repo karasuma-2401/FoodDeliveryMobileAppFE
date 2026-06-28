@@ -2,17 +2,13 @@ package com.example.fooddelivery.domain.repository
 
 import com.example.fooddelivery.data.remote.dto.*
 import com.example.fooddelivery.domain.model.Restaurant
+import com.example.fooddelivery.domain.model.RestaurantListQuery
 import com.example.fooddelivery.domain.model.RestaurantRevenue
 import java.io.File
 
 interface RestaurantRepository {
 
-    suspend fun getRestaurants(
-        limit: Int? = 20,
-        offset: Int? = 0,
-        keyword: String? = null,
-        categoryId: Int? = null
-    ): Result<List<Restaurant>>
+    suspend fun getRestaurants(query: RestaurantListQuery): Result<List<Restaurant>>
 
     suspend fun getRestaurantById(id: Int): Result<RestaurantResponse>
 
