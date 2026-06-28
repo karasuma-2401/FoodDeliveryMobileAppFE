@@ -1024,7 +1024,10 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminRestaurantsRoute> {
                     AdminRestaurantScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigate = onAdminNavigate
+                        onNavigate = onAdminNavigate,
+                        onNavigateToRestaurantDetail = { id ->
+                            navController.navigate(RestaurantDetailRoute(restaurantId = id.toString()))
+                        }
                     )
                 }
                 composable<AdminRevenueRoute> {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +43,7 @@ fun DashboardScreen(
 
     DashboardContent(
         state = state,
+        onRefresh = { viewModel.loadDashboard() }, // Kích hoạt hàm gọi lại dữ liệu thật
         onSeeAllClick = onSeeAllClick,
         onSeeAllReviewsClick = {
             state.restaurantId?.let { id ->
@@ -61,9 +63,11 @@ fun DashboardScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardContent(
     state: DashboardState,
+    onRefresh: () -> Unit,
     onSeeAllClick: () -> Unit = {},
     onSeeAllReviewsClick: () -> Unit = {},
     onSeeRevenueClick: () -> Unit = {},
@@ -78,90 +82,99 @@ fun DashboardContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        if (state.isLoading) {
+        // Chỉ hiển thị loading tràn màn hình ở lần đầu tiên mở app khi chưa có dữ liệu gì
+        if (state.isLoading && state.recentOrders.isEmpty() && state.restaurantName.isBlank()) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        } else if (state.error != null) {
+        } else if (state.error != null && state.recentOrders.isEmpty()) {
             Text(
                 text = state.error,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.align(Alignment.Center)
             )
         } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState())
+            // PullToRefreshBox: Container chuẩn của Material 3 quản lý thao tác kéo để reload trang
+            PullToRefreshBox(
+                isRefreshing = state.isLoading,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize()
             ) {
-                HeaderSection(
-                    location = state.restaurantName.ifBlank { "My Restaurant" }
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                MessagesQuickAccessCard(
-                    unreadCount = unreadMessageCount,
-                    onClick = onNavigateToMessages
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    StatCard(
-                        title = "RUNNING ORDERS",
-                        value = state.runningOrders,
-                        modifier = Modifier.weight(1f)
+                    HeaderSection(
+                        location = state.restaurantName.ifBlank { "My Restaurant" }
                     )
-                    StatCard(
-                        title = "ORDER REQUEST",
-                        value = state.orderRequest,
-                        modifier = Modifier.weight(1f)
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    MessagesQuickAccessCard(
+                        unreadCount = unreadMessageCount,
+                        onClick = onNavigateToMessages
                     )
-                }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                RevenueSection(
-                    revenue = state.revenue,
-                    onSeeDetailsClick = onSeeRevenueClick
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                ReviewSection(
-                    state.rating,
-                    state.totalReviews,
-                    onSeeAllClicked = onSeeAllReviewsClick
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                OrderHistorySection(
-                    orders = state.recentOrders,
-                    totalOrders = state.totalOrders,
-                    onSeeAllClick = onSeeAllOrdersClick
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                BestSellerSection(
-                    items = state.bestSellers,
-                    onSeeAllClick = onSeeAllClick
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                ActiveVouchersPreviewCard(
-                    activeVouchers = state.activeVouchers,
-                    vouchers = state.voucherPreviews,
-                    onSeeDetailClick = {
-                        onNavigate("coupons")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        StatCard(
+                            title = "RUNNING ORDERS",
+                            value = state.runningOrders,
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "ORDER REQUEST",
+                            value = state.orderRequest,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
-                )
-                Spacer(modifier = Modifier.height(20.dp))
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    RevenueSection(
+                        revenue = state.revenue,
+                        recentOrders = state.recentOrders,
+                        onSeeDetailsClick = onSeeRevenueClick
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    ReviewSection(
+                        state.rating,
+                        state.totalReviews,
+                        onSeeAllClicked = onSeeAllReviewsClick
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    OrderHistorySection(
+                        orders = state.recentOrders,
+                        totalOrders = state.totalOrders,
+                        onSeeAllClick = onSeeAllOrdersClick
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    BestSellerSection(
+                        items = state.bestSellers,
+                        onSeeAllClick = onSeeAllClick
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    ActiveVouchersPreviewCard(
+                        activeVouchers = state.activeVouchers,
+                        vouchers = state.voucherPreviews,
+                        onSeeDetailClick = {
+                            onNavigate("coupons")
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
         }
     }
@@ -306,7 +319,8 @@ fun DashboardPreview() {
                     VoucherPreviewItem("SUMMER25", "45/100 used"),
                     VoucherPreviewItem("FREESHIP", "212 used")
                 )
-            )
+            ),
+            onRefresh = {}
         )
     }
 }

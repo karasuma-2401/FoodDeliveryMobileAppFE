@@ -107,15 +107,6 @@ fun RestaurantProfileScreen(
 
             ProfileMenuGroup {
                 ProfileMenuItem(
-                    icon = Icons.Default.LocationOn,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = "Business Address",
-                    onClick = onNavigateToAddress
-                )
-            }
-
-            ProfileMenuGroup {
-                ProfileMenuItem(
                     icon = Icons.Default.List,
                     iconTint = MaterialTheme.colorScheme.secondary,
                     title = "Number of Orders",

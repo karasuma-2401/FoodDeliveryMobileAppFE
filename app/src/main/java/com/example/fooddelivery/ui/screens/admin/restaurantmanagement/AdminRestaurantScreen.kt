@@ -21,7 +21,8 @@ import com.example.fooddelivery.ui.screens.admin.components.RestaurantItemRow
 fun AdminRestaurantScreen(
     viewModel: AdminRestaurantViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    onNavigateToRestaurantDetail: (Int) -> Unit
 ) {
     val state by viewModel.state
 
@@ -75,7 +76,8 @@ fun AdminRestaurantScreen(
                             phone = restaurant.phone,
                             status = restaurant.status,
                             onApprove = { viewModel.updateApprovalStatus(restaurant.id, "APPROVED") }, // 🌟 Gọi API Approve
-                            onReject = { viewModel.updateApprovalStatus(restaurant.id, "REJECTED") }   // 🌟 Gọi API Reject
+                            onReject = { viewModel.updateApprovalStatus(restaurant.id, "REJECTED") },   // 🌟 Gọi API Reject
+                            onClick = { onNavigateToRestaurantDetail(restaurant.id) }
                         )
                     }
                 }
