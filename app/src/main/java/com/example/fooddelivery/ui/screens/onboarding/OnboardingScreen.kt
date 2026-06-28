@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 import kotlinx.coroutines.launch
 
 data class OnboardingPage(
@@ -61,6 +62,7 @@ fun OnboardingScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .navigationBarsPadding(),
     ) {
         HorizontalPager(
             state = pagerState,
@@ -108,7 +110,6 @@ fun OnboardingScreen(
                         onFinishOnboarding()
                     }
                 )
-                Spacer(modifier = Modifier.height(56.dp))
             } else {
                 DFoodButton(
                     text = "NEXT",

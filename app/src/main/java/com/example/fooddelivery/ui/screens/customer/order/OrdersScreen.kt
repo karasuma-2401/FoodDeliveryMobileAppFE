@@ -94,6 +94,7 @@ fun OrderContent(
     onReOrder: (String) -> Unit
 ) {
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             DFoodTopBar(
                 title = "My Orders",

@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 
 @Composable
 fun DFoodBottomBar(
@@ -40,11 +41,7 @@ fun DFoodBottomBar(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars)
-        ) {
+        Column(Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -104,6 +101,7 @@ fun DFoodBottomBar(
                     )
                 }
             }
+            NavigationBarBottomSpacer()
         }
     }
 }

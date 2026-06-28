@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 
 @Composable
 fun ChatBottomSection(
@@ -42,8 +43,7 @@ fun ChatBottomSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .navigationBarsPadding()
+            .padding(vertical = 8.dp),
     ) {
         // Only show order status card if data exists
         AnimatedVisibility(
@@ -179,6 +179,7 @@ fun ChatBottomSection(
                     .padding(top = 8.dp)
             )
         }
+        NavigationBarBottomSpacer()
     }
 }
 

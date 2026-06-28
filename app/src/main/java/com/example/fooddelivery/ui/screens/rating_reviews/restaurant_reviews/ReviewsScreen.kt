@@ -24,7 +24,16 @@ import kotlinx.coroutines.flow.collectLatest
 fun ReviewScreen(
     restaurantId: Int,
     onNavigateBack: () -> Unit,
-    onNavigateToEdit: (orderId: Int?, restaurantId: Int, name: String, image: String, rating: Int, comment: String, reviewId: Int?) -> Unit,
+    onNavigateToEdit: (
+        orderId: Int?,
+        restaurantId: Int,
+        name: String,
+        image: String,
+        rating: Int,
+        comment: String,
+        reviewId: Int?,
+        tags: List<String>,
+    ) -> Unit,
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -48,7 +57,8 @@ fun ReviewScreen(
                         effect.restaurantImage,
                         effect.rating,
                         effect.comment,
-                        effect.reviewId
+                        effect.reviewId,
+                        effect.tags,
                     )
                 }
                 is ReviewUiEffect.ShowToast -> {
@@ -194,7 +204,7 @@ fun ReviewScreenPreview() {
         ReviewScreen(
             restaurantId = 1,
             onNavigateBack = {},
-            onNavigateToEdit = { _, _, _, _, _, _, _ -> }
+            onNavigateToEdit = { _, _, _, _, _, _, _, _ -> }
         )
     }
 }

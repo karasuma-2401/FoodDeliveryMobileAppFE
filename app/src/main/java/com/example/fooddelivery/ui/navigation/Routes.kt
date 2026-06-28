@@ -58,6 +58,7 @@ data class RatingReviewRoute(
     val restaurantImage: String = "",
     val initialRating: Int = 0,
     val initialComment: String = "",
+    val initialTags: List<String> = emptyList(),
     val reviewId: String? = null
 )
 

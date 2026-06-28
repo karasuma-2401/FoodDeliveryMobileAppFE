@@ -103,3 +103,14 @@ fun CartResponse.toRestaurantGroups(): List<CartRestaurantGroup> {
             )
         }
 }
+
+fun ReorderResponse.toCartResponse(): CartResponse {
+    return CartResponse(
+        id = id,
+        totalItems = totalItems,
+        subtotal = subtotal,
+        restaurantGroups = restaurantGroups,
+        restaurant = restaurant,
+        items = items,
+    )
+}

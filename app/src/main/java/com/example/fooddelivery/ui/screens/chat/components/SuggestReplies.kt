@@ -30,13 +30,8 @@ fun SuggestedReplies(
     LazyRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(
-                start = 48.dp,
-                top = 12.dp,
-                bottom = 12.dp
-            ),
+            .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(end = 16.dp)
     ) {
         items(suggestions) { reply ->
             Surface(

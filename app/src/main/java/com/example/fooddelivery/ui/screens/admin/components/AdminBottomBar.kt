@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
 @Composable
@@ -47,15 +48,15 @@ fun AdminBottomBar(
         color = Color.White,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .height(84.dp)
-                .padding(top = 10.dp, bottom = 6.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Column(Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(84.dp)
+                    .padding(top = 10.dp, bottom = 6.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             adminTabs.forEach { tab ->
                 val isSelected = currentRoute == tab.route
                 Column(
@@ -102,6 +103,8 @@ fun AdminBottomBar(
                     }
                 }
             }
+            }
+            NavigationBarBottomSpacer()
         }
     }
 }

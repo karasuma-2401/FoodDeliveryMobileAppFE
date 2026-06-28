@@ -41,7 +41,8 @@ sealed interface ReviewUiEffect {
         val restaurantImage: String,
         val rating: Int,
         val comment: String,
-        val reviewId: Int?
+        val reviewId: Int?,
+        val tags: List<String> = emptyList(),
     ) : ReviewUiEffect
     data class ShowToast(val message: String) : ReviewUiEffect
 }
@@ -96,13 +97,14 @@ class ReviewViewModel @Inject constructor(
                     _state.value.currentRestaurantId?.let { resId ->
                         _uiEffect.emit(
                             ReviewUiEffect.NavigateToEdit(
-                                orderId = null,
+                                orderId = event.review.orderId,
                                 restaurantId = resId,
                                 restaurantName = "",
                                 restaurantImage = "",
                                 rating = event.review.rating,
                                 comment = event.review.description,
-                                reviewId = event.review.id.toIntOrNull()
+                                reviewId = event.review.id.toIntOrNull(),
+                                tags = event.review.tags,
                             )
                         )
                     }
@@ -128,7 +130,9 @@ class ReviewViewModel @Inject constructor(
                                 title = dto.comment?.let { if (it.length > 50) it.take(50) + "..." else it } ?: "",
                                 rating = dto.vote.coerceIn(1, 5),
                                 description = dto.comment ?: "",
-                                reply = dto.reply
+                                reply = dto.reply,
+                                tags = dto.tags,
+                                orderId = dto.orderId,
                             )
                         }
                         _state.update { it.copy(reviews = mapped, isLoading = false) }
