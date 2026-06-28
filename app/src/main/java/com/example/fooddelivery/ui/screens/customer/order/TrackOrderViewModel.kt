@@ -6,6 +6,7 @@ import com.example.fooddelivery.domain.model.OrderAddress
 import com.example.fooddelivery.domain.model.OrderDetail
 import com.example.fooddelivery.domain.model.VoucherSummary
 import com.example.fooddelivery.domain.repository.OrderRepository
+import com.example.fooddelivery.util.OrderEta
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -37,11 +38,14 @@ data class OrderSummaryItem(
 data class TrackOrderState(
     val orderId: String = "",
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val isConfirming: Boolean = false,
     val error: String? = null,
     val orderDetail: OrderDetail? = null,
     val trackingStatus: TrackingStatus = TrackingStatus.PENDING,
-    val expectedArrival: String = "--:--",
+    val expectedArrivalDisplay: String? = null,
+    val deliveredAtDisplay: String? = null,
+    val countdownLabel: String? = null,
     val restaurantName: String = "",
     val restaurantImage: String = "",
     val restaurantPhone: String = "",
@@ -73,47 +77,62 @@ class TrackOrderViewModel @Inject constructor(
     val state: StateFlow<TrackOrderState> = _state.asStateFlow()
 
     private var pollingJob: Job? = null
+    private var countdownJob: Job? = null
+    private var expectedArrivalIso: String? = null
 
     fun onEvent(event: TrackOrderEvent) {
         when (event) {
             is TrackOrderEvent.Initialize -> {
                 if (_state.value.orderId != event.orderId) {
                     _state.update { it.copy(orderId = event.orderId) }
-                    fetchOrderDetail(event.orderId)
+                    fetchOrderDetail(event.orderId, isUserRefresh = false)
                     startPolling(event.orderId)
                 }
             }
             is TrackOrderEvent.Refresh -> {
-                fetchOrderDetail(_state.value.orderId)
+                fetchOrderDetail(_state.value.orderId, isUserRefresh = true)
             }
             is TrackOrderEvent.ConfirmReceived -> {
                 confirmReceived()
             }
             is TrackOrderEvent.CheckPaymentStatus -> {
-                fetchOrderDetail(_state.value.orderId)
+                fetchOrderDetail(_state.value.orderId, isUserRefresh = false)
             }
         }
     }
 
-    private fun fetchOrderDetail(orderId: String) {
+    private fun fetchOrderDetail(orderId: String, isUserRefresh: Boolean) {
         val id = orderId.toIntOrNull() ?: return
         viewModelScope.launch {
-            if (_state.value.orderDetail == null) {
+            val hasContent = _state.value.orderDetail != null
+            if (!hasContent) {
                 _state.update { it.copy(isLoading = true, error = null) }
+            } else if (isUserRefresh) {
+                _state.update { it.copy(isRefreshing = true, error = null) }
             }
             val result = orderRepository.getOrderDetail(id)
             _state.update { state ->
                 result.fold(
                     onSuccess = { detail ->
-                        // Stop polling if order reached terminal state
-                        if (detail.statusStep == 4 || detail.statusStep == -1 || detail.backendStatus == "CONFIRMED" || detail.backendStatus == "CANCELLED") {
+                        if (detail.statusStep == 4 || detail.statusStep == -1 ||
+                            detail.backendStatus == "CONFIRMED" || detail.backendStatus == "CANCELLED"
+                        ) {
                             stopPolling()
                         }
+                        val etaState = buildEtaState(detail)
+                        syncCountdownTicker(
+                            iso = detail.expectedArrivalIso,
+                            isDelivering = detail.backendStatus.uppercase() == "DELIVERING",
+                        )
                         state.copy(
                             isLoading = false,
+                            isRefreshing = false,
+                            isConfirming = false,
                             orderDetail = detail,
                             trackingStatus = mapToTrackingStatus(detail.statusStep),
-                            expectedArrival = detail.expectedArrival ?: "--:--",
+                            expectedArrivalDisplay = etaState.expectedArrivalDisplay,
+                            deliveredAtDisplay = etaState.deliveredAtDisplay,
+                            countdownLabel = etaState.countdownLabel,
                             restaurantName = detail.restaurantName,
                             restaurantImage = detail.restaurantImage,
                             restaurantPhone = detail.restaurantPhone ?: "",
@@ -140,7 +159,11 @@ class TrackOrderViewModel @Inject constructor(
                         )
                     },
                     onFailure = { error ->
-                        state.copy(isLoading = false, error = error.message)
+                        state.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            error = error.message,
+                        )
                     }
                 )
             }
@@ -153,7 +176,7 @@ class TrackOrderViewModel @Inject constructor(
             _state.update { it.copy(isConfirming = true) }
             val result = orderRepository.confirmReceived(orderId)
             result.onSuccess {
-                fetchOrderDetail(orderId.toString())
+                fetchOrderDetail(orderId.toString(), isUserRefresh = false)
             }.onFailure { error ->
                 _state.update { it.copy(isConfirming = false, error = error.message) }
             }
@@ -164,8 +187,8 @@ class TrackOrderViewModel @Inject constructor(
         stopPolling()
         pollingJob = viewModelScope.launch {
             while (true) {
-                delay(15000) // Poll every 15 seconds as suggested
-                fetchOrderDetail(orderId)
+                delay(15_000)
+                fetchOrderDetail(orderId, isUserRefresh = false)
             }
         }
     }
@@ -175,6 +198,41 @@ class TrackOrderViewModel @Inject constructor(
         pollingJob = null
     }
 
+    private fun syncCountdownTicker(iso: String?, isDelivering: Boolean) {
+        if (!isDelivering || iso.isNullOrBlank()) {
+            expectedArrivalIso = null
+            countdownJob?.cancel()
+            countdownJob = null
+            return
+        }
+        if (iso == expectedArrivalIso && countdownJob?.isActive == true) return
+        expectedArrivalIso = iso
+        countdownJob?.cancel()
+        countdownJob = viewModelScope.launch {
+            while (true) {
+                val label = OrderEta.countdownLabel(iso)
+                _state.update { it.copy(countdownLabel = label) }
+                delay(30_000)
+            }
+        }
+    }
+
+    private fun buildEtaState(detail: OrderDetail): EtaState {
+        return when (detail.backendStatus.uppercase()) {
+            "DELIVERING" -> EtaState(
+                expectedArrivalDisplay = detail.expectedArrival,
+                deliveredAtDisplay = null,
+                countdownLabel = detail.expectedArrivalIso?.let { OrderEta.countdownLabel(it) },
+            )
+            "DELIVERED" -> EtaState(
+                expectedArrivalDisplay = null,
+                deliveredAtDisplay = detail.deliveredAt,
+                countdownLabel = null,
+            )
+            else -> EtaState(null, null, null)
+        }
+    }
+
     private fun mapToTrackingStatus(step: Int): TrackingStatus {
         return TrackingStatus.entries.find { it.step == step } ?: TrackingStatus.PENDING
     }
@@ -182,5 +240,12 @@ class TrackOrderViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         stopPolling()
+        countdownJob?.cancel()
     }
+
+    private data class EtaState(
+        val expectedArrivalDisplay: String?,
+        val deliveredAtDisplay: String?,
+        val countdownLabel: String?,
+    )
 }

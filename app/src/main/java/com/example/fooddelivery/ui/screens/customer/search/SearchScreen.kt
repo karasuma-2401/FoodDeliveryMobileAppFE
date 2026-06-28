@@ -32,6 +32,7 @@ import com.example.fooddelivery.ui.screens.customer.search.components.SearchInpu
 import com.example.fooddelivery.ui.screens.customer.search.components.SearchRestaurantItem
 import com.example.fooddelivery.ui.screens.customer.search.components.SearchShimmerLoading
 import com.example.fooddelivery.ui.screens.customer.search.components.SectionHeader
+import com.example.fooddelivery.ui.screens.customer.search.components.TrendingKeywordsList
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.google.android.gms.common.api.ResolvableApiException
@@ -205,6 +206,13 @@ fun SearchContent(
                                     onKeywordClick = { onEvent(SearchEvent.KeywordClicked(it)) },
                                     onDeleteHistoryItem = { onEvent(SearchEvent.DeleteHistoryItem(it)) },
                                     onClearAll = { onEvent(SearchEvent.ClearAllHistory) }
+                                )
+                            }
+                            if (state.trendingKeywords.isNotEmpty()) {
+                                TrendingKeywordsList(
+                                    keywords = state.trendingKeywords,
+                                    onKeywordClick = { onEvent(SearchEvent.KeywordClicked(it)) },
+                                    modifier = Modifier.padding(top = if (state.recentKeyWords.isNotEmpty()) 16.dp else 0.dp),
                                 )
                             }
                             SectionHeader(

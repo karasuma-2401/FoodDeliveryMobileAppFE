@@ -93,7 +93,10 @@ fun AddAddressContent(
         isSearching = state.isSearching,
         searchResults = state.searchResults,
         noResultsFound = state.noResultsFound,
-        onSearchResultSelected = { onEvent(AddAddressEvent.SearchResultSelected(it)) }
+        onSearchResultSelected = {
+            onEvent(AddAddressEvent.SearchResultSelected(it))
+            showSearchDialog = false
+        }
     )
 
     Scaffold(
@@ -113,50 +116,15 @@ fun AddAddressContent(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            if (!isEditMode) {
-                LocationPickerHeader(
-                    initialLocation = mapLocation,
-                    onSearchClick = { showSearchDialog = true }
-                )
-            } else {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 20.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.EditLocationAlt,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = "Editing current address",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Update details and save your changes",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
+            LocationPickerHeader(
+                initialLocation = mapLocation,
+                onSearchClick = { showSearchDialog = true }
+            )
 
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .offset(y = if (!isEditMode) (-24).dp else 16.dp)
+                    .offset(y = (-24).dp)
                     .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
                 color = MaterialTheme.colorScheme.background,
@@ -174,7 +142,11 @@ fun AddAddressContent(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = if (isEditMode) "Edit your delivery information below" else "Confirm your delivery address to proceed",
+                        text = if (isEditMode) {
+                            "Change location via search, then update delivery notes below"
+                        } else {
+                            "Search to pin your location, then add delivery notes if needed"
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
@@ -253,22 +225,73 @@ fun AddAddressContent(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
-                            Text(
-                                text = "DELIVERY ADDRESS",
-                                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "DELIVERY LOCATION",
+                                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                TextButton(onClick = { showSearchDialog = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Search")
+                                }
+                            }
                             Spacer(modifier = Modifier.height(8.dp))
                             CustomAddressTextField(
                                 value = state.fullAddress,
-                                onValueChange = { onEvent(AddAddressEvent.FullAddressChanged(it)) },
+                                onValueChange = {},
+                                readOnly = true,
                                 leadingIcon = Icons.Default.LocationOn,
-                                placeholder = "Search or enter full address",
+                                placeholder = "Search to select delivery location",
+                            )
+                            if (!state.hasPinnedLocation) {
+                                Text(
+                                    text = "A confirmed map location is required before saving",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(top = 6.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Text(
+                                text = "DELIVERY NOTE",
+                                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Floor, apartment, gate, or call-before-arrival instructions",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            CustomAddressTextField(
+                                value = state.deliveryNote,
+                                onValueChange = { onEvent(AddAddressEvent.DeliveryNoteChanged(it)) },
+                                placeholder = "e.g. Floor 5, Unit B, call before arrival",
+                                singleLine = false,
+                                minLines = 2,
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(onDone = {
-                                    focusManager.clearFocus()
-                                    onEvent(AddAddressEvent.SaveAddressClicked)
-                                })
+                                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                             )
                         }
                     }
@@ -282,7 +305,7 @@ fun AddAddressContent(
                             onEvent(AddAddressEvent.SaveAddressClicked)
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !state.isLoading,
+                        enabled = !state.isLoading && state.hasPinnedLocation,
                         leadingIcon = {
                             if (!state.isLoading) {
                                 Icon(

@@ -28,7 +28,7 @@ fun OrderNotesCard(
             .height(96.dp),
         placeholder = {
             Text(
-                text = "Add a note for the restaurant (e.g. No onions)",
+                text = "Delivery instructions for this order (e.g. floor, gate, call on arrival)",
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 style = MaterialTheme.typography.bodyMedium
             )

@@ -72,4 +72,16 @@ class ChatMessageTimeTest {
         val chronological = listOf(restaurant, customer).sortedWith(messageTimelineComparator())
         assertEquals(listOf("10", "11"), chronological.map { it.id })
     }
+
+    @Test
+    fun `formatMessageDisplayTime formats epoch millis`() {
+        val formatted = formatMessageDisplayTime("1735000000123")
+        assertTrue(formatted.isNotBlank())
+    }
+
+    @Test
+    fun `formatMessageDisplayTime formats ISO timestamp`() {
+        val formatted = formatMessageDisplayTime("2024-06-27T12:00:00.000Z")
+        assertTrue(formatted.isNotBlank())
+    }
 }

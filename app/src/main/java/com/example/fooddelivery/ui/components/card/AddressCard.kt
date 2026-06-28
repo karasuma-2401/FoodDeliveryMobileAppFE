@@ -82,8 +82,16 @@ fun AddressCard(
                     text = address.detail,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    maxLines = 2
                 )
+                if (address.deliveryNote.isNotBlank()) {
+                    Text(
+                        text = address.deliveryNote,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 2
+                    )
+                }
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {

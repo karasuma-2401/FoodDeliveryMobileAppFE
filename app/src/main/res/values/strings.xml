@@ -36,5 +36,6 @@
 
     <!-- Search -->
     <string name="recent_keywords">Recent Keywords</string>
+    <string name="trending_keywords">Trending Keywords</string>
     <string name="search_placeholder">Search dishes...</string>
 </resources>

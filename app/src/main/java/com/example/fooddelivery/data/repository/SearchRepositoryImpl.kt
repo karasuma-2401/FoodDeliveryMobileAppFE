@@ -1,17 +1,19 @@
 package com.example.fooddelivery.data.repository
 
 import com.example.fooddelivery.data.remote.api.SearchApi
-import com.example.fooddelivery.data.remote.dto.*
+import com.example.fooddelivery.data.remote.dto.toDomain
 import com.example.fooddelivery.data.remote.unwrapData
+import com.example.fooddelivery.data.remote.unwrapUnit
 import com.example.fooddelivery.domain.model.FoodItem
 import com.example.fooddelivery.domain.model.Restaurant
 import com.example.fooddelivery.domain.model.SearchHistory
 import com.example.fooddelivery.domain.model.SearchSortOption
+import com.example.fooddelivery.domain.model.TrendingKeyword
 import com.example.fooddelivery.domain.repository.SearchRepository
 import javax.inject.Inject
 
 class SearchRepositoryImpl @Inject constructor(
-    private val searchApi: SearchApi
+    private val searchApi: SearchApi,
 ) : SearchRepository {
 
     override suspend fun unifiedSearch(
@@ -21,7 +23,7 @@ class SearchRepositoryImpl @Inject constructor(
         limit: Int,
         offset: Int,
         sort: SearchSortOption?,
-        categoryId: String?
+        categoryId: String?,
     ): Result<Pair<List<FoodItem>, List<Restaurant>>> {
         return try {
             searchApi.unifiedSearch(
@@ -31,13 +33,9 @@ class SearchRepositoryImpl @Inject constructor(
                 limit = limit,
                 offset = offset,
                 sort = sort?.apiValue,
-                categoryId = categoryId
+                categoryId = categoryId,
             ).unwrapData("Failed to search")
-                .map { payload ->
-                    val foods = payload.foods.map { it.toDomain() }
-                    val restaurants = payload.restaurants.map { it.toDomain() }
-                    Pair(foods, restaurants)
-                }
+                .map { it.toDomain() }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -46,16 +44,22 @@ class SearchRepositoryImpl @Inject constructor(
     override suspend fun getSuggestions(
         lat: Double?,
         lng: Double?,
-        limit: Int
+        limit: Int,
     ): Result<Pair<List<FoodItem>, List<Restaurant>>> {
         return try {
             searchApi.getSuggestions(lat, lng, limit)
                 .unwrapData("Failed to load suggestions")
-                .map { payload ->
-                    val foods = payload.foods.map { it.toDomain() }
-                    val restaurants = payload.restaurants.map { it.toDomain() }
-                    Pair(foods, restaurants)
-                }
+                .map { it.toDomain() }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getTrending(limit: Int): Result<List<TrendingKeyword>> {
+        return try {
+            searchApi.getTrending(limit)
+                .unwrapData("Failed to load trending keywords")
+                .map { list -> list.map { it.toDomain() } }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -65,7 +69,6 @@ class SearchRepositoryImpl @Inject constructor(
         return try {
             searchApi.getHistory()
                 .unwrapData("Failed to get history")
-                .normalizeNested("Failed to get history")
                 .map { list -> list.map { it.toDomain() } }
         } catch (e: Exception) {
             Result.failure(e)
@@ -76,7 +79,6 @@ class SearchRepositoryImpl @Inject constructor(
         return try {
             searchApi.saveHistory(mapOf("keyword" to keyword))
                 .unwrapData("Failed to save history")
-                .normalizeNested("Failed to save history")
                 .map { it.toDomain() }
         } catch (e: Exception) {
             Result.failure(e)
@@ -86,8 +88,7 @@ class SearchRepositoryImpl @Inject constructor(
     override suspend fun clearAllHistory(): Result<Unit> {
         return try {
             searchApi.clearAllHistory()
-                .unwrapData("Failed to clear history")
-                .normalizeNestedUnit("Failed to clear history")
+                .unwrapUnit("Failed to clear history")
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -96,28 +97,9 @@ class SearchRepositoryImpl @Inject constructor(
     override suspend fun deleteHistoryItem(id: Int): Result<Unit> {
         return try {
             searchApi.deleteHistoryItem(id)
-                .unwrapData("Failed to delete history item")
-                .normalizeNestedUnit("Failed to delete history item")
+                .unwrapUnit("Failed to delete history item")
         } catch (e: Exception) {
             Result.failure(e)
-        }
-    }
-
-    private fun <T> Result<SearchNestedPayload<T>>.normalizeNested(fallback: String): Result<T> {
-        return mapCatching { nested ->
-            if (nested.success == false) {
-                throw Exception(nested.message ?: fallback)
-            }
-            nested.data ?: throw Exception(nested.message ?: fallback)
-        }
-    }
-
-    private fun Result<SearchNestedPayload<Unit>>.normalizeNestedUnit(fallback: String): Result<Unit> {
-        return mapCatching { nested ->
-            if (nested.success == false) {
-                throw Exception(nested.message ?: fallback)
-            }
-            Unit
         }
     }
 }

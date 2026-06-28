@@ -158,13 +158,18 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
     private fun OrderDetailResponse.toOrderDetail(): OrderDetail {
+        val normalizedBackendStatus = backend_status?.uppercase() ?: ""
+        val isDelivering = normalizedBackendStatus == "DELIVERING"
         return OrderDetail(
             id = id.toString(),
             totalPrice = totalPrice,
             status = status,
             statusStep = status_step ?: 0,
             backendStatus = backend_status ?: "",
-            expectedArrival = expected_arrival?.let { formatDate(it) },
+            expectedArrival = if (isDelivering) expected_arrival?.let { formatDate(it) } else null,
+            expectedArrivalIso = if (isDelivering) expected_arrival else null,
+            deliveringAt = delivering_at?.let { formatDate(it) },
+            deliveryMinutes = delivery_minutes,
             deliveredAt = delivered_at?.let { formatDate(it) },
             autoConfirmAt = auto_confirm_at?.let { formatDate(it) },
             hoursUntilAutoConfirm = hours_until_auto_confirm,
@@ -216,12 +221,17 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
     private fun OrderStatusSummaryResponse.toDomain(): OrderStatusSummary {
+        val isDelivering = backend_status.uppercase() == "DELIVERING"
         return OrderStatusSummary(
             orderId = order_id,
             status = status,
             statusStep = status_step,
             updatedAt = formatDate(updated_at),
             backendStatus = backend_status,
+            expectedArrival = if (isDelivering) expected_arrival?.let { formatDate(it) } else null,
+            expectedArrivalIso = if (isDelivering) expected_arrival else null,
+            deliveringAt = delivering_at?.let { formatDate(it) },
+            deliveryMinutes = delivery_minutes,
             deliveredAt = delivered_at?.let { formatDate(it) },
             autoConfirmAt = auto_confirm_at?.let { formatDate(it) },
             hoursUntilAutoConfirm = hours_until_auto_confirm,

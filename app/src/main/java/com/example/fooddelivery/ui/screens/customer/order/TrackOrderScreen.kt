@@ -2,7 +2,12 @@ package com.example.fooddelivery.ui.screens.customer.order
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +21,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +39,7 @@ import com.example.fooddelivery.ui.screens.customer.order.components.DeliveryAdd
 import com.example.fooddelivery.ui.screens.customer.order.components.OrderBillDetailCard
 import com.example.fooddelivery.ui.screens.customer.order.components.OrderSummaryCard
 import com.example.fooddelivery.ui.screens.customer.order.components.RestaurantContactCard
+import com.example.fooddelivery.ui.screens.customer.order.components.OrderStatusHeroCard
 import com.example.fooddelivery.ui.screens.customer.order.components.TimelineItem
 import com.example.fooddelivery.ui.screens.customer.order.components.TrackOrderSkeleton
 import com.example.fooddelivery.ui.theme.DFoodTheme
@@ -56,7 +63,8 @@ fun TrackOrderScreen(
         onNavigateBack = onNavigateBack,
         onChatWithRestaurant = onChatWithRestaurant,
         onConfirmReceived = { viewModel.onEvent(TrackOrderEvent.ConfirmReceived) },
-        onCheckPayment = { viewModel.onEvent(TrackOrderEvent.CheckPaymentStatus) }
+        onCheckPayment = { viewModel.onEvent(TrackOrderEvent.CheckPaymentStatus) },
+        onRefresh = { viewModel.onEvent(TrackOrderEvent.Refresh) }
     )
 }
 
@@ -67,7 +75,8 @@ fun TrackOrderContent(
     onNavigateBack: () -> Unit,
     onChatWithRestaurant: (Int, Int, String, String) -> Unit,
     onConfirmReceived: () -> Unit = {},
-    onCheckPayment: () -> Unit = {}
+    onCheckPayment: () -> Unit = {},
+    onRefresh: () -> Unit = {}
 ) {
     val context = LocalContext.current
     Scaffold(
@@ -84,14 +93,20 @@ fun TrackOrderContent(
                 TrackOrderSkeleton()
             }
         } else {
-            Column(
+            PullToRefreshBox(
+                isRefreshing = state.isRefreshing,
+                onRefresh = onRefresh,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = CustomerDimens.screenHorizontalPadding)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(CustomerDimens.screenSectionSpacing)
+                    .padding(innerPadding),
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = CustomerDimens.screenHorizontalPadding)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(CustomerDimens.screenSectionSpacing)
+                ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Payment Pending Notice for MoMo
@@ -143,32 +158,21 @@ fun TrackOrderContent(
                     }
                 }
 
-                // Arrival Time Card (Hidden if Cancelled or Completed)
-                if (state.trackingStatus != TrackingStatus.CANCELLED && state.trackingStatus != TrackingStatus.CONFIRMED) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(20.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = if (state.trackingStatus == TrackingStatus.DELIVERED) "ARRIVED AT" else "EXPECTED ARRIVAL",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = if (state.trackingStatus == TrackingStatus.DELIVERED) state.orderDetail?.deliveredAt ?: "--:--" else state.expectedArrival,
-                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
+                // Hero status card (hidden when cancelled — dedicated banner below)
+                if (state.trackingStatus != TrackingStatus.CANCELLED) {
+                    AnimatedContent(
+                        targetState = state.trackingStatus,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+                        },
+                        label = "order_status_hero",
+                    ) { status ->
+                        OrderStatusHeroCard(
+                            trackingStatus = status,
+                            expectedArrivalDisplay = state.expectedArrivalDisplay,
+                            deliveredAtDisplay = state.deliveredAtDisplay,
+                            countdownLabel = state.countdownLabel,
+                        )
                     }
                 }
 
@@ -294,6 +298,7 @@ fun TrackOrderContent(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
+                }
             }
         }
     }
@@ -318,7 +323,6 @@ fun TrackOrderContentPreview() {
         TrackOrderContent(
             state = TrackOrderState(
                 orderId = "162432",
-                expectedArrival = "12:45 PM",
                 trackingStatus = TrackingStatus.PREPARING,
                 restaurantName = "Rose Garden Restaurant",
                 restaurantPhone = "0987654321",

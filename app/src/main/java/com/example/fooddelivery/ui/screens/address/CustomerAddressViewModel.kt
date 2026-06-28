@@ -93,6 +93,7 @@ class CustomerAddressViewModel @Inject constructor(
             type = type,
             title = title,
             detail = detail,
+            deliveryNote = deliveryNote,
             icon = icon,
             iconColor = color,
             iconBgColor = bgColor

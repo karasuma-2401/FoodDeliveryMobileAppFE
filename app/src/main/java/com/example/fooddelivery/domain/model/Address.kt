@@ -6,7 +6,8 @@ data class Address(
     val title: String = "", // Physical address title
     val streetName: String = "",
     val city: String = "",
-    val detail: String = "", // Full address text
+    val detail: String = "", // Full address text from map/search
+    val deliveryNote: String = "", // Free-form note (floor, gate, call before arrival)
     val latitude: Double = 0.0,
     val longitude: Double = 0.0
 )

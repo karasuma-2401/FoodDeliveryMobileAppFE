@@ -5,9 +5,9 @@ import com.example.fooddelivery.domain.repository.AddressRepository
 import javax.inject.Inject
 
 class UpdateAddressUseCase @Inject constructor(
-    private val repository: AddressRepository
+    private val repository: AddressRepository,
 ) {
     suspend operator fun invoke(address: Address): Result<Unit> {
-        return repository.updateAddress(address)
+        return repository.updateAddressDetails(address)
     }
 }

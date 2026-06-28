@@ -16,7 +16,6 @@ import com.example.fooddelivery.data.remote.socket.ChatSocketManager
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.data.remote.unwrapUnit
 import com.example.fooddelivery.domain.repository.ChatRepository
-import com.example.fooddelivery.util.messageCreatedAtMillis
 import com.example.fooddelivery.util.normalizeCreatedAt
 import com.example.fooddelivery.util.normalizeCreatedAtNow
 import com.example.fooddelivery.util.senderIdsMatch
@@ -385,37 +384,14 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun handleNewMessage(message: MessageEntity) {
         val normalizedMessage = message.copy(createdAt = normalizeCreatedAt(message.createdAt))
         val currentUserId = getCurrentUserId()?.toString()
-        val messageToInsert = if (currentUserId != null &&
-            senderIdsMatch(normalizedMessage.senderId, currentUserId)
-        ) {
-            val optimisticCreatedAt = messageDao.getLatestOptimisticCreatedAt(
-                conversationId = normalizedMessage.conversationId,
-                senderId = normalizedMessage.senderId
-            )
+        if (currentUserId != null && senderIdsMatch(normalizedMessage.senderId, currentUserId)) {
             messageDao.deleteOptimisticDuplicates(
                 conversationId = normalizedMessage.conversationId,
                 senderId = normalizedMessage.senderId,
                 serverMessageId = normalizedMessage.id
             )
-            preserveClientTimestampIfNewer(normalizedMessage, optimisticCreatedAt)
-        } else {
-            normalizedMessage
         }
-        messageDao.insertMessage(messageToInsert)
-    }
-
-    private fun preserveClientTimestampIfNewer(
-        serverMessage: MessageEntity,
-        optimisticCreatedAt: String?
-    ): MessageEntity {
-        if (optimisticCreatedAt.isNullOrBlank()) return serverMessage
-        val serverMillis = messageCreatedAtMillis(serverMessage.createdAt)
-        val clientMillis = messageCreatedAtMillis(optimisticCreatedAt)
-        return if (clientMillis > serverMillis) {
-            serverMessage.copy(createdAt = clientMillis.toString())
-        } else {
-            serverMessage
-        }
+        messageDao.insertMessage(normalizedMessage)
     }
 
     private fun scheduleSendTimeout(tempId: String) {

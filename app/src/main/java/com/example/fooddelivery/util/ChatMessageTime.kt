@@ -3,6 +3,7 @@ package com.example.fooddelivery.util
 import com.example.fooddelivery.data.local.room.entity.MessageEntity
 import java.time.Instant
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
@@ -42,6 +43,13 @@ fun normalizeCreatedAt(createdAt: String): String =
     messageCreatedAtMillis(createdAt).toString()
 
 fun normalizeCreatedAtNow(): String = System.currentTimeMillis().toString()
+
+/** Formats a server-normalized or ISO timestamp for display in the device timezone. */
+fun formatMessageDisplayTime(createdAt: String): String {
+    val millis = messageCreatedAtMillis(createdAt)
+    if (millis <= 0L) return ""
+    return SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(millis))
+}
 
 fun messagesForMessengerDisplay(messages: List<MessageEntity>): List<MessageEntity> =
     messages.sortedWith(messageTimelineComparator()).asReversed()
