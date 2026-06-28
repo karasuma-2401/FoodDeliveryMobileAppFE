@@ -51,7 +51,9 @@ fun HomeScreen(
     onNavigateToAllCategories: () -> Unit,
     onNavigateToAllRestaurants: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onNavigateToEditProfile: () -> Unit,
+    onNavigateToAddPhone: () -> Unit,
+    refreshAfterPhoneAdded: Boolean = false,
+    onRefreshAfterPhoneHandled: () -> Unit = {},
     onNavigateToOrders: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToManageAddress: () -> Unit,
@@ -60,6 +62,13 @@ fun HomeScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(refreshAfterPhoneAdded) {
+        if (refreshAfterPhoneAdded) {
+            viewModel.onEvent(HomeEvent.Refresh)
+            onRefreshAfterPhoneHandled()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -70,8 +79,7 @@ fun HomeScreen(
                 is HomeUiEffect.NavigateToAllRestaurants -> onNavigateToAllRestaurants()
                 is HomeUiEffect.NavigateToCategory -> onNavigateToCategory(effect.categoryId)
                 is HomeUiEffect.NavigateToRestaurant -> onNavigateToRestaurant(effect.restaurantId)
-                is HomeUiEffect.NavigateToFoodDetail -> onNavigateToFoodDetail(effect.foodId)
-                HomeUiEffect.NavigateToEditProfile -> onNavigateToEditProfile()
+                is                 HomeUiEffect.NavigateToFoodDetail -> onNavigateToFoodDetail(effect.foodId)
                 HomeUiEffect.NavigateToManageAddress -> onNavigateToManageAddress()
             }
         }
@@ -90,7 +98,7 @@ fun HomeScreen(
     if (state.isPhoneMissing) {
         PhoneRequiredDialog(
             onDismiss = { viewModel.onEvent(HomeEvent.PhoneUpdateDismissed) },
-            onUpdate = onNavigateToEditProfile
+            onUpdate = onNavigateToAddPhone
         )
     }
 
@@ -219,7 +227,7 @@ fun HomeContent(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                     item { Box(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) { SearchBarSkeleton() }; Spacer(modifier = Modifier.height(24.dp)) }
-                    item { Box(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) { PromoBannerSkeleton() }; Spacer(modifier = Modifier.height(32.dp)) }
+//                    item { Box(modifier = Modifier.padding(horizontal = CustomerDimens.screenHorizontalPadding)) { PromoBannerSkeleton() }; Spacer(modifier = Modifier.height(32.dp)) }
                     item {
                         SectionHeader(title = "All Categories", onSeeAllClick = { })
                         LazyRow(contentPadding = PaddingValues(horizontal = CustomerDimens.screenHorizontalPadding), horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp, bottom = 32.dp), userScrollEnabled = false) { items(5) { CategoryItemSkeleton() } }
@@ -260,34 +268,34 @@ fun HomeContent(
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                     }
-                    item {
-                        if (state.banners.isNotEmpty()) {
-                            val pagerState = rememberPagerState(pageCount = { state.banners.size })
-
-                            HorizontalPager(
-                                state = pagerState,
-                                contentPadding = PaddingValues(horizontal = CustomerDimens.screenHorizontalPadding),
-                                pageSpacing = 16.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            ) { pagerIndex ->
-                                val banner = state.banners[pagerIndex]
-                                PromoBanner(
-                                    banner = banner,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
-                                )
-                            }
-                            with(pagerState) {
-                                LaunchedEffect(key1 = currentPage) {
-                                    delay(2500)
-                                    animateScrollToPage(
-                                        page = (currentPage + 1).mod(pageCount)
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(32.dp))
-                    }
+//                    item {
+//                        if (state.banners.isNotEmpty()) {
+//                            val pagerState = rememberPagerState(pageCount = { state.banners.size })
+//
+//                            HorizontalPager(
+//                                state = pagerState,
+//                                contentPadding = PaddingValues(horizontal = CustomerDimens.screenHorizontalPadding),
+//                                pageSpacing = 16.dp,
+//                                modifier = Modifier.fillMaxWidth()
+//                            ) { pagerIndex ->
+//                                val banner = state.banners[pagerIndex]
+//                                PromoBanner(
+//                                    banner = banner,
+//                                    modifier = Modifier.fillMaxWidth(),
+//                                    onClick = { onEvent(HomeEvent.BannerClicked(banner)) }
+//                                )
+//                            }
+//                            with(pagerState) {
+//                                LaunchedEffect(key1 = currentPage) {
+//                                    delay(2500)
+//                                    animateScrollToPage(
+//                                        page = (currentPage + 1).mod(pageCount)
+//                                    )
+//                                }
+//                            }
+//                        }
+//                        Spacer(modifier = Modifier.height(32.dp))
+//                    }
 
                     item {
                         SectionHeader(

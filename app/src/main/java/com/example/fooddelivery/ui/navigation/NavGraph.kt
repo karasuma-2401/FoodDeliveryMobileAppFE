@@ -50,6 +50,7 @@ import com.example.fooddelivery.ui.screens.admin.coupons.CreateCouponScreen
 import com.example.fooddelivery.ui.screens.admin.coupons.AdminCouponScreen
 import com.example.fooddelivery.ui.screens.admin.restaurantmanagement.AdminRestaurantScreen
 import com.example.fooddelivery.ui.screens.auth.changePassword.ChangePasswordScreen
+import com.example.fooddelivery.ui.screens.customer.profile.AddPhoneScreen
 import com.example.fooddelivery.ui.screens.customer.profile.EditProfileScreen
 import com.example.fooddelivery.ui.screens.customer.profile.ProfileScreen
 import com.example.fooddelivery.ui.screens.address.AddAddressScreen
@@ -71,6 +72,7 @@ import com.example.fooddelivery.ui.screens.auth.register.PolicyScreen
 import com.example.fooddelivery.ui.screens.admin.setting.AdminSettingScreen
 import com.example.fooddelivery.ui.screens.rating_reviews.restaurant_reviews.ReviewScreen
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
+import com.example.fooddelivery.domain.model.NotificationDestination
 import com.example.fooddelivery.ui.screens.notification.NotificationScreen
 import com.example.fooddelivery.ui.screens.notification.UnreadNotificationViewModel
 import com.example.fooddelivery.ui.screens.admin.dashboard.AdminDashboardScreen
@@ -329,7 +331,7 @@ fun NavGraphBuilder.authNavGraph(
 fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
     navigation<CustomerGraph>(startDestination = HomeRoute) {
 
-        composable<HomeRoute> {
+        composable<HomeRoute> { backStackEntry ->
             HomeScreen(
                 onNavigateToCategory = { id ->
                     navController.navigate(CategoryFilterRoute(categoryId = id))
@@ -337,7 +339,11 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToSearch = { navController.navigate(SearchRoute) },
                 onNavigateToProfile = { navController.navigate(ProfileRoute) },
-                onNavigateToEditProfile = { navController.navigate(EditProfileRoute) },
+                onNavigateToAddPhone = { navController.navigate(AddPhoneRoute) },
+                refreshAfterPhoneAdded = backStackEntry.savedStateHandle.get<Boolean>("refresh_home") == true,
+                onRefreshAfterPhoneHandled = {
+                    backStackEntry.savedStateHandle.remove<Boolean>("refresh_home")
+                },
                 onNavigateToOrders = { navController.navigate(MyOrdersRoute) },
                 onNavigateToRestaurant = { id ->
                     navController.navigate(RestaurantDetailRoute(restaurantId = id))
@@ -538,6 +544,18 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             )
         }
 
+        composable<AddPhoneRoute> {
+            AddPhoneScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onPhoneAdded = {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_home", true)
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable<ChangePasswordRoute> {
             ChangePasswordScreen(
                 onNavigateBack = { navController.popBackStack() }
@@ -563,8 +581,14 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
             NotificationScreen(
                 showBackButton = false,
                 onNavigateBack = {},
-                onNavigateToOrder = { orderId ->
-                    navController.navigate(TrackOrderRoute(orderId = orderId))
+                onNavigate = { destination ->
+                    when (destination) {
+                        is NotificationDestination.Order ->
+                            navController.navigate(TrackOrderRoute(orderId = destination.orderId))
+                        is NotificationDestination.Chat ->
+                            navController.navigate(ChatRoute(conversationId = destination.conversationId))
+                        is NotificationDestination.RestaurantApproval -> Unit
+                    }
                 }
             )
         }
@@ -842,11 +866,14 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                     NotificationScreen(
                         showBackButton = false,
                         onNavigateBack = {},
-                        onNavigateToOrder = {
-                            vendorNavController.navigate(RestaurantOrderManagementRoute)
-                        },
-                        onNavigateToChat = { conversationId ->
-                            vendorNavController.navigate(ChatRoute(conversationId = conversationId))
+                        onNavigate = { destination ->
+                            when (destination) {
+                                is NotificationDestination.Order ->
+                                    vendorNavController.navigate(RestaurantOrderManagementRoute)
+                                is NotificationDestination.Chat ->
+                                    vendorNavController.navigate(ChatRoute(conversationId = destination.conversationId))
+                                is NotificationDestination.RestaurantApproval -> Unit
+                            }
                         }
                     )
                 }
@@ -1096,8 +1123,14 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                     NotificationScreen(
                         showBackButton = false,
                         onNavigateBack = {},
-                        onNavigateToOrder = {
-                            adminNavController.navigate(AdminOrdersRoute)
+                        onNavigate = { destination ->
+                            when (destination) {
+                                is NotificationDestination.Order ->
+                                    adminNavController.navigate(AdminOrdersRoute)
+                                is NotificationDestination.RestaurantApproval ->
+                                    adminNavController.navigate(AdminRestaurantsRoute)
+                                is NotificationDestination.Chat -> Unit
+                            }
                         }
                     )
                 }

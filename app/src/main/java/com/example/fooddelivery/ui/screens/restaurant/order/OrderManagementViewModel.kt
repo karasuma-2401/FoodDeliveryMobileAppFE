@@ -92,13 +92,13 @@ class OrderManagementViewModel @Inject constructor(
                 }.onFailure { error ->
                     _state.value = _state.value.copy(
                         updatingOrderId = null,
-                        error = "Lỗi xác nhận thanh toán: ${error.message}"
+                        error = "Payment confirmation failed: ${error.message}"
                     )
                 }
             }.onFailure { error ->
                 _state.value = _state.value.copy(
                     updatingOrderId = null,
-                    error = "Không lấy được thông tin thanh toán: ${error.message}"
+                    error = "Could not load payment details: ${error.message}"
                 )
             }
         }

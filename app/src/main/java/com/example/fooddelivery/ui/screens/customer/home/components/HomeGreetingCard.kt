@@ -182,7 +182,7 @@ fun HomeGreetingCard(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                     ),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = Color.Black,
                     maxLines = 1,
                 )
                 Spacer(modifier = Modifier.height(2.dp))

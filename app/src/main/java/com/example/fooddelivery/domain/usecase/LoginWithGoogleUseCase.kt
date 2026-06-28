@@ -10,8 +10,8 @@ class LoginWithGoogleUseCase @Inject constructor(
     private val tokenManager: TokenManager,
     private val chatSocketManager: ChatSocketManager
 ) {
-    suspend operator fun invoke(accessToken: String? = null, code: String? = null): Result<List<String>> {
-        val result = authRepository.loginGoogle(accessToken = accessToken, code = code)
+    suspend operator fun invoke(idToken: String): Result<List<String>> {
+        val result = authRepository.loginGoogle(idToken = idToken)
 
         return result.mapCatching { response ->
             val user = response.getFinalUser() ?: throw Exception("User data missing in response")

@@ -9,7 +9,7 @@ import com.example.fooddelivery.data.remote.dto.VerifyResetOtpResponse
 interface AuthRepository {
     suspend fun login (phone: String, password: String) : Result<LoginResponse>
     suspend fun loginFacebook(accessToken: String? = null, code: String? = null) : Result<LoginResponse>
-    suspend fun loginGoogle(accessToken: String? = null, code: String? = null) : Result<LoginResponse>
+    suspend fun loginGoogle(idToken: String) : Result<LoginResponse>
     suspend fun loginSocial(provider: String, accessToken: String? = null, code: String? = null) : Result<LoginResponse>
     suspend fun refreshToken(refreshToken: String) : Result<LoginResponse>
     suspend fun getMe(): Result<MeResponse>

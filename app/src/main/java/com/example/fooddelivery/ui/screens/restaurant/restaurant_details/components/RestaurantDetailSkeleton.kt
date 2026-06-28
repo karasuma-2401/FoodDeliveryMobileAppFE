@@ -3,6 +3,9 @@ package com.example.fooddelivery.ui.screens.restaurant.restaurant_details.compon
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,51 +103,53 @@ fun SectionHeaderSkeleton() {
 
 @Composable
 fun FoodItemCardSkeleton(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .padding(12.dp)
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp, pressedElevation = 0.dp),
     ) {
-        Column {
+        Box(modifier = Modifier.padding(12.dp)) {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(CustomerDimens.foodGridImageHeight)
+                        .clip(RoundedCornerShape(20.dp))
+                        .shimmerEffect()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(18.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmerEffect()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(12.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmerEffect()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(22.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmerEffect()
+                )
+            }
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(CustomerDimens.foodGridImageHeight)
-                    .clip(RoundedCornerShape(20.dp))
-                    .shimmerEffect()
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(18.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .shimmerEffect()
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(12.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .shimmerEffect()
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Box(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(22.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .align(Alignment.BottomEnd)
+                    .size(36.dp)
+                    .clip(CircleShape)
                     .shimmerEffect()
             )
         }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .size(36.dp)
-                .clip(CircleShape)
-                .shimmerEffect()
-        )
     }
 }

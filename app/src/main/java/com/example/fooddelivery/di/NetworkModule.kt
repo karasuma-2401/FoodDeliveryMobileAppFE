@@ -29,6 +29,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -62,13 +63,42 @@ object NetworkModule {
     @Singleton
     fun provideAuthInterceptor(tokenManager: TokenManager): Interceptor {
         return Interceptor { chain ->
+            val request = chain.request()
+            val path = request.url.encodedPath
+            val requestBuilder = request.newBuilder()
             val token = tokenManager.bearerToken()
-            val requestBuilder = chain.request().newBuilder()
-            if (!token.isNullOrBlank() && chain.request().header("Authorization") == null) {
+            if (
+                shouldAttachAuthToken(path) &&
+                !token.isNullOrBlank() &&
+                request.header("Authorization") == null
+            ) {
                 requestBuilder.header("Authorization", token)
             }
             chain.proceed(requestBuilder.build())
         }
+    }
+
+    private fun shouldAttachAuthToken(path: String): Boolean {
+        val publicAuthSegments = listOf(
+            "/auth/login",
+            "/auth/login-google",
+            "/auth/login-facebook",
+            "/auth/login-social",
+            "/auth/register",
+            "/auth/refresh",
+            "/auth/forgot-password",
+            "/auth/verify-reset-otp",
+            "/auth/reset-password",
+            "/auth/verify",
+            "/auth/reset-email",
+        )
+        return publicAuthSegments.none { path.contains(it) }
+    }
+
+    private fun OkHttpClient.Builder.applyDefaultTimeouts(): OkHttpClient.Builder {
+        return connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
     }
 
     @Provides
@@ -78,6 +108,7 @@ object NetworkModule {
         authInterceptor: Interceptor
     ): OkHttpClient {
         return OkHttpClient.Builder().apply {
+            applyDefaultTimeouts()
             addInterceptor(authInterceptor)
             if (BuildConfig.DEBUG) {
                 addInterceptor(loggingInterceptor)
@@ -92,6 +123,7 @@ object NetworkModule {
         loggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder().apply {
+            applyDefaultTimeouts()
             if (BuildConfig.DEBUG) {
                 addInterceptor(loggingInterceptor)
             }

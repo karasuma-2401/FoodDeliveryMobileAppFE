@@ -125,7 +125,7 @@ class RegisterViewModel @Inject constructor(
     private fun loginWithGoogle(googleToken: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = loginWithGoogleUseCase(accessToken = googleToken)
+            val result = loginWithGoogleUseCase(idToken = googleToken)
             result.onSuccess {
                 _state.update { it.copy(isLoading = false, isSocialAuthSuccess = true) }
             }.onFailure { exception ->

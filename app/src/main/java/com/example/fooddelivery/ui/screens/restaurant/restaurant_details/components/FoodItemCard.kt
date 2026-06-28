@@ -14,6 +14,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,97 +47,93 @@ fun FoodItemCard(
 ) {
     var imageCenter by remember { mutableStateOf<Offset?>(null) }
 
-    Box(
+    Card(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(CustomerDimens.cardCornerRadius))
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable { onItemClick() }
-            .padding(CustomerDimens.cardPadding)
+            .clickable { onItemClick() },
+        shape = RoundedCornerShape(CustomerDimens.cardCornerRadius),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp, pressedElevation = 0.dp),
     ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(CustomerDimens.foodGridImageHeight)
-            ) {
-                AsyncImage(
-                    model = foodItem.imageUrl ?: foodItem.imageRes,
-                    contentDescription = foodItem.name,
+        Box(modifier = Modifier.padding(CustomerDimens.cardPadding)) {
+            Column {
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .onCenterPositioned { imageCenter = it },
-                    contentScale = ContentScale.Crop
-                )
-                foodItem.promoTag?.let { tag ->
-                    val badgeColor = when {
-                        tag.contains("HOT", true) -> MaterialTheme.colorScheme.error
-                        tag.contains("FREESHIP", true) -> MaterialTheme.colorScheme.tertiary
-                        else -> MaterialTheme.colorScheme.secondary
-                    }
-                    val onBadgeColor = when {
-                        tag.contains("HOT", true) -> MaterialTheme.colorScheme.onError
-                        tag.contains("FREESHIP", true) -> MaterialTheme.colorScheme.onTertiary
-                        else -> MaterialTheme.colorScheme.onSecondary
-                    }
-                    Box(
+                        .fillMaxWidth()
+                        .height(CustomerDimens.foodGridImageHeight)
+                ) {
+                    AsyncImage(
+                        model = foodItem.imageUrl ?: foodItem.imageRes,
+                        contentDescription = foodItem.name,
                         modifier = Modifier
-                            .padding(8.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(badgeColor)
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = tag,
-                            color = onBadgeColor,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                        )
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .onCenterPositioned { imageCenter = it },
+                        contentScale = ContentScale.Crop
+                    )
+                    foodItem.promoTag?.let { tag ->
+                        val badgeColor = when {
+                            tag.contains("HOT", true) -> MaterialTheme.colorScheme.error
+                            tag.contains("FREESHIP", true) -> MaterialTheme.colorScheme.tertiary
+                            else -> MaterialTheme.colorScheme.secondary
+                        }
+                        val onBadgeColor = when {
+                            tag.contains("HOT", true) -> MaterialTheme.colorScheme.onError
+                            tag.contains("FREESHIP", true) -> MaterialTheme.colorScheme.onTertiary
+                            else -> MaterialTheme.colorScheme.onSecondary
+                        }
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(badgeColor)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = tag,
+                                color = onBadgeColor,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = foodItem.name,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1
+                )
+                Text(
+                    text = foodItem.restaurantName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "$${foodItem.price}",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = foodItem.name,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
-            )
-            Text(
-                text = foodItem.restaurantName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "$${foodItem.price}",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-        if (showAddButton) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-            ) {
-                IconButton(
-                    onClick = {
-                        imageCenter?.let(onAddClick)
-                    },
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add ${foodItem.name} to cart",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(CustomerDimens.iconMd)
-                    )
+            if (showAddButton) {
+                Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                    IconButton(
+                        onClick = { imageCenter?.let(onAddClick) },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add ${foodItem.name} to cart",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(CustomerDimens.iconMd)
+                        )
+                    }
                 }
             }
         }

@@ -33,11 +33,14 @@ fun DFoodFTextField (
     errorMessage: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
+    enabled: Boolean = true,
     ) {
     var passwordVisible by remember { mutableStateOf(false) }
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
+        enabled = enabled,
+        readOnly = !enabled,
         label = {
             Text(
                 text = label,

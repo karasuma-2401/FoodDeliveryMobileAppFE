@@ -157,7 +157,7 @@ class ProfileViewModel @Inject constructor(
 
                                         _state.update { it.copy(isLoading = false, isBusinessRegisterSuccess = true) }
                                     } else {
-                                        _state.update { it.copy(isLoading = false, errorMessage = "Lỗi: Không bóc tách được Token từ Server!") }
+                                        _state.update { it.copy(isLoading = false, errorMessage = "Error: Could not extract token from server response") }
                                     }
                                 }
                         }

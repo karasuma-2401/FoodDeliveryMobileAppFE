@@ -212,10 +212,9 @@ fun EditProfileContent(
                     ProfileInputField(
                         label = "Email",
                         value = state.user.email,
-                        onValueChange = { onEvent(EditProfileEvent.EmailChanged(it)) },
+                        onValueChange = {},
                         icon = Icons.Default.Email,
-                        isError = state.emailError != null,
-                        errorMessage = state.emailError,
+                        enabled = false,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next
@@ -226,11 +225,10 @@ fun EditProfileContent(
 
                     ProfileInputField(
                         label = "Phone Number",
-                        value = state.user.phone,
-                        onValueChange = { onEvent(EditProfileEvent.PhoneChanged(it)) },
+                        value = state.user.phone.ifBlank { "Not updated" },
+                        onValueChange = {},
                         icon = Icons.Default.Phone,
-                        isError = state.phoneError != null,
-                        errorMessage = state.phoneError,
+                        enabled = false,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Phone,
                             imeAction = ImeAction.Next
@@ -251,6 +249,7 @@ fun ProfileInputField(
     icon: ImageVector,
     isError: Boolean = false,
     errorMessage: String? = null,
+    enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
@@ -258,6 +257,7 @@ fun ProfileInputField(
         value = value,
         onValueChange = onValueChange,
         label = label,
+        enabled = enabled,
         leadingIcon = {
             Icon(
                 imageVector = icon,
