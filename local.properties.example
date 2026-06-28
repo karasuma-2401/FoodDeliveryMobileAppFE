@@ -1,0 +1,17 @@
+# Copy this file to local.properties (project root) and fill in your values.
+# local.properties is gitignored — never commit secrets or machine-specific paths.
+
+sdk.dir=YOUR_ANDROID_SDK_PATH
+
+# Social login (required for Facebook / Google sign-in)
+FACEBOOK_APP_ID=YOUR_FACEBOOK_APP_ID
+FACEBOOK_CLIENT_TOKEN=YOUR_FACEBOOK_CLIENT_TOKEN
+GOOGLE_WEB_CLIENT_ID=YOUR_GOOGLE_WEB_CLIENT_ID
+
+# Backend API (optional — defaults to deployed Azure BE if omitted)
+# API_BASE_URL=https://food-deliver-be-cnbggtg6e5a4gbf4.eastasia-01.azurewebsites.net/api/
+# SOCKET_URL=https://food-deliver-be-cnbggtg6e5a4gbf4.eastasia-01.azurewebsites.net
+
+# Local BE on emulator (uncomment to override Azure defaults)
+# API_BASE_URL=http://10.0.2.2:4000/api/
+# SOCKET_URL=http://10.0.2.2:4000
