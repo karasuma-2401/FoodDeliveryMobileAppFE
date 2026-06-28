@@ -6,11 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.net.Uri
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.domain.repository.AddressRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.io.File
 
 @HiltViewModel
 class RestaurantPersonalInfoViewModel @Inject constructor(
@@ -21,6 +23,8 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
 
     var uiState by mutableStateOf(RestaurantPersonalInfoState())
         private set
+    
+    private var selectedImageFile: File? = null
 
     private var currentRestaurantId: Int = -1
 
@@ -70,6 +74,10 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun onImageSelected(file: File, uri: Uri) {
+        selectedImageFile = file
     }
 
     fun fetchLatestAddress() {
@@ -134,7 +142,7 @@ class RestaurantPersonalInfoViewModel @Inject constructor(
                     phone = uiState.phone,
                     description = uiState.description,
                     addressId = uiState.addressId!!,
-                    image = null
+                    image = selectedImageFile
                 )
 
                 result.onSuccess {
