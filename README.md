@@ -1,4 +1,4 @@
-# 🍔 KFood - Food Delivery App 
+# 🍔 DFood - Food Delivery App
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg?style=flat&logo=kotlin)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-UI-4285F4.svg?style=flat&logo=android)
@@ -11,7 +11,7 @@
 
 ## 📖 Giới thiệu (Introduction)
 
-**KFood** là một ứng dụng di động Android giúp kết nối những người yêu ẩm thực với các nhà hàng địa phương. Ứng dụng cung cấp trải nghiệm mượt mà từ việc tìm kiếm món ăn, đặt hàng, thanh toán trực tuyến đến theo dõi đơn hàng theo thời gian thực. 
+**DFood** là một ứng dụng di động Android giúp kết nối những người yêu ẩm thực với các nhà hàng địa phương. Ứng dụng cung cấp trải nghiệm mượt mà từ việc tìm kiếm món ăn, đặt hàng, thanh toán trực tuyến đến theo dõi đơn hàng theo thời gian thực. 
 Đặc biệt, ứng dụng tích hợp sẵn phân hệ dành cho Chủ nhà hàng để theo dõi doanh thu và quản lý thực đơn trực tiếp trên điện thoại.
 
 Dự án này là phần **Frontend Android**, giao tiếp với Backend thông qua RESTful APIs.
@@ -45,6 +45,102 @@ Dự án được xây dựng hoàn toàn bằng các công nghệ và thư vi�
 * **Định tuyến (Navigation):** [Navigation Compose](https://developer.android.com/jetpack/compose/navigation)
 * **Gọi API (Network):** [Retrofit](https://square.github.io/retrofit/) & OkHttp3
 * **Dependency Injection:** [Dagger Hilt](https://dagger.dev/hilt/)
+
+---
+
+## 🚀 Cài đặt & chạy app (Setup)
+
+### Yêu cầu
+
+- Android Studio (Khuyến nghị Ladybug trở lên)
+- JDK 17
+- Máy Android hoặc Emulator (API 24+)
+- Kết nối internet (app gọi Backend trên Azure)
+
+### Các bước
+
+1. **Clone repository**
+
+   ```bash
+   git clone <repo-url>
+   cd FoodDeliveryFE
+   ```
+
+2. **Tạo file `local.properties`** (thư mục gốc project)
+
+   - Copy từ [`local.properties.example`](local.properties.example)
+   - Android Studio thường tự tạo `sdk.dir` khi mở project
+   - Điền key Facebook / Google nếu dùng đăng nhập social:
+     - `FACEBOOK_APP_ID`
+     - `FACEBOOK_CLIENT_TOKEN`
+     - `GOOGLE_WEB_CLIENT_ID`
+   - Copy `app/google-services.json` từ Firebase (xin team lead — **không commit file này**)
+
+3. **Backend API**
+
+   - Mặc định app kết nối BE Azure (không cần chạy BE local):
+     - `https://food-deliver-be-cnbggtg6e5a4gbf4.eastasia-01.azurewebsites.net/api/`
+   - Muốn test BE trên máy: thêm vào `local.properties`:
+
+     ```properties
+     API_BASE_URL=http://10.0.2.2:4000/api/
+     SOCKET_URL=http://10.0.2.2:4000
+     ```
+
+4. **Mở project & Sync Gradle**
+
+   - **File → Open** → chọn thư mục `FoodDeliveryFE`
+   - **File → Sync Project with Gradle Files**
+
+5. **Chạy app**
+
+   - Cắm USB (bật USB debugging) hoặc dùng Emulator
+   - Run ▶ (build variant **debug**)
+   - **Không cần** bật Backend local nếu dùng server Azure
+
+---
+
+## 📦 Phát hành APK (nội bộ)
+
+App **DFood** phát hành dạng file APK cho team / demo — không qua Google Play.
+
+### Lần đầu (v1.0)
+
+1. Android Studio → **Build → Generate Signed App Bundle or APK**
+2. Chọn **APK** → **Create new keystore** (lưu file `.jks` + mật khẩu, backup cho team)
+3. Chọn variant **release** → Finish
+4. File output: thường tại `app/release/app-release.apk`
+5. Đổi tên file: `DFood-v1.0.apk` rồi gửi qua Drive / Zalo / GitHub Releases
+
+**Debug APK (demo nhanh, không cần keystore):**
+
+- **Build → Build APK(s)** → `app/build/outputs/apk/debug/app-debug.apk`
+- Lưu ý: debug và release **khác chữ ký** — đổi từ debug sang release có thể phải gỡ app cũ.
+
+### Cập nhật sau (chỉnh UI / fix bug)
+
+1. Sửa code → test trên máy
+2. Tăng version trong `app/build.gradle.kts`:
+
+   ```kotlin
+   versionCode = 2        // luôn tăng: 2, 3, 4...
+   versionName = "1.0.1"  // hiển thị: 1.0.1, 1.1.0...
+   ```
+
+3. Build lại **signed release APK** (cùng keystore lần đầu)
+4. Gửi `DFood-v1.0.1.apk` — teammate **cài đè** bản cũ
+
+### Cài APK trên máy Android
+
+1. Bật **Cài ứng dụng không rõ nguồn** (Install unknown apps) cho app tải file
+2. Mở file APK → Cài đặt
+3. Cần internet để dùng app
+
+### Lưu ý bảo mật
+
+- **Không commit:** `local.properties`, `google-services.json`, file keystore (`.jks`)
+- **Luôn backup keystore** — mất keystore thì không update được app đã cài
+
 ---
 
 ## 📁 Cấu trúc thư mục (Folder Structure)
