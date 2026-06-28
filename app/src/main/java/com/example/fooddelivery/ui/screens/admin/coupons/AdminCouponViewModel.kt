@@ -23,9 +23,7 @@ data class SystemVoucher(
 data class AdminCouponUiState(
     val isLoading: Boolean = false,
     val searchQuery: String = "",
-    val systemVouchers: List<SystemVoucher> = emptyList(),
-    val totalItems: Int = 0,
-    val currentPage: Int = 1
+    val systemVouchers: List<SystemVoucher> = emptyList()
 )
 
 @HiltViewModel
@@ -35,8 +33,6 @@ class AdminCouponViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AdminCouponUiState())
     val uiState: StateFlow<AdminCouponUiState> = _uiState.asStateFlow()
-
-    private val pageSize = 20
 
     init {
         loadSystemCoupons()
@@ -55,13 +51,10 @@ class AdminCouponViewModel @Inject constructor(
     fun loadSystemCoupons() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val page = _uiState.value.currentPage.coerceAtLeast(1)
-            val offset = (page - 1) * pageSize
-
             val result = voucherRepository.getVouchers(
-                limit = pageSize,
-                offset = offset,
-                restaurantId = null, // System vouchers
+                limit = 1000,
+                offset = 0,
+                restaurantId = null,
                 code = _uiState.value.searchQuery.takeIf { it.isNotBlank() },
                 status = null
             )
@@ -71,9 +64,7 @@ class AdminCouponViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
-                        systemVouchers = vouchers,
-                        // Simple workaround for totalItems until backend provides it
-                        totalItems = if (vouchers.size == pageSize) (page * pageSize + 1) else (offset + vouchers.size)
+                        systemVouchers = vouchers
                     )
                 }
             }.onFailure {
@@ -97,10 +88,5 @@ class AdminCouponViewModel @Inject constructor(
             )
             loadSystemCoupons()
         }
-    }
-
-    fun onPageChanged(newPage: Int) {
-        _uiState.update { it.copy(currentPage = newPage) }
-        loadSystemCoupons()
     }
 }

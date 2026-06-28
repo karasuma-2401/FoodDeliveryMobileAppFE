@@ -81,6 +81,7 @@ import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantPersonal
 import com.example.fooddelivery.ui.screens.restaurant.profile.RestaurantProfileScreen
 import com.example.fooddelivery.ui.screens.restaurant.revenue.RestaurantRevenueScreen
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -751,7 +752,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
         }
 
         androidx.compose.material3.Scaffold(
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
             bottomBar = {
                 if (showBottomBar) {
                     DFoodBottomBar(
@@ -1040,7 +1041,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
 
         Scaffold(
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
             bottomBar = {
                 if (showBottomBar) {
                     AdminBottomBar(

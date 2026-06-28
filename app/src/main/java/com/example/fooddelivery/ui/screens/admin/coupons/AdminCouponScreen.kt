@@ -13,12 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponSearchBarAndFilters
-import com.example.fooddelivery.ui.screens.restaurant.component.coupon.CouponPaginationBar
 import com.example.fooddelivery.ui.screens.admin.components.AdminCouponItemCard
 import androidx.hilt.navigation.compose.hiltViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCouponScreen(
@@ -85,17 +84,10 @@ fun AdminCouponScreen(
                     }
                 }
             }
-
-            CouponPaginationBar(
-                startItem = if (uiState.systemVouchers.isEmpty()) 0 else 1,
-                endItem = uiState.systemVouchers.size,
-                totalItems = uiState.totalItems,
-                currentPage = uiState.currentPage,
-                onPageClick = { viewModel.onPageChanged(it) }
-            )
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun AdminCouponScreenReview() {

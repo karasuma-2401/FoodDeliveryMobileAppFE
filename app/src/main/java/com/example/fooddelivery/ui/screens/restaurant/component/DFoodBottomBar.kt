@@ -1,6 +1,7 @@
 package com.example.fooddelivery.ui.screens.restaurant.component
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,7 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fooddelivery.R
+import com.example.fooddelivery.ui.components.bounceClick
 import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
+import com.example.fooddelivery.ui.theme.CustomerDimens
 
 @Composable
 fun DFoodBottomBar(
@@ -45,21 +48,23 @@ fun DFoodBottomBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                    .height(CustomerDimens.bottomNavHeight),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     NavigationIcon(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                         iconId = R.drawable.ic_dashboard,
                         isSelected = currentRoute == "dashboard",
                         onClick = { onNavigate("dashboard") }
                     )
                     NavigationIcon(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                         iconId = R.drawable.ic_menu,
                         isSelected = currentRoute == "menu",
                         onClick = { onNavigate("menu") }
@@ -85,16 +90,19 @@ fun DFoodBottomBar(
                 }
 
                 Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     NavigationIcon(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                         iconId = R.drawable.ic_notification,
                         isSelected = currentRoute == "notifications",
                         onClick = { onNavigate("notifications") },
                         badgeCount = unreadNotificationCount
                     )
                     NavigationIcon(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                         iconId = R.drawable.ic_profile,
                         isSelected = currentRoute == "profile",
                         onClick = { onNavigate("profile") }
@@ -108,45 +116,57 @@ fun DFoodBottomBar(
 
 @Composable
 private fun NavigationIcon(
+    modifier: Modifier = Modifier,
     iconId: Int,
     isSelected: Boolean,
     onClick: () -> Unit,
     badgeCount: Int = 0
 ) {
     val iconTint by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        targetValue = if (isSelected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+        },
+        animationSpec = tween(durationMillis = 200),
         label = "IconTint"
     )
 
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = modifier
+            .bounceClick(
+                scale = 0.96f,
+                onClick = onClick
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            painter = painterResource(id = iconId),
-            contentDescription = null,
-            tint = iconTint,
-            modifier = Modifier.size(24.dp)
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(id = iconId),
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(CustomerDimens.bottomNavIconSize)
+            )
 
-        if (badgeCount > 0) {
-            Badge(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 4.dp, end = 4.dp),
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError
-            ) {
-                Text(
-                    text = if (badgeCount > 99) "99+" else badgeCount.toString(),
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 3.dp)
-                )
+            if (badgeCount > 0) {
+                Badge(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 8.dp, y = (-6).dp)
+                        .defaultMinSize(minWidth = 16.dp, minHeight = 16.dp),
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                ) {
+                    Text(
+                        text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(horizontal = 2.dp)
+                    )
+                }
             }
         }
     }
