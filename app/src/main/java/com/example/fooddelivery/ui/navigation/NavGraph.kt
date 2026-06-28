@@ -984,16 +984,31 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         val showBottomBar = currentTabRoute.isNotEmpty()
 
         val onAdminNavigate: (String) -> Unit = { route ->
-            when (route) {
-                "dashboard" -> adminNavController.navigate(AdminDashboardRoute)
-                "categories" -> adminNavController.navigate(AdminCategoriesRoute)
-                "coupons" -> adminNavController.navigate(AdminCouponRoute)
-                "settings" -> adminNavController.navigate(AdminSettingsRoute)
-                "notifications" -> adminNavController.navigate(AdminNotificationRoute)
-                "users" -> adminNavController.navigate(AdminUserListRoute)
-                "restaurants" -> adminNavController.navigate(AdminRestaurantsRoute)
-                "orders" -> adminNavController.navigate(AdminOrdersRoute)
-                "revenue" -> adminNavController.navigate(AdminRevenueRoute)
+            val targetRoute = when (route) {
+                "dashboard" -> AdminDashboardRoute
+                "categories" -> AdminCategoriesRoute
+                "coupons" -> AdminCouponRoute
+                "settings" -> AdminSettingsRoute
+                "notifications", "notification" -> AdminNotificationRoute
+                "users" -> AdminUserListRoute
+                "restaurants" -> AdminRestaurantsRoute
+                "orders" -> AdminOrdersRoute
+                "revenue" -> AdminRevenueRoute
+                else -> null
+            }
+
+            targetRoute?.let { target ->
+                val isBottomBarTab = route in listOf("dashboard", "categories", "coupons", "settings", "notifications", "notification")
+
+                adminNavController.navigate(target) {
+                    if (isBottomBarTab) {
+                        popUpTo(adminNavController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             }
         }
 
@@ -1004,21 +1019,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                     AdminBottomBar(
                         currentRoute = currentTabRoute,
                         onTabSelected = { tab ->
-                            val targetRoute = when (tab.route) {
-                                "dashboard" -> AdminDashboardRoute
-                                "coupons" -> AdminCouponRoute
-                                "categories" -> AdminCategoriesRoute
-                                "notification" -> AdminNotificationRoute
-                                "settings" -> AdminSettingsRoute
-                                else -> AdminDashboardRoute
-                            }
-                            adminNavController.navigate(targetRoute) {
-                                popUpTo(adminNavController.graph.startDestinationId) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            onAdminNavigate(tab.route)
                         }
                     )
                 }
