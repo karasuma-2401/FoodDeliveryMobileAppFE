@@ -261,6 +261,7 @@ fun FoodDetailContent(
                                 )
                                 RestaurantChip(
                                     name = food.restaurantName,
+                                    imageUrl = state.restaurant?.imageUrl,
                                     onClick = {
                                         state.restaurant?.id?.let(onNavigateToRestaurant)
                                             ?: onNavigateBack()
