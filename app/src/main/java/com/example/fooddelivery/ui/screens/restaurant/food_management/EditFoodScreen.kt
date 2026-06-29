@@ -29,7 +29,6 @@ import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodActionTopBar
-import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodSectionLabel
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodTextArea
 import com.example.fooddelivery.ui.screens.restaurant.component.food_management.IngredientPickerItem
@@ -101,21 +100,30 @@ fun EditFoodContent(
     onCategorySelect: (String) -> Unit,
     onSizeToggle: (String, Boolean) -> Unit,
     onSizePriceChange: (String, String) -> Unit,
-    onIngredientToggle: (Int) -> Unit,
+    onIngredientToggle: (Int) -> Unit, // 🌟 Đã sửa lỗi d by rememUnit ở đây
     onDetailsChange: (String) -> Unit,
     onSaveClick: () -> Unit,
     onPickImageClick: () -> Unit,
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
 ) {
+    // 🌟 Đã sửa lỗi khai báo biến dropdown menu ở đây
     var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
+
+    val screenTitle = if (state.isCreatingNew) "Add New Items" else "Edit Food Items"
+
+    val buttonText = when {
+        state.isLoading -> "SAVING..."
+        state.isCreatingNew -> "SAVE"
+        else -> "SAVE CHANGES"
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             DFoodActionTopBar(
-                title = "Food Details",
-                actionText = if (state.isLoading) "SAVING..." else "SAVE",
+                title = screenTitle,
+                actionText = buttonText,
                 onActionClick = onSaveClick,
                 onBackClick = onNavigateBack
             )
@@ -323,6 +331,7 @@ fun EditFoodScreenPreview() {
     DFoodTheme {
         EditFoodContent(
             state = EditFoodState(
+                isCreatingNew = false,
                 itemName = "Chicken Thai Biriyani",
                 selectedCategory = "Pizza",
                 selectedSizes = mapOf("M" to "60"),

@@ -5,9 +5,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.fooddelivery.data.remote.dto.FoodResponse
 import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
 import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
@@ -27,6 +30,20 @@ fun MyFoodListScreen(
 ) {
     val state by viewModel.state
     var foodToDelete by remember { mutableStateOf<FoodResponse?>(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadFoods()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     MyFoodListScreenContent(
         state = state,
@@ -74,7 +91,11 @@ fun MyFoodListScreenContent(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             if (state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (state.error != null) {
@@ -112,6 +133,8 @@ fun FoodListScreenPreview() {
     DFoodTheme {
         MyFoodListScreenContent(
             state = MyFoodListState(
+                categories = listOf("All", "Burger", "Pizza"),
+                selectedCategoryIndex = 0,
                 foodList = listOf(
                     FoodResponse(
                         id = 1,
@@ -128,7 +151,7 @@ fun FoodListScreenPreview() {
                         name = "Cheese Pizza",
                         price = 120000.0,
                         description = "Fluffy pizza with double cheese",
-                        categoryId = 1,
+                        categoryId = 2,
                         restaurantId = 1,
                         rating = 4.8f,
                         reviewCount = 85
@@ -150,7 +173,7 @@ fun FoodListScreenPreview() {
                         name = "Cheese Pizza",
                         price = 120000.0,
                         description = "Fluffy pizza with double cheese",
-                        categoryId = 1,
+                        categoryId = 2,
                         restaurantId = 1,
                         rating = 4.8f,
                         reviewCount = 85

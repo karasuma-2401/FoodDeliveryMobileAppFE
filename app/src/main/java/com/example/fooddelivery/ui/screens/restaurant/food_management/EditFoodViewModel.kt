@@ -1,26 +1,35 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.data.remote.dto.FoodSizeRequest
 import com.example.fooddelivery.domain.model.Category
 import com.example.fooddelivery.domain.repository.CategoryRepository
 import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 data class EditFoodState(
-    val foodId: Int = 0,
+    val foodId: Int? = null,
+    val isCreatingNew: Boolean = true,
     val itemName: String = "",
     val details: String = "",
     val imageUrl: String? = null,
@@ -39,8 +48,10 @@ data class EditFoodState(
 class EditFoodViewModel @Inject constructor(
     private val repository: RestaurantRepository,
     private val categoryRepository: CategoryRepository,
-    private val foodRepository: FoodRepository, // 👈 Bơm FoodRepository để gọi API Ingredients động
-    savedStateHandle: SavedStateHandle
+    private val foodRepository: FoodRepository,
+    private val tokenManager: TokenManager,
+    savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val context: Context // 🌟 Inject Context để lấy thư mục Cache
 ) : ViewModel() {
 
     private val _state = mutableStateOf(EditFoodState())
@@ -50,17 +61,64 @@ class EditFoodViewModel @Inject constructor(
 
     init {
         savedStateHandle.get<String>("foodId")?.let { foodIdStr ->
-            val foodId = foodIdStr.toIntOrNull() ?: 0
-            loadFoodDetails(foodId)
+            val foodId = foodIdStr.toIntOrNull()
+            if (foodId != null && foodId > 0) {
+                loadFoodDetails(foodId)
+            } else {
+                loadCategoriesAndIngredients()
+            }
+        } ?: loadCategoriesAndIngredients()
+    }
+
+    private fun loadCategoriesAndIngredients() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null, isCreatingNew = true)
+
+            try {
+                val categoriesDeferred = async { categoryRepository.getCategories() }
+                val ingredientsDeferred = async { foodRepository.getIngredients() }
+
+                val categoriesResult = categoriesDeferred.await()
+                val ingredientsResult = ingredientsDeferred.await()
+
+                if (categoriesResult.isSuccess && ingredientsResult.isSuccess) {
+                    val categories = categoriesResult.getOrNull() ?: emptyList()
+                    dynamicCategories = categories
+                    val ingredientsDto = ingredientsResult.getOrNull() ?: emptyList()
+                    val remoteIngredients = ingredientsDto.map { dto ->
+                        IngredientItemState(
+                            id = dto.id.toString(),
+                            name = dto.name,
+                            iconKey = dto.icon,
+                            isSelected = false
+                        )
+                    }
+
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        categories = categories.map { it.name },
+                        ingredients = remoteIngredients
+                    )
+                } else {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = "Failed to load data. Please try again."
+                    )
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.localizedMessage ?: "Unknown error occurred"
+                )
+            }
         }
     }
 
     private fun loadFoodDetails(id: Int) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, foodId = id, error = null)
+            _state.value = _state.value.copy(isLoading = true, foodId = id, error = null, isCreatingNew = false)
 
             try {
-                // Chạy song song cả 3 API cho tốc độ tối đa
                 val categoriesDeferred = async { categoryRepository.getCategories() }
                 val ingredientsDeferred = async { foodRepository.getIngredients() }
                 val foodDeferred = async { repository.getFoodById(id) }
@@ -97,8 +155,9 @@ class EditFoodViewModel @Inject constructor(
 
                     _state.value = _state.value.copy(
                         isLoading = false,
+                        isCreatingNew = false,
                         itemName = food.name,
-                        details = food.description,
+                        details = food.description ?: "",
                         selectedCategory = matchedCategoryName,
                         imageUrl = food.image,
                         categories = categories.map { it.name },
@@ -179,46 +238,124 @@ class EditFoodViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
-            val category = dynamicCategories.find { it.name.equals(currentState.selectedCategory, ignoreCase = true) }
-            val categoryId = category?.id?.toIntOrNull() ?: 1
-
-            val selectedIngredientIds = currentState.ingredients
-                .filter { it.isSelected }
-                .mapNotNull { it.id.toIntOrNull() }
-
-            val ingredientIdsPayload = if (selectedIngredientIds.isNotEmpty()) {
-                selectedIngredientIds.joinToString(",")
-            } else {
-                null
-            }
-
-            val sortedSizes = currentState.selectedSizes.entries
-                .sortedBy { foodSizeSortKey(it.key) }
-
-            val sizesList = sortedSizes.mapIndexed { index, entry ->
-                val sizeId = mapFoodSizeToId(entry.key)
-                val price = entry.value.toDoubleOrNull() ?: 0.0
-                FoodSizeRequest(sizeId = sizeId, price = price, isDefault = index == 0)
-            }
-            val sizesJson = Json.encodeToString(sizesList)
-            val defaultPrice = sizesList.firstOrNull { it.isDefault }?.price ?: 0.0
-
-            repository.updateFood(
-                id = currentState.foodId,
-                name = currentState.itemName,
-                description = currentState.details,
-                categoryId = categoryId,
-                price = defaultPrice,
-                sizesJson = sizesJson,
-                ingredientIdsCsv = ingredientIdsPayload,
-                imageFile = currentState.selectedImageFile
-            )
-                .onSuccess {
-                    _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+            try {
+                val category = dynamicCategories.find {
+                    it.name.equals(currentState.selectedCategory, ignoreCase = true)
                 }
-                .onFailure { error ->
-                    _state.value = _state.value.copy(isLoading = false, error = error.message)
+                val categoryId = category?.id?.toIntOrNull() ?: 1
+
+                val selectedIngredientIds = currentState.ingredients
+                    .filter { it.isSelected }
+                    .mapNotNull { it.id.toIntOrNull() }
+
+                val sortedSizes = currentState.selectedSizes.entries
+                    .sortedBy { foodSizeSortKey(it.key) }
+
+                val sizesList = sortedSizes.mapIndexed { index, entry ->
+                    val sizeId = mapFoodSizeToId(entry.key)
+                    val price = entry.value.toDoubleOrNull() ?: 0.0
+                    FoodSizeRequest(sizeId = sizeId, price = price, isDefault = index == 0)
                 }
+
+                val sizesJson = Json.encodeToString(sizesList)
+                val defaultPrice = sizesList.firstOrNull { it.isDefault }?.price ?: 0.0
+
+                if (currentState.isCreatingNew) {
+                    // Create new food
+                    val restaurantId = tokenManager.getRestaurantId.first()
+                    if (restaurantId == null) {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = "Restaurant ID not found. Please log in again."
+                        )
+                        return@launch
+                    }
+
+                    repository.addFood(
+                        name = currentState.itemName,
+                        description = currentState.details,
+                        categoryId = categoryId,
+                        restaurantId = restaurantId,
+                        price = defaultPrice,
+                        sizesJson = sizesJson,
+                        ingredientIds = selectedIngredientIds,
+                        imageFile = currentState.selectedImageFile
+                    )
+                        .onSuccess {
+                            _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+                        }
+                        .onFailure { error ->
+                            _state.value = _state.value.copy(isLoading = false, error = error.message)
+                        }
+                } else {
+                    // Update existing food
+                    val ingredientIdsPayload = if (selectedIngredientIds.isNotEmpty()) {
+                        selectedIngredientIds.joinToString(",")
+                    } else null
+
+                    var tempDownloadedFile: File? = null
+
+                    val imageFileToSend = currentState.selectedImageFile ?: run {
+                        if (currentState.imageUrl != null && currentState.imageUrl.startsWith("http")) {
+                            tempDownloadedFile = downloadImageFromUrl(currentState.imageUrl)
+                            tempDownloadedFile
+                        } else null
+                    }
+
+                    try {
+                        repository.updateFood(
+                            id = currentState.foodId ?: 0,
+                            name = currentState.itemName,
+                            description = currentState.details,
+                            categoryId = categoryId,
+                            price = defaultPrice,
+                            sizesJson = sizesJson,
+                            ingredientIdsCsv = ingredientIdsPayload,
+                            imageFile = imageFileToSend
+                        ).onSuccess {
+                            _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+                        }.onFailure { error ->
+                            _state.value = _state.value.copy(isLoading = false, error = error.message)
+                        }
+                    } finally {
+                        tempDownloadedFile?.delete()
+                    }
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.localizedMessage ?: "Unknown error occurred"
+                )
+            }
+        }
+    }
+
+    private suspend fun downloadImageFromUrl(imageUrl: String): File? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val client = OkHttpClient.Builder()
+                .retryOnConnectionFailure(true)
+                .build()
+
+            val request = Request.Builder()
+                .url(imageUrl)
+                .header("User-Agent", "Mozilla/5.0")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext null
+                val body = response.body ?: return@withContext null
+
+
+                val tempFile = File(context.cacheDir, "temp_old_food_${System.currentTimeMillis()}.jpg")
+                tempFile.outputStream().use { output ->
+                    body.byteStream().copyTo(output)
+                }
+
+                if (tempFile.exists() && tempFile.length() > 0) tempFile else null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }
