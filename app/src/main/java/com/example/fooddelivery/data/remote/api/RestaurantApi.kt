@@ -118,7 +118,8 @@ interface RestaurantApi {
         @Part("phone") phone: RequestBody,
         @Part("description") description: RequestBody,
         @Part("addressId") addressId: RequestBody?,
-        @Part image: MultipartBody.Part?
+        @Part image: MultipartBody.Part?,
+        @Part coverImage: MultipartBody.Part?
     ): Response<BaseResponse<RestaurantResponse>>
 
     @Multipart
@@ -128,7 +129,8 @@ interface RestaurantApi {
         @Part("phone") phone: RequestBody,
         @Part("description") description: RequestBody,
         @Part("addressId") addressId: RequestBody,
-        @Part image: MultipartBody.Part?
+        @Part image: MultipartBody.Part?,
+        @Part coverImage: MultipartBody.Part?
     ): Response<BaseResponse<RestaurantResponse>>
 
     @POST("restaurant/business/register")

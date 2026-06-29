@@ -7,6 +7,8 @@ data class RestaurantPersonalInfoState(
     val imageUrl: String? = null,
     val addressId: Int? = null,
     val selectedAddressText: String = "",
+    val hasNewImage: Boolean = false,
+    val hasUnsavedChanges: Boolean = false,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val error: String? = null,

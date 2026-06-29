@@ -22,12 +22,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.fooddelivery.ui.components.ingredient.IngredientIcon
+import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodActionTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodImagePicker
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodSectionLabel
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodTextArea
+import com.example.fooddelivery.ui.screens.restaurant.component.food_management.IngredientPickerItem
+import com.example.fooddelivery.ui.screens.restaurant.food_management.FOOD_SIZE_ORDER
+import com.example.fooddelivery.ui.screens.restaurant.food_management.sortedByFoodSize
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -106,6 +109,8 @@ fun AddFoodScreenContent(
     var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             DFoodActionTopBar(
                 title = "Add New Items",
@@ -113,7 +118,7 @@ fun AddFoodScreenContent(
                 onActionClick = onResetClick,
                 onBackClick = onNavigateBack
             )
-        }
+        },
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             Column(
@@ -121,7 +126,7 @@ fun AddFoodScreenContent(
                     .fillMaxSize()
                     .padding(horizontal = 24.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -181,7 +186,7 @@ fun AddFoodScreenContent(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        listOf("S", "M", "L", "XL").forEach { size ->
+                        FOOD_SIZE_ORDER.forEach { size ->
                             val isSelected = state.selectedSizes.containsKey(size)
                             FilterChip(
                                 selected = isSelected,
@@ -196,7 +201,7 @@ fun AddFoodScreenContent(
                         }
                     }
 
-                    state.selectedSizes.keys.sorted().forEach { size ->
+                    state.selectedSizes.keys.sortedByFoodSize().forEach { size ->
                         AnimatedVisibility(visible = true) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -227,42 +232,10 @@ fun AddFoodScreenContent(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         itemsIndexed(state.ingredients) { index, item ->
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .clickable { onIngredientToggle(index) }
-                                    .width(64.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(54.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (item.isSelected) MaterialTheme.colorScheme.primary
-                                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                                        )
-                                        .border(
-                                            width = 2.dp,
-                                            color = if (item.isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    IngredientIcon(
-                                        iconKey = item.iconKey,
-                                        contentDescription = item.name,
-                                        tint = if (item.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = item.name,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (item.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = if (item.isSelected) FontWeight.Bold else FontWeight.Normal
-                                )
-                            }
+                            IngredientPickerItem(
+                                item = item,
+                                onClick = { onIngredientToggle(index) },
+                            )
                         }
                     }
                 }
@@ -278,10 +251,13 @@ fun AddFoodScreenContent(
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = MaterialTheme.shapes.medium,
                         enabled = !state.isLoading,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     ) {
                         if (state.isLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
                         } else {
                             Text(text = "SAVE CHANGES", fontWeight = FontWeight.Bold)
                         }
@@ -291,10 +267,12 @@ fun AddFoodScreenContent(
                         Text(
                             text = state.error,
                             color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 12.dp).align(Alignment.CenterHorizontally)
+                            modifier = Modifier.padding(top = 12.dp).align(Alignment.CenterHorizontally),
                         )
                     }
                 }
+
+                NavigationBarBottomSpacer()
             }
         }
     }

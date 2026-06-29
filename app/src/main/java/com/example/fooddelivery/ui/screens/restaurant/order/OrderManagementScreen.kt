@@ -43,6 +43,7 @@ fun OrderManagementScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { DFoodTopBar(title = "Order Management", onBackClick = onNavigateBack) }
     ) { innerPadding ->
         Column(

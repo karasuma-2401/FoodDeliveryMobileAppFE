@@ -721,10 +721,12 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
         val isMenu = currentRouteStr.contains("RestaurantFoodListRoute")
         val isNotifications = currentRouteStr.contains("RestaurantNotificationsRoute")
         val isProfile = currentRouteStr.contains("RestaurantProfileRoute")
-        val isMessages = currentRouteStr.contains("ConversationRoute") || currentRouteStr.contains("ChatRoute")
+        val isConversationList = currentRouteStr.contains("ConversationRoute")
+        val isChat = currentRouteStr.contains("ChatRoute")
+        val isMessages = isConversationList || isChat
         val unreadChatViewModel: UnreadChatViewModel = hiltViewModel()
         val unreadMessageCount by unreadChatViewModel.unreadCount.collectAsStateWithLifecycle()
-        val showBottomBar = isDashboard || isMenu || isNotifications || isProfile || isMessages
+        val showBottomBar = isDashboard || isMenu || isNotifications || isProfile || isConversationList
 
         val vendorCurrentRoute = when {
             isDashboard -> "dashboard"
@@ -1071,7 +1073,6 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 composable<AdminRestaurantsRoute> {
                     AdminRestaurantScreen(
                         onNavigateBack = { adminNavController.popBackStack() },
-                        onNavigate = onAdminNavigate,
                         onNavigateToRestaurantDetail = { id ->
                             navController.navigate(RestaurantDetailRoute(restaurantId = id.toString()))
                         }

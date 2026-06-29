@@ -48,6 +48,7 @@ fun MyFoodListScreenContent(
     onDeleteFood: (Int) -> Unit = {}
 ) {
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             DFoodTopBar(
                 title = "My Food List",

@@ -105,7 +105,8 @@ fun DashboardContent(
                         .verticalScroll(rememberScrollState())
                 ) {
                     HeaderSection(
-                        location = state.restaurantName.ifBlank { "My Restaurant" }
+                        location = state.restaurantName.ifBlank { "My Restaurant" },
+                        imageUrl = state.restaurantImageUrl,
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))

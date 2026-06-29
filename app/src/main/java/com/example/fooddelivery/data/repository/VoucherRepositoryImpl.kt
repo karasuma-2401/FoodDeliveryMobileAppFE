@@ -3,6 +3,7 @@ package com.example.fooddelivery.data.repository
 import com.example.fooddelivery.data.remote.api.VoucherApi
 import com.example.fooddelivery.data.remote.dto.VoucherDto
 import com.example.fooddelivery.data.remote.unwrapData
+import com.example.fooddelivery.domain.model.VoucherPageResult
 import com.example.fooddelivery.domain.repository.VoucherRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -20,11 +21,24 @@ class VoucherRepositoryImpl @Inject constructor(
         code: String?,
         status: String?
     ): Result<List<VoucherDto>> {
+        return getVouchersPage(limit, offset, restaurantId, code, status)
+            .map { it.items }
+    }
+
+    override suspend fun getVouchersPage(
+        limit: Int?,
+        offset: Int?,
+        restaurantId: Int?,
+        code: String?,
+        status: String?
+    ): Result<VoucherPageResult> {
         return try {
             val response = api.getVouchers(limit, offset, restaurantId, code, status)
             if (response.isSuccessful && response.body() != null) {
-                val voucherList = response.body()?.data?.data ?: emptyList()
-                Result.success(voucherList)
+                val body = response.body()?.data
+                val voucherList = body?.data ?: emptyList()
+                val total = body?.total ?: voucherList.size
+                Result.success(VoucherPageResult(items = voucherList, total = total))
             } else {
                 Result.failure(Exception(response.message()))
             }

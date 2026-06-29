@@ -26,6 +26,8 @@ import com.example.fooddelivery.ui.components.bounceClick
 import com.example.fooddelivery.ui.components.layout.NavigationBarBottomSpacer
 import com.example.fooddelivery.ui.theme.CustomerDimens
 
+private val BottomBarShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+
 @Composable
 fun DFoodBottomBar(
     currentRoute: String,
@@ -34,15 +36,10 @@ fun DFoodBottomBar(
     unreadNotificationCount: Int = 0
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 16.dp,
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                clip = false
-            ),
+        modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp
+        shape = BottomBarShape,
+        shadowElevation = 8.dp,
     ) {
         Column(Modifier.fillMaxWidth()) {
             Row(

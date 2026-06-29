@@ -29,6 +29,7 @@ fun AdminCouponScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("System Coupons", fontWeight = FontWeight.Bold) },
