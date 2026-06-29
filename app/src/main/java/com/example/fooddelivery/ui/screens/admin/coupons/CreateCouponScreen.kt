@@ -191,6 +191,8 @@ fun CreateCouponContent(
                         discountValue = uiState.discountValue,
                         onValueChange = onDiscountValueChange,
                         maxDiscount = uiState.maxDiscount,
+                        discountType = uiState.discountType,
+                        onTypeChange = onDiscountTypeChange,
                         onMaxDiscountChange = onMaxDiscountChange
                     )
 
