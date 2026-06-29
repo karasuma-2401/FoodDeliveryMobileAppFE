@@ -23,6 +23,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -55,6 +56,8 @@ fun LoginScreen(
     onNavigateToSignUp: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     onNavigateAfterLogin: (Any) -> Unit,
+    showRegistrationSuccess: Boolean = false,
+    onRegistrationSuccessShown: () -> Unit = {},
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -70,6 +73,16 @@ fun LoginScreen(
         onSuccess = { idToken -> viewModel.onEvent(LoginEvent.GoogleLoginClicked(idToken)) },
         onError = { error -> viewModel.onEvent(LoginEvent.ErrorMessageSet(error)) }
     )
+
+    LaunchedEffect(showRegistrationSuccess) {
+        if (showRegistrationSuccess) {
+            snackBarHostState.showSnackbar(
+                message = "Registration successful! Please log in.",
+                duration = SnackbarDuration.Short
+            )
+            onRegistrationSuccessShown()
+        }
+    }
 
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
