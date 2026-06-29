@@ -7,11 +7,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class UnreadNotificationViewModel @Inject constructor(
-    notificationRepository: NotificationRepository,
+    private val notificationRepository: NotificationRepository,
 ) : ViewModel() {
 
     val unreadCount: StateFlow<Int> = notificationRepository.getUnreadCountFlow()
@@ -20,4 +21,14 @@ class UnreadNotificationViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = 0,
         )
+
+    init {
+        refresh()
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            notificationRepository.syncNotifications()
+        }
+    }
 }

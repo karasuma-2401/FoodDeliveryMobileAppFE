@@ -11,4 +11,5 @@ interface NotificationRepository {
     suspend fun deleteNotification(id: String)
     suspend fun getNotificationsPaged(page: Int, pageSize: Int): Result<List<Notification>>
     suspend fun getUnreadCount(): Result<Int>
+    suspend fun syncNotifications(): Result<Unit>
 }

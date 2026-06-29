@@ -33,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.checkout.components.SectionTitle
 import com.example.fooddelivery.ui.screens.customer.order.components.DeliveryAddressCard
@@ -54,6 +56,7 @@ fun TrackOrderScreen(
     viewModel: TrackOrderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var showConfirmReceivedDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(orderId) {
         viewModel.onEvent(TrackOrderEvent.Initialize(orderId))
@@ -62,10 +65,25 @@ fun TrackOrderScreen(
         state = state,
         onNavigateBack = onNavigateBack,
         onChatWithRestaurant = onChatWithRestaurant,
-        onConfirmReceived = { viewModel.onEvent(TrackOrderEvent.ConfirmReceived) },
+        onConfirmReceived = { showConfirmReceivedDialog = true },
         onCheckPayment = { viewModel.onEvent(TrackOrderEvent.CheckPaymentStatus) },
         onRefresh = { viewModel.onEvent(TrackOrderEvent.Refresh) }
     )
+
+    if (showConfirmReceivedDialog) {
+        DFoodConfirmDialog(
+            title = "Confirm Delivery",
+            message = "Have you received your order?",
+            confirmText = "Confirm",
+            type = ConfirmDialogType.Default,
+            isLoading = state.isConfirming,
+            onConfirm = {
+                showConfirmReceivedDialog = false
+                viewModel.onEvent(TrackOrderEvent.ConfirmReceived)
+            },
+            onDismiss = { showConfirmReceivedDialog = false }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

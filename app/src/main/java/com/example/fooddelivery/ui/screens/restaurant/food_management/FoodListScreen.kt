@@ -12,6 +12,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.example.fooddelivery.data.remote.dto.FoodResponse
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.food_management.CategoryTabRow
 import com.example.fooddelivery.ui.screens.restaurant.component.food_management.FoodList
@@ -27,6 +29,7 @@ fun MyFoodListScreen(
     viewModel: MyFoodListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
+    var foodToDelete by remember { mutableStateOf<FoodResponse?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -49,8 +52,22 @@ fun MyFoodListScreen(
         onAddFoodClick = onAddFoodClick,
         onNavigate = onNavigate,
         onCategorySelected = viewModel::onCategorySelected,
-        onDeleteFood = viewModel::deleteFood
+        onDeleteFood = { food -> foodToDelete = food }
     )
+
+    foodToDelete?.let { food ->
+        DFoodConfirmDialog(
+            title = "Delete Item",
+            message = "Delete \"${food.name}\" from your menu?",
+            confirmText = "Delete",
+            type = ConfirmDialogType.Destructive,
+            onConfirm = {
+                viewModel.deleteFood(food.id)
+                foodToDelete = null
+            },
+            onDismiss = { foodToDelete = null }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,7 +79,7 @@ fun MyFoodListScreenContent(
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {},
     onCategorySelected: (Int) -> Unit = {},
-    onDeleteFood: (Int) -> Unit = {}
+    onDeleteFood: (FoodResponse) -> Unit = {}
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -102,7 +119,7 @@ fun MyFoodListScreenContent(
                     FoodList(
                         items = state.filteredFoodList,
                         onEditClick = { food -> onEditFood(food.id.toString()) },
-                        onDeleteClick = { food -> onDeleteFood(food.id) }
+                        onDeleteClick = { food -> onDeleteFood(food) }
                     )
                 }
             }

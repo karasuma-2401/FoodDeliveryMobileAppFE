@@ -94,4 +94,22 @@ class NotificationRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun syncNotifications(): Result<Unit> {
+        return try {
+            val response = api.getNotifications(limit = SYNC_LIMIT, offset = 0)
+            val items = response.data
+                ?: return Result.failure(Exception(response.message ?: "Failed to sync notifications"))
+            items.map { it.toDomain() }.forEach { notification ->
+                dao.insertNotification(notification.toEntity())
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    companion object {
+        private const val SYNC_LIMIT = 50
+    }
 }

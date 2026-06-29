@@ -16,6 +16,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.cart.components.BillBreakdown
 import com.example.fooddelivery.ui.screens.customer.cart.components.CartItemCard
@@ -38,6 +40,8 @@ fun CartScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showVoucherSheet by remember { mutableStateOf(false) }
     var selectedDetailVoucher by remember { mutableStateOf<Voucher?>(null) }
+    var showClearCartDialog by remember { mutableStateOf(false) }
+    var restaurantGroupToClear by remember { mutableStateOf<Pair<String, String>?>(null) }
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -66,8 +70,42 @@ fun CartScreen(
         onEvent = viewModel::onEvent,
         onBackClick = onNavigateBack,
         onCheckoutClick = { viewModel.onEvent(CartEvent.ProceedToCheckout) },
-        onShowVoucherSheet = { showVoucherSheet = true }
+        onShowVoucherSheet = { showVoucherSheet = true },
+        onShowClearCartDialog = { showClearCartDialog = true },
+        onShowClearGroupDialog = { restaurantId, restaurantName ->
+            restaurantGroupToClear = restaurantId to restaurantName
+        }
     )
+
+    if (showClearCartDialog) {
+        DFoodConfirmDialog(
+            title = "Clear Cart",
+            message = "Remove all items from your cart?",
+            confirmText = "Clear",
+            type = ConfirmDialogType.Destructive,
+            isLoading = state.isLoading,
+            onConfirm = {
+                showClearCartDialog = false
+                viewModel.onEvent(CartEvent.ClearCart)
+            },
+            onDismiss = { showClearCartDialog = false }
+        )
+    }
+
+    restaurantGroupToClear?.let { (restaurantId, restaurantName) ->
+        DFoodConfirmDialog(
+            title = "Remove Items",
+            message = "Remove all items from $restaurantName?",
+            confirmText = "Remove",
+            type = ConfirmDialogType.Destructive,
+            isLoading = state.isLoading,
+            onConfirm = {
+                restaurantGroupToClear = null
+                viewModel.onEvent(CartEvent.ClearRestaurantGroup(restaurantId))
+            },
+            onDismiss = { restaurantGroupToClear = null }
+        )
+    }
 
     if (showVoucherSheet) {
         ModalBottomSheet(
@@ -116,7 +154,9 @@ fun CartContent(
     onEvent: (CartEvent) -> Unit,
     onBackClick: () -> Unit,
     onCheckoutClick: () -> Unit,
-    onShowVoucherSheet: () -> Unit
+    onShowVoucherSheet: () -> Unit,
+    onShowClearCartDialog: () -> Unit = {},
+    onShowClearGroupDialog: (restaurantId: String, restaurantName: String) -> Unit = { _, _ -> }
 ) {
     Scaffold(
         topBar = {
@@ -125,7 +165,7 @@ fun CartContent(
                 onBackClick = onBackClick,
                 actions = {
                     if (!state.isCartEmpty) {
-                        IconButton(onClick = { onEvent(CartEvent.ClearCart) }) {
+                        IconButton(onClick = onShowClearCartDialog) {
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
                                 contentDescription = "Clear Cart",
@@ -191,7 +231,7 @@ fun CartContent(
                             isSelected = state.selectedRestaurantId == group.restaurantId,
                             onSelect = { onEvent(CartEvent.SelectRestaurant(group.restaurantId)) },
                             onClearGroup = {
-                                onEvent(CartEvent.ClearRestaurantGroup(group.restaurantId))
+                                onShowClearGroupDialog(group.restaurantId, group.restaurantName)
                             }
                         )
                     }
