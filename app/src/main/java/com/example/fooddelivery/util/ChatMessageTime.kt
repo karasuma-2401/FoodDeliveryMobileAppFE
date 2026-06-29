@@ -54,6 +54,12 @@ fun formatMessageDisplayTime(createdAt: String): String {
 fun messagesForMessengerDisplay(messages: List<MessageEntity>): List<MessageEntity> =
     messages.sortedWith(messageTimelineComparator()).asReversed()
 
+fun conversationPreviewFromMessage(content: String, imageUrl: String?): String? = when {
+    content.isNotBlank() -> content
+    !imageUrl.isNullOrBlank() -> "Photo"
+    else -> null
+}
+
 fun senderIdsMatch(left: String, right: String): Boolean {
     if (left.isBlank() || right.isBlank()) return false
     if (left == right) return true

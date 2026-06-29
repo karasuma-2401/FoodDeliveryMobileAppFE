@@ -16,6 +16,8 @@ import com.example.fooddelivery.data.remote.socket.ChatSocketManager
 import com.example.fooddelivery.data.remote.unwrapData
 import com.example.fooddelivery.data.remote.unwrapUnit
 import com.example.fooddelivery.domain.repository.ChatRepository
+import com.example.fooddelivery.util.conversationPreviewFromMessage
+import com.example.fooddelivery.util.messageCreatedAtMillis
 import com.example.fooddelivery.util.normalizeCreatedAt
 import com.example.fooddelivery.util.normalizeCreatedAtNow
 import com.example.fooddelivery.util.senderIdsMatch
@@ -117,10 +119,37 @@ class ChatRepositoryImpl @Inject constructor(
                 .unwrapData("Sync failed")
                 .mapCatching { conversations ->
                     val currentUserId = getCurrentUserId()
-                    val entities = conversations.map { dto -> mapToEntity(dto, currentUserId) }
-                    conversationDao.replaceAll(entities)
+                    val entities = conversations.map { dto ->
+                        val fromServer = mapToEntity(dto, currentUserId)
+                        val local = conversationDao.getConversationById(fromServer.id)
+                        if (local != null) {
+                            mergeConversationPreview(local, fromServer)
+                        } else {
+                            fromServer
+                        }
+                    }
+                    val serverIds = entities.map { it.id }.toSet()
+                    val localOnly = conversationDao.getAllConversations()
+                        .filter { it.id !in serverIds }
+                    conversationDao.replaceAll(entities + localOnly)
                 }
         } catch (e: Exception) { Result.failure(e) }
+    }
+
+    private fun mergeConversationPreview(
+        local: ConversationEntity,
+        server: ConversationEntity
+    ): ConversationEntity {
+        val localTime = messageCreatedAtMillis(local.lastMessageTime)
+        val serverTime = messageCreatedAtMillis(server.lastMessageTime)
+        return if (localTime > serverTime && local.lastMessage.isNotBlank()) {
+            server.copy(
+                lastMessage = local.lastMessage,
+                lastMessageTime = local.lastMessageTime
+            )
+        } else {
+            server
+        }
     }
 
     override suspend fun createConversation(sellerId: Int): Result<ConversationEntity> {
@@ -144,7 +173,9 @@ class ChatRepositoryImpl @Inject constructor(
             id = dto.id.toString(),
             restaurantName = display?.name ?: "User #${dto.sellerId}",
             restaurantImage = display?.avatar ?: "",
-            lastMessage = dto.lastMessage?.content ?: "",
+            lastMessage = dto.lastMessage?.let { last ->
+                conversationPreviewFromMessage(last.content, last.image.takeIf { it.isNotBlank() })
+            } ?: "",
             lastMessageTime = dto.lastMessage?.createdAt ?: dto.updatedAt ?: dto.createdAt,
             unreadCount = dto.unreadCount
         )
@@ -248,6 +279,7 @@ class ChatRepositoryImpl @Inject constructor(
             senderId = senderId
         )
         messageDao.insertMessage(message)
+        updateConversationLastMessage(message)
 
         return try {
             ensureSocketReady()
@@ -322,6 +354,7 @@ class ChatRepositoryImpl @Inject constructor(
             senderId = senderId
         )
         messageDao.insertMessage(message)
+        updateConversationLastMessage(message)
 
         val remoteUrl = uploadImage(localImagePath).getOrElse { error ->
             messageDao.updateMessage(message.copy(isSending = false, isFailed = true))
@@ -330,6 +363,7 @@ class ChatRepositoryImpl @Inject constructor(
 
         message = message.copy(imageUrl = remoteUrl)
         messageDao.updateMessage(message)
+        updateConversationLastMessage(message)
 
         return try {
             ensureSocketReady()
@@ -392,6 +426,21 @@ class ChatRepositoryImpl @Inject constructor(
             )
         }
         messageDao.insertMessage(normalizedMessage)
+        updateConversationLastMessage(normalizedMessage)
+    }
+
+    private suspend fun updateConversationLastMessage(message: MessageEntity) {
+        val preview = conversationPreviewFromMessage(message.content, message.imageUrl) ?: return
+        val existing = conversationDao.getConversationById(message.conversationId) ?: return
+        val newTime = messageCreatedAtMillis(message.createdAt)
+        val currentTime = messageCreatedAtMillis(existing.lastMessageTime)
+        if (newTime > 0L && currentTime > 0L && newTime < currentTime) return
+
+        conversationDao.updateLastMessage(
+            id = message.conversationId,
+            lastMessage = preview,
+            lastMessageTime = message.createdAt
+        )
     }
 
     private fun scheduleSendTimeout(tempId: String) {

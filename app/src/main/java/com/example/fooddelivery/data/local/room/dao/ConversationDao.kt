@@ -13,6 +13,9 @@ interface ConversationDao {
     @Query("SELECT * FROM conversations ORDER BY lastMessageTime DESC")
     fun getConversations(): Flow<List<ConversationEntity>>
 
+    @Query("SELECT * FROM conversations")
+    suspend fun getAllConversations(): List<ConversationEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateConversation(conversation: ConversationEntity)
 
@@ -32,4 +35,16 @@ interface ConversationDao {
 
     @Query("UPDATE conversations SET unreadCount = 0 WHERE id = :id")
     suspend fun markConversationAsRead(id: String)
+
+    @Query("SELECT * FROM conversations WHERE id = :id LIMIT 1")
+    suspend fun getConversationById(id: String): ConversationEntity?
+
+    @Query(
+        """
+        UPDATE conversations
+        SET lastMessage = :lastMessage, lastMessageTime = :lastMessageTime
+        WHERE id = :id
+        """
+    )
+    suspend fun updateLastMessage(id: String, lastMessage: String, lastMessageTime: String)
 }

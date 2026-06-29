@@ -8,6 +8,7 @@ import com.example.fooddelivery.data.remote.dto.toRestaurantAddress
 import com.example.fooddelivery.data.remote.dto.toUpdateUserAddressLocationRequest
 import com.example.fooddelivery.data.remote.dto.toUpdateUserAddressRequest
 import com.example.fooddelivery.data.remote.unwrapData
+import com.example.fooddelivery.data.remote.unwrapSuccess
 import com.example.fooddelivery.domain.model.Address
 import com.example.fooddelivery.domain.repository.AddressRepository
 import javax.inject.Inject
@@ -107,8 +108,7 @@ class AddressRepositoryImpl @Inject constructor(
     override suspend fun deleteAddress(addressId: Int): Result<Unit> {
         return try {
             addressApi.deleteAddress(addressId)
-                .unwrapData("Failed to delete address")
-                .map { Unit }
+                .unwrapSuccess("Failed to delete address")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)

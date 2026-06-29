@@ -3,7 +3,6 @@ package com.example.fooddelivery.ui.screens.customer.home.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
@@ -130,14 +129,6 @@ fun RestaurantItem(
                     InfoItem(
                         icon = Icons.Default.LocationOn,
                         text = String.format("%.1f km", it),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                restaurant.estimatedDeliveryTime?.let {
-                    InfoItem(
-                        icon = Icons.Default.AccessTime,
-                        text = "$it min",
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

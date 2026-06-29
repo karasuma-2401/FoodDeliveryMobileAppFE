@@ -60,7 +60,7 @@ private val addressTypeOptions = listOf(
     ),
     AddressTypeOption(
         value = "Work",
-        label = "Office",
+        label = "Work",
         icon = Icons.Outlined.WorkOutline,
         accentColor = Color(0xFF9333EA),
         containerColor = Color(0xFFF3E8FF),
