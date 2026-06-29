@@ -14,10 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
@@ -30,8 +29,8 @@ data class CreateCouponUiState(
     val minOrder: String = "25",
     val perUserLimit: String = "1",
     val totalUsageLimit: String = "500",
-    val startDate: String = "10/01/2026",
-    val endDate: String = "12/31/2026",
+    val startDate: String = "01/10/2026",
+    val endDate: String = "31/12/2026",
     val neverExpires: Boolean = false,
     val isSaving: Boolean = false,
     val isSavedSuccessfully: Boolean = false,
@@ -69,14 +68,14 @@ class CreateCouponViewModel @Inject constructor(
         _uiState.update { it.copy(neverExpires = value) }
     }
 
-    private fun toIsoDateTimeOrNull(mmddyyyy: String): String? {
+    private fun toIsoDateTimeOrNull(ddmmyyyy: String): String? {
         return try {
-            val inputFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+            val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.US)
 
             val outputFormat = SimpleDateFormat("yyyy-MM-dd'T'00:00:00.000'Z'", Locale.US)
             outputFormat.timeZone = TimeZone.getTimeZone("UTC")
 
-            val date = inputFormat.parse(mmddyyyy.trim())
+            val date = inputFormat.parse(ddmmyyyy.trim())
             if (date != null) {
                 outputFormat.format(date)
             } else {
@@ -90,7 +89,6 @@ class CreateCouponViewModel @Inject constructor(
     fun saveCoupon() {
         val currentState = _uiState.value
 
-        // Input Validation
         if (currentState.couponCode.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Coupon Code cannot be empty!") }
             return
@@ -102,7 +100,6 @@ class CreateCouponViewModel @Inject constructor(
             return
         }
 
-        // Validate discount value limits based on type
         val isPercent = currentState.discountType.contains("percent", ignoreCase = true)
         if (isPercent && sale > 100) {
             _uiState.update { it.copy(errorMessage = "Percentage discount cannot exceed 100%") }
@@ -115,7 +112,6 @@ class CreateCouponViewModel @Inject constructor(
             return
         }
 
-        // Max discount validation only applies to percentage discounts
         val maxDiscount = if (isPercent) {
             currentState.maxDiscount.toDoubleOrNull()
         } else {
@@ -140,14 +136,14 @@ class CreateCouponViewModel @Inject constructor(
 
         val startAt = toIsoDateTimeOrNull(currentState.startDate)
         if (startAt == null) {
-            _uiState.update { it.copy(errorMessage = "Invalid start date format (MM/dd/yyyy)") }
+            _uiState.update { it.copy(errorMessage = "Invalid start date format (dd/MM/yyyy)") }
             return
         }
 
         val endAt = if (currentState.neverExpires) null else {
             val date = toIsoDateTimeOrNull(currentState.endDate)
             if (date == null) {
-                _uiState.update { it.copy(errorMessage = "Invalid end date format (MM/dd/yyyy)") }
+                _uiState.update { it.copy(errorMessage = "Invalid end date format (dd/MM/yyyy)") }
                 return
             }
             date
@@ -156,16 +152,14 @@ class CreateCouponViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             try {
-                // Determine restaurantId: route parameter takes precedence, then tokenManager for vendors
                 val finalRestaurantId = routeRestaurantId ?: tokenManager.getRestaurantId.first()
-                
+
                 if (finalRestaurantId == null) {
                     _uiState.update { it.copy(isSaving = false, errorMessage = "No restaurant found") }
                     return@launch
                 }
 
                 val type = if (isPercent) "PERCENT" else "MONEY"
-
                 val name = currentState.couponCode.trim().uppercase()
                 val code = currentState.couponCode.trim().uppercase()
                 val description = currentState.description.trim().ifBlank { null }
@@ -197,7 +191,6 @@ class CreateCouponViewModel @Inject constructor(
         }
     }
 
-    // Hàm dọn dẹp cờ sau khi đã điều hướng xong (Tránh lỗi vặt)
     fun clearNavigationFlag() {
         _uiState.update { it.copy(isSavedSuccessfully = false) }
     }

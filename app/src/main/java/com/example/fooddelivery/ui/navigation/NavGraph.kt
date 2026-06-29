@@ -926,7 +926,7 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                             vendorNavController.navigate(RestaurantOrderManagementRoute)
                         },
                         onNavigateToReviews = {
-                            vendorNavController.navigate(RestaurantReviewsRoute(restaurantId = 0))
+                            vendorNavController.navigate(RestaurantReviewsRoute(restaurantId = it))
                         },
                         onNavigateToConversation = {
                             vendorNavController.navigate(ConversationRoute)

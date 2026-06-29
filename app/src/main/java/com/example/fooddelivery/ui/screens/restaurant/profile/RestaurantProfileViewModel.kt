@@ -18,7 +18,7 @@ import javax.inject.Inject
 data class RestaurantProfileUiState(
     val isLoading: Boolean = false,
     val restaurantId: Int = 0,
-    val balance: String = "",
+    val balance: String = "$0.00",
     val numberOfOrders: String = "0",
     val errorMessage: String? = null,
     val isLogoutSuccess: Boolean = false

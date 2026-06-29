@@ -3,9 +3,8 @@ package com.example.fooddelivery.ui.screens.admin.dashboard
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -52,11 +51,6 @@ fun AdminDashboardContent(
             topBar = {
                 TopAppBar(
                     title = { Text("Dashboard", fontWeight = FontWeight.Bold) },
-                    actions = {
-                        IconButton(onClick = { onEvent(AdminDashboardEvent.Refresh) }) {
-                            Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
-                        }
-                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
@@ -64,39 +58,46 @@ fun AdminDashboardContent(
             },
             containerColor = MaterialTheme.colorScheme.background
         ) { innerPadding ->
-            Column(
+            PullToRefreshBox(
+                isRefreshing = state.isLoading,
+                onRefresh = { onEvent(AdminDashboardEvent.Refresh) },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .verticalScroll(scrollState)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                DashboardRevenueCard(
-                    revenue = state.stats.deliveredRevenue,
-                    onClick = { onNavigate("revenue") }
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    DashboardRevenueCard(
+                        revenue = state.stats.deliveredRevenue,
+                        onClick = { onNavigate("revenue") }
+                    )
 
-                Text(
-                    text = "System Overview",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+                    Text(
+                        text = "System Overview",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
 
-                DashboardStatsGrid(
-                    stats = state.stats,
-                    onUsersClick = { onNavigate("users") },
-                    onRestaurantsClick = { onNavigate("restaurants") },
-                    onOrdersClick = { onNavigate("orders") },
-                    onPaymentsClick = { onNavigate("payments") },
-                    onCategoriesClick = { onNavigate("categories") },
-                    onVouchersClick = { onNavigate("coupons") }
-                )
+                    DashboardStatsGrid(
+                        stats = state.stats,
+                        onUsersClick = { onNavigate("users") },
+                        onRestaurantsClick = { onNavigate("restaurants") },
+                        onOrdersClick = { onNavigate("orders") },
+                        onPaymentsClick = { onNavigate("payments") },
+                        onCategoriesClick = { onNavigate("categories") },
+                        onVouchersClick = { onNavigate("coupons") }
+                    )
+                }
             }
         }
 
-        if (state.isLoading) {
+        if (state.isLoading && state.stats.users == 0) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = Color.Black.copy(alpha = 0.15f)

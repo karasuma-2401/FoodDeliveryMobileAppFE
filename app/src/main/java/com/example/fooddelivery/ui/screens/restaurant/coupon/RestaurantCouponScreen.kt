@@ -128,11 +128,6 @@ private fun RestaurantCouponsTab(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Icon(
-                    Icons.Default.FilterList,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.secondary
-                )
             }
         }
 
