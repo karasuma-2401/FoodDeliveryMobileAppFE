@@ -2,6 +2,7 @@ package com.example.fooddelivery.ui.screens.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fooddelivery.data.local.datastore.TokenManager
 import com.example.fooddelivery.domain.usecase.LoginUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithGoogleUseCase
@@ -11,6 +12,7 @@ import com.example.fooddelivery.ui.navigation.resolveStartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,10 +44,27 @@ class LoginViewModel @Inject constructor(
     private val validateInputUseCase: ValidateAuthInputUseCase,
     private val loginWithFacebookUseCase: LoginWithFacebookUseCase,
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
-    private val registerDeviceTokenUseCase: RegisterDeviceTokenUseCase
+    private val registerDeviceTokenUseCase: RegisterDeviceTokenUseCase,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
     private val _state = MutableStateFlow(LoginState())
     val state =  _state.asStateFlow()
+
+    init {
+        loadSavedCredentials()
+    }
+
+    private fun loadSavedCredentials() {
+        viewModelScope.launch {
+            val rememberMe = tokenManager.getRememberMe.first()
+            if (!rememberMe) return@launch
+
+            val savedPhone = tokenManager.getPhone.first()
+            if (savedPhone.isNullOrBlank()) return@launch
+
+            _state.update { it.copy(phone = savedPhone, rememberMe = true) }
+        }
+    }
 
     fun onEvent (event: LoginEvent) {
         when (event) {

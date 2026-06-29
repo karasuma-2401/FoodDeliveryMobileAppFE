@@ -206,10 +206,7 @@ fun RootNavigationGraph(
                 startDestination = authStartDestination
             )
             userNavGraph(navController = navController)
-            vendorNavGraph(
-                navController = navController,
-                unreadNotificationCount = unreadNotificationCount,
-            )
+            vendorNavGraph(navController = navController)
             adminNavGraph(navController = navController)
         }
     }
@@ -718,7 +715,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.vendorNavGraph(
     navController: NavHostController,
-    unreadNotificationCount: Int = 0,
 ) {
     composable<RestaurantGraph> {
         val vendorNavController = androidx.navigation.compose.rememberNavController()
@@ -734,6 +730,12 @@ fun NavGraphBuilder.vendorNavGraph(
         val isMessages = isConversationList || isChat
         val unreadChatViewModel: UnreadChatViewModel = hiltViewModel()
         val unreadMessageCount by unreadChatViewModel.unreadCount.collectAsStateWithLifecycle()
+        val unreadNotificationViewModel: UnreadNotificationViewModel = hiltViewModel()
+        val unreadNotificationCount by unreadNotificationViewModel.unreadCount.collectAsStateWithLifecycle()
+
+        LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+            unreadNotificationViewModel.refresh()
+        }
         val showBottomBar = isDashboard || isMenu || isNotifications || isProfile || isConversationList
 
         val vendorCurrentRoute = when {

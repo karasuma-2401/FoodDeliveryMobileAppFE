@@ -10,8 +10,11 @@ import com.example.fooddelivery.util.OrderEta
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -59,14 +62,23 @@ data class TrackOrderState(
     val voucherInfo: VoucherSummary? = null,
     val note: String? = null,
     val autoConfirmAt: String? = null,
-    val hoursUntilAutoConfirm: Double? = null
-)
+    val hoursUntilAutoConfirm: Double? = null,
+    val hasCustomerConfirmed: Boolean = false,
+) {
+    val shouldShowConfirmReceivedAction: Boolean
+        get() = trackingStatus == TrackingStatus.DELIVERED && !hasCustomerConfirmed
+}
 
 sealed interface TrackOrderEvent {
     data class Initialize(val orderId: String) : TrackOrderEvent
     data object Refresh : TrackOrderEvent
     data object ConfirmReceived : TrackOrderEvent
     data object CheckPaymentStatus : TrackOrderEvent
+}
+
+sealed interface TrackOrderUiEffect {
+    data object ConfirmReceivedSuccess : TrackOrderUiEffect
+    data class ShowSnackBar(val message: String) : TrackOrderUiEffect
 }
 
 @HiltViewModel
@@ -76,9 +88,21 @@ class TrackOrderViewModel @Inject constructor(
     private val _state = MutableStateFlow(TrackOrderState())
     val state: StateFlow<TrackOrderState> = _state.asStateFlow()
 
+    private val _uiEffect = MutableSharedFlow<TrackOrderUiEffect>()
+    val uiEffect = _uiEffect.asSharedFlow()
+
     private var pollingJob: Job? = null
     private var countdownJob: Job? = null
+    private var activeFetchJob: Job? = null
+    private var confirmInFlight = false
     private var expectedArrivalIso: String? = null
+    private var fetchGeneration = 0
+
+    private fun invalidateInFlightFetches() {
+        fetchGeneration++
+        activeFetchJob?.cancel()
+        activeFetchJob = null
+    }
 
     fun onEvent(event: TrackOrderEvent) {
         when (event) {
@@ -101,86 +125,208 @@ class TrackOrderViewModel @Inject constructor(
         }
     }
 
-    private fun fetchOrderDetail(orderId: String, isUserRefresh: Boolean) {
+    private fun fetchOrderDetail(
+        orderId: String,
+        isUserRefresh: Boolean = false,
+        isSilentRefresh: Boolean = false,
+    ) {
         val id = orderId.toIntOrNull() ?: return
-        viewModelScope.launch {
+        val job = viewModelScope.launch {
+            val generation = fetchGeneration
+
+            if ((_state.value.hasCustomerConfirmed || _state.value.isConfirming) && !isUserRefresh) {
+                return@launch
+            }
+
             val hasContent = _state.value.orderDetail != null
-            if (!hasContent) {
+            if (!hasContent && !isSilentRefresh) {
                 _state.update { it.copy(isLoading = true, error = null) }
             } else if (isUserRefresh) {
                 _state.update { it.copy(isRefreshing = true, error = null) }
             }
             val result = orderRepository.getOrderDetail(id)
+            if (generation != fetchGeneration || !isActive) return@launch
+
             _state.update { state ->
                 result.fold(
-                    onSuccess = { detail ->
-                        if (detail.statusStep == 4 || detail.statusStep == -1 ||
-                            detail.backendStatus == "CONFIRMED" || detail.backendStatus == "CANCELLED"
-                        ) {
-                            stopPolling()
-                        }
-                        val etaState = buildEtaState(detail)
-                        syncCountdownTicker(
-                            iso = detail.expectedArrivalIso,
-                            isDelivering = detail.backendStatus.uppercase() == "DELIVERING",
-                        )
-                        state.copy(
-                            isLoading = false,
-                            isRefreshing = false,
-                            isConfirming = false,
-                            orderDetail = detail,
-                            trackingStatus = mapToTrackingStatus(detail.statusStep),
-                            expectedArrivalDisplay = etaState.expectedArrivalDisplay,
-                            deliveredAtDisplay = etaState.deliveredAtDisplay,
-                            countdownLabel = etaState.countdownLabel,
-                            restaurantName = detail.restaurantName,
-                            restaurantImage = detail.restaurantImage,
-                            restaurantPhone = detail.restaurantPhone ?: "",
-                            items = detail.items.map {
-                                OrderSummaryItem(
-                                    name = it.name,
-                                    quantity = it.quantity,
-                                    lineTotal = it.lineTotal,
-                                    description = it.size ?: "",
-                                    image = it.image,
-                                    note = it.note
-                                )
-                            },
-                            restaurantId = detail.restaurantId,
-                            sellerId = detail.sellerId,
-                            address = detail.address,
-                            paymentMethod = detail.paymentMethod,
-                            paymentStatus = detail.paymentStatus,
-                            totalPrice = detail.totalPrice,
-                            voucherInfo = detail.voucherInfo,
-                            note = detail.note,
-                            autoConfirmAt = detail.autoConfirmAt,
-                            hoursUntilAutoConfirm = detail.hoursUntilAutoConfirm
-                        )
-                    },
+                    onSuccess = { detail -> mapDetailToState(state, detail) },
                     onFailure = { error ->
-                        state.copy(
-                            isLoading = false,
-                            isRefreshing = false,
-                            error = error.message,
-                        )
+                        if (isSilentRefresh &&
+                            (state.hasCustomerConfirmed || state.trackingStatus == TrackingStatus.CONFIRMED)
+                        ) {
+                            state.copy(
+                                isLoading = false,
+                                isRefreshing = false,
+                                isConfirming = false,
+                            )
+                        } else {
+                            state.copy(
+                                isLoading = false,
+                                isRefreshing = false,
+                                isConfirming = false,
+                                error = error.message,
+                            )
+                        }
                     }
                 )
             }
         }
+        activeFetchJob?.cancel()
+        activeFetchJob = job
+        job.invokeOnCompletion {
+            if (activeFetchJob === job) {
+                activeFetchJob = null
+            }
+        }
+    }
+
+    private fun mapDetailToState(state: TrackOrderState, detail: OrderDetail): TrackOrderState {
+        val resolvedStatus = resolveTrackingStatus(state, detail)
+        val hasConfirmed = state.hasCustomerConfirmed || resolvedStatus == TrackingStatus.CONFIRMED
+        if (hasConfirmed || resolvedStatus == TrackingStatus.CANCELLED) {
+            stopPolling()
+        }
+        val etaState = buildEtaState(detail)
+        syncCountdownTicker(
+            iso = detail.expectedArrivalIso,
+            isDelivering = detail.backendStatus.uppercase() == "DELIVERING" && !hasConfirmed,
+        )
+        val isCompleted = hasConfirmed || resolvedStatus == TrackingStatus.CONFIRMED
+        val displayStatus = if (hasConfirmed) TrackingStatus.CONFIRMED else resolvedStatus
+        return state.copy(
+            isLoading = false,
+            isRefreshing = false,
+            isConfirming = false,
+            hasCustomerConfirmed = hasConfirmed,
+            orderDetail = detail,
+            trackingStatus = displayStatus,
+            expectedArrivalDisplay = if (isCompleted) null else etaState.expectedArrivalDisplay,
+            deliveredAtDisplay = etaState.deliveredAtDisplay,
+            countdownLabel = if (isCompleted) null else etaState.countdownLabel,
+            restaurantName = detail.restaurantName,
+            restaurantImage = detail.restaurantImage,
+            restaurantPhone = detail.restaurantPhone ?: "",
+            items = detail.items.map {
+                OrderSummaryItem(
+                    name = it.name,
+                    quantity = it.quantity,
+                    lineTotal = it.lineTotal,
+                    description = it.size ?: "",
+                    image = it.image,
+                    note = it.note
+                )
+            },
+            restaurantId = detail.restaurantId,
+            sellerId = detail.sellerId,
+            address = detail.address,
+            paymentMethod = detail.paymentMethod,
+            paymentStatus = detail.paymentStatus,
+            totalPrice = detail.totalPrice,
+            voucherInfo = detail.voucherInfo,
+            note = detail.note,
+            autoConfirmAt = if (isCompleted) null else detail.autoConfirmAt,
+            hoursUntilAutoConfirm = if (isCompleted) null else detail.hoursUntilAutoConfirm
+        )
+    }
+
+    private fun resolveTrackingStatus(
+        state: TrackOrderState,
+        detail: OrderDetail,
+    ): TrackingStatus {
+        if (state.hasCustomerConfirmed) {
+            return TrackingStatus.CONFIRMED
+        }
+        val incoming = resolveIncomingStatus(detail)
+        if (incoming == TrackingStatus.CANCELLED) return TrackingStatus.CANCELLED
+        if (state.trackingStatus == TrackingStatus.CANCELLED) return TrackingStatus.CANCELLED
+        return if (state.trackingStatus.step >= incoming.step) state.trackingStatus else incoming
     }
 
     private fun confirmReceived() {
-        val orderId = _state.value.orderId.toIntOrNull() ?: return
+        val current = _state.value
+        if (confirmInFlight || current.hasCustomerConfirmed || current.isConfirming) return
+        if (current.trackingStatus != TrackingStatus.DELIVERED) return
+
+        val orderId = current.orderId.toIntOrNull() ?: return
+        val orderIdStr = current.orderId
+
+        confirmInFlight = true
+        invalidateInFlightFetches()
+        stopPolling()
+        _state.update { it.copy(isConfirming = true, error = null) }
+
         viewModelScope.launch {
-            _state.update { it.copy(isConfirming = true) }
-            val result = orderRepository.confirmReceived(orderId)
-            result.onSuccess {
-                fetchOrderDetail(orderId.toString(), isUserRefresh = false)
-            }.onFailure { error ->
-                _state.update { it.copy(isConfirming = false, error = error.message) }
+            try {
+                val result = orderRepository.confirmReceived(orderId)
+                val alreadyConfirmed = result.exceptionOrNull()?.isAlreadyConfirmedError() == true
+                if (result.isSuccess || alreadyConfirmed) {
+                    syncConfirmedOrderFromServer(orderIdStr)
+                    _uiEffect.emit(TrackOrderUiEffect.ConfirmReceivedSuccess)
+                } else {
+                    _state.update { it.copy(isConfirming = false) }
+                    startPolling(orderIdStr)
+                    _uiEffect.emit(
+                        TrackOrderUiEffect.ShowSnackBar(
+                            result.exceptionOrNull()?.message ?: "Failed to confirm receipt"
+                        )
+                    )
+                }
+            } finally {
+                confirmInFlight = false
             }
         }
+    }
+
+    private suspend fun syncConfirmedOrderFromServer(orderIdStr: String) {
+        val id = orderIdStr.toIntOrNull() ?: return
+        val detailResult = orderRepository.getOrderDetail(id)
+        _state.update { state ->
+            detailResult.fold(
+                onSuccess = { detail ->
+                    mapDetailToState(
+                        state.copy(isConfirming = false, hasCustomerConfirmed = true),
+                        detail,
+                    )
+                },
+                onFailure = {
+                    markConfirmedAfterServerAck(state)
+                }
+            )
+        }
+        stopPolling()
+    }
+
+    private fun resolveIncomingStatus(detail: OrderDetail): TrackingStatus {
+        val normalizedStatus = detail.status.uppercase()
+        val normalizedBackend = detail.backendStatus.uppercase()
+        return when {
+            normalizedStatus == "CONFIRMED" || normalizedStatus == "COMPLETED" -> TrackingStatus.CONFIRMED
+            normalizedBackend == "CONFIRMED" || normalizedBackend == "COMPLETED" -> TrackingStatus.CONFIRMED
+            normalizedStatus == "CANCELLED" || normalizedStatus == "CANCELED" -> TrackingStatus.CANCELLED
+            normalizedBackend == "CANCELLED" || normalizedBackend == "CANCELED" -> TrackingStatus.CANCELLED
+            else -> mapToTrackingStatus(detail.statusStep)
+        }
+    }
+
+    private fun Throwable.isAlreadyConfirmedError(): Boolean {
+        val message = message?.lowercase().orEmpty()
+        return message.contains("already") &&
+            (message.contains("confirm") || message.contains("request"))
+    }
+
+    private fun markConfirmedAfterServerAck(state: TrackOrderState): TrackOrderState {
+        countdownJob?.cancel()
+        countdownJob = null
+        expectedArrivalIso = null
+        return state.copy(
+            isConfirming = false,
+            hasCustomerConfirmed = true,
+            trackingStatus = TrackingStatus.CONFIRMED,
+            expectedArrivalDisplay = null,
+            countdownLabel = null,
+            hoursUntilAutoConfirm = null,
+            autoConfirmAt = null,
+        )
     }
 
     private fun startPolling(orderId: String) {
@@ -188,6 +334,13 @@ class TrackOrderViewModel @Inject constructor(
         pollingJob = viewModelScope.launch {
             while (true) {
                 delay(15_000)
+                if (_state.value.isConfirming) continue
+                if (_state.value.hasCustomerConfirmed ||
+                    _state.value.trackingStatus == TrackingStatus.CONFIRMED ||
+                    _state.value.trackingStatus == TrackingStatus.CANCELLED
+                ) {
+                    break
+                }
                 fetchOrderDetail(orderId, isUserRefresh = false)
             }
         }
@@ -240,6 +393,7 @@ class TrackOrderViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         stopPolling()
+        activeFetchJob?.cancel()
         countdownJob?.cancel()
     }
 

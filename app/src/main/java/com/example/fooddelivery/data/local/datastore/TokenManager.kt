@@ -167,6 +167,10 @@ class TokenManager @Inject constructor (
         preferences[PHONE_KEY]
     }
 
+    val getRememberMe: Flow<Boolean> = context.userPrefDataStore.data.map { preferences ->
+        preferences[REMEMBER_ME_KEY] ?: false
+    }
+
     val getRestaurantId: Flow<Int?> = context.userPrefDataStore.data.map { preferences ->
         preferences[RESTAURANT_ID_KEY]
     }
