@@ -76,8 +76,8 @@ interface RestaurantApi {
         @Part("description") description: RequestBody,
         @Part("categoryId") categoryId: RequestBody,
         @Part("price") price: RequestBody,
-        @Part("sizes") sizes: RequestBody,         // JSON string
-        @Part("ingredientIds") ingredientIds: List<MultipartBody.Part>?,
+        @Part("sizes") sizes: RequestBody,
+        @Part ingredientIds: List<MultipartBody.Part>?,
         @Part image: MultipartBody.Part?
     ): Response<BaseResponse<FoodResponse>>
 

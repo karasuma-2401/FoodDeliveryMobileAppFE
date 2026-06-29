@@ -152,12 +152,9 @@ class CreateCouponViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             try {
+                // For system coupons (admin), restaurantId can be null
+                // For restaurant-specific coupons, use the route parameter or tokenManager
                 val finalRestaurantId = routeRestaurantId ?: tokenManager.getRestaurantId.first()
-
-                if (finalRestaurantId == null) {
-                    _uiState.update { it.copy(isSaving = false, errorMessage = "No restaurant found") }
-                    return@launch
-                }
 
                 val type = if (isPercent) "PERCENT" else "MONEY"
                 val name = currentState.couponCode.trim().uppercase()

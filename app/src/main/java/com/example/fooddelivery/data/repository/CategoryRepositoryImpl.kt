@@ -22,6 +22,11 @@ import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.InputStream
 
 class CategoryRepositoryImpl @Inject constructor(
     private val api: CategoryApi,
@@ -93,13 +98,23 @@ class CategoryRepositoryImpl @Inject constructor(
     ): Result<Category> {
         var tempFile: File? = null
         return try {
+            val finalImageUri = if (imageUri?.startsWith("http") == true) {
+                val downloadedFile = downloadImageToFile(imageUri)
+                tempFile = downloadedFile
+                downloadedFile?.absolutePath
+            } else {
+                imageUri
+            }
+
             val response = api.updateCategory(
                 id = id,
                 name = name?.toRequestBody("text/plain".toMediaTypeOrNull()),
                 description = description?.toRequestBody("text/plain".toMediaTypeOrNull()),
                 displayOrder = displayOrder?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull()),
                 isActive = isActive?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull()),
-                image = createImagePart(imageUri)?.also { tempFile = it.second }?.first
+                image = createImagePart(finalImageUri)?.also {
+                    if (tempFile == null) tempFile = it.second
+                }?.first
             )
             response.unwrapData("Failed to update category").map { it.toDomain() }
         } catch (e: Exception) {
@@ -107,6 +122,34 @@ class CategoryRepositoryImpl @Inject constructor(
             Result.failure(Exception("Network error: ${e.localizedMessage}"))
         } finally {
             tempFile?.delete()
+        }
+    }
+    private suspend fun downloadImageToFile(url: String): File? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val client = OkHttpClient.Builder()
+                    .retryOnConnectionFailure(true)
+                    .build()
+
+                val request = Request.Builder()
+                    .url(url)
+                    .header("User-Agent", "Mozilla/5.0")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext null
+                    val body = response.body ?: return@withContext null
+
+                    val file = File(context.cacheDir, "temp_old_category_${System.currentTimeMillis()}.jpg")
+                    file.outputStream().use { output ->
+                        body.byteStream().copyTo(output)
+                    }
+                    file
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
         }
     }
 
@@ -153,14 +196,21 @@ class CategoryRepositoryImpl @Inject constructor(
     }
 
     private fun createImagePart(imageUri: String?): Pair<MultipartBody.Part, File>? {
-        if (imageUri.isNullOrBlank() || !imageUri.startsWith("content://")) return null
+        if (imageUri.isNullOrBlank() || imageUri.startsWith("http")) return null
 
-        val tempFile = getCompressedFileFromUri(Uri.parse(imageUri)) ?: return null
+        val tempFile = if (imageUri.startsWith("content://")) {
+            getCompressedFileFromUri(Uri.parse(imageUri))
+        } else {
+            File(imageUri)
+        }
+
+        if (tempFile == null || !tempFile.exists() || tempFile.length() == 0L) {
+            return null
+        }
+
         val requestFile = tempFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
-        val part = MultipartBody.Part.createFormData("image", tempFile.name, requestFile)
-        return part to tempFile
+        return MultipartBody.Part.createFormData("image", tempFile.name, requestFile) to tempFile
     }
-
     private fun getCompressedFileFromUri(uri: Uri): File? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null

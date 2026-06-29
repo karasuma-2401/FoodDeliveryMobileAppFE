@@ -58,7 +58,7 @@ fun CreateCategoryScreen(
                         }
                         tempFile
                     }
-                    viewModel.onEvent(CategoryEvent.ImageSelected(it.toString()))
+                    viewModel.onEvent(CategoryEvent.ImageSelected(file.absolutePath))
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

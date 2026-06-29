@@ -239,12 +239,12 @@ class RestaurantRepositoryImpl @Inject constructor(
                 categoryId = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                 price = price.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                 sizes = sizesJson.toRequestBody("text/plain".toMediaTypeOrNull()),
-                ingredientIds = ingredientIdsCsv?.split(",")?.map { id ->
-                    MultipartBody.Part.createFormData("ingredientIds", id.trim())
+                ingredientIds = ingredientIdsCsv?.split(",")?.map { idStr ->
+                    MultipartBody.Part.createFormData("ingredientIds", idStr.trim())
                 },
-                image = imageFile?.let {
-                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
-                    MultipartBody.Part.createFormData("image", it.name, requestFile)
+                image = imageFile?.takeIf { it.exists() && it.length() > 0 }?.let { validFile ->
+                    val requestFile = validFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("image", validFile.name, requestFile)
                 }
             )
             response.unwrapData("Failed to update food")

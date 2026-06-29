@@ -100,19 +100,18 @@ fun EditFoodContent(
     onCategorySelect: (String) -> Unit,
     onSizeToggle: (String, Boolean) -> Unit,
     onSizePriceChange: (String, String) -> Unit,
-    onIngredientToggle: (Int) -> Unit,
+    onIngredientToggle: (Int) -> Unit, // 🌟 Đã sửa lỗi d by rememUnit ở đây
     onDetailsChange: (String) -> Unit,
     onSaveClick: () -> Unit,
     onPickImageClick: () -> Unit,
     onAddFoodClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
 ) {
+    // 🌟 Đã sửa lỗi khai báo biến dropdown menu ở đây
     var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
 
-    // 🌟 Đổi tên Tiêu đề linh hoạt theo trạng thái Add hay Edit món ăn
     val screenTitle = if (state.isCreatingNew) "Add New Items" else "Edit Food Items"
 
-    // 🌟 Tối ưu lại trạng thái chữ của nút Save
     val buttonText = when {
         state.isLoading -> "SAVING..."
         state.isCreatingNew -> "SAVE"
@@ -143,7 +142,6 @@ fun EditFoodContent(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
 
-                // Tinh gọn lại cách truyền Uri hiển thị ảnh
                 FoodImageWithTags(
                     selectedImage = state.selectedImageUri ?: state.imageUrl ?: "",
                     tags = listOf(state.selectedCategory),
@@ -333,7 +331,7 @@ fun EditFoodScreenPreview() {
     DFoodTheme {
         EditFoodContent(
             state = EditFoodState(
-                isCreatingNew = false, /
+                isCreatingNew = false,
                 itemName = "Chicken Thai Biriyani",
                 selectedCategory = "Pizza",
                 selectedSizes = mapOf("M" to "60"),

@@ -1,5 +1,6 @@
 package com.example.fooddelivery.ui.screens.restaurant.food_management
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -13,13 +14,18 @@ import com.example.fooddelivery.domain.repository.CategoryRepository
 import com.example.fooddelivery.domain.repository.FoodRepository
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 data class EditFoodState(
     val foodId: Int? = null,
@@ -44,7 +50,8 @@ class EditFoodViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val foodRepository: FoodRepository,
     private val tokenManager: TokenManager,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val context: Context // 🌟 Inject Context để lấy thư mục Cache
 ) : ViewModel() {
 
     private val _state = mutableStateOf(EditFoodState())
@@ -109,10 +116,9 @@ class EditFoodViewModel @Inject constructor(
 
     private fun loadFoodDetails(id: Int) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, foodId = id, error = null)
+            _state.value = _state.value.copy(isLoading = true, foodId = id, error = null, isCreatingNew = false)
 
             try {
-                // Chạy song song cả 3 API cho tốc độ tối đa
                 val categoriesDeferred = async { categoryRepository.getCategories() }
                 val ingredientsDeferred = async { foodRepository.getIngredients() }
                 val foodDeferred = async { repository.getFoodById(id) }
@@ -149,8 +155,9 @@ class EditFoodViewModel @Inject constructor(
 
                     _state.value = _state.value.copy(
                         isLoading = false,
+                        isCreatingNew = false,
                         itemName = food.name,
-                        details = food.description,
+                        details = food.description ?: "",
                         selectedCategory = matchedCategoryName,
                         imageUrl = food.image,
                         categories = categories.map { it.name },
@@ -284,26 +291,35 @@ class EditFoodViewModel @Inject constructor(
                     // Update existing food
                     val ingredientIdsPayload = if (selectedIngredientIds.isNotEmpty()) {
                         selectedIngredientIds.joinToString(",")
-                    } else {
-                        null
+                    } else null
+
+                    var tempDownloadedFile: File? = null
+
+                    val imageFileToSend = currentState.selectedImageFile ?: run {
+                        if (currentState.imageUrl != null && currentState.imageUrl.startsWith("http")) {
+                            tempDownloadedFile = downloadImageFromUrl(currentState.imageUrl)
+                            tempDownloadedFile
+                        } else null
                     }
 
-                    repository.updateFood(
-                        id = currentState.foodId ?: 0,
-                        name = currentState.itemName,
-                        description = currentState.details,
-                        categoryId = categoryId,
-                        price = defaultPrice,
-                        sizesJson = sizesJson,
-                        ingredientIdsCsv = ingredientIdsPayload,
-                        imageFile = currentState.selectedImageFile
-                    )
-                        .onSuccess {
+                    try {
+                        repository.updateFood(
+                            id = currentState.foodId ?: 0,
+                            name = currentState.itemName,
+                            description = currentState.details,
+                            categoryId = categoryId,
+                            price = defaultPrice,
+                            sizesJson = sizesJson,
+                            ingredientIdsCsv = ingredientIdsPayload,
+                            imageFile = imageFileToSend
+                        ).onSuccess {
                             _state.value = _state.value.copy(isLoading = false, isSuccess = true)
-                        }
-                        .onFailure { error ->
+                        }.onFailure { error ->
                             _state.value = _state.value.copy(isLoading = false, error = error.message)
                         }
+                    } finally {
+                        tempDownloadedFile?.delete()
+                    }
                 }
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
@@ -311,6 +327,35 @@ class EditFoodViewModel @Inject constructor(
                     error = e.localizedMessage ?: "Unknown error occurred"
                 )
             }
+        }
+    }
+
+    private suspend fun downloadImageFromUrl(imageUrl: String): File? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val client = OkHttpClient.Builder()
+                .retryOnConnectionFailure(true)
+                .build()
+
+            val request = Request.Builder()
+                .url(imageUrl)
+                .header("User-Agent", "Mozilla/5.0")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext null
+                val body = response.body ?: return@withContext null
+
+
+                val tempFile = File(context.cacheDir, "temp_old_food_${System.currentTimeMillis()}.jpg")
+                tempFile.outputStream().use { output ->
+                    body.byteStream().copyTo(output)
+                }
+
+                if (tempFile.exists() && tempFile.length() > 0) tempFile else null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }
