@@ -504,8 +504,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 showBackButton = false,
                 onNavigateBack = {},
                 onNavigateToTrackOrder = { orderId -> navController.navigate(TrackOrderRoute(orderId = orderId)) },
-                onNavigateToRate = { orderId, restaurantId, restaurantName ->
-                    navController.navigate(RatingReviewRoute(orderId = orderId, restaurantId = restaurantId, restaurantName = restaurantName))
+                onNavigateToRate = { orderId, restaurantId, restaurantName, restaurantImage ->
+                    navController.navigate(
+                        RatingReviewRoute(
+                            orderId = orderId,
+                            restaurantId = restaurantId,
+                            restaurantName = restaurantName,
+                            restaurantImage = restaurantImage
+                        )
+                    )
                 },
                 onNavigateToCart = { navController.navigate(CartRoute) }
             )

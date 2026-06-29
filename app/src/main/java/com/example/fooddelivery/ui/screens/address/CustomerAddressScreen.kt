@@ -20,18 +20,30 @@ import com.example.fooddelivery.ui.components.button.DFoodButton
 import com.example.fooddelivery.ui.components.card.AddressCard
 import com.example.fooddelivery.ui.components.layout.ScaffoldBottomBarSurface
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerAddressScreen(
     onNavigateBack: () -> Unit,
     onAddNewAddress: () -> Unit,
-    onEditAddress: (Int) -> Unit = {}, // Chuyển sang Int
+    onEditAddress: (Int) -> Unit = {},
     viewModel: CustomerAddressViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var addressIdToDelete by remember { mutableStateOf<Int?>(null) } // Chuyển sang Int?
+    var addressIdToDelete by remember { mutableStateOf<Int?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(viewModel.uiEffect) {
+        viewModel.uiEffect.collectLatest { effect ->
+            when (effect) {
+                is CustomerAddressUiEffect.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -67,6 +79,7 @@ fun CustomerAddressScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             DFoodTopBar(
                 title = "My Address",
@@ -102,12 +115,6 @@ fun CustomerAddressScreen(
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             if (state.isLoading && state.addresses.isEmpty()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (state.errorMessage != null) {
-                Text(
-                    text = state.errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
-                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

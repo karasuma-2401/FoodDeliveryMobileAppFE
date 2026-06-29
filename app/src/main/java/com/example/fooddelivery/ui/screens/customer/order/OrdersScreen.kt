@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 fun OrdersScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTrackOrder: (String) -> Unit,
-    onNavigateToRate: (String, String, String) -> Unit,
+    onNavigateToRate: (String, String, String, String) -> Unit,
     onNavigateToCart: () -> Unit,
     showBackButton: Boolean = true,
     viewModel: OrderViewModel = hiltViewModel()
@@ -88,7 +88,7 @@ fun OrderContent(
     showBackButton: Boolean = true,
     onBackClick: () -> Unit,
     onTrackOrder: (String) -> Unit,
-    onRate: (String, String, String) -> Unit,
+    onRate: (String, String, String, String) -> Unit,
     onSelectTab: (Int) -> Unit,
     onCancelOrder: (String) -> Unit,
     onReOrder: (String) -> Unit
@@ -170,8 +170,8 @@ fun OrderContent(
                             onPrimaryAction = { id ->
                                 if (page == 0) onTrackOrder(id) else onReOrder(id)
                             },
-                            onSecondaryAction = { id, restaurantId, restaurantName ->
-                                if (page == 0) onCancelOrder(id) else onRate(id, restaurantId, restaurantName)
+                            onSecondaryAction = { id, restaurantId, restaurantName, restaurantImage ->
+                                if (page == 0) onCancelOrder(id) else onRate(id, restaurantId, restaurantName, restaurantImage)
                             }
                         )
                     }
@@ -196,7 +196,7 @@ fun OrderContent(
 fun OrderList(
     orders: List<Order>,
     onPrimaryAction: (String) -> Unit,
-    onSecondaryAction: (String, String, String) -> Unit
+    onSecondaryAction: (String, String, String, String) -> Unit
 ) {
     if (orders.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -217,7 +217,7 @@ fun OrderList(
                 OrderItemCard(
                     order = order,
                     onPrimaryAction = { onPrimaryAction(order.id) },
-                    onSecondaryAction = { onSecondaryAction(order.id, order.restaurantId, order.restaurantName) }
+                    onSecondaryAction = { onSecondaryAction(order.id, order.restaurantId, order.restaurantName, order.restaurantImage) }
                 )
             }
         }
@@ -233,7 +233,7 @@ fun OrdersScreenPreview() {
             scope = rememberCoroutineScope(),
             onBackClick = {},
             onTrackOrder = {},
-            onRate = { _, _, _ -> },
+            onRate = { _, _, _, _ -> },
             onSelectTab = {},
             onCancelOrder = {},
             onReOrder = {}

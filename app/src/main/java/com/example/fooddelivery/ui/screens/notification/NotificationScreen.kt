@@ -95,6 +95,11 @@ fun NotificationContent(
     showBackButton: Boolean = true
 ) {
     val pullRefreshState = rememberPullToRefreshState()
+    var isPullRefreshing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isLoading) {
+        if (!state.isLoading) isPullRefreshing = false
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -119,8 +124,11 @@ fun NotificationContent(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         PullToRefreshBox(
-            isRefreshing = state.isLoading && state.notifications.isNotEmpty(),
-            onRefresh = { onEvent(NotificationEvent.LoadNotifications) },
+            isRefreshing = isPullRefreshing,
+            onRefresh = {
+                isPullRefreshing = true
+                onEvent(NotificationEvent.LoadNotifications)
+            },
             state = pullRefreshState,
             modifier = Modifier
                 .fillMaxSize()
