@@ -30,7 +30,6 @@ import com.example.fooddelivery.ui.components.bottombar.BottomNavItem
 import com.example.fooddelivery.ui.screens.auth.forgot_password.ForgotPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.login.LoginScreen
 import com.example.fooddelivery.ui.screens.auth.register.RegisterScreen
-import com.example.fooddelivery.ui.screens.auth.register.RegistrationSuccessScreen
 import com.example.fooddelivery.ui.screens.auth.reset_password.ResetPasswordScreen
 import com.example.fooddelivery.ui.screens.auth.verification.VerificationScreen
 import com.example.fooddelivery.ui.screens.food.FoodDetailScreen
@@ -90,6 +89,8 @@ import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 import com.example.fooddelivery.ui.screens.admin.order.AdminOrderScreen
 import com.example.fooddelivery.ui.screens.admin.revenue.AdminRevenueScreen
 import com.example.fooddelivery.ui.screens.admin.user.UserListScreen
+
+private const val REGISTRATION_SUCCESS_KEY = "registration_success"
 
 @Composable
 fun RootNavigationGraph(
@@ -219,8 +220,10 @@ fun NavGraphBuilder.authNavGraph(
             })
         }
 
-        composable<LoginRoute> {
+        composable<LoginRoute> { backStackEntry ->
             val context = LocalContext.current as? Activity
+            val showRegistrationSuccess =
+                backStackEntry.savedStateHandle.get<Boolean>(REGISTRATION_SUCCESS_KEY) == true
             BackHandler{
                 context?.finish()
             }
@@ -234,6 +237,10 @@ fun NavGraphBuilder.authNavGraph(
                     navController.navigate(destination) {
                         popUpTo<AuthGraph> { inclusive = true }
                     }
+                },
+                showRegistrationSuccess = showRegistrationSuccess,
+                onRegistrationSuccessShown = {
+                    backStackEntry.savedStateHandle.remove<Boolean>(REGISTRATION_SUCCESS_KEY)
                 }
             )
         }
@@ -264,26 +271,6 @@ fun NavGraphBuilder.authNavGraph(
             )
         }
 
-        composable<RegistrationSuccessRoute> {
-            RegistrationSuccessScreen(
-                onStartOrdering = {
-                    navController.navigate(HomeRoute) {
-                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
-                    }
-                },
-                onViewProfile = {
-                    navController.navigate(ProfileRoute) {
-                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
-                    }
-                },
-                onClose = {
-                    navController.navigate(HomeRoute) {
-                        popUpTo<RegistrationSuccessRoute> { inclusive = true }
-                    }
-                }
-            )
-        }
-
         composable<ForgotPasswordRoute> {
             ForgotPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -301,11 +288,14 @@ fun NavGraphBuilder.authNavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onVerificationSuccess = { email, resetToken ->
+                onVerificationSuccess = { _, resetToken ->
                     if (route.isFromRegistration) {
-                        navController.navigate(RegistrationSuccessRoute) {
-                            popUpTo<VerificationRoute> { inclusive = true }
+                        navController.navigate(LoginRoute) {
+                            popUpTo<AuthGraph> { inclusive = true }
                         }
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(REGISTRATION_SUCCESS_KEY, true)
                     } else {
                         navController.navigate(ResetPasswordRoute(resetToken = resetToken ?: ""))
                     }
