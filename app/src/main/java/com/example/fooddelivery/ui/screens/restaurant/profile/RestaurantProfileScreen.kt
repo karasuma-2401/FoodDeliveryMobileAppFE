@@ -39,7 +39,7 @@ fun RestaurantProfileScreen(
     onNavigateToPersonalInfo: () -> Unit,
     onNavigateToOrders: () -> Unit,
     onNavigateToAddress: () -> Unit,
-    onNavigateToReviews: (Int) -> Unit, // 🔥 Đã cập nhật lambda nhận vào Int restaurantId
+    onNavigateToReviews: (Int) -> Unit,
     onNavigateToConversation: () -> Unit,
     onNavigateToResetPassword: () -> Unit,
     onLogout: () -> Unit,
@@ -128,7 +128,7 @@ fun RestaurantProfileScreen(
                         icon = Icons.Default.Star,
                         iconTint = MaterialTheme.colorScheme.tertiary,
                         title = "User Reviews",
-                        onClick = { onNavigateToReviews(uiState.restaurantId) } // 🔥 Đã truyền ID của nhà hàng sang bên ngoài NavGraph
+                        onClick = { onNavigateToReviews(uiState.restaurantId) }
                     )
                 }
 
