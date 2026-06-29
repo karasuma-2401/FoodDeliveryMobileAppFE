@@ -29,7 +29,6 @@ import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodActionTopBar
-import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodSectionLabel
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodTextArea
 import com.example.fooddelivery.ui.screens.restaurant.component.food_management.IngredientPickerItem
@@ -110,12 +109,22 @@ fun EditFoodContent(
 ) {
     var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
 
+    // 🌟 Đổi tên Tiêu đề linh hoạt theo trạng thái Add hay Edit món ăn
+    val screenTitle = if (state.isCreatingNew) "Add New Items" else "Edit Food Items"
+
+    // 🌟 Tối ưu lại trạng thái chữ của nút Save
+    val buttonText = when {
+        state.isLoading -> "SAVING..."
+        state.isCreatingNew -> "SAVE"
+        else -> "SAVE CHANGES"
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             DFoodActionTopBar(
-                title = "Food Details",
-                actionText = if (state.isLoading) "SAVING..." else "SAVE",
+                title = screenTitle,
+                actionText = buttonText,
                 onActionClick = onSaveClick,
                 onBackClick = onNavigateBack
             )
@@ -134,6 +143,7 @@ fun EditFoodContent(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
 
+                // Tinh gọn lại cách truyền Uri hiển thị ảnh
                 FoodImageWithTags(
                     selectedImage = state.selectedImageUri ?: state.imageUrl ?: "",
                     tags = listOf(state.selectedCategory),
@@ -323,6 +333,7 @@ fun EditFoodScreenPreview() {
     DFoodTheme {
         EditFoodContent(
             state = EditFoodState(
+                isCreatingNew = false, /
                 itemName = "Chicken Thai Biriyani",
                 selectedCategory = "Pizza",
                 selectedSizes = mapOf("M" to "60"),

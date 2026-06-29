@@ -42,7 +42,6 @@ import com.example.fooddelivery.ui.screens.customer.search.SearchScreen
 import com.example.fooddelivery.ui.screens.onboarding.OnboardingScreen
 import com.example.fooddelivery.ui.screens.restaurant.coupon.RestaurantCouponScreen
 import com.example.fooddelivery.ui.screens.restaurant.dashboard.DashboardScreen
-import com.example.fooddelivery.ui.screens.restaurant.food_management.AddFoodScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.EditFoodScreen
 import com.example.fooddelivery.ui.screens.restaurant.food_management.MyFoodListScreen
 import com.example.fooddelivery.ui.screens.admin.categories.AdminCategoryScreen
@@ -827,11 +826,9 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
 
                 composable<RestaurantAddFoodRoute> { backStackEntry ->
                     val args = backStackEntry.toRoute<RestaurantAddFoodRoute>()
-                    if (args.foodId == null) {
-                        AddFoodScreen(onNavigateBack = { vendorNavController.popBackStack() })
-                    } else {
-                        EditFoodScreen(onNavigateBack = { vendorNavController.popBackStack() })
-                    }
+                    EditFoodScreen(
+                        onNavigateBack = { vendorNavController.popBackStack() }
+                    )
                 }
 
                 composable<RestaurantOrderManagementRoute> {
