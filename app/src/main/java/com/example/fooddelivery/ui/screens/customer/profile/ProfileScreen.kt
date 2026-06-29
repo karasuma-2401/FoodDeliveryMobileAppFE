@@ -27,6 +27,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.card.ProfileMenuCard
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.theme.DFoodTheme
 
@@ -68,47 +70,29 @@ fun ProfileScreen(
         }
     }
     if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text(text = "Log Out", fontWeight = FontWeight.Bold) },
-            text = { Text(text = "Are you sure you want to log out?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        viewModel.onEvent(ProfileEvent.LogoutClicked)
-                    }
-                ) {
-                    Text("Yes", color = MaterialTheme.colorScheme.error)
-                }
+        DFoodConfirmDialog(
+            title = "Log Out",
+            message = "Are you sure you want to log out?",
+            confirmText = "Log Out",
+            type = ConfirmDialogType.Destructive,
+            onConfirm = {
+                showLogoutDialog = false
+                viewModel.onEvent(ProfileEvent.LogoutClicked)
             },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            onDismiss = { showLogoutDialog = false }
         )
     }
     if (showBusinessDialog) {
-        AlertDialog(
-            onDismissRequest = { showBusinessDialog = false },
-            title = { Text(text = "Business Registration", fontWeight = FontWeight.Bold) },
-            text = { Text(text = "Do you want to register as a partner and open your own restaurant business?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showBusinessDialog = false
-                        viewModel.onEvent(ProfileEvent.RegisterBusinessClicked)
-                    }
-                ) {
-                    Text("Register Now", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                }
+        DFoodConfirmDialog(
+            title = "Become a Partner",
+            message = "Register as a restaurant partner and open your own business?",
+            confirmText = "Register",
+            type = ConfirmDialogType.Default,
+            onConfirm = {
+                showBusinessDialog = false
+                viewModel.onEvent(ProfileEvent.RegisterBusinessClicked)
             },
-            dismissButton = {
-                TextButton(onClick = { showBusinessDialog = false }) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
-                }
-            }
+            onDismiss = { showBusinessDialog = false }
         )
     }
 

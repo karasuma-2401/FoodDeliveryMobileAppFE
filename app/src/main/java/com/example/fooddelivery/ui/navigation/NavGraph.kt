@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
@@ -111,6 +112,11 @@ fun RootNavigationGraph(
     val showCustomerBottomBar = customerBottomBarRoutes.any { currentDestination?.hasRoute(it) == true }
     val unreadNotificationViewModel: UnreadNotificationViewModel = hiltViewModel()
     val unreadNotificationCount by unreadNotificationViewModel.unreadCount.collectAsStateWithLifecycle()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        unreadNotificationViewModel.refresh()
+    }
+
     val context = LocalContext.current
 
     when {
@@ -201,7 +207,10 @@ fun RootNavigationGraph(
                 startDestination = authStartDestination
             )
             userNavGraph(navController = navController)
-            vendorNavGraph(navController = navController)
+            vendorNavGraph(
+                navController = navController,
+                unreadNotificationCount = unreadNotificationCount,
+            )
             adminNavGraph(navController = navController)
         }
     }
@@ -708,7 +717,10 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
     }
 }
 
-fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
+fun NavGraphBuilder.vendorNavGraph(
+    navController: NavHostController,
+    unreadNotificationCount: Int = 0,
+) {
     composable<RestaurantGraph> {
         val vendorNavController = androidx.navigation.compose.rememberNavController()
         val navBackStackEntry by vendorNavController.currentBackStackEntryAsState()
@@ -773,7 +785,8 @@ fun NavGraphBuilder.vendorNavGraph(navController: NavHostController) {
                                 restoreState = true
                             }
                         },
-                        onAddClick = onAddFood
+                        onAddClick = onAddFood,
+                        unreadNotificationCount = unreadNotificationCount,
                     )
                 }
             }

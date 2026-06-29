@@ -14,6 +14,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.rating_reviews.components.ReviewItemRow
 import com.example.fooddelivery.ui.theme.DFoodTheme
@@ -69,25 +71,16 @@ fun ReviewScreen(
     }
 
     if (reviewIdToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { reviewIdToDelete = null },
-            title = { Text("Delete Review", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete this review? This action cannot be undone.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        reviewIdToDelete?.let { viewModel.onEvent(ReviewEvent.DeleteReview(it)) }
-                        reviewIdToDelete = null
-                    }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
+        DFoodConfirmDialog(
+            title = "Delete Review",
+            message = "Delete this review? This cannot be undone.",
+            confirmText = "Delete",
+            type = ConfirmDialogType.Destructive,
+            onConfirm = {
+                reviewIdToDelete?.let { viewModel.onEvent(ReviewEvent.DeleteReview(it)) }
+                reviewIdToDelete = null
             },
-            dismissButton = {
-                TextButton(onClick = { reviewIdToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
+            onDismiss = { reviewIdToDelete = null }
         )
     }
 

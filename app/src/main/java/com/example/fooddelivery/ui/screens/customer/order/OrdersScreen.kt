@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Order
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.order.components.OrderItemCard
 import com.example.fooddelivery.ui.screens.customer.order.components.OrderItemCardSkeleton
@@ -42,6 +44,8 @@ fun OrdersScreen(
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 2 })
     val context = LocalContext.current
+    var orderIdToCancel by remember { mutableStateOf<String?>(null) }
+    var orderIdToReorder by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collectLatest { effect ->
@@ -74,9 +78,39 @@ fun OrdersScreen(
                 pagerState.animateScrollToPage(index)
             }
         },
-        onCancelOrder = { id -> viewModel.onEvent(OrderEvent.CancelOrder(id)) },
-        onReOrder = { id -> viewModel.onEvent(OrderEvent.ReOrder(id)) }
+        onCancelOrder = { id -> orderIdToCancel = id },
+        onReOrder = { id -> orderIdToReorder = id }
     )
+
+    orderIdToCancel?.let { orderId ->
+        DFoodConfirmDialog(
+            title = "Cancel Order",
+            message = "Are you sure you want to cancel this order?",
+            confirmText = "Cancel Order",
+            type = ConfirmDialogType.Destructive,
+            isLoading = state.isLoading,
+            onConfirm = {
+                orderIdToCancel = null
+                viewModel.onEvent(OrderEvent.CancelOrder(orderId))
+            },
+            onDismiss = { orderIdToCancel = null }
+        )
+    }
+
+    orderIdToReorder?.let { orderId ->
+        DFoodConfirmDialog(
+            title = "Re-order",
+            message = "Add items from this order to your cart?",
+            confirmText = "Add",
+            type = ConfirmDialogType.Default,
+            isLoading = state.isLoading,
+            onConfirm = {
+                orderIdToReorder = null
+                viewModel.onEvent(OrderEvent.ReOrder(orderId))
+            },
+            onDismiss = { orderIdToReorder = null }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -11,6 +11,8 @@ import androidx.core.app.NotificationCompat
 import com.example.fooddelivery.MainActivity
 import com.example.fooddelivery.R
 import com.example.fooddelivery.data.local.datastore.DataStoreManager
+import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.domain.repository.NotificationRepository
 import com.example.fooddelivery.domain.usecase.RegisterDeviceTokenUseCase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -30,6 +32,12 @@ class DFoodMessagingService : FirebaseMessagingService() {
 
     @Inject
     lateinit var dataStoreManager: DataStoreManager
+
+    @Inject
+    lateinit var notificationRepository: NotificationRepository
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -64,6 +72,9 @@ class DFoodMessagingService : FirebaseMessagingService() {
             }
 
             sendNotification(title, body)
+            if (!tokenManager.getAccessTokenSync().isNullOrBlank()) {
+                notificationRepository.syncNotifications()
+            }
         }
     }
 

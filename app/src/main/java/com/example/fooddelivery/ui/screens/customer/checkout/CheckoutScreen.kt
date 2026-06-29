@@ -26,6 +26,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.voucher.VoucherDetailBottomSheet
 import com.example.fooddelivery.ui.screens.customer.voucher.VoucherEntryCard
@@ -62,6 +64,7 @@ fun CheckoutScreen(
     val addressSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     
     var selectedVoucherForDetail by remember { mutableStateOf<Voucher?>(null) }
+    var showPlaceOrderDialog by remember { mutableStateOf(false) }
     
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -120,7 +123,7 @@ fun CheckoutScreen(
 
                         DFoodButton(
                             text = buttonText,
-                            onClick = { viewModel.onEvent(CheckoutEvent.PlaceOrder) },
+                            onClick = { showPlaceOrderDialog = true },
                             isLoading = state.isLoading || state.isPolling,
                             containerColor = if (state.paymentMethod is PaymentMethod.MoMo) Color(0xFFA50064) else MaterialTheme.colorScheme.primary,
                             trailingIcon = {
@@ -292,6 +295,27 @@ fun CheckoutScreen(
                     showVoucherSheet = false
                 }
             }
+        )
+    }
+
+    if (showPlaceOrderDialog) {
+        val formattedTotal = String.format(Locale.US, "$%.2f", state.total)
+        val isMoMo = state.paymentMethod is PaymentMethod.MoMo
+        DFoodConfirmDialog(
+            title = if (isMoMo) "Confirm Payment" else "Confirm Order",
+            message = if (isMoMo) {
+                "Pay $formattedTotal via MoMo?"
+            } else {
+                "Place order for $formattedTotal?"
+            },
+            confirmText = if (isMoMo) "Pay Now" else "Place Order",
+            type = ConfirmDialogType.Default,
+            isLoading = state.isLoading || state.isPolling,
+            onConfirm = {
+                showPlaceOrderDialog = false
+                viewModel.onEvent(CheckoutEvent.PlaceOrder)
+            },
+            onDismiss = { showPlaceOrderDialog = false }
         )
     }
 }

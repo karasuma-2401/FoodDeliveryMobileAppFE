@@ -23,6 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.theme.DFoodTheme
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,6 +39,7 @@ fun AdminCategoryScreen(
     val uiState by viewModel.state
     val colorScheme = MaterialTheme.colorScheme
     val lifecycleOwner = LocalLifecycleOwner.current
+    var categoryToDelete by remember { mutableStateOf<CategoryItem?>(null) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -103,11 +106,25 @@ fun AdminCategoryScreen(
                     CategoryRowItem(
                         category = category,
                         onEdit = { onNavigateToEdit(category.id) },
-                        onDelete = { viewModel.deleteCategory(category.id) }
+                        onDelete = { categoryToDelete = category }
                     )
                 }
             }
         }
+    }
+
+    categoryToDelete?.let { category ->
+        DFoodConfirmDialog(
+            title = "Delete Category",
+            message = "Delete \"${category.name}\"? Linked foods may be affected.",
+            confirmText = "Delete",
+            type = ConfirmDialogType.Destructive,
+            onConfirm = {
+                viewModel.deleteCategory(category.id)
+                categoryToDelete = null
+            },
+            onDismiss = { categoryToDelete = null }
+        )
     }
 }
 @Composable

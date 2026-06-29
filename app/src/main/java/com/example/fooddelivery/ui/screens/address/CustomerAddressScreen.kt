@@ -17,6 +17,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fooddelivery.ui.components.button.DFoodButton
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.card.AddressCard
 import com.example.fooddelivery.ui.components.layout.ScaffoldBottomBarSurface
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
@@ -56,25 +58,16 @@ fun CustomerAddressScreen(
     }
 
     if (addressIdToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { addressIdToDelete = null },
-            title = { Text("Delete Address", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete this address?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        addressIdToDelete?.let { viewModel.onEvent(CustomerAddressEvent.DeleteAddress(it)) }
-                        addressIdToDelete = null
-                    }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
+        DFoodConfirmDialog(
+            title = "Delete Address",
+            message = "Delete this delivery address?",
+            confirmText = "Delete",
+            type = ConfirmDialogType.Destructive,
+            onConfirm = {
+                addressIdToDelete?.let { viewModel.onEvent(CustomerAddressEvent.DeleteAddress(it)) }
+                addressIdToDelete = null
             },
-            dismissButton = {
-                TextButton(onClick = { addressIdToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
+            onDismiss = { addressIdToDelete = null }
         )
     }
 

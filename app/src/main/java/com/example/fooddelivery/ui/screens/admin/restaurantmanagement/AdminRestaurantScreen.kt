@@ -13,7 +13,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
+import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.screens.admin.components.RestaurantItemRow
+
+private enum class RestaurantApprovalAction { APPROVE, REJECT }
+
+private data class PendingRestaurantApproval(
+    val restaurantId: Int,
+    val restaurantName: String,
+    val action: RestaurantApprovalAction
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +33,7 @@ fun AdminRestaurantScreen(
     onNavigateToRestaurantDetail: (Int) -> Unit
 ) {
     val state by viewModel.state
+    var pendingApproval by remember { mutableStateOf<PendingRestaurantApproval?>(null) }
 
     Scaffold(
         topBar = {
@@ -69,13 +80,45 @@ fun AdminRestaurantScreen(
                             phone = restaurant.phone,
                             status = restaurant.status,
                             image = restaurant.image,
-                            onApprove = { viewModel.updateApprovalStatus(restaurant.id, "APPROVED") }, // 🌟 Gọi API Approve
-                            onReject = { viewModel.updateApprovalStatus(restaurant.id, "REJECTED") },   // 🌟 Gọi API Reject
+                            onApprove = {
+                                pendingApproval = PendingRestaurantApproval(
+                                    restaurantId = restaurant.id,
+                                    restaurantName = restaurant.name,
+                                    action = RestaurantApprovalAction.APPROVE
+                                )
+                            },
+                            onReject = {
+                                pendingApproval = PendingRestaurantApproval(
+                                    restaurantId = restaurant.id,
+                                    restaurantName = restaurant.name,
+                                    action = RestaurantApprovalAction.REJECT
+                                )
+                            },
                             onClick = { onNavigateToRestaurantDetail(restaurant.id) }
                         )
                     }
                 }
             }
         }
+    }
+
+    pendingApproval?.let { pending ->
+        val isApprove = pending.action == RestaurantApprovalAction.APPROVE
+        DFoodConfirmDialog(
+            title = if (isApprove) "Approve Restaurant" else "Reject Restaurant",
+            message = if (isApprove) {
+                "Approve \"${pending.restaurantName}\" as a partner?"
+            } else {
+                "Reject \"${pending.restaurantName}\" registration?"
+            },
+            confirmText = if (isApprove) "Approve" else "Reject",
+            type = if (isApprove) ConfirmDialogType.Default else ConfirmDialogType.Destructive,
+            onConfirm = {
+                val status = if (isApprove) "APPROVED" else "REJECTED"
+                viewModel.updateApprovalStatus(pending.restaurantId, status)
+                pendingApproval = null
+            },
+            onDismiss = { pendingApproval = null }
+        )
     }
 }
