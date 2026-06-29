@@ -7,6 +7,7 @@ import com.example.fooddelivery.domain.usecase.LoginUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithFacebookUseCase
 import com.example.fooddelivery.domain.usecase.LoginWithGoogleUseCase
 import com.example.fooddelivery.domain.usecase.RegisterDeviceTokenUseCase
+import com.example.fooddelivery.domain.usecase.SyncNotificationsUseCase
 import com.example.fooddelivery.domain.usecase.ValidateAuthInputUseCase
 import com.example.fooddelivery.ui.navigation.resolveStartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +46,7 @@ class LoginViewModel @Inject constructor(
     private val loginWithFacebookUseCase: LoginWithFacebookUseCase,
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val registerDeviceTokenUseCase: RegisterDeviceTokenUseCase,
+    private val syncNotificationsUseCase: SyncNotificationsUseCase,
     private val tokenManager: TokenManager
 ) : ViewModel() {
     private val _state = MutableStateFlow(LoginState())
@@ -108,6 +110,7 @@ class LoginViewModel @Inject constructor(
             val result = loginWithFacebookUseCase(facebookToken)
             result.onSuccess { roles ->
                 registerDeviceTokenUseCase()
+                syncNotificationsUseCase()
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -132,6 +135,7 @@ class LoginViewModel @Inject constructor(
             val result = loginWithGoogleUseCase(idToken = googleToken)
             result.onSuccess { roles ->
                 registerDeviceTokenUseCase()
+                syncNotificationsUseCase()
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -170,6 +174,7 @@ class LoginViewModel @Inject constructor(
             
             result.onSuccess { roles ->
                 registerDeviceTokenUseCase()
+                syncNotificationsUseCase()
                 _state.update {
                     it.copy(
                         isLoading = false,

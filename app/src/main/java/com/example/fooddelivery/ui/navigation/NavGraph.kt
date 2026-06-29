@@ -7,9 +7,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -114,6 +114,12 @@ fun RootNavigationGraph(
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         unreadNotificationViewModel.refresh()
+    }
+
+    LaunchedEffect(showCustomerBottomBar) {
+        if (showCustomerBottomBar) {
+            unreadNotificationViewModel.refresh()
+        }
     }
 
     val context = LocalContext.current
@@ -737,6 +743,12 @@ fun NavGraphBuilder.vendorNavGraph(
             unreadNotificationViewModel.refresh()
         }
         val showBottomBar = isDashboard || isMenu || isNotifications || isProfile || isConversationList
+
+        LaunchedEffect(showBottomBar) {
+            if (showBottomBar) {
+                unreadNotificationViewModel.refresh()
+            }
+        }
 
         val vendorCurrentRoute = when {
             isDashboard -> "dashboard"
