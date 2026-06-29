@@ -95,15 +95,14 @@ class RestaurantRepositoryImpl @Inject constructor(
         image: File?
     ): Result<RestaurantResponse> {
         return try {
+            val imageParts = image?.let { createRestaurantImageParts(it) }
             val response = api.createRestaurant(
                 name = name.toRequestBody("text/plain".toMediaTypeOrNull()),
                 phone = phone.toRequestBody("text/plain".toMediaTypeOrNull()),
                 description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
                 addressId = addressId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-                image = image?.let {
-                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
-                    MultipartBody.Part.createFormData("image", it.name, requestFile)
-                }
+                image = imageParts?.first,
+                coverImage = imageParts?.second,
             )
             response.unwrapData("Failed to create restaurant")
         } catch (e: Exception) {
@@ -296,22 +295,36 @@ class RestaurantRepositoryImpl @Inject constructor(
         image: File?
     ): Result<RestaurantResponse> {
         return try {
+            val imageParts = image?.let { createRestaurantImageParts(it) }
             val response = api.updateRestaurantProfile(
                 restaurantId = restaurantId,
                 name = name.toRequestBody("text/plain".toMediaTypeOrNull()),
                 phone = phone.toRequestBody("text/plain".toMediaTypeOrNull()),
                 description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
                 addressId = addressId?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull()),
-                image = image?.let {
-                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
-                    MultipartBody.Part.createFormData("image", it.name, requestFile)
-                }
+                image = imageParts?.first,
+                coverImage = imageParts?.second,
             )
             response.unwrapData("Failed to update restaurant profile")
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
         }
+    }
+
+    private fun createRestaurantImageParts(file: File): Pair<MultipartBody.Part, MultipartBody.Part> {
+        val mimeType = "image/jpeg".toMediaTypeOrNull()
+        val imagePart = MultipartBody.Part.createFormData(
+            "image",
+            file.name,
+            file.asRequestBody(mimeType),
+        )
+        val coverImagePart = MultipartBody.Part.createFormData(
+            "coverImage",
+            file.name,
+            file.asRequestBody(mimeType),
+        )
+        return imagePart to coverImagePart
     }
 
     override suspend fun getRestaurantRevenue(restaurantId: Int): Result<RestaurantRevenue> {

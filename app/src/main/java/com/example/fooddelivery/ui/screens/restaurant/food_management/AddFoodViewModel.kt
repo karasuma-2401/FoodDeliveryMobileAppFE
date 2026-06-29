@@ -146,26 +146,6 @@ class AddFoodViewModel @Inject constructor(
         _state.value = currentState.copy(ingredients = updatedIngredients)
     }
 
-    private fun mapSizeToId(size: String): Int {
-        return when (size.uppercase()) {
-            "S" -> 1
-            "M" -> 2
-            "L" -> 3
-            "XL" -> 4
-            else -> 2
-        }
-    }
-
-    private fun sizeOrder(size: String): Int {
-        return when (size.uppercase()) {
-            "S" -> 1
-            "M" -> 2
-            "L" -> 3
-            "XL" -> 4
-            else -> 99
-        }
-    }
-
     fun saveFoodItem() {
         val currentState = _state.value
 
@@ -195,10 +175,10 @@ class AddFoodViewModel @Inject constructor(
                 .mapNotNull { it.id.toIntOrNull() }
 
             val sortedSizes = currentState.selectedSizes.entries
-                .sortedBy { sizeOrder(it.key) }
+                .sortedBy { foodSizeSortKey(it.key) }
 
             val sizesList = sortedSizes.mapIndexed { index, entry ->
-                val sizeId = mapSizeToId(entry.key)
+                val sizeId = mapFoodSizeToId(entry.key)
                 val price = entry.value.toDoubleOrNull() ?: 0.0
                 FoodSizeRequest(sizeId = sizeId, price = price, isDefault = index == 0)
             }

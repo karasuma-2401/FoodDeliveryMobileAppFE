@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">DFood</string>
     <string name="dashboard_location">Location</string>
+    <string name="restaurant_image">Restaurant image</string>
     <string name="starting">Starting</string>
     <string name="see_all">See All</string>
     <string name="promo_title">Burger Feast\n50% Off</string>
@@ -50,4 +51,7 @@
     <string name="all_restaurants_near">Near %1$s</string>
     <string name="all_restaurants_empty">No restaurants match your filters</string>
     <string name="all_restaurants_end_of_list">You\'ve reached the end of the list!</string>
+    <string name="system_coupons_showing_count">Showing %1$d of %2$d vouchers</string>
+    <string name="system_coupons_empty">No system coupons found</string>
+    <string name="system_coupons_end_of_list">You\'ve seen all system coupons</string>
 </resources>

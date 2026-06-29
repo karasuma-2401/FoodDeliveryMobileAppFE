@@ -51,6 +51,7 @@ fun AdminCategoryScreen(
         }
     }
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Categories", fontWeight = FontWeight.Bold, color = colorScheme.primary) },
@@ -69,7 +70,11 @@ fun AdminCategoryScreen(
         },
         containerColor = colorScheme.background
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
             DFoodFTextField(
                 value = uiState.searchQuery,
                 onValueChange = { viewModel.onSearchChange(it) },

@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.fooddelivery.ui.screens.admin.components.AdminBottomBar
 import com.example.fooddelivery.ui.screens.admin.components.RestaurantItemRow
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,7 +20,6 @@ import com.example.fooddelivery.ui.screens.admin.components.RestaurantItemRow
 fun AdminRestaurantScreen(
     viewModel: AdminRestaurantViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigate: (String) -> Unit,
     onNavigateToRestaurantDetail: (Int) -> Unit
 ) {
     val state by viewModel.state
@@ -38,12 +36,6 @@ fun AdminRestaurantScreen(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
-            )
-        },
-        bottomBar = {
-            AdminBottomBar(
-                currentRoute = "dashboard",
-                onTabSelected = { tab -> onNavigate(tab.route) }
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),

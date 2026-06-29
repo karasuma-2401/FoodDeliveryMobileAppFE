@@ -8,6 +8,8 @@ import com.example.fooddelivery.domain.model.Voucher
 import com.example.fooddelivery.domain.model.VoucherType
 import com.example.fooddelivery.domain.repository.VoucherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,10 +32,21 @@ data class RestaurantCouponUiState(
     val searchQuery: String = "",
     val restaurantVouchers: List<RestaurantVoucherItem> = emptyList(),
     val systemVouchers: List<Voucher> = emptyList(),
-    val currentPage: Int = 1,
-    val totalItems: Int = 0,
-    val isLoading: Boolean = false
+    val systemTotalCount: Int = 0,
+    val systemPage: Int = 1,
+    val isLoading: Boolean = false,
+    val isSystemLoading: Boolean = false,
+    val isSystemPaginating: Boolean = false,
+    val isSystemRefreshing: Boolean = false,
+    val isSystemEndReached: Boolean = false,
+    val systemErrorMessage: String? = null,
 )
+
+sealed interface RestaurantCouponEvent {
+    data object LoadSystemVouchers : RestaurantCouponEvent
+    data object LoadMoreSystemVouchers : RestaurantCouponEvent
+    data object RefreshSystemVouchers : RestaurantCouponEvent
+}
 
 @HiltViewModel
 class RestaurantCouponViewModel @Inject constructor(
@@ -45,9 +58,10 @@ class RestaurantCouponViewModel @Inject constructor(
     val uiState: StateFlow<RestaurantCouponUiState> = _uiState.asStateFlow()
 
     private val pageSize = 20
+    private var searchJob: Job? = null
 
     init {
-        refresh()
+        loadRestaurantVouchers()
     }
 
     private fun VoucherDto.toDomainVoucher(): Voucher {
@@ -55,13 +69,12 @@ class RestaurantCouponViewModel @Inject constructor(
             "PERCENT" -> VoucherType.PERCENT
             else -> VoucherType.MONEY
         }
-        val discountAmount = sale
         return Voucher(
             id = id,
             code = code,
             title = name,
             description = description ?: "",
-            discountAmount = discountAmount,
+            discountAmount = sale,
             minOrderAmount = minimumOrderAmount,
             expiryText = endAt,
             type = discountType,
@@ -94,14 +107,18 @@ class RestaurantCouponViewModel @Inject constructor(
         )
     }
 
-    fun refresh() {
+    fun onEvent(event: RestaurantCouponEvent) {
+        when (event) {
+            RestaurantCouponEvent.LoadSystemVouchers -> loadSystemVouchersInitial()
+            RestaurantCouponEvent.LoadMoreSystemVouchers -> loadMoreSystemVouchers()
+            RestaurantCouponEvent.RefreshSystemVouchers -> loadSystemVouchersInitial(isRefresh = true)
+        }
+    }
+
+    private fun loadRestaurantVouchers() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val page = _uiState.value.currentPage.coerceAtLeast(1)
-            val offset = (page - 1) * pageSize
-
             val restaurantId = tokenManager.getRestaurantId.first()
-
             val restaurantResult = voucherRepository.getVouchers(
                 limit = pageSize,
                 offset = 0,
@@ -109,38 +126,116 @@ class RestaurantCouponViewModel @Inject constructor(
                 code = null,
                 status = null
             )
-            val systemResult = voucherRepository.getVouchers(
-                limit = pageSize,
-                offset = offset,
-                restaurantId = 0,
-                code = _uiState.value.searchQuery.takeIf { it.isNotBlank() },
-                status = null
-            )
-
             val restaurantVouchers = restaurantResult.getOrDefault(emptyList()).map { it.toRestaurantItem() }
-            val systemVouchers = systemResult.getOrDefault(emptyList()).map { it.toDomainVoucher() }
-
             _uiState.update { state ->
                 state.copy(
                     restaurantVouchers = restaurantVouchers,
-                    systemVouchers = systemVouchers,
-                    totalItems = if (systemVouchers.size == pageSize) (page * pageSize + 1) else (offset + systemVouchers.size),
-                    isLoading = false
+                    isLoading = false,
                 )
+            }
+        }
+    }
+
+    private fun loadSystemVouchersInitial(isRefresh: Boolean = false) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isSystemLoading = !isRefresh,
+                    isSystemRefreshing = isRefresh,
+                    systemPage = 1,
+                    isSystemEndReached = false,
+                    systemErrorMessage = null,
+                )
+            }
+            val result = voucherRepository.getVouchersPage(
+                limit = pageSize,
+                offset = 0,
+                restaurantId = null,
+                code = _uiState.value.searchQuery.takeIf { it.isNotBlank() },
+                status = null,
+            )
+            result.onSuccess { page ->
+                val vouchers = page.items.map { it.toDomainVoucher() }
+                _uiState.update { state ->
+                    state.copy(
+                        systemVouchers = vouchers,
+                        systemTotalCount = page.total,
+                        systemPage = 1,
+                        isSystemLoading = false,
+                        isSystemRefreshing = false,
+                        isSystemEndReached = vouchers.size >= page.total || vouchers.size < pageSize,
+                        systemErrorMessage = null,
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update { state ->
+                    state.copy(
+                        isSystemLoading = false,
+                        isSystemRefreshing = false,
+                        systemErrorMessage = error.message ?: "Failed to load system coupons",
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loadMoreSystemVouchers() {
+        val currentState = _uiState.value
+        if (currentState.isSystemPaginating || currentState.isSystemEndReached || currentState.isSystemLoading) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSystemPaginating = true) }
+            val nextPage = currentState.systemPage + 1
+            val offset = (nextPage - 1) * pageSize
+            val result = voucherRepository.getVouchersPage(
+                limit = pageSize,
+                offset = offset,
+                restaurantId = null,
+                code = currentState.searchQuery.takeIf { it.isNotBlank() },
+                status = null,
+            )
+            result.onSuccess { page ->
+                val newVouchers = page.items.map { it.toDomainVoucher() }
+                _uiState.update { state ->
+                    val combined = state.systemVouchers + newVouchers
+                    state.copy(
+                        systemVouchers = combined,
+                        systemTotalCount = page.total,
+                        systemPage = nextPage,
+                        isSystemPaginating = false,
+                        isSystemEndReached = combined.size >= page.total || newVouchers.size < pageSize,
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update { state ->
+                    state.copy(
+                        isSystemPaginating = false,
+                        systemErrorMessage = error.message ?: "Failed to load more coupons",
+                    )
+                }
             }
         }
     }
 
     fun onTabSelected(tabIndex: Int) {
         _uiState.update { it.copy(selectedTab = tabIndex) }
-        if (tabIndex == 0 || tabIndex == 1) {
-            refresh()
+        when (tabIndex) {
+            0 -> loadRestaurantVouchers()
+            1 -> loadSystemVouchersInitial()
         }
     }
 
     fun onSearchQueryChanged(newQuery: String) {
         _uiState.update { it.copy(searchQuery = newQuery) }
-        refresh()
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(300)
+            if (_uiState.value.selectedTab == 1) {
+                loadSystemVouchersInitial()
+            }
+        }
     }
 
     fun toggleRestaurantCoupon(voucherId: String) {
@@ -152,12 +247,7 @@ class RestaurantCouponViewModel @Inject constructor(
                 id = voucherId.toIntOrNull() ?: return@launch,
                 status = targetStatus
             )
-            refresh()
+            loadRestaurantVouchers()
         }
-    }
-
-    fun onPageChanged(page: Int) {
-        _uiState.update { it.copy(currentPage = page) }
-        refresh()
     }
 }

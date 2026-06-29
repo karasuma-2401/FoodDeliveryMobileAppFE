@@ -27,12 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.fooddelivery.R
-import com.example.fooddelivery.ui.components.ingredient.IngredientIcon
 import com.example.fooddelivery.ui.components.textfield.DFoodFTextField
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodActionTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodBottomBar
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodSectionLabel
 import com.example.fooddelivery.ui.screens.restaurant.component.DFoodTextArea
+import com.example.fooddelivery.ui.screens.restaurant.component.food_management.IngredientPickerItem
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -111,6 +111,7 @@ fun EditFoodContent(
     var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             DFoodActionTopBar(
                 title = "Food Details",
@@ -191,7 +192,7 @@ fun EditFoodContent(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            listOf("S", "M", "L", "XL").forEach { size ->
+                            FOOD_SIZE_ORDER.forEach { size ->
                                 val isSelected = state.selectedSizes.containsKey(size)
                                 FilterChip(
                                     selected = isSelected,
@@ -206,7 +207,7 @@ fun EditFoodContent(
                             }
                         }
 
-                        state.selectedSizes.keys.sorted().forEach { size ->
+                        state.selectedSizes.keys.sortedByFoodSize().forEach { size ->
                             AnimatedVisibility(visible = true) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -238,42 +239,10 @@ fun EditFoodContent(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             itemsIndexed(state.ingredients) { index, item ->
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .clickable { onIngredientToggle(index) }
-                                        .width(64.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(54.dp)
-                                            .clip(CircleShape)
-                                            .background(
-                                                if (item.isSelected) MaterialTheme.colorScheme.primary
-                                                else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                                            )
-                                            .border(
-                                                width = 2.dp,
-                                                color = if (item.isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                                shape = CircleShape
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        IngredientIcon(
-                                            iconKey = item.iconKey,
-                                            contentDescription = item.name,
-                                            tint = if (item.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = item.name,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (item.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontWeight = if (item.isSelected) FontWeight.Bold else FontWeight.Normal
-                                    )
-                                }
+                                IngredientPickerItem(
+                                    item = item,
+                                    onClick = { onIngredientToggle(index) },
+                                )
                             }
                         }
                     }

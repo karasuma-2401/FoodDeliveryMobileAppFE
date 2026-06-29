@@ -1,6 +1,7 @@
 package com.example.fooddelivery.domain.repository
 
 import com.example.fooddelivery.data.remote.dto.VoucherDto
+import com.example.fooddelivery.domain.model.VoucherPageResult
 
 interface VoucherRepository {
     suspend fun getVouchers(
@@ -10,6 +11,14 @@ interface VoucherRepository {
         code: String? = null,
         status: String? = null
     ): Result<List<VoucherDto>>
+
+    suspend fun getVouchersPage(
+        limit: Int? = 20,
+        offset: Int? = 0,
+        restaurantId: Int? = null,
+        code: String? = null,
+        status: String? = null
+    ): Result<VoucherPageResult>
 
     suspend fun getCustomerVouchers(restaurantId: Int): Result<List<VoucherDto>>
 

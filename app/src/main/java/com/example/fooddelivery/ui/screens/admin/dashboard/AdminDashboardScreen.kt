@@ -48,6 +48,7 @@ fun AdminDashboardContent(
 
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
                 TopAppBar(
                     title = { Text("Dashboard", fontWeight = FontWeight.Bold) },

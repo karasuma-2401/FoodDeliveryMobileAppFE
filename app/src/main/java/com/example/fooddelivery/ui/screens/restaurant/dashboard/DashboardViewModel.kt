@@ -3,6 +3,7 @@ package com.example.fooddelivery.ui.screens.restaurant.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fooddelivery.data.local.datastore.TokenManager
+import com.example.fooddelivery.data.remote.dto.RestaurantResponse
 import com.example.fooddelivery.domain.model.BestSellerItem
 import com.example.fooddelivery.domain.repository.RestaurantRepository
 import com.example.fooddelivery.domain.repository.VoucherRepository
@@ -36,6 +37,7 @@ data class DashboardState(
     val restaurantId: Int? = null,
     val isLoading: Boolean = false,
     val restaurantName: String = "",
+    val restaurantImageUrl: String? = null,
     val runningOrders: Int = 0,
     val orderRequest: Int = 0,
     val revenue: Double = 0.0,
@@ -73,7 +75,7 @@ class DashboardViewModel @Inject constructor(
                         val firstRestaurant = list.firstOrNull()
                         if (firstRestaurant != null) {
                             tokenManager.saveRestaurantId(firstRestaurant.id)
-                            loadDashboardForId(firstRestaurant.id, firstRestaurant.name)
+                            loadDashboardForId(firstRestaurant)
                         } else {
                             _state.update {
                                 it.copy(
@@ -92,17 +94,31 @@ class DashboardViewModel @Inject constructor(
                         }
                     }
             } else {
-                val restaurantName = repository.getMyRestaurants()
+                val restaurant = repository.getMyRestaurants()
                     .getOrNull()
                     ?.firstOrNull { it.id == restaurantId }
-                    ?.name
-                    .orEmpty()
-                loadDashboardForId(restaurantId, restaurantName)
+                if (restaurant != null) {
+                    loadDashboardForId(restaurant)
+                } else {
+                    loadDashboardForId(
+                        RestaurantResponse(
+                            id = restaurantId,
+                            name = "",
+                        )
+                    )
+                }
             }
         }
     }
 
-    private suspend fun loadDashboardForId(restaurantId: Int, restaurantName: String) {
+    private fun restaurantImageUrl(restaurant: RestaurantResponse): String? =
+        restaurant.image?.takeIf { it.isNotBlank() }
+            ?: restaurant.coverImage?.takeIf { it.isNotBlank() }
+
+    private suspend fun loadDashboardForId(restaurant: RestaurantResponse) {
+        val restaurantId = restaurant.id
+        val restaurantName = restaurant.name
+        val imageUrl = restaurantImageUrl(restaurant)
         coroutineScope {
             val dashboardDeferred = async { repository.generateDashboard(restaurantId) }
             val vouchersDeferred = async {
@@ -135,6 +151,7 @@ class DashboardViewModel @Inject constructor(
                             isLoading = false,
                             restaurantId = restaurantId,
                             restaurantName = restaurantName,
+                            restaurantImageUrl = imageUrl,
                             runningOrders = dashboard.runningOrders,
                             orderRequest = dashboard.orderRequest,
                             revenue = dashboard.revenue,

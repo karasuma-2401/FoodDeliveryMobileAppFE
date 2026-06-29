@@ -32,11 +32,11 @@ import com.example.fooddelivery.R
 import com.example.fooddelivery.ui.components.sectionheader.SectionHeader
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.restaurant.component.RestaurantInputField
+import com.example.fooddelivery.util.ImageUriCompressor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 
 @Composable
 fun RestaurantPersonalInfoScreen(
@@ -102,23 +102,31 @@ fun RestaurantPersonalInfoContent(
             scope.launch {
                 try {
                     val file = withContext(Dispatchers.IO) {
-                        val tempFile = File(context.cacheDir, "restaurant_image_${System.currentTimeMillis()}.jpg")
-                        context.contentResolver.openInputStream(it)?.use { input ->
-                            FileOutputStream(tempFile).use { output ->
-                                input.copyTo(output)
-                            }
-                        }
-                        tempFile
+                        ImageUriCompressor.compressToJpegFile(context, it)
                     }
-                    onImageSelected(file, it)
+                    if (file != null) {
+                        onImageSelected(file, it)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Could not process the selected image. Please try another photo.",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    Toast.makeText(
+                        context,
+                        "Could not process the selected image. Please try again.",
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 }
             }
         }
     }
     
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             val screenTitle = if (state.isFromSignUp) "Setup Restaurant" else "Restaurant Information"
             DFoodTopBar(title = screenTitle, onBackClick = onNavigateBack)
@@ -260,7 +268,7 @@ fun RestaurantPersonalInfoContent(
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = !state.isLoading
+                    enabled = !state.isLoading && (state.isFromSignUp || state.hasUnsavedChanges)
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
