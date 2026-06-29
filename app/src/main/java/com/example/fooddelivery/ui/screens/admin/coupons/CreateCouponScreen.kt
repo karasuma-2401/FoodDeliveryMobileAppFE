@@ -19,6 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fooddelivery.ui.screens.admin.components.*
 import com.example.fooddelivery.ui.theme.DFoodTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun CreateCouponScreen(
@@ -46,7 +50,9 @@ fun CreateCouponScreen(
         onMinOrderChange = viewModel::onMinOrderChange,
         onPerUserLimitChange = viewModel::onPerUserLimitChange,
         onTotalUsageLimitChange = viewModel::onTotalUsageLimitChange,
-        onNeverExpiresChange = viewModel::onNeverExpiresChange
+        onNeverExpiresChange = viewModel::onNeverExpiresChange,
+        onStartDateChange = viewModel::onStartDateChange,
+        onEndDateChange = viewModel::onEndDateChange
     )
 }
 
@@ -64,13 +70,74 @@ fun CreateCouponContent(
     onMinOrderChange: (String) -> Unit,
     onPerUserLimitChange: (String) -> Unit,
     onTotalUsageLimitChange: (String) -> Unit,
-    onNeverExpiresChange: (Boolean) -> Unit
+    onNeverExpiresChange: (Boolean) -> Unit,
+    onStartDateChange: (String) -> Unit,
+    onEndDateChange: (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
+        }
+    }
+
+    if (showStartDatePicker) {
+        val initialStartMillis = remember(uiState.startDate) {
+            try {
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
+                sdf.parse(uiState.startDate)?.time
+            } catch (_: Exception) { null }
+        }
+        val startDatePickerState = rememberDatePickerState(initialSelectedDateMillis = initialStartMillis)
+
+        DatePickerDialog(
+            onDismissRequest = { showStartDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    startDatePickerState.selectedDateMillis?.let { millis ->
+                        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
+                        onStartDateChange(sdf.format(Date(millis)))
+                    }
+                    showStartDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = startDatePickerState)
+        }
+    }
+
+    if (showEndDatePicker) {
+        val initialEndMillis = remember(uiState.endDate) {
+            try {
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
+                sdf.parse(uiState.endDate)?.time
+            } catch (_: Exception) { null }
+        }
+        val endDatePickerState = rememberDatePickerState(initialSelectedDateMillis = initialEndMillis)
+
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    endDatePickerState.selectedDateMillis?.let { millis ->
+                        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
+                        onEndDateChange(sdf.format(Date(millis)))
+                    }
+                    showEndDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = endDatePickerState)
         }
     }
 
@@ -121,8 +188,6 @@ fun CreateCouponContent(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     DiscountDetailsSection(
-                        discountType = uiState.discountType,
-                        onTypeChange = onDiscountTypeChange,
                         discountValue = uiState.discountValue,
                         onValueChange = onDiscountValueChange,
                         maxDiscount = uiState.maxDiscount,
@@ -147,8 +212,8 @@ fun CreateCouponContent(
                         endDate = uiState.endDate,
                         neverExpires = uiState.neverExpires,
                         onNeverExpiresChange = onNeverExpiresChange,
-                        onStartDateClick = { /* Tích hợp DatePickerDialog nếu cần chỉnh sửa date */ },
-                        onEndDateClick = { /* Tích hợp DatePickerDialog nếu cần chỉnh sửa date */ }
+                        onStartDateClick = { showStartDatePicker = true },
+                        onEndDateClick = { showEndDatePicker = true }
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -166,7 +231,9 @@ fun CreateCouponContent(
                         modifier = Modifier.fillMaxWidth().height(54.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                         ),
                         shape = RoundedCornerShape(14.dp)
                     ) {
@@ -221,7 +288,9 @@ fun CreateCouponScreenReview() {
             onMinOrderChange = {},
             onPerUserLimitChange = {},
             onTotalUsageLimitChange = {},
-            onNeverExpiresChange = {}
+            onNeverExpiresChange = {},
+            onStartDateChange = {},
+            onEndDateChange = {}
         )
     }
 }
