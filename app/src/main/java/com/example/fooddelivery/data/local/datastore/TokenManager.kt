@@ -70,11 +70,10 @@ class TokenManager @Inject constructor (
         rememberMe: Boolean
     ) {
         // Lưu token vào kho lưu trữ được mã hóa
-        securePrefs.edit().apply {
-            putString(ACCESS_TOKEN, accessToken)
-            putString(REFRESH_TOKEN, refreshToken)
-            apply()
-        }
+        securePrefs.edit()
+            .putString(ACCESS_TOKEN, accessToken)
+            .putString(REFRESH_TOKEN, refreshToken)
+            .commit()
 
         // Các thông tin không nhạy cảm vẫn có thể lưu ở DataStore
         context.userPrefDataStore.edit { preferences ->
@@ -105,11 +104,10 @@ class TokenManager @Inject constructor (
     }
 
     suspend fun updateTokens(accessToken: String, refreshToken: String) {
-        securePrefs.edit().apply {
-            putString(ACCESS_TOKEN, accessToken)
-            putString(REFRESH_TOKEN, refreshToken)
-            apply()
-        }
+        securePrefs.edit()
+            .putString(ACCESS_TOKEN, accessToken)
+            .putString(REFRESH_TOKEN, refreshToken)
+            .commit()
     }
 
     suspend fun saveRestaurantId(restaurantId: Int) {
@@ -165,6 +163,10 @@ class TokenManager @Inject constructor (
     
     val getPhone: Flow<String?> = context.userPrefDataStore.data.map { preferences ->
         preferences[PHONE_KEY]
+    }
+
+    val getRememberMe: Flow<Boolean> = context.userPrefDataStore.data.map { preferences ->
+        preferences[REMEMBER_ME_KEY] ?: false
     }
 
     val getRestaurantId: Flow<Int?> = context.userPrefDataStore.data.map { preferences ->

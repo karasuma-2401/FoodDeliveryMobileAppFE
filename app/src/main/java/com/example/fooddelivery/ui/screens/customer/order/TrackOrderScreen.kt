@@ -27,14 +27,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.fooddelivery.ui.components.dialog.ConfirmDialogType
-import com.example.fooddelivery.ui.components.dialog.DFoodConfirmDialog
 import com.example.fooddelivery.ui.components.topbar.DFoodTopBar
 import com.example.fooddelivery.ui.screens.customer.checkout.components.SectionTitle
 import com.example.fooddelivery.ui.screens.customer.order.components.DeliveryAddressCard
@@ -46,6 +46,7 @@ import com.example.fooddelivery.ui.screens.customer.order.components.TimelineIte
 import com.example.fooddelivery.ui.screens.customer.order.components.TrackOrderSkeleton
 import com.example.fooddelivery.ui.theme.DFoodTheme
 import com.example.fooddelivery.ui.theme.CustomerDimens
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,34 +57,45 @@ fun TrackOrderScreen(
     viewModel: TrackOrderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var showConfirmReceivedDialog by remember { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(orderId) {
         viewModel.onEvent(TrackOrderEvent.Initialize(orderId))
     }
+
+    LaunchedEffect(viewModel.uiEffect) {
+        viewModel.uiEffect.collectLatest { effect ->
+            when (effect) {
+                TrackOrderUiEffect.ConfirmReceivedSuccess -> {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    snackBarHostState.showSnackbar(
+                        message = "Order completed. Thanks!",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                is TrackOrderUiEffect.ShowSnackBar -> {
+                    snackBarHostState.showSnackbar(
+                        message = effect.message,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        }
+    }
+
     TrackOrderContent(
         state = state,
+        snackBarHostState = snackBarHostState,
         onNavigateBack = onNavigateBack,
         onChatWithRestaurant = onChatWithRestaurant,
-        onConfirmReceived = { showConfirmReceivedDialog = true },
+        onConfirmReceived = {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            viewModel.onEvent(TrackOrderEvent.ConfirmReceived)
+        },
         onCheckPayment = { viewModel.onEvent(TrackOrderEvent.CheckPaymentStatus) },
         onRefresh = { viewModel.onEvent(TrackOrderEvent.Refresh) }
     )
-
-    if (showConfirmReceivedDialog) {
-        DFoodConfirmDialog(
-            title = "Confirm Delivery",
-            message = "Have you received your order?",
-            confirmText = "Confirm",
-            type = ConfirmDialogType.Default,
-            isLoading = state.isConfirming,
-            onConfirm = {
-                showConfirmReceivedDialog = false
-                viewModel.onEvent(TrackOrderEvent.ConfirmReceived)
-            },
-            onDismiss = { showConfirmReceivedDialog = false }
-        )
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,10 +106,12 @@ fun TrackOrderContent(
     onChatWithRestaurant: (Int, Int, String, String) -> Unit,
     onConfirmReceived: () -> Unit = {},
     onCheckPayment: () -> Unit = {},
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    snackBarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     val context = LocalContext.current
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         topBar = {
             DFoodTopBar(
                 title = if (state.orderId.isNotEmpty()) "Order #${state.orderId}" else "Order Details",
@@ -220,7 +234,7 @@ fun TrackOrderContent(
                 }
 
                 // Confirm Received Action
-                if (state.trackingStatus == TrackingStatus.DELIVERED) {
+                if (state.shouldShowConfirmReceivedAction) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
@@ -246,7 +260,11 @@ fun TrackOrderContent(
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 if (state.isConfirming) {
-                                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 2.dp
+                                    )
                                 } else {
                                     Text("Confirm Received")
                                 }

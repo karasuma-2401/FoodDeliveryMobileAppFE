@@ -7,9 +7,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -116,6 +116,12 @@ fun RootNavigationGraph(
         unreadNotificationViewModel.refresh()
     }
 
+    LaunchedEffect(showCustomerBottomBar) {
+        if (showCustomerBottomBar) {
+            unreadNotificationViewModel.refresh()
+        }
+    }
+
     val context = LocalContext.current
 
     when {
@@ -206,10 +212,7 @@ fun RootNavigationGraph(
                 startDestination = authStartDestination
             )
             userNavGraph(navController = navController)
-            vendorNavGraph(
-                navController = navController,
-                unreadNotificationCount = unreadNotificationCount,
-            )
+            vendorNavGraph(navController = navController)
             adminNavGraph(navController = navController)
         }
     }
@@ -718,7 +721,6 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.vendorNavGraph(
     navController: NavHostController,
-    unreadNotificationCount: Int = 0,
 ) {
     composable<RestaurantGraph> {
         val vendorNavController = androidx.navigation.compose.rememberNavController()
@@ -734,7 +736,19 @@ fun NavGraphBuilder.vendorNavGraph(
         val isMessages = isConversationList || isChat
         val unreadChatViewModel: UnreadChatViewModel = hiltViewModel()
         val unreadMessageCount by unreadChatViewModel.unreadCount.collectAsStateWithLifecycle()
+        val unreadNotificationViewModel: UnreadNotificationViewModel = hiltViewModel()
+        val unreadNotificationCount by unreadNotificationViewModel.unreadCount.collectAsStateWithLifecycle()
+
+        LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+            unreadNotificationViewModel.refresh()
+        }
         val showBottomBar = isDashboard || isMenu || isNotifications || isProfile || isConversationList
+
+        LaunchedEffect(showBottomBar) {
+            if (showBottomBar) {
+                unreadNotificationViewModel.refresh()
+            }
+        }
 
         val vendorCurrentRoute = when {
             isDashboard -> "dashboard"

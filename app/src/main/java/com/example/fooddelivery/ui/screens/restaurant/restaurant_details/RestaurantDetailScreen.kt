@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -247,20 +248,35 @@ fun RestaurantDetailContent(
                     }
                 }
             }
-        } else {
-            state.restaurant?.let { restaurant ->
-                val heroHeight = restaurantHeroTotalHeight()
-                val heroOverlay = rememberHeroOverlayState(
-                    listState = listState,
-                    heroHeight = heroHeight,
-                    panelOverlap = RestaurantHeroPanelOverlap
+        } else if (state.restaurant == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = state.errorMessage ?: "Restaurant not found",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                    textAlign = TextAlign.Center
                 )
+            }
+        } else {
+            val restaurant = requireNotNull(state.restaurant)
+            val heroHeight = restaurantHeroTotalHeight()
+            val heroOverlay = rememberHeroOverlayState(
+                listState = listState,
+                heroHeight = heroHeight,
+                panelOverlap = RestaurantHeroPanelOverlap
+            )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = innerPadding.calculateBottomPadding())
-                ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = innerPadding.calculateBottomPadding())
+            ) {
                     if (heroOverlay.showHeroImage) {
                         Box(
                             modifier = Modifier
@@ -325,26 +341,27 @@ fun RestaurantDetailContent(
                                 }
                             }
                         }
-                        stickyHeader {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                CategoryTabs(
-                                    categories = state.categories,
-                                    selectedCategory = state.selectedCategory,
-                                    onCategorySelected = { category ->
-                                        val targetIndex = categoryToPositionMap[category] ?: 0
-                                        coroutineScope.launch {
-                                            listState.animateScrollToItem(index = targetIndex)
+                        if (state.categories.isNotEmpty()) {
+                            stickyHeader {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.background)
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                ) {
+                                    CategoryTabs(
+                                        categories = state.categories,
+                                        selectedCategory = state.selectedCategory,
+                                        onCategorySelected = { category ->
+                                            val targetIndex = categoryToPositionMap[category] ?: 0
+                                            coroutineScope.launch {
+                                                listState.animateScrollToItem(index = targetIndex)
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
-                        }
-                        state.categories.forEach { category ->
+                            state.categories.forEach { category ->
                             val itemsInCategory = state.categorizedFoodItem[category] ?: emptyList()
                             item {
                                 SectionHeader(
@@ -378,9 +395,37 @@ fun RestaurantDetailContent(
                                 Spacer(modifier = Modifier.height(12.dp))
                             }
                         }
+                        } else {
+                            item(key = "empty_menu") {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 32.dp, vertical = 48.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = if (state.foodsLoadError != null) {
+                                            "Couldn't load menu"
+                                        } else {
+                                            "No items available"
+                                        },
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = state.foodsLoadError
+                                            ?: "This restaurant hasn't added any items yet.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-            }
         }
     }
 

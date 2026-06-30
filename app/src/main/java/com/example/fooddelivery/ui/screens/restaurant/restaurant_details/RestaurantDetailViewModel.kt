@@ -46,6 +46,8 @@ data class RestaurantDetailState(
     val categories: List<String> = emptyList(),
     val selectedCategory: String = "",
     val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val foodsLoadError: String? = null,
     val categorizedFoodItem: Map<String, List<FoodItem>> = emptyMap(),
     val vouchers: List<Voucher> = emptyList(),
     val showAddToCartSheet: Boolean = false,
@@ -305,15 +307,26 @@ class RestaurantDetailViewModel @Inject constructor(
 
     private fun loadRestaurantDetails() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update {
+                it.copy(isLoading = true, errorMessage = null, foodsLoadError = null)
+            }
 
-            val idInt = restaurantId.toIntOrNull() ?: 1
+            val idInt = restaurantId.toIntOrNull()
+            if (idInt == null) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Invalid restaurant"
+                    )
+                }
+                return@launch
+            }
 
             try {
                 supervisorScope {
                     launch {
                         restaurantRepository.getFoods(idInt).onSuccess { foodResponses ->
-                            val apiFoodItems = foodResponses.map { dto ->
+                            val foodItems = foodResponses.map { dto ->
                                 FoodItem(
                                     id = dto.id.toString(),
                                     name = dto.name,
@@ -325,29 +338,11 @@ class RestaurantDetailViewModel @Inject constructor(
                                     imageUrl = dto.image
                                 )
                             }
-
-                            val foodItems = if (apiFoodItems.isEmpty()) getSeedFoodItems() else apiFoodItems
-                            val categories = foodItems.map { it.categoryId }.distinct()
-
-                            _state.update {
-                                it.copy(
-                                    foodItems = foodItems,
-                                    categories = categories,
-                                    selectedCategory = categories.firstOrNull() ?: "",
-                                    categorizedFoodItem = foodItems.groupBy { item -> item.categoryId }
-                                )
-                            }
-                        }.onFailure {
-                            val foodItems = getSeedFoodItems()
-                            val categories = foodItems.map { it.categoryId }.distinct()
-                            _state.update {
-                                it.copy(
-                                    foodItems = foodItems,
-                                    categories = categories,
-                                    selectedCategory = categories.firstOrNull() ?: "",
-                                    categorizedFoodItem = foodItems.groupBy { item -> item.categoryId }
-                                )
-                            }
+                            applyFoodItems(foodItems)
+                        }.onFailure { error ->
+                            clearFoodItems(
+                                foodsLoadError = error.message ?: "Failed to load menu"
+                            )
                         }
                     }
 
@@ -375,12 +370,22 @@ class RestaurantDetailViewModel @Inject constructor(
                                 imageUrl = dto.image,
                                 isLiked = dto.isLiked ?: false
                             )
-                            _state.update { it.copy(restaurant = restaurant) }
+                            _state.update { current ->
+                                val updatedFoodItems = current.foodItems.map {
+                                    it.copy(restaurantName = restaurant.name)
+                                }
+                                current.copy(
+                                    restaurant = restaurant,
+                                    foodItems = updatedFoodItems,
+                                    categorizedFoodItem = updatedFoodItems.groupBy { item -> item.categoryId }
+                                )
+                            }
                             checkLikeStatus(idInt)
-                        }.onFailure {
-                            if (_state.value.restaurant == null) {
-                                _state.update { it.copy(restaurant = getMockRestaurant()) }
-                                checkLikeStatus(idInt)
+                        }.onFailure { error ->
+                            _state.update {
+                                it.copy(
+                                    errorMessage = error.message ?: "Failed to load restaurant"
+                                )
                             }
                         }
                     }
@@ -400,6 +405,31 @@ class RestaurantDetailViewModel @Inject constructor(
         }
     }
 
+    private fun applyFoodItems(foodItems: List<FoodItem>) {
+        val categories = foodItems.map { it.categoryId }.distinct()
+        _state.update {
+            it.copy(
+                foodItems = foodItems,
+                categories = categories,
+                selectedCategory = categories.firstOrNull() ?: "",
+                categorizedFoodItem = foodItems.groupBy { item -> item.categoryId },
+                foodsLoadError = null
+            )
+        }
+    }
+
+    private fun clearFoodItems(foodsLoadError: String? = null) {
+        _state.update {
+            it.copy(
+                foodItems = emptyList(),
+                categories = emptyList(),
+                selectedCategory = "",
+                categorizedFoodItem = emptyMap(),
+                foodsLoadError = foodsLoadError
+            )
+        }
+    }
+
     private fun checkLikeStatus(restaurantId: Int) {
         viewModelScope.launch {
             restaurantRepository.getLikeStatus(restaurantId).onSuccess { result ->
@@ -408,85 +438,6 @@ class RestaurantDetailViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun getMockRestaurant() = Restaurant(
-        id = restaurantId,
-        name = "Heo Con - Cơm Gà Sốt, Da Gà & Hamburger - Đình Phong Phú",
-        description = "Famous for its crispy chicken and unique sauces.",
-        tags = listOf("Chicken", "Burger", "Asian"),
-        rating = 4.6f,
-        reviewCount = 999,
-        deliveryFee = 2.0,
-        isLiked = false,
-        imageRes = R.drawable.food_bowl
-    )
-
-    private fun getSeedFoodItems(): List<FoodItem> {
-        return listOf(
-            FoodItem(
-                id = "f1",
-                name = "Crispy Chicken with Sauce",
-                restaurantId = restaurantId,
-                restaurantName = "Heo Con",
-                categoryId = "Popular",
-                price = 39000.0,
-                soldCount = 1000,
-                imageRes = R.drawable.food_bowl,
-                promoTag = "1K+ Sold"
-            ),
-            FoodItem(
-                id = "f2",
-                name = "Classic Beef Burger",
-                restaurantId = restaurantId,
-                restaurantName = "Heo Con",
-                categoryId = "Popular",
-                price = 45000.0,
-                soldCount = 82,
-                imageRes = R.drawable.food_bowl,
-                promoTag = "82 Sold"
-            ),
-            FoodItem(
-                id = "f3",
-                name = "Fried Rice with Egg",
-                restaurantId = restaurantId,
-                restaurantName = "Heo Con",
-                categoryId = "Main Dishes",
-                price = 35000.0,
-                soldCount = 500,
-                imageRes = R.drawable.food_bowl
-            ),
-            FoodItem(
-                id = "f4",
-                name = "Spicy Chicken Wings",
-                restaurantId = restaurantId,
-                restaurantName = "Heo Con",
-                categoryId = "Main Dishes",
-                price = 55000.0,
-                soldCount = 200,
-                imageRes = R.drawable.food_bowl
-            ),
-            FoodItem(
-                id = "f5",
-                name = "Coca Cola",
-                restaurantId = restaurantId,
-                restaurantName = "Heo Con",
-                categoryId = "Drinks",
-                price = 15000.0,
-                soldCount = 2000,
-                imageRes = R.drawable.food_bowl
-            ),
-            FoodItem(
-                id = "f6",
-                name = "Iced Milk Coffee",
-                restaurantId = restaurantId,
-                restaurantName = "Heo Con",
-                categoryId = "Drinks",
-                price = 25000.0,
-                soldCount = 300,
-                imageRes = R.drawable.food_bowl
-            )
-        )
     }
 
     companion object {

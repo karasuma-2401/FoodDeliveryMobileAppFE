@@ -18,7 +18,7 @@ class UnreadNotificationViewModel @Inject constructor(
     val unreadCount: StateFlow<Int> = notificationRepository.getUnreadCountFlow()
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = 0,
         )
 
