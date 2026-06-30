@@ -28,6 +28,10 @@ import java.io.FileOutputStream
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
+
 
 class UserRepositoryImpl @Inject constructor(
     private val api: UserApi,
@@ -175,11 +179,8 @@ class UserRepositoryImpl @Inject constructor(
                             rating = dto.vote,
                             comment = dto.comment ?: "",
                             tags = dto.tags ?: emptyList(),
-                            createdAt = try {
-                                ZonedDateTime.parse(dto.createdAt).toInstant().toEpochMilli()
-                            } catch (e: Exception) {
-                                System.currentTimeMillis()
-                            },
+                            reply = dto.reply,
+                            createdAt = parseIsoDateTimeToMillis(dto.createdAt),
                             orderId = dto.orderId.toString()
                         )
                     }
@@ -187,6 +188,18 @@ class UserRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
+        }
+    }
+    private fun parseIsoDateTimeToMillis(isoString: String): Long {
+        return try {
+            val cleaned = isoString.replace("Z", "+0000")
+            val pattern = if (cleaned.contains(".")) "yyyy-MM-dd'T'HH:mm:ss.SSSZ" else "yyyy-MM-dd'T'HH:mm:ssZ"
+            val formatter = SimpleDateFormat(pattern, Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            formatter.parse(cleaned)?.time ?: System.currentTimeMillis()
+        } catch (e: Exception) {
+            System.currentTimeMillis()
         }
     }
 

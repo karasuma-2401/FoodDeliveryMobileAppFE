@@ -17,6 +17,7 @@ import com.example.fooddelivery.domain.model.ReviewItem
 
 enum class UserRole { CUSTOMER, BUSINESS, ADMIN }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ReviewContentCard(
     review: ReviewItem,
@@ -29,7 +30,7 @@ fun ReviewContentCard(
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
     val isReviewOwner = currentUserId != null && review.userId != 0 && currentUserId == review.userId
-    
+
     val shouldShowMenu = when (userRole) {
         UserRole.CUSTOMER -> isReviewOwner
         UserRole.BUSINESS -> true
@@ -129,21 +130,45 @@ fun ReviewContentCard(
                 lineHeight = 20.sp
             )
 
-            if (!review.reply.isNullOrBlank()) {
+            if (!review.tags.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    review.tags.forEach { tag ->
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                        ) {
+                            Text(
+                                text = tag,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (!review.reply.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(14.dp))
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(12.dp)
                         )
                         .padding(12.dp)
                 ) {
                     Column {
                         Text(
-                            text = "Restaurant's reply:",
+                            text = "Phản hồi từ nhà hàng",
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.primary
                         )

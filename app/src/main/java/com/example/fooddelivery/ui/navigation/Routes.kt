@@ -96,7 +96,8 @@ data class RestaurantReviewsRoute(val restaurantId: Int)
 @Serializable object RestaurantProfileRoute
 @Serializable object RestaurantCouponRoute
 
-@Serializable object RestaurantOrderManagementRoute
+@Serializable
+data class RestaurantOrderManagementRoute(val initialTab: Int = 0)
 
 
 // Admin

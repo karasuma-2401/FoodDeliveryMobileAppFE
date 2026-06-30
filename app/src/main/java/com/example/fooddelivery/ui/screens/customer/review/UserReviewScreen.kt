@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,7 +53,6 @@ fun UserReviewScreen(
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
                 is UserReviewUiEffect.NavigateToEdit -> {
-
                     onNavigateToEdit(
                         effect.orderId,
                         effect.restaurantId,
@@ -66,7 +64,6 @@ fun UserReviewScreen(
                         effect.tags,
                     )
                 }
-
                 is UserReviewUiEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
@@ -156,7 +153,7 @@ fun UserReviewContent(
                         UserReviewItem(
                             review = review,
                             onEditClick = { onEvent(UserReviewEvent.EditReview(review)) },
-                            onDeleteClick = { onDeleteClick(review.id) } // Thay vì gọi thẳng Event, mở Dialog lên trước
+                            onDeleteClick = { onDeleteClick(review.id) }
                         )
                     }
 

@@ -24,10 +24,11 @@ fun ReviewItemRow(
     currentUserId: Int? = null,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onReplyClick: () -> Unit
+    onReplyClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
