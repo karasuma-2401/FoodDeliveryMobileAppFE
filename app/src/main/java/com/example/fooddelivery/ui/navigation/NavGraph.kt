@@ -340,7 +340,15 @@ fun NavGraphBuilder.userNavGraph(navController: NavHostController) {
                 },
                 onNavigateToCart = { navController.navigate(CartRoute) },
                 onNavigateToSearch = { navController.navigate(SearchRoute) },
-                onNavigateToProfile = { navController.navigate(ProfileRoute) },
+                onNavigateToProfile = {
+                    navController.navigate(ProfileRoute) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
                 onNavigateToAddPhone = { navController.navigate(AddPhoneRoute) },
                 refreshAfterPhoneAdded = backStackEntry.savedStateHandle.get<Boolean>("refresh_home") == true,
                 onRefreshAfterPhoneHandled = {

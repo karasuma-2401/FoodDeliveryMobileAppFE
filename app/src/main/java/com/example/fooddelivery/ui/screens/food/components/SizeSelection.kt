@@ -54,7 +54,7 @@ fun SizeSelection(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = size.name.firstOrNull()?.uppercaseChar()?.toString() ?: size.name,
+                        text = size.name.uppercase(),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = if (isSelected) MaterialTheme.colorScheme.onPrimary
                                     else MaterialTheme.colorScheme.onSurface,
