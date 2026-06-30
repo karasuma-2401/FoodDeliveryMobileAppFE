@@ -100,35 +100,68 @@ Dự án được xây dựng hoàn toàn bằng các công nghệ và thư vi�
 
 ---
 
-## 📦 Phát hành APK (nội bộ)
+## 📦 Phát hành APK (CI/CD)
 
-App **DFood** phát hành dạng file APK cho team / demo — không qua Google Play.
+App **DFood** phát hành dạng file APK cho team / demo — không qua Google Play. Release được tự động hóa qua **GitHub Actions**.
 
-### Lần đầu (v1.0)
+### Quy trình release tự động
 
-1. Android Studio → **Build → Generate Signed App Bundle or APK**
-2. Chọn **APK** → **Create new keystore** (lưu file `.jks` + mật khẩu, backup cho team)
-3. Chọn variant **release** → Finish
-4. File output: thường tại `app/release/app-release.apk`
-5. Đổi tên file: `DFood-v1.0.apk` rồi gửi qua Drive / Zalo / GitHub Releases
+1. Commit theo [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, …)
+2. Mở PR → CI chạy unit test + build debug APK
+3. Merge vào `main` → **release-please** tạo PR bump version + `CHANGELOG.md`
+4. Merge PR release → tạo git tag `vX.Y.Z` → workflow **Release** build signed APK
+5. Tải `DFood-vX.Y.Z.apk` tại [GitHub Releases](../../releases)
 
-**Debug APK (demo nhanh, không cần keystore):**
+### Release thủ công (khẩn cấp)
 
-- **Build → Build APK(s)** → `app/build/outputs/apk/debug/app-debug.apk`
-- Lưu ý: debug và release **khác chữ ký** — đổi từ debug sang release có thể phải gỡ app cũ.
+GitHub → **Actions** → **Release** → **Run workflow** → nhập version (vd. `1.0.1`).
 
-### Cập nhật sau (chỉnh UI / fix bug)
+Hoặc push tag:
 
-1. Sửa code → test trên máy
-2. Tăng version trong `app/build.gradle.kts`:
+```bash
+git tag v1.0.1
+git push origin v1.0.1
+```
 
-   ```kotlin
-   versionCode = 2        // luôn tăng: 2, 3, 4...
-   versionName = "1.0.1"  // hiển thị: 1.0.1, 1.1.0...
-   ```
+### Cấu hình GitHub Secrets (một lần)
 
-3. Build lại **signed release APK** (cùng keystore lần đầu)
-4. Gửi `DFood-v1.0.1.apk` — teammate **cài đè** bản cũ
+Tạo Environment `production` (Settings → Environments) và thêm secrets:
+
+| Secret | Mô tả |
+|--------|--------|
+| `KEYSTORE_BASE64` | Keystore `.jks` encode base64: `base64 -w0 release.jks` |
+| `KEYSTORE_PASSWORD` | Mật khẩu keystore |
+| `KEY_ALIAS` | Alias key |
+| `KEY_PASSWORD` | Mật khẩu key |
+| `GOOGLE_SERVICES_JSON` | Toàn bộ nội dung `app/google-services.json` |
+| `FACEBOOK_APP_ID` | Facebook App ID |
+| `FACEBOOK_CLIENT_TOKEN` | Facebook Client Token |
+| `GOOGLE_WEB_CLIENT_ID` | Google Web Client ID |
+
+### Version
+
+File `version.properties` (root project) là nguồn version cho local build:
+
+```properties
+VERSION_MAJOR=1
+VERSION_MINOR=0
+VERSION_PATCH=0
+VERSION_CODE=1
+```
+
+CI release dùng `versionName` từ git tag và `versionCode` từ GitHub run number (luôn tăng).
+
+### Build local (fallback)
+
+**Signed release APK:**
+
+1. Điền signing trong `local.properties` (xem `local.properties.example`)
+2. `./gradlew assembleRelease`
+3. Output: `app/build/outputs/apk/release/app-release.apk`
+
+**Debug APK (demo nhanh):**
+
+- `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`
 
 ### Cài APK trên máy Android
 
@@ -140,6 +173,16 @@ App **DFood** phát hành dạng file APK cho team / demo — không qua Google 
 
 - **Không commit:** `local.properties`, `google-services.json`, file keystore (`.jks`)
 - **Luôn backup keystore** — mất keystore thì không update được app đã cài
+- File `app/google-services.json.ci` chỉ dùng cho CI, không dùng cho production
+
+### Workflows
+
+| Workflow | Trigger | Mục đích |
+|----------|---------|----------|
+| `ci.yml` | PR / push `main`, `develop` | Unit test + debug APK |
+| `release-please.yml` | Push `main` | Tự động bump version PR |
+| `release.yml` | Tag `v*` / manual | Signed APK → GitHub Releases |
+| `codeql.yml` | PR / weekly | Security scan |
 
 ---
 

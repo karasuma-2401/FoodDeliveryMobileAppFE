@@ -16,3 +16,8 @@ local.properties
 
 # Firebase configuration
 app/google-services.json
+
+# Release signing (never commit)
+*.jks
+*.keystore
+release.keystore
