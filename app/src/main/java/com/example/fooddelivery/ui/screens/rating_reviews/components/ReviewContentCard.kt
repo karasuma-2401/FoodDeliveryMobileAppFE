@@ -168,7 +168,7 @@ fun ReviewContentCard(
                 ) {
                     Column {
                         Text(
-                            text = "Phản hồi từ nhà hàng",
+                            text = "Restaurant's reply",
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.primary
                         )
