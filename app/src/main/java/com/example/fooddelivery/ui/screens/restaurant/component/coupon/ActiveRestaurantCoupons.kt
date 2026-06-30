@@ -48,12 +48,6 @@ fun ActiveRestaurantCoupon(
                     )
                 }
                 Text(desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                LinearProgressIndicator(
-                    progress = 0.45f,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(4.dp).clip(CircleShape),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
             }
 
             Switch(

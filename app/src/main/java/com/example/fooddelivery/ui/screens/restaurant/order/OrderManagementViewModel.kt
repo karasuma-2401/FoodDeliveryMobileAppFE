@@ -60,55 +60,7 @@ class OrderManagementViewModel @Inject constructor(
         _state.value = _state.value.copy(selectedTab = index)
     }
 
-    fun refresh() {
-        loadOrders()
-    }
-
-    fun acceptOrder(orderId: String) {
-        updateOrderStatus(orderId, newStatus = "PREPARING")
-    }
-
-    fun denyOrder(orderId: String) {
-        updateOrderStatus(orderId, newStatus = "CANCELLED")
-    }
-
-    fun completeOrder(orderId: String) {
-        updateOrderStatus(orderId, newStatus = "DELIVERING")
-    }
-
-    fun deliverOrder(orderId: String) {
-        val numericOrderId = orderId.toIntOrNull() ?: return
-
-        viewModelScope.launch {
-            _state.value = _state.value.copy(updatingOrderId = orderId, error = null)
-
-            val paymentResult = paymentRepository.getPaymentDetail(numericOrderId)
-
-            paymentResult.onSuccess { payment ->
-                val confirmResult = paymentRepository.confirmPayment(payment.id)
-
-                confirmResult.onSuccess {
-                    updateOrderStatusInternal(orderId, numericOrderId, "DELIVERED")
-                }.onFailure { error ->
-                    _state.value = _state.value.copy(
-                        updatingOrderId = null,
-                        error = "Payment confirmation failed: ${error.message}"
-                    )
-                }
-            }.onFailure { error ->
-                _state.value = _state.value.copy(
-                    updatingOrderId = null,
-                    error = "Could not load payment details: ${error.message}"
-                )
-            }
-        }
-    }
-
-    fun cancelOrder(orderId: String) {
-        updateOrderStatus(orderId, newStatus = "CANCELLED")
-    }
-
-    private fun loadOrders() {
+    fun loadOrders() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
@@ -167,6 +119,50 @@ class OrderManagementViewModel @Inject constructor(
                 error = null
             )
         }
+    }
+
+    fun acceptOrder(orderId: String) {
+        updateOrderStatus(orderId, newStatus = "PREPARING")
+    }
+
+    fun denyOrder(orderId: String) {
+        updateOrderStatus(orderId, newStatus = "CANCELLED")
+    }
+
+    fun completeOrder(orderId: String) {
+        updateOrderStatus(orderId, newStatus = "DELIVERING")
+    }
+
+    fun deliverOrder(orderId: String) {
+        val numericOrderId = orderId.toIntOrNull() ?: return
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(updatingOrderId = orderId, error = null)
+
+            val paymentResult = paymentRepository.getPaymentDetail(numericOrderId)
+
+            paymentResult.onSuccess { payment ->
+                val confirmResult = paymentRepository.confirmPayment(payment.id)
+
+                confirmResult.onSuccess {
+                    updateOrderStatusInternal(orderId, numericOrderId, "DELIVERED")
+                }.onFailure { error ->
+                    _state.value = _state.value.copy(
+                        updatingOrderId = null,
+                        error = "Payment confirmation failed: ${error.message}"
+                    )
+                }
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    updatingOrderId = null,
+                    error = "Could not load payment details: ${error.message}"
+                )
+            }
+        }
+    }
+
+    fun cancelOrder(orderId: String) {
+        updateOrderStatus(orderId, newStatus = "CANCELLED")
     }
 
     private fun updateOrderStatus(orderId: String, newStatus: String) {

@@ -43,7 +43,7 @@ fun DashboardScreen(
 
     DashboardContent(
         state = state,
-        onRefresh = { viewModel.loadDashboard() }, // Kích hoạt hàm gọi lại dữ liệu thật
+        onRefresh = { viewModel.loadDashboard() },
         onSeeAllClick = onSeeAllClick,
         onSeeAllReviewsClick = {
             state.restaurantId?.let { id ->
@@ -56,7 +56,7 @@ fun DashboardScreen(
             }
         },
         onAddFoodClick = onAddFoodClick,
-        onSeeAllOrdersClick = { onNavigate("order_management") },
+        onSeeAllOrdersClick = { onNavigate("order_management/0") }, // Mặc định về tab đầu tiên
         onNavigate = onNavigate,
         unreadMessageCount = unreadMessageCount,
         onNavigateToMessages = onNavigateToMessages
@@ -82,7 +82,6 @@ fun DashboardContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Chỉ hiển thị loading tràn màn hình ở lần đầu tiên mở app khi chưa có dữ liệu gì
         if (state.isLoading && state.recentOrders.isEmpty() && state.restaurantName.isBlank()) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else if (state.error != null && state.recentOrders.isEmpty()) {
@@ -92,7 +91,6 @@ fun DashboardContent(
                 modifier = Modifier.align(Alignment.Center)
             )
         } else {
-            // PullToRefreshBox: Container chuẩn của Material 3 quản lý thao tác kéo để reload trang
             PullToRefreshBox(
                 isRefreshing = state.isLoading,
                 onRefresh = onRefresh,
@@ -125,12 +123,16 @@ fun DashboardContent(
                         StatCard(
                             title = "RUNNING ORDERS",
                             value = state.runningOrders,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onNavigate("order_management/1") } // Tab Index 1: Running
                         )
                         StatCard(
                             title = "ORDER REQUEST",
                             value = state.orderRequest,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onNavigate("order_management/0") } // Tab Index 0: Requests
                         )
                     }
 

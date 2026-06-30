@@ -746,14 +746,17 @@ fun NavGraphBuilder.vendorNavGraph(
         }
 
         val onVendorNavigate: (String) -> Unit = { route ->
-            when (route) {
-                "dashboard" -> vendorNavController.navigate(RestaurantDashboardRoute)
-                "menu" -> vendorNavController.navigate(RestaurantFoodListRoute)
-                "notifications" -> vendorNavController.navigate(RestaurantNotificationsRoute)
-                "profile" -> vendorNavController.navigate(RestaurantProfileRoute)
-                "coupons" -> vendorNavController.navigate(RestaurantCouponRoute)
-                "messages" -> vendorNavController.navigate(ConversationRoute)
-                "order_management" -> vendorNavController.navigate(RestaurantOrderManagementRoute)
+            when {
+                route == "dashboard" -> vendorNavController.navigate(RestaurantDashboardRoute)
+                route == "menu" -> vendorNavController.navigate(RestaurantFoodListRoute)
+                route == "notifications" -> vendorNavController.navigate(RestaurantNotificationsRoute)
+                route == "profile" -> vendorNavController.navigate(RestaurantProfileRoute)
+                route == "coupons" -> vendorNavController.navigate(RestaurantCouponRoute)
+                route == "messages" -> vendorNavController.navigate(ConversationRoute)
+                route.startsWith("order_management") -> {
+                    val tabIndex = route.substringAfter("/", "0").toIntOrNull() ?: 0
+                    vendorNavController.navigate(RestaurantOrderManagementRoute(initialTab = tabIndex))
+                }
             }
         }
 
@@ -834,8 +837,11 @@ fun NavGraphBuilder.vendorNavGraph(
                     )
                 }
 
-                composable<RestaurantOrderManagementRoute> {
+                // 🌟 CẬP NHẬT: Nhận data class argument một cách Type-Safe và truyền vào Screen
+                composable<RestaurantOrderManagementRoute> { backStackEntry ->
+                    val args = backStackEntry.toRoute<RestaurantOrderManagementRoute>()
                     OrderManagementScreen(
+                        initialTab = args.initialTab,
                         onNavigateBack = { vendorNavController.popBackStack() },
                         onChatWithCustomer = { orderId, conversationId, customerName ->
                             if (conversationId != null) {
@@ -879,7 +885,7 @@ fun NavGraphBuilder.vendorNavGraph(
                         onNavigate = { destination ->
                             when (destination) {
                                 is NotificationDestination.Order ->
-                                    vendorNavController.navigate(RestaurantOrderManagementRoute)
+                                    vendorNavController.navigate(RestaurantOrderManagementRoute())
                                 is NotificationDestination.Chat ->
                                     vendorNavController.navigate(ChatRoute(conversationId = destination.conversationId))
                                 is NotificationDestination.RestaurantApproval -> Unit
@@ -923,7 +929,7 @@ fun NavGraphBuilder.vendorNavGraph(
                             vendorNavController.navigate(AddAddressRoute())
                         },
                         onNavigateToOrders = {
-                            vendorNavController.navigate(RestaurantOrderManagementRoute)
+                            vendorNavController.navigate(RestaurantOrderManagementRoute()) // Thêm () vì đã đổi thành class
                         },
                         onNavigateToReviews = {
                             vendorNavController.navigate(RestaurantReviewsRoute(restaurantId = it))
@@ -981,7 +987,6 @@ fun NavGraphBuilder.vendorNavGraph(
                         onNavigateBack = { vendorNavController.popBackStack() }
                     )
                 }
-
 
                 composable<RestaurantCouponRoute> {
                     RestaurantCouponScreen(

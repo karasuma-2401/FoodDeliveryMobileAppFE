@@ -50,6 +50,7 @@ data class UserReviewDto(
     val vote: Int,
     val comment: String? = null,
     val tags: List<String>? = null,
+    val reply: String? = null,
     val createdAt: String
 )
 

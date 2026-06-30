@@ -8,6 +8,7 @@ data class UserReview(
     val rating: Int,
     val comment: String,
     val tags: List<String>,
+    val reply: String? = null,
     val createdAt: Long,
     val orderId: String
 ) {

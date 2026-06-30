@@ -3,7 +3,10 @@ package com.example.fooddelivery.ui.screens.restaurant.order
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,12 +34,21 @@ private data class PendingOrderConfirm(
 fun OrderManagementScreen(
     onNavigateBack: () -> Unit,
     onChatWithCustomer: (orderId: Int, conversationId: Int?, customerName: String) -> Unit,
+    initialTab: Int = 0, // Nhận vị trí Tab điều hướng từ Dashboard sang (0: Requests, 1: Running)
     viewModel: OrderManagementViewModel = hiltViewModel()
 ) {
     val state by viewModel.state
     val tabs = listOf("Requests", "Running", "History")
     var pendingConfirm by remember { mutableStateOf<PendingOrderConfirm?>(null) }
 
+    // Tự động nhảy sang Tab mong muốn khi màn hình được kích hoạt từ Dashboard
+    LaunchedEffect(initialTab) {
+        if (initialTab in tabs.indices) {
+            viewModel.onTabSelected(initialTab)
+        }
+    }
+
+    // Lọc danh sách đơn hàng tương ứng theo từng Tab đang chọn
     val filteredOrders = remember(state.orders, state.selectedTab) {
         when (state.selectedTab) {
             0 -> state.orders.filter { it.status == OrderStatus.PENDING }
@@ -44,12 +56,9 @@ fun OrderManagementScreen(
                 it.status == OrderStatus.PREPARING || it.status == OrderStatus.DELIVERING
             }
             else -> state.orders.filter {
-                // DELIVERED: nhà hàng đã giao, chờ khách confirm
-                // CONFIRMED: khách xác nhận hoặc hệ thống auto-confirm sau 24h
-                // CANCELLED: bị hủy
                 it.status == OrderStatus.DELIVERED ||
-                    it.status == OrderStatus.CONFIRMED ||
-                    it.status == OrderStatus.CANCELLED
+                        it.status == OrderStatus.CONFIRMED ||
+                        it.status == OrderStatus.CANCELLED
             }
         }
     }
@@ -63,6 +72,7 @@ fun OrderManagementScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            // Thanh chuyển đổi Tab danh mục đơn hàng
             TabRow(selectedTabIndex = state.selectedTab) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
@@ -73,6 +83,7 @@ fun OrderManagementScreen(
                 }
             }
 
+            // Hiển thị thông báo lỗi từ hệ thống nếu có
             state.error?.let { error ->
                 Text(
                     text = error,
@@ -82,43 +93,54 @@ fun OrderManagementScreen(
                 )
             }
 
-            if (state.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else if (filteredOrders.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "No orders here", style = MaterialTheme.typography.bodyLarge)
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(filteredOrders) { order ->
-                        OrderCard(
-                            order = order,
-                            isUpdating = state.updatingOrderId == order.id,
-                            onAccept = { pendingConfirm = PendingOrderConfirm(order.id, OrderConfirmAction.ACCEPT) },
-                            onDeny = { pendingConfirm = PendingOrderConfirm(order.id, OrderConfirmAction.DENY) },
-                            onDone = { viewModel.completeOrder(order.id) },
-                            onDelivered = { pendingConfirm = PendingOrderConfirm(order.id, OrderConfirmAction.DELIVER) },
-                            onCancel = { pendingConfirm = PendingOrderConfirm(order.id, OrderConfirmAction.CANCEL) },
-                            onChatClick = {
-                                onChatWithCustomer(
-                                    order.id.toIntOrNull() ?: return@OrderCard,
-                                    order.conversationId,
-                                    order.customerName
-                                )
-                            }
-                        )
+            PullToRefreshBox(
+                isRefreshing = state.isLoading && filteredOrders.isNotEmpty(),
+                onRefresh = { viewModel.loadOrders() },
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (state.isLoading && filteredOrders.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else if (filteredOrders.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "No orders here", style = MaterialTheme.typography.bodyLarge)
+                    }
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredOrders) { order ->
+                            OrderCard(
+                                order = order,
+                                isUpdating = state.updatingOrderId == order.id,
+                                onAccept = { pendingConfirm = PendingOrderConfirm(order.id, OrderConfirmAction.ACCEPT) },
+                                onDeny = { pendingConfirm = PendingOrderConfirm(order.id, OrderConfirmAction.DENY) },
+                                onDone = { viewModel.completeOrder(order.id) },
+                                onDelivered = { pendingConfirm = PendingOrderConfirm(order.id, OrderConfirmAction.DELIVER) },
+                                onCancel = { pendingConfirm = PendingOrderConfirm(order.id, OrderConfirmAction.CANCEL) },
+                                onChatClick = {
+                                    onChatWithCustomer(
+                                        order.id.toIntOrNull() ?: return@OrderCard,
+                                        order.conversationId,
+                                        order.customerName
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
-
+    
     pendingConfirm?.let { pending ->
         val dialog = when (pending.action) {
             OrderConfirmAction.ACCEPT -> OrderDialogContent(
