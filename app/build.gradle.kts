@@ -194,7 +194,7 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended")
 
-    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     
     implementation("com.airbnb.android:lottie-compose:6.7.1")
 
