@@ -14,6 +14,23 @@ val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
+
+val versionProperties = Properties()
+val versionPropertiesFile = rootProject.file("version.properties")
+if (versionPropertiesFile.exists()) {
+    versionProperties.load(FileInputStream(versionPropertiesFile))
+}
+
+fun versionProp(name: String, default: String): String =
+    versionProperties.getProperty(name) ?: default
+
+val appVersionMajor = versionProp("VERSION_MAJOR", "1")
+val appVersionMinor = versionProp("VERSION_MINOR", "0")
+val appVersionPatch = versionProp("VERSION_PATCH", "0")
+val appVersionName = (project.findProperty("VERSION_NAME") as String?)
+    ?: "$appVersionMajor.$appVersionMinor.$appVersionPatch"
+val appVersionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull()
+    ?: versionProp("VERSION_CODE", "1").toInt()
 val fbAppId = localProperties.getProperty("FACEBOOK_APP_ID") ?: "0"
 val fbClientToken = localProperties.getProperty("FACEBOOK_CLIENT_TOKEN") ?: "0"
 val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""
@@ -48,8 +65,8 @@ android {
         applicationId = "com.example.fooddelivery"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -68,6 +85,23 @@ android {
         }
     }
 
+    signingConfigs {
+        val keystorePath = System.getenv("KEYSTORE_PATH")?.let { rootProject.file(it) }
+            ?: localProperties.getProperty("RELEASE_STORE_FILE")?.let { rootProject.file(it) }
+
+        if (keystorePath != null && keystorePath.exists()) {
+            create("release") {
+                storeFile = keystorePath
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                    ?: localProperties.getProperty("RELEASE_STORE_PASSWORD").orEmpty()
+                keyAlias = System.getenv("KEY_ALIAS")
+                    ?: localProperties.getProperty("RELEASE_KEY_ALIAS").orEmpty()
+                keyPassword = System.getenv("KEY_PASSWORD")
+                    ?: localProperties.getProperty("RELEASE_KEY_PASSWORD").orEmpty()
+            }
+        }
+    }
+
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
@@ -81,6 +115,7 @@ android {
             )
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
             buildConfigField("String", "SOCKET_URL", "\"$socketUrl\"")
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
 
