@@ -166,7 +166,7 @@ fun UserReviewItem(
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
-                            text = "Phản hồi từ nhà hàng",
+                            text = "Restaurant's reply",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
