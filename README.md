@@ -16,6 +16,18 @@
 
 Dự án này là phần **Frontend Android**, giao tiếp với Backend thông qua RESTful APIs.
 
+### 📚 Tài liệu học từ source code
+
+Toàn bộ docs (implementation guides, patterns, ADR, cookbook, troubleshooting): **[docs/README.md](docs/README.md)**
+
+| Nhanh | Link |
+|-------|------|
+| Học cách FE implement từng tính năng | [docs/learning/](docs/learning/) |
+| Pattern tái sử dụng | [docs/learning/patterns.md](docs/learning/patterns.md) |
+| CI/CD & setup portable | [docs/learning/cicd-release.md](docs/learning/cicd-release.md) |
+| Debug lỗi thường gặp | [docs/troubleshooting.md](docs/troubleshooting.md) |
+| Tổng kết portfolio / đồ án | [docs/case-study.md](docs/case-study.md) |
+
 ---
 
 ## ✨ Tính năng nổi bật (Key Features)
@@ -103,6 +115,8 @@ Dự án được xây dựng hoàn toàn bằng các công nghệ và thư vi�
 ## 📦 Phát hành APK (CI/CD)
 
 App **DFood** phát hành dạng file APK cho team / demo — không qua Google Play. Release được tự động hóa qua **GitHub Actions**.
+
+> **Hướng dẫn chi tiết + setup portable cho project khác:** [docs/learning/cicd-release.md](docs/learning/cicd-release.md) · Checklist nhanh: [docs/cookbook/android-cicd-template.md](docs/cookbook/android-cicd-template.md)
 
 ### Quy trình release tự động
 
